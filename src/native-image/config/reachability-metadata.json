@@ -223,10 +223,37 @@
       ]
     },
     {
+      "type": "dev.jbang.cli.Deps"
+    },
+    {
       "type": "dev.jbang.cli.DepsAdd"
     },
     {
       "type": "dev.jbang.cli.DepsSearch"
+    },
+    {
+      "type": "dev.jbang.search.MvnSearchResult",
+      "allDeclaredConstructors" : true,
+      "allPublicConstructors" : true,
+      "allPublicFields" : true
+    },
+    {
+      "type": "dev.jbang.search.MsrHeader",
+      "allDeclaredConstructors" : true,
+      "allPublicConstructors" : true,
+      "allPublicFields" : true
+    },
+    {
+      "type": "dev.jbang.search.MsrResponse",
+      "allDeclaredConstructors" : true,
+      "allPublicConstructors" : true,
+      "allPublicFields" : true
+    },
+    {
+      "type": "dev.jbang.search.MsrDoc",
+      "allDeclaredConstructors" : true,
+      "allPublicConstructors" : true,
+      "allPublicFields" : true
     },
     {
       "type": "dev.jbang.cli.AliasAdd",
@@ -1609,6 +1636,9 @@
   ],
   "resources": [
     {
+      "bundle": "consoleui_messages"
+    },  
+    {
       "glob": "META-INF/services/**"
     },
     {
@@ -1696,5 +1726,7 @@
       "module": "java.logging",
       "glob": "sun/util/logging/resources/*.properties"
     }
+
+
   ]
 }
