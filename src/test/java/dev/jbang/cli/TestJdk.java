@@ -53,7 +53,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+				equalTo("Installed JDKs (<=default):\n   13 (13.0.7)\n   12 (12.0.7)\n   11 (11.0.7) <\n"));
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+				equalTo("Installed JDKs (<=default):\n   13 (13.0.7)\n   12 (12.0.7)\n   11 (11.0.7) <\n"));
 	}
 
 	@Test
@@ -86,30 +86,30 @@ class TestJdk extends BaseTest {
 	void testDefault() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
-		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("12", false, FormatMixin.Format.text));
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("12", false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null, false, FormatMixin.Format.text));
+		result = checkedRun(jdk -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.normalizedOut(), containsString("* -> 12-jbang"));
 	}
 
 	@Test
 	void testDefaultPlus() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("16+", false, FormatMixin.Format.text));
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("16+", false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 17"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null, false, FormatMixin.Format.text));
+		result = checkedRun(jdk -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 17\n"));
+		assertThat(result.normalizedOut(), containsString("* -> 17-jbang"));
 	}
 
 	@Test
@@ -233,17 +233,18 @@ class TestJdk extends BaseTest {
 		initMockJdkDir(jdkPath, "12.0.7");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
-		CaptureResult<Integer> result = checkedRun((Jdk jdk) -> jdk.defaultJdk("12", false, FormatMixin.Format.text),
-				"jdk", "--jdk-providers",
-				"default,javahome,jbang");
+		CaptureResult<Integer> result = checkedRun(
+				(Jdk jdk) -> jdk.defaultJdk("12", false, false, FormatMixin.Format.text),
+				"jdk", "--jdk-providers", "default,javahome,jbang");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null, false, FormatMixin.Format.text));
+		result = checkedRun((Jdk jdk) -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text),
+				"jdk", "--jdk-providers", "default,javahome,jbang");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.normalizedOut(), containsString("* -> javahome"));
 	}
 
 	@Test
