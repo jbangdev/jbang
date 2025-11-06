@@ -205,6 +205,11 @@ public abstract class BaseTest {
 	}
 
 	protected void initWireMock() {
+		// Allow disabling WireMock via system property from gradle command line
+		if ("false".equals(System.getProperty("jbang.test.wiremock.enable", "true"))) {
+			return;
+		}
+
 		// Start a WireMock server to capture and replay any remote
 		// requests JBang makes (any new code that results in additional
 		// requests will result in new recordings being added to the

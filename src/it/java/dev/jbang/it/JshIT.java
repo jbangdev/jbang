@@ -2,7 +2,9 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -11,6 +13,11 @@ import io.qameta.allure.Description;
 
 @EnabledForJreRange(min = JRE.JAVA_9)
 public class JshIT extends BaseIT {
+
+	@BeforeEach
+	public void setup() {
+		assumeTrue(testJavaMajorVersion >= 9, "Jsh is not supported on Java 8");
+	}
 
 	// Scenario: jshell helloworld
 	@Test

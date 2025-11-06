@@ -53,6 +53,21 @@ java {
 	withSourcesJar()
 }
 
+// Configure toolchain for test execution (separate from compilation)
+// Can be set via -PtestJavaVersion=<version> and -PtestJavaVendor=<vendor>
+// Example: ./gradlew test -PtestJavaVersion=17 -PtestJavaVendor=adoptium
+def testJavaVersion = project.hasProperty('testJavaVersion')
+	? JavaLanguageVersion.of(project.property('testJavaVersion') as Integer)
+	: JavaLanguageVersion.of(11)
+def testJavaVendor = project.hasProperty('testJavaVendor')
+	? JvmVendorSpec.matching(project.property('testJavaVendor') as String)
+	: JvmVendorSpec.ADOPTIUM
+
+def testExecutionToolchain = project.javaToolchains.launcherFor {
+	languageVersion = testJavaVersion
+	vendor = testJavaVendor
+}
+
 
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
@@ -131,6 +146,7 @@ sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
 	implementation 'dev.jbang:devkitman:0.3.0'
+
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.11.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
@@ -295,7 +311,7 @@ compileTestJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
-	options.compilerArgs.addAll(['--release', '11'])
+	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 compileJava9Java {
@@ -329,11 +345,15 @@ shadowJar {
 
 test {
 	useJUnitPlatform()
-	jvmArgs = [
+	javaLauncher = testExecutionToolchain
+	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
+	if (testJavaVersion.asInt() >= 9) {
+		jvmArgsList.addAll([
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED",
-			"-javaagent:${configurations.agent.singleFile}" // for allure reporting
-	]
+			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+		])
+	}
+	jvmArgs = jvmArgsList
 	//testLogging.showStandardStreams = true
 
 	/*testLogging {
@@ -345,6 +365,9 @@ test {
 	jacoco {
 		enabled = false
 	}
+
+	// Allow disabling WireMock via project property -PdisableWiremock=true
+	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
 }
 
 jacoco {
@@ -380,6 +403,7 @@ testing {
 				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
 				implementation "org.wiremock:wiremock:3.12.1"
+				implementation 'dev.jbang:devkitman:0.3.0'
 			}
 
 			sources {
@@ -392,6 +416,7 @@ testing {
 			targets {
 				all {
 					testTask.configure {
+						javaLauncher = testExecutionToolchain
 						shouldRunAfter(test) // todo: push to buildDist?
 					}
 				}
@@ -544,16 +569,36 @@ compileTestJava.dependsOn(compileJava9Java);
 shadowJar.dependsOn(copyTestResources);
 
 // Function to generate parentSuite value based on environment
-def generateParentSuite() {
-	def osName = System.getProperty('os.name')
-	def arch = System.getProperty('os.arch')
-	def javaVersion = System.getProperty('java.version')
-	def useNative = System.getenv('JBANG_USE_NATIVE') == 'true'
-	def parentSuite = "${osName}-${arch}-${javaVersion}"
-	if (useNative) {
-		parentSuite += "-native-image"
+def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolchain.JavaLanguageVersion testJavaVersion) {
+	def parts = []
+	parts.add(System.getProperty('os.name'))
+	parts.add(System.getProperty('os.arch'))
+	parts.add(System.getProperty('java.version'))
+	if (isIntegrationTest) {
+		parts.add("integration-test")
+	} else {
+		parts.add("unit-test")
 	}
-	return parentSuite
+	if (System.getenv('JBANG_USE_NATIVE') == 'true') {
+		parts.add("native-image")
+	} else {
+		parts.add("jvm")
+	}
+	def javaVersionStr = System.getenv('_JBANG_TEST_JAVA_VERSION')
+	if (javaVersionStr == null || javaVersionStr.isEmpty()) {
+		javaVersionStr = testJavaVersion.asInt().toString()
+	}
+	parts.add(javaVersionStr)
+	try {
+		def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+		def gitSha = grgit.head().id
+		if (gitSha != null && !gitSha.isEmpty()) {
+			parts.add(gitSha.substring(0, Math.min(7, gitSha.length())))
+		}
+	} catch (ignored) {
+		// No git data available
+	}
+	return parts.join('-')
 }
 
 // Function to get the correct native executable name based on OS
@@ -570,7 +615,7 @@ def getNativeExecutableName() {
 processTestResources {
 	filesMatching('allure.properties') {
 		expand([
-			parentSuite: generateParentSuite()
+			parentSuite: generateParentSuite(false, testJavaVersion)
 		])
 	}
 }
@@ -578,7 +623,7 @@ processTestResources {
 processIntegrationTestResources {
 	filesMatching('allure.properties') {
 		expand([
-			parentSuite: generateParentSuite()
+			parentSuite: generateParentSuite(true, testJavaVersion)
 		])
 	}
 }

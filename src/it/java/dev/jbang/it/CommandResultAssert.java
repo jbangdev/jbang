@@ -116,6 +116,49 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
 		return this;
 	}
 
+	public CommandResultAssert outMatches(String pattern) {
+		return outMatches(Pattern.compile(pattern));
+	}
+
+	public CommandResultAssert errMatches(Pattern pattern) {
+		isNotNull();
+		if (!pattern.matcher(actual.err).matches()) {
+			failWithActualExpectedAndMessage(actual.err, pattern.pattern(),
+					"Expected error output to match <%s> but was <%s>", pattern.pattern(), actual.err);
+		}
+		return this;
+	}
+
+	public CommandResultAssert errMatches(String pattern) {
+		return errMatches(Pattern.compile(pattern));
+	}
+
+	public CommandResultAssert outFind(Pattern pattern) {
+		isNotNull();
+		if (!pattern.matcher(actual.out).find()) {
+			failWithActualExpectedAndMessage(actual.out, pattern.pattern(),
+					"Expected output to contain <%s> but was <%s>", pattern.pattern(), actual.out);
+		}
+		return this;
+	}
+
+	public CommandResultAssert outFind(String pattern) {
+		return outFind(Pattern.compile(pattern));
+	}
+
+	public CommandResultAssert errFind(Pattern pattern) {
+		isNotNull();
+		if (!pattern.matcher(actual.err).find()) {
+			failWithActualExpectedAndMessage(actual.err, pattern.pattern(),
+					"Expected error output to contain <%s> but was <%s>", pattern.pattern(), actual.err);
+		}
+		return this;
+	}
+
+	public CommandResultAssert errFind(String pattern) {
+		return errFind(Pattern.compile(pattern));
+	}
+
 	public CommandResultAssert errIsExactly(String expected) {
 		isNotNull();
 		objects.assertEqual(info, actual.err, expected);

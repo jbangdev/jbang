@@ -1,13 +1,19 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 //TODO: fresh should not be needed. probably due to not running isolated enough.
 
 public class MarkdownIT extends BaseIT {
 
+	@BeforeEach
+	public void setup() {
+		assumeTrue(testJavaMajorVersion >= 9, "Markdown requires JShell which is not supported on Java 8");
+	}
 	// Feature: markdown
 
 	// Scenario: readme.md

@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.util.Collections;
 
@@ -20,6 +21,7 @@ public class QuotingIT extends BaseIT {
 	@Test
 	@DisabledOnJre(JRE.JAVA_8)
 	public void shouldPipeCodeViaStdin() {
+		assumeTrue(testJavaMajorVersion >= 9, "Piping code via stdin requires JShell which is not supported on Java 8");
 		assertThat(shell("echo 'System.out.println(\"Hello World\")' | jbang -")).outIsExactly("Hello World\n");
 	}
 
@@ -29,6 +31,7 @@ public class QuotingIT extends BaseIT {
 	@Test
 	@DisabledOnJre(JRE.JAVA_8)
 	public void shouldKeepQuotesWhenWrappedWithQuotes() {
+		assumeTrue(testJavaMajorVersion >= 9, "Piping code via stdin requires JShell which is not supported on Java 8");
 		assertThat(shell("jbang echo.java 'foo *'")).outIsExactly("0:foo *\n");
 	}
 
@@ -36,7 +39,6 @@ public class QuotingIT extends BaseIT {
 // When command('jbang echo.java foo *')
 // Then match out contains "0:foo\n1:"
 	@Test
-	@DisabledOnJre(JRE.JAVA_8)
 	public void shouldExpand() {
 		assertThat(shell("jbang echo.java foo *")).outContains("0:foo\n1:");
 	}

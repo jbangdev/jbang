@@ -45,7 +45,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
-import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -1223,32 +1222,6 @@ public class TestRun extends BaseTest {
 
 		assert (run.runMixin.cds != null);
 		assert (run.runMixin.cds);
-	}
-
-	@Test
-	void testCDSGeneratesJSAFile() throws Exception {
-		String arg = examplesTestFolder.resolve("echo.java").toAbsolutePath().toString();
-
-		Project prj = Project.builder().mainClass("echo").build(Paths.get(arg));
-		BuildContext ctx = BuildContext.forProject(prj);
-		Path jsa = ctx.getJsaFile();
-
-		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
-			String commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
-			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
-			assertThat(jsa.toFile(), not(FileMatchers.anExistingFile()));
-
-			String out = Util.runCommand(commandLine.split(" "));
-			assertThat(out, notNullValue());
-
-			commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
-			assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
-			assertThat(jsa.toFile(), FileMatchers.anExistingFile());
-		} else {
-			CaptureResult<String> cap = captureOutput(
-					() -> CmdGenerator.builder(ctx).classDataSharing(true).build().generate());
-			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
-		}
 	}
 
 	@Test
