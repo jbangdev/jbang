@@ -307,6 +307,9 @@ public class Jdk {
 	public Integer defaultJdk(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId,
 			@CommandLine.Option(names = {
+					"--for-version",
+					"-v" }, description = "Sets the default for the specified major version") boolean forVersion,
+			@CommandLine.Option(names = {
 					"--show-details", "--details",
 					"-d" }, description = "Shows detailed information for each JDK (only when format=text)") boolean details,
 			@CommandLine.Option(names = {
@@ -316,11 +319,17 @@ public class Jdk {
 			Util.warnMsg("Cannot perform operation, the 'default' provider was not found");
 			return EXIT_INVALID_INPUT;
 		}
-		dev.jbang.devkitman.Jdk.InstalledJdk defjdk = jdkMan.getDefaultJdk();
 		if (versionOrId != null) {
 			dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
+			dev.jbang.devkitman.Jdk.InstalledJdk defjdk = forVersion
+					? jdkMan.getDefaultJdkForVersion(jdk.majorVersion())
+					: jdkMan.getDefaultJdk();
 			if (defjdk == null || (!jdk.equals(defjdk) && !Objects.equals(jdk.home(), defjdk.home()))) {
-				jdkMan.setDefaultJdk(jdk);
+				if (forVersion) {
+					jdkMan.setDefaultJdkForVersion(jdk);
+				} else {
+					jdkMan.setDefaultJdk(jdk);
+				}
 			} else {
 				Util.infoMsg("Default JDK already set to " + defjdk.majorVersion());
 			}
