@@ -48,17 +48,10 @@ public class TestApp extends BaseTest {
 	private static final List<String> h2ps1Contents = Collections.singletonList(
 			"jbang run com.h2database:h2:1.4.200 @args");
 
-	private static final List<String> aliasShContents = Arrays.asList("@echo off",
-			"jbang run myalias %*");
-	private static final List<String> aliasCmdContents = Arrays.asList("@echo off",
-			"jbang run myalias %*");
-	private static final List<String> aliasPs1Contents = Collections.singletonList(
-			"jbang run myalias @args");
-
 	@Test
 	void testAppInstallFile() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -84,7 +77,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppNativeInstallFile() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "--native", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "--native", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -97,7 +90,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallExtensionLessFile() throws Exception {
 		String src = examplesTestFolder.resolve("kubectl-example").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: kubectl-example"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -110,7 +103,7 @@ public class TestApp extends BaseTest {
 	@Test
 	@Timeout(value = 2, unit = TimeUnit.MINUTES)
 	void testAppInstallURL() throws Exception {
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build",
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build",
 				"https://github.com/jbangdev/k8s-cli-java/blob/jbang/kubectl-example");
 		assertThat(result.err, containsString("Command installed: kubectl-example"));
 		if (Util.isWindows()) {
@@ -123,7 +116,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallGVA() throws Exception {
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "--name", "h2",
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "--name", "h2",
 				"com.h2database:h2:1.4.200");
 		assertThat(result.err, containsString("Command installed: h2"));
 		if (Util.isWindows()) {
@@ -145,7 +138,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallFileExists() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -160,7 +153,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallFileForce() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -206,7 +199,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallFileWithName() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -221,7 +214,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallFileWithNameExists() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -236,7 +229,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallFileWithNameForce() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -251,7 +244,7 @@ public class TestApp extends BaseTest {
 	void testAppInstallAlias() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		checkedRun(null, "alias", "add", "-g", "--name=apptest", src);
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "apptest");
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "apptest");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -269,7 +262,7 @@ public class TestApp extends BaseTest {
 		checkedRun(null, "alias", "add", "-g", "--name=apptest", src);
 		checkedRun(null, "catalog", "add", "-g", "--name=testrepo",
 				jbangTempDir.resolve("jbang-catalog.json").toString());
-		CaptureResult result = checkedRun(null, "app", "install", "--no-build", "apptest@testrepo");
+		CaptureResult<Integer> result = checkedRun(null, "app", "install", "--no-build", "apptest@testrepo");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -308,7 +301,7 @@ public class TestApp extends BaseTest {
 		checkedRun(null, "app", "install", "--no-build", "--name=hello1", src);
 		checkedRun(null, "app", "install", "--no-build", "--name=hello2", src);
 		checkedRun(null, "app", "install", "--no-build", "--name=hello3", src);
-		CaptureResult result = checkedRun(null, "app", "list");
+		CaptureResult<Integer> result = checkedRun(null, "app", "list");
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		assertThat(result.normalizedOut(), equalTo("hello1\nhello2\nhello3\n"));
 	}
@@ -323,7 +316,7 @@ public class TestApp extends BaseTest {
 		} else {
 			assertThat(Settings.getConfigBinDir().resolve("helloworld").toFile(), anExistingFile());
 		}
-		CaptureResult result = checkedRun(null, "app", "uninstall", "helloworld");
+		CaptureResult<Integer> result = checkedRun(null, "app", "uninstall", "helloworld");
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		assertThat(result.err, containsString("Command removed: helloworld"));
 		assertThat(Settings.getConfigBinDir().resolve("helloworld").toFile(), not(anExistingFile()));
@@ -333,7 +326,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppUninstallUnknown() throws Exception {
-		CaptureResult result = checkedRun(null, "app", "uninstall", "hello");
+		CaptureResult<Integer> result = checkedRun(null, "app", "uninstall", "hello");
 		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 		assertThat(result.err, containsString("Command not found: hello"));
 	}

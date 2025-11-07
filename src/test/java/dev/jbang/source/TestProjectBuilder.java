@@ -175,7 +175,6 @@ public class TestProjectBuilder extends BaseTest {
 	void testAliasSource() throws IOException {
 		Util.setCwd(examplesTestFolder);
 		ProjectBuilder pb = Project.builder();
-		Path src = examplesTestFolder.resolve("alltags.java");
 		Project prj = pb.build("alltags");
 		assertThat(prj.getDescription().get(), equalTo("some description"));
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(4));

@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -281,18 +282,21 @@ public class NetUtil {
 					} else if (responseCode >= 400) {
 						String message = null;
 						if (httpConn.getErrorStream() != null) {
-							String err = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()))
-								.lines()
-								.collect(
-										Collectors.joining(
-												"\n"))
-								.trim();
+							String err;
+							try (BufferedReader reader = new BufferedReader(
+									new InputStreamReader(httpConn.getErrorStream()))) {
+								err = reader.lines()
+									.collect(Collectors.joining("\n"))
+									.trim();
+							}
 							verboseMsg("HTTP: " + responseCode + " - " + err);
 							if (err.startsWith("{") && err.endsWith("}")) {
 								// Could be JSON, let's try to parse it
 								try {
 									Gson parser = new Gson();
-									Map json = parser.fromJson(err, Map.class);
+									Map<String, Object> json = parser.fromJson(err,
+											new TypeToken<Map<String, Object>>() {
+											}.getType());
 									// GitHub returns useful information in `message`,
 									// if it's there we use it.
 									// TODO add support for other known sites

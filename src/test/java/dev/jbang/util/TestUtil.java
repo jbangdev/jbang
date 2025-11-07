@@ -119,7 +119,6 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testExplodeAbs() throws IOException {
-		Path baseDir = examplesTestFolder;
 
 		String source = ".";
 		String dir = examplesTestFolder.toString().replace('\\', '/');

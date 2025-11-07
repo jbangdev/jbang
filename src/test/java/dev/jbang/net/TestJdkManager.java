@@ -61,7 +61,7 @@ class TestJdkManager extends BaseTest {
 	@Test
 	void testResolveJavaVersionFromPathWhenReleaseFileDoesNotExist(@TempDir File javaDir) throws IOException {
 		// Given
-		File release = new File(javaDir, "not-release");
+		new File(javaDir, "not-release");
 
 		// When
 		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());

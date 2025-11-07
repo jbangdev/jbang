@@ -206,7 +206,6 @@ public class TestExport extends BaseTest {
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
-		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
@@ -226,7 +225,6 @@ public class TestExport extends BaseTest {
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/groovy/classpath_log.groovy");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
-		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
@@ -246,7 +244,6 @@ public class TestExport extends BaseTest {
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_log.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
-		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
@@ -266,7 +263,6 @@ public class TestExport extends BaseTest {
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_main.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
-		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);

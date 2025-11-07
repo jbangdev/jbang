@@ -136,7 +136,7 @@ class AppInstall extends BaseBuildCommand {
 				return false;
 			}
 		}
-		if (!pb.isAlias(prj.getResourceRef()) && !DependencyUtil.looksLikeAGav(scriptRef)
+		if (!ProjectBuilder.isAlias(prj.getResourceRef()) && !DependencyUtil.looksLikeAGav(scriptRef)
 				&& !prj.getResourceRef().isURL()) {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}

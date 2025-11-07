@@ -177,7 +177,6 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
-		BuildContext ctx = BuildContext.forProject(prj);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
@@ -204,7 +203,6 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(
 				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class", null));
-		BuildContext ctx = BuildContext.forProject(prj);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
@@ -609,7 +607,6 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
-		BuildContext ctx = BuildContext.forProject(prj);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
@@ -2168,7 +2165,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		try {
-			Project prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", null));
+			pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", null));
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
@@ -2183,7 +2180,6 @@ public class TestRun extends BaseTest {
 		String script = "" +
 				"//REPOS acme=https://repo1.maven.org/maven2/\n" +
 				"public class script { public static void main(String... args) {} }";
-		JBang jbang = new JBang();
 		Path p = output.resolve("script.java");
 		writeString(p, script);
 
@@ -2367,7 +2363,6 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	void testRemoteFileArgSimple() throws Exception {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
@@ -2388,7 +2383,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testRemoteFileArgBraced() throws Exception {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
@@ -2409,7 +2404,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testRemoteFileArgComplex() throws Exception {
 
 		wms.stubFor(
@@ -2443,7 +2438,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testRemoteFileJavaagentComplex() throws Exception {
 
 		wms.stubFor(
@@ -2471,7 +2466,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testRemoteFileArgSimpleEscaped() throws Exception {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
@@ -2482,7 +2477,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testRemoteFileArgComplexEscaped() throws Exception {
 		if (Util.isWindows()) {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
@@ -2496,7 +2491,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testDepsSubstituteArg() throws Exception {
 		if (Util.isWindows()) {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
@@ -2511,13 +2506,13 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+
 	void testUnknownSubstituteArg() throws Exception {
 		if (Util.isWindows()) {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
 		}
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
-		ExitException e = Assertions.assertThrows(ExitException.class,
+		Assertions.assertThrows(ExitException.class,
 				() -> checkedRun(null, "run", "--verbose", script, "%{foo:bar}"));
 	}
 
@@ -2585,7 +2580,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testNativeOptsVerbose() {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
+		JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
 	}
 
 	@Test

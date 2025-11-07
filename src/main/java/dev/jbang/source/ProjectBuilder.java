@@ -524,7 +524,6 @@ public class ProjectBuilder {
 	}
 
 	private void updateAllSources(Project prj, List<String> sources) {
-		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
 		ResourceResolver resolver = getResourceResolver();
 		sources.stream()
 			.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
