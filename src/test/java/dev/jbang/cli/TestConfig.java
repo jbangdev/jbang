@@ -46,7 +46,7 @@ public class TestConfig extends BaseTest {
 
 	@Test
 	void testList() throws Exception {
-		CaptureResult result = checkedRun(null, "config", "list");
+		CaptureResult<Integer> result = checkedRun(null, "config", "list");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("format = text\n" +
@@ -61,14 +61,14 @@ public class TestConfig extends BaseTest {
 
 	@Test
 	void testGetLocal() throws Exception {
-		CaptureResult result = checkedRun(null, "config", "get", "two");
+		CaptureResult<Integer> result = checkedRun(null, "config", "get", "two");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("bar\n"));
 	}
 
 	@Test
 	void testGetGlobal() throws Exception {
-		CaptureResult result = checkedRun(null, "config", "get", "run.debug");
+		CaptureResult<Integer> result = checkedRun(null, "config", "get", "run.debug");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("4004\n"));
 	}
@@ -76,14 +76,14 @@ public class TestConfig extends BaseTest {
 	@Test
 	void testSetLocal() throws Exception {
 		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("mykey")));
-		CaptureResult result = checkedRun(null, "config", "set", "mykey", "myvalue");
+		checkedRun(null, "config", "set", "mykey", "myvalue");
 		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("mykey"));
 	}
 
 	@Test
 	void testSetGlobal() throws Exception {
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
-		CaptureResult result = checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
+		checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
 	}
 
@@ -92,14 +92,14 @@ public class TestConfig extends BaseTest {
 		Files.deleteIfExists(testConfigFile);
 		Files.deleteIfExists(testConfigFileSub);
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("run.debug")));
-		CaptureResult result = checkedRun(null, "config", "set", "run.debug", "42");
+		checkedRun(null, "config", "set", "run.debug", "42");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("run.debug"));
 	}
 
 	@Test
 	void testUnsetLocal() throws Exception {
 		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("two"));
-		CaptureResult result = checkedRun(null, "config", "unset", "two");
+		checkedRun(null, "config", "unset", "two");
 		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("two")));
 	}
 
@@ -107,13 +107,13 @@ public class TestConfig extends BaseTest {
 	void testUnsetGlobal() throws Exception {
 		checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
-		CaptureResult result = checkedRun(null, "config", "unset", "--global", "mykey");
+		checkedRun(null, "config", "unset", "--global", "mykey");
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
 	}
 
 	@Test
 	void testUnsetBuiltin() throws Exception {
-		CaptureResult result = checkedRun(null, "config", "unset", "run.debug");
+		CaptureResult<Integer> result = checkedRun(null, "config", "unset", "run.debug");
 		assertThat(result.normalizedErr(), containsString("Cannot remove built-in option"));
 	}
 

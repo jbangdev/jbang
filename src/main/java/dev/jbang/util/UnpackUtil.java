@@ -91,9 +91,10 @@ public class UnpackUtil {
 					if (zipEntry.isDirectory() && checkValidParent(entry)) {
 						Files.createDirectories(entry);
 					} else if (zipEntry.isUnixSymlink()) {
-						Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
-						String result = s.hasNext() ? s.next() : "";
-						Files.createSymbolicLink(entry, Paths.get(result));
+						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
+							String result = s.hasNext() ? s.next() : "";
+							Files.createSymbolicLink(entry, Paths.get(result));
+						}
 					} else {
 						if (checkValidParent(entry.getParent())) {
 							Files.createDirectories(entry.getParent());

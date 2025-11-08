@@ -47,7 +47,6 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws Exception {
-		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
@@ -325,8 +324,6 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) {
-
-		File release = new File(javaDir, "release");
 
 		checkedRunWithException(jdk -> {
 			try {

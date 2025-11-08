@@ -221,7 +221,7 @@ public class Init extends BaseCommand {
 			prompt.put("temperature", 0.8); // reduce variation, more deterministic
 			Gson gson = new Gson();
 
-			List<Map> messages = new ArrayList<>();
+			List<Map<String, String>> messages = new ArrayList<>();
 			messages.add(prompt("system",
 					"You are to generate a response that only contain code that is written in a file ending in "
 							+ extension + " in the style of jbang. The main class must be named "
@@ -240,8 +240,10 @@ public class Init extends BaseCommand {
 			InputStream responseStream = httpConn.getResponseCode() / 100 == 2
 					? httpConn.getInputStream()
 					: httpConn.getErrorStream();
-			Scanner s = new Scanner(responseStream).useDelimiter("\\A");
-			String response = s.hasNext() ? s.next() : "";
+			String response;
+			try (Scanner s = new Scanner(responseStream).useDelimiter("\\A")) {
+				response = s.hasNext() ? s.next() : "";
+			}
 			Util.verboseMsg("ChatGPT response: " + response);
 			GPTResponse result = gson.fromJson(response, GPTResponse.class);
 			if (result.choices != null && result.error == null) {
@@ -257,7 +259,7 @@ public class Init extends BaseCommand {
 		return answer;
 	}
 
-	private static Map prompt(String role, String content) {
+	private static Map<String, String> prompt(String role, String content) {
 		Map<String, String> m = new HashMap<>();
 		m.put("role", role);
 		m.put("content", content);

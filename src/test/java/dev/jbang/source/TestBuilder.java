@@ -161,7 +161,7 @@ public class TestBuilder extends BaseTest {
 
 		ProjectBuilder pb = Project.builder();
 		try {
-			Project prj = pb.build("bar");
+			pb.build("bar");
 		} catch (IllegalArgumentException ex) {
 			assertThat(ex.getMessage(), containsString("No enum constant dev.jbang.source.Source.Type.INVALID"));
 		}
@@ -295,8 +295,6 @@ public class TestBuilder extends BaseTest {
 	void testAdditionalResourcesGlobbing() throws IOException {
 		Util.setCwd(examplesTestFolder);
 		Path foo = Paths.get("foo.java");
-		Path res1 = Paths.get("resource.properties");
-		Path res2 = Paths.get("sub/sub.properties");
 		ProjectBuilder pb = Project.builder();
 		pb.additionalResources(Arrays.asList("res/**.properties"));
 		Project prj = pb.build(foo.toString());
@@ -450,7 +448,7 @@ public class TestBuilder extends BaseTest {
 		try {
 			Path selfdep = examplesTestFolder.resolve("selfdep.java").toAbsolutePath();
 			ProjectBuilder pb = Project.builder();
-			Project prj = pb.build(selfdep.toString());
+			pb.build(selfdep.toString());
 		} catch (ExitException ex) {
 			assertThat(ex.getMessage(), startsWith("Self-referencing project dependency found for:"));
 		}
