@@ -12,7 +12,9 @@ import org.eclipse.aether.artifact.Artifact;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-public class SearchIT {
+import dev.jbang.BaseTest;
+
+public class TestDepsSearch extends BaseTest {
 	@ParameterizedTest
 	@EnumSource(ArtifactSearch.Backends.class)
 	void testSearchSingleTerm(ArtifactSearch.Backends backend) throws IOException {

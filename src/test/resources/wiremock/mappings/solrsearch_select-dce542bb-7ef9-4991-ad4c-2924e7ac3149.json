@@ -1,0 +1,19 @@
+{
+  "id" : "dce542bb-7ef9-4991-ad4c-2924e7ac3149",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=1&rows=10&q=apache+httpclient",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":0,\"params\":{\"q\":\"apache httpclient\",\"core\":\"\",\"indent\":\"off\",\"spellcheck\":\"false\",\"start\":\"\",\"spellcheck.count\":\"0\",\"sort\":\"\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"None\"}},\"response\":{\"numFound\":99,\"start\":1,\"docs\":[{\"id\":\"org.apache.skywalking:apm-httpclient-3.x-plugin\",\"g\":\"org.apache.skywalking\",\"a\":\"apm-httpclient-3.x-plugin\",\"latestVersion\":\"9.5.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1755488357000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.skywalking:apm-httpclient-5.x-plugin\",\"g\":\"org.apache.skywalking\",\"a\":\"apm-httpclient-5.x-plugin\",\"latestVersion\":\"9.5.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1755488905000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.skywalking:apm-httpclient-commons\",\"g\":\"org.apache.skywalking\",\"a\":\"apm-httpclient-commons\",\"latestVersion\":\"9.5.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1755486916000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.bedework.deploy:bw-wfmodules-org-apache-httpcomponents-httpclient\",\"g\":\"org.bedework.deploy\",\"a\":\"bw-wfmodules-org-apache-httpcomponents-httpclient\",\"latestVersion\":\"2.1.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1761275076000,\"versionCount\":0,\"ec\":[\"pom\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217261000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient-deployment\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient-deployment\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217264000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient-parent\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient-parent\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1761217258000,\"versionCount\":0,\"ec\":[\"pom\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217356000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5-deployment\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5-deployment\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217358000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5-parent\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5-parent\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1761217353000,\"versionCount\":0,\"ec\":[\"pom\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "Date" : "Sun, 09 Nov 2025 20:47:12 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "dce542bb-7ef9-4991-ad4c-2924e7ac3149",
+  "persistent" : true,
+  "insertionIndex" : 43
+}
