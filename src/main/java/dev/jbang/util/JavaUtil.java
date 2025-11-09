@@ -33,7 +33,7 @@ public class JavaUtil {
 
 	@NonNull
 	public static JdkManager defaultJdkManager(String... names) {
-		return (new JdkManBuilder()).provider(names).build();
+		return defaultJdkManager(names != null ? Arrays.asList(names) : null);
 	}
 
 	@NonNull
@@ -45,7 +45,7 @@ public class JavaUtil {
 	}
 
 	public static class JdkManBuilder extends JdkManager.Builder {
-		private final List<String> providerNames = new ArrayList<>();
+		private final Set<String> providerNames = new LinkedHashSet<>();
 
 		public static final List<String> PROVIDERS_ALL = JdkProviders.instance().allNames();
 		public static final List<String> PROVIDERS_DEFAULT = JdkProviders.instance().basicNames();
@@ -57,7 +57,9 @@ public class JavaUtil {
 		public JdkManager.Builder provider(List<String> names) {
 			if (names != null) {
 				for (String providerName : names) {
-					if (PROVIDERS_ALL.contains(providerName)) {
+					if (providerName.equals("all")) {
+						providerNames.addAll(PROVIDERS_ALL);
+					} else if (PROVIDERS_ALL.contains(providerName)) {
 						providerNames.add(providerName);
 					} else {
 						Util.warnMsg("Unknown JDK provider: " + providerName);
