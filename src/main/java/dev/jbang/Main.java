@@ -3,7 +3,9 @@ package dev.jbang;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
@@ -22,6 +24,7 @@ public class Main {
 		} catch (IOException e) {
 			// Ignore
 		}
+		
 		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);

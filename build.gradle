@@ -168,7 +168,7 @@ dependencies {
 	implementation "org.apache.maven:maven-model:3.9.11"
 
 	implementation "org.jline:jline-console-ui:$versionJline"
-	implementation "org.jline:jline-terminal-jna:$versionJline"
+	implementation "org.jline:jline-terminal-jni:$versionJline"
 
 	implementation "eu.maveniverse.maven.nisse:core:0.6.0"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
