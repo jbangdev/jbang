@@ -13,22 +13,20 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 
 import com.google.gson.Gson;
 
-import dev.jbang.util.Util;
-
-/** Utility class for searching Maven artifacts. */
-public class SolrCentralArtifactSearch implements ArtifactSearch {
+/** Utility class for searching Maven artifacts via the Solr API. */
+public class SolrArtifactSearch implements ArtifactSearch {
 	private final String baseSearchUrl;
 	private final boolean offsetInPages;
 
-	public static SolrCentralArtifactSearch createSmo() {
-		return new SolrCentralArtifactSearch("https://search.maven.org/solrsearch/select", false);
+	public static SolrArtifactSearch createSmo() {
+		return new SolrArtifactSearch("https://search.maven.org/solrsearch/select", false);
 	}
 
-	public static SolrCentralArtifactSearch createCsc() {
-		return new SolrCentralArtifactSearch("https://central.sonatype.com/solrsearch/select", true);
+	public static SolrArtifactSearch createCsc() {
+		return new SolrArtifactSearch("https://central.sonatype.com/solrsearch/select", true);
 	}
 
-	private SolrCentralArtifactSearch(String baseSearchUrl, boolean offsetInPages) {
+	private SolrArtifactSearch(String baseSearchUrl, boolean offsetInPages) {
 		this.baseSearchUrl = baseSearchUrl;
 		this.offsetInPages = offsetInPages;
 	}
@@ -101,7 +99,7 @@ public class SolrCentralArtifactSearch implements ArtifactSearch {
 		if (parts.length >= 3) {
 			searchUrl += "&core=gav";
 		}
-		String agent = Util.getAgentString();
+		String agent = "blah";
 
 		URL url = new URL(searchUrl);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -126,7 +124,7 @@ public class SolrCentralArtifactSearch implements ArtifactSearch {
 			MvnSearchResult result = parseSearchResult(ins);
 			List<DefaultArtifact> artifacts = result.response.docs.stream()
 				.filter(d -> acceptDoc(d, parts))
-				.map(SolrCentralArtifactSearch::toArtifact)
+				.map(SolrArtifactSearch::toArtifact)
 				.collect(Collectors.toList());
 			return new ArtifactSearch.SearchResult(
 					artifacts, query, start, count, result.response.numFound);

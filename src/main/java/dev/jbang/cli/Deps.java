@@ -36,6 +36,7 @@ import org.jline.terminal.TerminalBuilder;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.search.ArtifactSearch;
+import dev.jbang.search.ArtifactSearchWidget;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -65,40 +66,51 @@ class DepsSearch extends BaseCommand {
 	@CommandLine.Parameters(description = "Target file (.java or build.jbang)", arity = "0..1")
 	Optional<Path> target;
 
+	boolean useWidget = true;
+
 	@Override
 	public Integer doCall() throws IOException {
 
-		try (Terminal terminal = TerminalBuilder.builder()
-			// .systemOutput(SystemOutput.SysErr)
-			// .system(true)
-			.build()) {
-			while (true) {
-				ConsolePrompt.UiConfig cfg = new ConsolePrompt.UiConfig();
-				cfg.setCancellableFirstPrompt(true);
-				ConsolePrompt prompt = new ConsolePrompt(null, terminal, cfg);
-				Map<String, PromptResultItemIF> result = prompt.prompt(this::nextQuestion);
-				if (result.isEmpty()) {
-					break;
-				}
-				String selectedArtifact = getSelectedId(result, "item");
-				String artifactAction = getSelectedId(result, "action");
-				if ("add".equals(artifactAction)) {
-					target.ifPresent(t -> {
-						try {
-							DepsAdd.updateFile(t, Collections.singletonList(selectedArtifact));
-						} catch (IOException e) {
-							throw new ExitException(EXIT_INVALID_INPUT,
-									"Error adding dependency to " + t + ": " + e.getMessage());
-						}
-					});
-				}
-				System.out.println(artifactPattern + "->" + selectedArtifact + "->" + artifactAction);
+		if (useWidget) {
+			try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
+				new ArtifactSearchWidget(terminal).search();
+			} catch (IOException e) {
+				throw new ExitException(EXIT_INVALID_INPUT, "Error searching for artifacts: " + e.getMessage());
+			}
+		} else {
 
-				String finalAction = selectFinalAction(prompt);
-				if (!"again".equals(finalAction)) {
-					break;
+			try (Terminal terminal = TerminalBuilder.builder()
+				// .systemOutput(SystemOutput.SysErr)
+				// .system(true)
+				.build()) {
+				while (true) {
+					ConsolePrompt.UiConfig cfg = new ConsolePrompt.UiConfig();
+					cfg.setCancellableFirstPrompt(true);
+					ConsolePrompt prompt = new ConsolePrompt(null, terminal, cfg);
+					Map<String, PromptResultItemIF> result = prompt.prompt(this::nextQuestion);
+					if (result.isEmpty()) {
+						break;
+					}
+					String selectedArtifact = getSelectedId(result, "item");
+					String artifactAction = getSelectedId(result, "action");
+					if ("add".equals(artifactAction)) {
+						target.ifPresent(t -> {
+							try {
+								DepsAdd.updateFile(t, Collections.singletonList(selectedArtifact));
+							} catch (IOException e) {
+								throw new ExitException(EXIT_INVALID_INPUT,
+										"Error adding dependency to " + t + ": " + e.getMessage());
+							}
+						});
+					}
+					System.out.println(artifactPattern + "->" + selectedArtifact + "->" + artifactAction);
+
+					String finalAction = selectFinalAction(prompt);
+					if (!"again".equals(finalAction)) {
+						break;
+					}
+					artifactPattern = null;
 				}
-				artifactPattern = null;
 			}
 		}
 		return EXIT_OK;

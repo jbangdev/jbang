@@ -48,16 +48,16 @@ public interface ArtifactSearch {
 		if (backend != null) {
 			switch (backend) {
 			case rest_smo:
-				return SolrCentralArtifactSearch.createSmo();
+				return SolrArtifactSearch.createSmo();
 			case rest_csc:
-				return SolrCentralArtifactSearch.createCsc();
+				return SolrArtifactSearch.createCsc();
 			// case smo_smo:
 			// return SearchSmoApiImpl.createSmo();
 			// case smo_csc:
 			// return SearchSmoApiImpl.createCsc();
 			}
 		}
-		return SolrCentralArtifactSearch.createSmo();
+		return SolrArtifactSearch.createSmo();
 	}
 
 	/**
