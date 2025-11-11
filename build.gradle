@@ -166,7 +166,7 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.33"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
-	implementation "eu.maveniverse.maven.nisse:core:0.6.0"
+	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
 
 	testImplementation platform('org.junit:junit-bom:5.13.4')
