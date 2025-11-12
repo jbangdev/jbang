@@ -103,3 +103,5 @@ Some editors like Code or IDEA are not per default executable / startable from t
 
 * https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html[CLI support for IDEA]
 * https://code.visualstudio.com/docs/setup/mac[Terminal support for VS Code on macOS]
+
+Also see https://jbang.dev/ide[JBang.dev IDE Support] page for more information.
