@@ -40,13 +40,13 @@ public class ArtifactSearchWidget {
 		Combobox<Fuzz.SearchResult<Artifact>> artifactCombobox = new Combobox<>(terminal);
 		artifactCombobox.filterCompletions(this::fuzzySearchArtifacts);
 		artifactCombobox.renderItem(r -> new AttributedString(
-				String.format("%s:%s:%s", r.item().getGroupId(), r.highlightTarget(), r.item().getVersion()),
+				String.format(r.highlightTarget()),
 				AttributedStyle.DEFAULT));
 		artifactCombobox.withPrefix("Search (Ctrl-U to search central): ");
 		artifactCombobox.handle("search_remote", KeyMap.ctrl('u'), (g) -> {
 			try {
 				String query = g.query().toString();
-				artifactCombobox.withPrefix("Querying central: ");
+				artifactCombobox.withPrefix("Searching Maven Central....: ");
 				artifactCombobox.render();
 				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(query, 50);
 				result.artifacts.forEach(a -> {
@@ -74,8 +74,9 @@ public class ArtifactSearchWidget {
 
 	private List<Fuzz.SearchResult<Artifact>> fuzzySearchArtifacts(String query) {
 		return Fuzz.search(packages, (gav) -> {
-			SearchScorer scorer = SearchScorer.calculate(query, gav.getArtifactId());
-			return new Fuzz.SearchResult<>(gav, scorer, query.length(), gav.getArtifactId().length());
+			String m = gav.getGroupId() + ":" + gav.getArtifactId() + ":" + gav.getVersion();
+			SearchScorer scorer = SearchScorer.calculate(query, m);
+			return new Fuzz.SearchResult<>(gav, scorer, query.length(), m.length());
 		});
 	}
 }

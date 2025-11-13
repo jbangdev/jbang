@@ -100,7 +100,7 @@ public class Fuzz {
 	}
 
 	public static class FuzzOptions<T> {
-		public double similarityCutoff = 0.2;
+		public double similarityCutoff = 0.1;
 		public int limit = 10;
 		public Scorer<T> scorer;
 
