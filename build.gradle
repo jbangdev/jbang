@@ -174,7 +174,7 @@ dependencies {
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
-	testImplementation "org.wiremock:wiremock:3.12.1"
+	testImplementation "org.wiremock:wiremock:3.13.2"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
@@ -402,7 +402,7 @@ testing {
 				implementation 'org.zeroturnaround:zt-exec:1.12'
 				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
-				implementation "org.wiremock:wiremock:3.12.1"
+				implementation "org.wiremock:wiremock:3.13.2"
 				implementation 'dev.jbang:devkitman:0.3.0'
 			}
 
