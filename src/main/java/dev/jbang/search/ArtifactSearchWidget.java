@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.jline.keymap.KeyMap;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.Terminal.Signal;
@@ -98,8 +97,9 @@ public class ArtifactSearchWidget {
 		artifactCombobox.renderItem(r -> new AttributedString(
 				String.format(r.highlightTarget()),
 				AttributedStyle.DEFAULT));
-		artifactCombobox.withPrefix("Search (Ctrl-U to search central): ");
-		artifactCombobox.handle("search_remote", KeyMap.ctrl('u'), (g) -> {
+		String searchPrefix = "Search (TAB to search central): ";
+		artifactCombobox.withPrefix(searchPrefix);
+		artifactCombobox.handle("search_remote", "\t", (g) -> {
 			try {
 				String query = g.query().toString();
 				artifactCombobox.withPrefix("Searching Maven Central....: ");
@@ -114,7 +114,7 @@ public class ArtifactSearchWidget {
 					result = mavenCentralClient.findNextArtifacts(result);
 				}
 
-				artifactCombobox.withPrefix("Search (Ctrl-U to search central): ");
+				artifactCombobox.withPrefix(searchPrefix);
 				List<Combobox.ComboboxAction> actions = new ArrayList<>();
 				actions.add(new Combobox.UpdateCompletions());
 				return actions;
