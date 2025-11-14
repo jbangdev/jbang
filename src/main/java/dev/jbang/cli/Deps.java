@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.io.IOError;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,47 +72,14 @@ class DepsSearch extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 
-		if (useWidget) {
-			try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
+		try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
+			try {
 				new ArtifactSearchWidget(terminal).search();
-			} catch (IOException e) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Error searching for artifacts: " + e.getMessage());
+			} catch (IOError e) {
+				return EXIT_INVALID_INPUT;
 			}
-		} else {
-
-			try (Terminal terminal = TerminalBuilder.builder()
-				// .systemOutput(SystemOutput.SysErr)
-				// .system(true)
-				.build()) {
-				while (true) {
-					ConsolePrompt.UiConfig cfg = new ConsolePrompt.UiConfig();
-					cfg.setCancellableFirstPrompt(true);
-					ConsolePrompt prompt = new ConsolePrompt(null, terminal, cfg);
-					Map<String, PromptResultItemIF> result = prompt.prompt(this::nextQuestion);
-					if (result.isEmpty()) {
-						break;
-					}
-					String selectedArtifact = getSelectedId(result, "item");
-					String artifactAction = getSelectedId(result, "action");
-					if ("add".equals(artifactAction)) {
-						target.ifPresent(t -> {
-							try {
-								DepsAdd.updateFile(t, Collections.singletonList(selectedArtifact));
-							} catch (IOException e) {
-								throw new ExitException(EXIT_INVALID_INPUT,
-										"Error adding dependency to " + t + ": " + e.getMessage());
-							}
-						});
-					}
-					System.out.println(artifactPattern + "->" + selectedArtifact + "->" + artifactAction);
-
-					String finalAction = selectFinalAction(prompt);
-					if (!"again".equals(finalAction)) {
-						break;
-					}
-					artifactPattern = null;
-				}
-			}
+		} catch (IOException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Error searching for artifacts: " + e.getMessage());
 		}
 		return EXIT_OK;
 	}

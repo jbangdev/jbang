@@ -1,5 +1,7 @@
 package dev.jbang.search;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -19,6 +21,7 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.jline.keymap.KeyMap;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
+import org.jline.terminal.Terminal.Signal;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
@@ -76,8 +79,19 @@ public class ArtifactSearchWidget {
 		return packages;
 	}
 
+	void cleanup() {
+		terminal.setAttributes(attrs);
+		terminal.puts(Capability.clear_screen);
+		terminal.flush();
+	}
+
 	public Artifact search() {
 		terminal.enterRawMode();
+
+		terminal.handle(Signal.INT, (e) -> {
+			cleanup();
+			System.exit(EXIT_UNEXPECTED_STATE);
+		});
 
 		Combobox<Fuzz.SearchFuzzedResult<Artifact>> artifactCombobox = new Combobox<>(terminal);
 		artifactCombobox.filterCompletions(this::fuzzySearchArtifacts);
@@ -90,10 +104,15 @@ public class ArtifactSearchWidget {
 				String query = g.query().toString();
 				artifactCombobox.withPrefix("Searching Maven Central....: ");
 				artifactCombobox.render();
-				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(query, 50);
-				result.artifacts.forEach(a -> {
-					artifactsToConsider.add(a);
-				});
+
+				int max = 200;
+				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(query, max);
+				while (result != null) {
+					for (Artifact artifact : result.artifacts) {
+						artifactsToConsider.add(artifact);
+					}
+					result = mavenCentralClient.findNextArtifacts(result);
+				}
 
 				artifactCombobox.withPrefix("Search (Ctrl-U to search central): ");
 				List<Combobox.ComboboxAction> actions = new ArrayList<>();
@@ -107,9 +126,7 @@ public class ArtifactSearchWidget {
 
 		Combobox.ComboboxResult<Fuzz.SearchFuzzedResult<Artifact>> artifactGav = artifactCombobox.prompt();
 
-		terminal.setAttributes(attrs);
-		terminal.puts(Capability.clear_screen);
-		terminal.flush();
+		cleanup();
 
 		return artifactGav.selection().item();
 	}
