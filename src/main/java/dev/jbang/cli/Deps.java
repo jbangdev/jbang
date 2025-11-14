@@ -72,16 +72,25 @@ class DepsSearch extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 
+		if (target.isPresent() && !Files.exists(target.get())) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + target.get());
+		}
+
 		try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
 			try {
-				new ArtifactSearchWidget(terminal).search();
+				Artifact artifact = new ArtifactSearchWidget(terminal).search();
+				if (target.isPresent()) {
+					DepsAdd.updateFile(target.get(), Collections.singletonList(artifactGav(artifact)));
+					info("Added " + artifactGav(artifact) + " to " + target.get());
+				} else {
+					System.out.printf("%s:%s:%s%n", artifact.getGroupId(), artifact.getArtifactId(),
+							artifact.getVersion());
+				}
+				return EXIT_OK;
 			} catch (IOError e) {
 				return EXIT_INVALID_INPUT;
 			}
-		} catch (IOException e) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Error searching for artifacts: " + e.getMessage());
 		}
-		return EXIT_OK;
 	}
 
 	static class ArtifactResult {
@@ -302,6 +311,9 @@ class DepsAdd extends BaseCommand {
 			}
 		}
 		String fileName = file.getFileName().toString();
+		if (!Files.exists(file)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "File does not exist: " + file);
+		}
 		if (fileName.endsWith(".java")) {
 			updateJavaFile(file, dependencies);
 		} else if (fileName.endsWith(".jbang")) {

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.jline.keymap.BindingReader;
@@ -23,7 +24,8 @@ class Combobox<T> {
 	private List<T> matches = new ArrayList<>();
 	private StringBuilder qb = new StringBuilder();
 	private Function<String, List<T>> filter;
-	private Function<T, AttributedString> itemRenderer;
+	private Function<T, AttributedString> itemRenderer = (t) -> new AttributedString(t.toString());
+	private BiFunction<T, List<T>, Integer> selector = (item, matches) -> matches.indexOf(item);
 	private String prefix = "Search: ";
 
 	Combobox(Terminal terminal) {
@@ -79,10 +81,21 @@ class Combobox<T> {
 				this.selectedIndex = selectedIndexAction.selectedIndex();
 			} else if (action instanceof UpdateCompletions) {
 				this.matches = this.filter.apply(this.qb.toString());
+			} else if (action instanceof SelectItem<?>) {
+				@SuppressWarnings("unchecked")
+				SelectItem<T> selectItem = (SelectItem<T>) action;
+				int candidateIndex = selector.apply(selectItem.item(), this.matches);
+				if (candidateIndex != -1) {
+					this.selectedIndex = candidateIndex;
+				}
 			}
 		}
 
 		return selection;
+	}
+
+	public String prefix() {
+		return prefix;
 	}
 
 	public void withPrefix(String prefix) {
@@ -91,6 +104,10 @@ class Combobox<T> {
 
 	public void filterCompletions(Function<String, List<T>> filter) {
 		this.filter = filter;
+	}
+
+	public void selector(BiFunction<T, List<T>, Integer> selector) {
+		this.selector = selector;
 	}
 
 	public void renderItem(Function<T, AttributedString> itemRenderer) {
@@ -217,6 +234,18 @@ class Combobox<T> {
 
 		public int selectedIndex() {
 			return selectedIndex;
+		}
+	}
+
+	public static final class SelectItem<T> implements ComboboxAction {
+		private final T item;
+
+		public SelectItem(T item) {
+			this.item = item;
+		}
+
+		public T item() {
+			return item;
 		}
 	}
 

@@ -3,13 +3,8 @@ package dev.jbang.search;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.Terminal.Signal;
@@ -26,6 +20,7 @@ import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
 
 import dev.jbang.dependencies.ArtifactResolver;
+import dev.jbang.search.Fuzz.SearchFuzzedResult;
 
 /**
  * A widget for searching artifacts. Initially from veles but changed to be Java
@@ -35,47 +30,220 @@ import dev.jbang.dependencies.ArtifactResolver;
 public class ArtifactSearchWidget {
 	private final Terminal terminal;
 	private final Attributes attrs;
-	private final Set<Artifact> artifactsToConsider;
+	// private final Set<Artifact> _artifactsToConsider;
+
+	// private Artifact selectedRootArtifact = null;
+
 	private final ArtifactSearch mavenCentralClient = SolrArtifactSearch.createCsc();
+
+	private final PhaseHandler phase;
+
+	static class PhaseHandler {
+
+		List<Phase> phases = new ArrayList<>();
+		int index = 0;
+
+		PhaseHandler(Phase... phases) {
+			this.phases = Arrays.asList(phases);
+		}
+
+		Phase current() {
+			return phases.get(index);
+		}
+
+		Phase next(Artifact artifact) {
+			if (index < phases.size() - 1) {
+				index++;
+				phases.get(index).setArtifact(artifact);
+			}
+			return phases.get(index);
+		}
+
+		Phase prev(Artifact artifact) {
+			if (index > 0) {
+				index--;
+				phases.get(index).setArtifact(artifact);
+			}
+			return phases.get(index);
+		}
+
+	}
+
+	interface Phase {
+		String prefix();
+
+		void setArtifact(Artifact artifact);
+
+		Set<Artifact> artifactsToConsider();
+
+		void remoteFetch(String query) throws IOException;
+
+		List<SearchFuzzedResult<Artifact>> fuzzySearch(String query);
+
+		Artifact focusedArtifact();
+
+		Integer selector(Fuzz.SearchFuzzedResult<Artifact> item, List<SearchFuzzedResult<Artifact>> matches);
+	}
+
+	PhaseHandler setupPhaseHandler() {
+
+		Phase rootPhase = new Phase() {
+			private Artifact focusedArtifact = null;
+			Set<Artifact> artifactsToConsider = SearchUtil.localMavenArtifacts(ArtifactResolver.getLocalMavenRepo())
+				.stream()
+				.filter(p -> !p.getArtifactId().contains("-parent"))
+				.collect(Collectors.toSet());
+
+			public Artifact focusedArtifact() {
+				return focusedArtifact;
+			}
+
+			@Override
+			public String prefix() {
+				return "Search (TAB to search central, ENTER to select, -> to pick version): ";
+			}
+
+			@Override
+			public void remoteFetch(String query) throws IOException {
+				int max = 200; // limits how many artifacts we will iterate on
+				int found = 0;
+
+				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(query, max);
+				while (result != null) {
+					for (Artifact artifact : result.artifacts) {
+						if (artifactsToConsider().add(artifact)) {
+							found++;
+						} else {
+
+						}
+					}
+					result = found < max ? mavenCentralClient.findNextArtifacts(result) : null;
+				}
+			}
+
+			@Override
+			public List<SearchFuzzedResult<Artifact>> fuzzySearch(String query) {
+				return Fuzz.search(artifactsToConsider(), (gav) -> {
+					String m = gav.getGroupId() + ":" + gav.getArtifactId() + ":" + gav.getVersion();
+					SearchScorer scorer = SearchScorer.calculate(query, m);
+					return new Fuzz.SearchFuzzedResult<>(gav, scorer, query.length(), m.length());
+				});
+			}
+
+			@Override
+			public void setArtifact(Artifact artifact) {
+				focusedArtifact = artifact;
+			}
+
+			@Override
+			public Set<Artifact> artifactsToConsider() {
+				return artifactsToConsider;
+			}
+
+			@Override
+			public Integer selector(Fuzz.SearchFuzzedResult<Artifact> item,
+					List<SearchFuzzedResult<Artifact>> matches) {
+				for (int i = 0; i < matches.size(); i++) {
+					Artifact candidate = matches.get(i).item();
+					Artifact selected = item.item();
+					if (candidate.getGroupId().equals(selected.getGroupId())
+							&& candidate.getArtifactId().equals(selected.getArtifactId())) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+		};
+
+		Phase versionSelectionPhase = new Phase() {
+			Set<Artifact> artifactsToConsider = new HashSet<Artifact>();
+
+			private Artifact selectedArtifact = null;
+
+			@Override
+			public String prefix() {
+				return "Pick version (TAB to fetch versions from central, <- to pick other artifact): ";
+			}
+
+			@Override
+			public void setArtifact(Artifact artifact) {
+				artifactsToConsider.clear();
+				artifactsToConsider.add(artifact);
+				artifactsToConsider
+					.addAll(SearchUtil.localMavenArtifactsVersions(ArtifactResolver.getLocalMavenRepo(), artifact));
+				selectedArtifact = artifact;
+			}
+
+			@Override
+			public List<SearchFuzzedResult<Artifact>> fuzzySearch(String query) {
+				return Fuzz.search(artifactsToConsider(), (gav) -> {
+					String m = gav.getGroupId() + ":" + gav.getArtifactId() + ":" + gav.getVersion();
+					SearchScorer scorer = SearchScorer.calculate(query, m);
+					return new Fuzz.SearchFuzzedResult<>(gav, scorer, query.length(), m.length());
+				});
+			}
+
+			@Override
+			public void remoteFetch(String query) throws IOException {
+				int max = 200; // limits how many artifacts we will iterate on
+				int found = 0;
+
+				// ignoring the typed in query as we really only care about version of the
+				// selected artifact
+				String actualQuery = selectedArtifact.getGroupId() + ":" + selectedArtifact.getArtifactId() + ":"
+						+ selectedArtifact.getVersion();
+
+				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(actualQuery, max);
+				while (result != null) {
+					for (Artifact artifact : result.artifacts) {
+						if (artifactsToConsider().add(artifact)) {
+							found++;
+						} else {
+
+						}
+					}
+					result = found < max ? mavenCentralClient.findNextArtifacts(result) : null;
+				}
+			}
+
+			@Override
+			public Set<Artifact> artifactsToConsider() {
+				return artifactsToConsider;
+			}
+
+			@Override
+			public Artifact focusedArtifact() {
+				return selectedArtifact;
+			}
+
+			@Override
+			public Integer selector(Fuzz.SearchFuzzedResult<Artifact> item,
+					List<SearchFuzzedResult<Artifact>> matches) {
+				for (int i = 0; i < matches.size(); i++) {
+					Artifact candidate = matches.get(i).item();
+					Artifact selected = item.item();
+					if (candidate.getGroupId().equals(selected.getGroupId())
+							&& candidate.getArtifactId().equals(selected.getArtifactId())
+							&& candidate.getVersion().equals(selected.getVersion())) {
+						return i;
+					}
+				}
+				return -1;
+			}
+		};
+
+		return new PhaseHandler(rootPhase, versionSelectionPhase);
+	}
+
+	private Set<Artifact> artifactsToConsider() {
+		return phase.current().artifactsToConsider();
+	}
 
 	public ArtifactSearchWidget(Terminal terminal) {
 		this.terminal = terminal;
 		this.attrs = terminal.getAttributes();
-		this.artifactsToConsider = localMavenArtifacts()
-			.stream()
-			.filter(p -> !p.getArtifactId().contains("-parent"))
-			.collect(Collectors.toSet());
-	}
-
-	private static Set<Artifact> localMavenArtifacts() {
-		Set<Artifact> packages = new HashSet<Artifact>();
-		try {
-			Path localMaven = ArtifactResolver.getLocalMavenRepo();
-			if (!Files.exists(localMaven)) {
-				return new HashSet<Artifact>();
-			}
-			Files.walkFileTree(localMaven, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-						throws IOException {
-					if (Character.isDigit(dir.getFileName().toString().charAt(0))) {
-						Path artifactDir = dir.getParent();
-						String artifact = artifactDir.getFileName().toString();
-						String group = localMaven.relativize(artifactDir.getParent())
-							.toString()
-							.replace(FileSystems.getDefault().getSeparator(), ".");
-						packages.add(new DefaultArtifact(group, artifact, "", dir.getFileName().toString()));
-						return FileVisitResult.SKIP_SUBTREE;
-					}
-
-					return FileVisitResult.CONTINUE;
-				}
-			});
-
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return packages;
+		this.phase = this.setupPhaseHandler();
 	}
 
 	void cleanup() {
@@ -94,27 +262,23 @@ public class ArtifactSearchWidget {
 
 		Combobox<Fuzz.SearchFuzzedResult<Artifact>> artifactCombobox = new Combobox<>(terminal);
 		artifactCombobox.filterCompletions(this::fuzzySearchArtifacts);
+		artifactCombobox.selector((item, matches) -> phase.current().selector(item, matches));
 		artifactCombobox.renderItem(r -> new AttributedString(
 				String.format(r.highlightTarget()),
 				AttributedStyle.DEFAULT));
-		String searchPrefix = "Search (TAB to search central): ";
-		artifactCombobox.withPrefix(searchPrefix);
+
+		artifactCombobox.withPrefix(phase.current().prefix());
+
 		artifactCombobox.handle("search_remote", "\t", (g) -> {
 			try {
 				String query = g.query().toString();
+				String oldPrefix = artifactCombobox.prefix();
 				artifactCombobox.withPrefix("Searching Maven Central....: ");
 				artifactCombobox.render();
 
-				int max = 200;
-				ArtifactSearch.SearchResult result = mavenCentralClient.findArtifacts(query, max);
-				while (result != null) {
-					for (Artifact artifact : result.artifacts) {
-						artifactsToConsider.add(artifact);
-					}
-					result = mavenCentralClient.findNextArtifacts(result);
-				}
+				phase.current().remoteFetch(query);
 
-				artifactCombobox.withPrefix(searchPrefix);
+				artifactCombobox.withPrefix(oldPrefix);
 				List<Combobox.ComboboxAction> actions = new ArrayList<>();
 				actions.add(new Combobox.UpdateCompletions());
 				return actions;
@@ -122,6 +286,34 @@ public class ArtifactSearchWidget {
 				artifactCombobox.withPrefix("Failed - " + e.getMessage() + ": ");
 				return Collections.<Combobox.ComboboxAction>emptyList();
 			}
+		});
+
+		artifactCombobox.handle("next_phase", "\u001b[C", (g) -> {
+			if (g.matches().size() == 0) {
+				return Collections.<Combobox.ComboboxAction>emptyList();
+			}
+
+			Fuzz.SearchFuzzedResult<Artifact> selected = g.matches().get(g.selectedIndex());
+			phase.next(selected.item());
+
+			artifactCombobox.withPrefix(phase.current().prefix());
+			List<Combobox.ComboboxAction> actions = new ArrayList<>();
+			actions.add(new Combobox.UpdateCompletions());
+			actions.add(new Combobox.SelectItem<>(selected));
+			return actions;
+		});
+
+		artifactCombobox.handle("previous_phase", "\u001b[D", (g) -> {
+
+			Fuzz.SearchFuzzedResult<Artifact> selected = g.matches().get(g.selectedIndex());
+
+			phase.prev(selected.item());
+
+			artifactCombobox.withPrefix(phase.current().prefix());
+			List<Combobox.ComboboxAction> actions = new ArrayList<>();
+			actions.add(new Combobox.UpdateCompletions());
+			actions.add(new Combobox.SelectItem<>(selected));
+			return actions;
 		});
 
 		Combobox.ComboboxResult<Fuzz.SearchFuzzedResult<Artifact>> artifactGav = artifactCombobox.prompt();
@@ -132,10 +324,8 @@ public class ArtifactSearchWidget {
 	}
 
 	private List<Fuzz.SearchFuzzedResult<Artifact>> fuzzySearchArtifacts(String query) {
-		return Fuzz.search(artifactsToConsider, (gav) -> {
-			String m = gav.getGroupId() + ":" + gav.getArtifactId() + ":" + gav.getVersion();
-			SearchScorer scorer = SearchScorer.calculate(query, m);
-			return new Fuzz.SearchFuzzedResult<>(gav, scorer, query.length(), m.length());
-		});
+
+		return phase.current().fuzzySearch(query);
+
 	}
 }

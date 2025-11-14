@@ -64,7 +64,7 @@ class TestJdkManager extends BaseTest {
 		new File(javaDir, "not-release");
 
 		// When
-		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());
+		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(release.toPath());
 
 		// Then
 		assertFalse(javaVersion.isPresent());
