@@ -8,26 +8,26 @@ import java.util.stream.Collectors;
 
 public class Fuzz {
 
-	public static <T> List<SearchResult<T>> search(Collection<T> items, Scorer<T> scorer) {
+	public static <T> List<SearchFuzzedResult<T>> search(Collection<T> items, Scorer<T> scorer) {
 		return search(items, new FuzzOptions<T>().scorer(scorer));
 	}
 
-	public static <T> List<SearchResult<T>> search(Collection<T> items, FuzzOptions<T> opts) {
+	public static <T> List<SearchFuzzedResult<T>> search(Collection<T> items, FuzzOptions<T> opts) {
 		return items.stream()
 			.map(opts.scorer)
 			.filter(s -> s.similarity() >= opts.similarityCutoff)
-			.sorted(Comparator.comparing(SearchResult<T>::similarity).reversed())
+			.sorted(Comparator.comparing(SearchFuzzedResult<T>::similarity).reversed())
 			.limit(opts.limit)
 			.collect(Collectors.toList());
 	}
 
-	public static final class SearchResult<T> {
+	public static final class SearchFuzzedResult<T> {
 		private final T item;
 		private final SearchScorer matrix;
 		private final int queryLength;
 		private final int targetLength;
 
-		public SearchResult(T item, SearchScorer matrix, int queryLength, int targetLength) {
+		public SearchFuzzedResult(T item, SearchScorer matrix, int queryLength, int targetLength) {
 			this.item = item;
 			this.matrix = matrix;
 			this.queryLength = queryLength;
@@ -96,7 +96,7 @@ public class Fuzz {
 		}
 	}
 
-	public interface Scorer<T> extends Function<T, SearchResult<T>> {
+	public interface Scorer<T> extends Function<T, SearchFuzzedResult<T>> {
 	}
 
 	public static class FuzzOptions<T> {
