@@ -30,6 +30,10 @@ public class TestDeps extends BaseTest {
 		assertThat(fileContent).contains("//DEPS info.picocli:picocli:4.6.3");
 		assertThat(fileContent).contains("class Test");
 
+		assertThat(fileContent.indexOf("//DEPS info.picocli:picocli:4.6.3"))
+			.withFailMessage("Dependency should be added below the //DEPS line and not 'stuck' to class")
+			.isGreaterThan(fileContent.indexOf("///"));
+
 		// Verify it is added below the first line and not "stuck" to class
 		assertThat(fileContent).doesNotContain("4.6.3\nclass Test {");
 	}
