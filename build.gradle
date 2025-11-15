@@ -167,7 +167,7 @@ dependencies {
 	implementation "org.apache.maven:maven-model:3.9.11"
 
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
-	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
+	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
 	testImplementation platform('org.junit:junit-bom:5.13.4')
 	testImplementation "org.junit.jupiter:junit-jupiter"
