@@ -81,7 +81,7 @@ public class NativeBuildStep implements Builder<Project> {
 		Util.infoMsg("log: " + nilog.toString());
 		pb.redirectOutput(nilog.toFile());
 
-		Process process = pb.start();
+		Process process = Util.run(pb);
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
