@@ -4,4 +4,4 @@
 # Java version to be used for command-line testing purposes,
 # and running Gradle from IntelliJ. Gradle will use Java 11
 # to build and test JBang as specified in build.gradle
-java=21.0.8-tem
+java=21.0.9-tem
