@@ -22,6 +22,7 @@ public class Main {
 		} catch (IOException e) {
 			// Ignore
 		}
+
 		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);

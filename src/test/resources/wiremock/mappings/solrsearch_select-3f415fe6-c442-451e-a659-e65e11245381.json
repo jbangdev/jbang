@@ -1,0 +1,19 @@
+{
+  "id" : "3f415fe6-c442-451e-a659-e65e11245381",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=1&rows=10&q=fc%3Adev.jbang.Main",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":0,\"params\":{\"q\":\"fc:dev.jbang.Main\",\"core\":\"\",\"indent\":\"off\",\"spellcheck\":\"false\",\"start\":\"\",\"spellcheck.count\":\"0\",\"sort\":\"\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"None\"}},\"response\":{\"numFound\":90,\"start\":1,\"docs\":[{\"id\":\"io.javelit:javelit:0.66.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.66.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1762351172000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.58.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.58.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761780654000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.63.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.63.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1762184171000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.62.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.62.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1762181699000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.51.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.51.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1760998951000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.60.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.60.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761902199000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"io.javelit:javelit:0.56.0\",\"g\":\"io.javelit\",\"a\":\"javelit\",\"v\":\"0.56.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761220617000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"dev.jbang:jbang-cli:0.117.0\",\"g\":\"dev.jbang\",\"a\":\"jbang-cli\",\"v\":\"0.117.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1720380648189,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"dev.jbang:jbang-cli:0.118.0\",\"g\":\"dev.jbang\",\"a\":\"jbang-cli\",\"v\":\"0.118.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1726137088972,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"dev.jbang:jbang-cli:0.121.0\",\"g\":\"dev.jbang\",\"a\":\"jbang-cli\",\"v\":\"0.121.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1731769017054,\"versionCount\":0,\"ec\":[\"jar\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "Date" : "Sun, 09 Nov 2025 20:47:09 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "3f415fe6-c442-451e-a659-e65e11245381",
+  "persistent" : true,
+  "insertionIndex" : 40
+}

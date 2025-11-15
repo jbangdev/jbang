@@ -1,0 +1,31 @@
+{
+  "id" : "04a98c53-c31a-462c-8c66-d078b7a2825a",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=10&rows=10&q=httpclient",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":3,\"params\":{\"q\":\"httpclient\",\"core\":\"\",\"defType\":\"dismax\",\"qf\":\"text^20 g^5 a^10\",\"indent\":\"off\",\"spellcheck\":\"true\",\"fl\":\"id,g,a,latestVersion,p,ec,repositoryId,text,timestamp,versionCount\",\"start\":\"10\",\"spellcheck.count\":\"5\",\"sort\":\"score desc,timestamp desc,g asc,a asc\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"2.2\"}},\"response\":{\"numFound\":508,\"start\":10,\"docs\":[{\"id\":\"com.optimizely.ab:httpclient\",\"g\":\"com.optimizely.ab\",\"a\":\"httpclient\",\"latestVersion\":\"MC-TEST-1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1614304010000,\"versionCount\":1,\"text\":[\"com.optimizely.ab\",\"httpclient\",\".module.asc.sha256\",\".jar.sha512\",\".jar.sha256\",\".pom.asc.sha512\",\".pom.sha256\",\"-sources.jar.sha256\",\"-javadoc.jar.asc.sha512\",\".module.asc.sha512\",\".pom\",\"-sources.jar.asc.sha256\",\".jar.asc.sha256\",\".pom.asc.sha256\",\".jar.asc.sha512\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".module\",\"-javadoc.jar.sha512\",\"-javadoc.jar.asc.sha256\",\"-sources.jar.sha512\",\".module.sha512\",\".module.sha256\",\"-sources.jar.asc.sha512\",\".pom.sha512\",\"-javadoc.jar.sha256\"],\"ec\":[\".module.asc.sha256\",\".jar.sha512\",\".jar.sha256\",\".pom.asc.sha512\",\".pom.sha256\",\"-sources.jar.sha256\",\"-javadoc.jar.asc.sha512\",\".module.asc.sha512\",\".pom\",\"-sources.jar.asc.sha256\",\".jar.asc.sha256\",\".pom.asc.sha256\",\".jar.asc.sha512\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".module\",\"-javadoc.jar.sha512\",\"-javadoc.jar.asc.sha256\",\"-sources.jar.sha512\",\".module.sha512\",\".module.sha256\",\"-sources.jar.asc.sha512\",\".pom.sha512\",\"-javadoc.jar.sha256\"]},{\"id\":\"de.mklinger.commons:httpclient\",\"g\":\"de.mklinger.commons\",\"a\":\"httpclient\",\"latestVersion\":\"0.10\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1612469223000,\"versionCount\":10,\"text\":[\"de.mklinger.commons\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]},{\"id\":\"org.wso2.orbit.org.apache.httpcomponents:httpclient\",\"g\":\"org.wso2.orbit.org.apache.httpcomponents\",\"a\":\"httpclient\",\"latestVersion\":\"4.5.13.wso2v1\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1608659834000,\"versionCount\":5,\"text\":[\"org.wso2.orbit.org.apache.httpcomponents\",\"httpclient\",\".jar\",\".pom\"],\"ec\":[\".jar\",\".pom\"]},{\"id\":\"top.jfunc.network:httpclient\",\"g\":\"top.jfunc.network\",\"a\":\"httpclient\",\"latestVersion\":\"1.2.12\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1607138049000,\"versionCount\":32,\"text\":[\"top.jfunc.network\",\"httpclient\",\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"],\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"]},{\"id\":\"com.seepine:httpclient\",\"g\":\"com.seepine\",\"a\":\"httpclient\",\"latestVersion\":\"1.0.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1596943636000,\"versionCount\":1,\"text\":[\"com.seepine\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]},{\"id\":\"cn.cocook:httpclient\",\"g\":\"cn.cocook\",\"a\":\"httpclient\",\"latestVersion\":\"0.0.5\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1571129570000,\"versionCount\":3,\"text\":[\"cn.cocook\",\"httpclient\",\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"],\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"]},{\"id\":\"cz.msebera.android:httpclient\",\"g\":\"cz.msebera.android\",\"a\":\"httpclient\",\"latestVersion\":\"4.5.8\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1558214092000,\"versionCount\":10,\"text\":[\"cz.msebera.android\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".aar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".aar\",\".jar\",\".pom\"]},{\"id\":\"cn.gjing:httpclient\",\"g\":\"cn.gjing\",\"a\":\"httpclient\",\"latestVersion\":\"1.1.6\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1557253016000,\"versionCount\":8,\"text\":[\"cn.gjing\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]},{\"id\":\"io.github.encryptorcode:httpclient\",\"g\":\"io.github.encryptorcode\",\"a\":\"httpclient\",\"latestVersion\":\"1.0.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1555830595000,\"versionCount\":1,\"text\":[\"io.github.encryptorcode\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]},{\"id\":\"dev.codeflush:httpclient\",\"g\":\"dev.codeflush\",\"a\":\"httpclient\",\"latestVersion\":\"1.0.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1553296857000,\"versionCount\":1,\"text\":[\"dev.codeflush\",\"httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "X-Cache" : "Miss from cloudfront",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-query_string" : "q=httpclient&core=&start=10&rows=10&wt=",
+      "X-Amz-Cf-Pop" : "CPH50-P1",
+      "Date" : "Sun, 09 Nov 2025 20:47:15 GMT",
+      "Via" : "1.1 c04417bae552ee23bdd9519ac6fdfa34.cloudfront.net (CloudFront)",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-request_uri" : "/solrsearch/select?start=10&rows=10&q=httpclient",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Amz-Cf-Id" : "IhrBtdMuvua9RpQ1wSJU2sBmvaSQ3swZ_OSwDhnqOAisvnXhUpfnsA==",
+      "X-XSS-Protection" : "1; mode=block",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "04a98c53-c31a-462c-8c66-d078b7a2825a",
+  "persistent" : true,
+  "insertionIndex" : 47
+}

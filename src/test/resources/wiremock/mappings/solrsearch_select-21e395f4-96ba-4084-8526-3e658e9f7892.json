@@ -1,0 +1,19 @@
+{
+  "id" : "21e395f4-96ba-4084-8526-3e658e9f7892",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=1&rows=10&q=g%3Aorg.apache.httpcomponents+AND+a%3Ahttpclient&core=gav",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":0,\"params\":{\"q\":\"g:org.apache.httpcomponents AND a:httpclient\",\"core\":\"\",\"indent\":\"off\",\"spellcheck\":\"false\",\"start\":\"\",\"spellcheck.count\":\"0\",\"sort\":\"\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"None\"}},\"response\":{\"numFound\":55,\"start\":1,\"docs\":[{\"id\":\"org.apache.httpcomponents:httpclient:4.3.5\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.3.5\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1406744644000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.2-alpha1\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.2-alpha1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1319990687000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.0.3\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.0.3\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1284578545000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.10\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.10\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1567683485000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.2-beta1\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.2-beta1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1328550779000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.14\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.14\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1669833654000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.11\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.11\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1579084575000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.1-beta1\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.1-beta1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1290024804000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.2.2\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.2.2\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1350814811000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.13\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.13\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1601736461000,\"versionCount\":0,\"ec\":[\"jar\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "Date" : "Sun, 09 Nov 2025 20:47:14 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "21e395f4-96ba-4084-8526-3e658e9f7892",
+  "persistent" : true,
+  "insertionIndex" : 46
+}

@@ -1,0 +1,31 @@
+{
+  "id" : "3e2d83a8-92ed-431b-92f9-26d21cad5fe0",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=10&rows=10&q=apache+httpclient",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":3,\"params\":{\"q\":\"apache httpclient\",\"core\":\"\",\"defType\":\"dismax\",\"qf\":\"text^20 g^5 a^10\",\"indent\":\"off\",\"spellcheck\":\"true\",\"fl\":\"id,g,a,latestVersion,p,ec,repositoryId,text,timestamp,versionCount\",\"start\":\"10\",\"spellcheck.count\":\"5\",\"sort\":\"score desc,timestamp desc,g asc,a asc\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"2.2\"}},\"response\":{\"numFound\":91,\"start\":10,\"docs\":[{\"id\":\"org.kie.modules:org-apache-commons-httpclient\",\"g\":\"org.kie.modules\",\"a\":\"org-apache-commons-httpclient\",\"latestVersion\":\"6.2.0.CR2\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1415748997000,\"versionCount\":12,\"text\":[\"org.kie.modules\",\"org-apache-commons-httpclient\",\"-tests.jar\",\".pom\"],\"ec\":[\"-tests.jar\",\".pom\"]},{\"id\":\"org.apache.wink:wink-client-apache-httpclient\",\"g\":\"org.apache.wink\",\"a\":\"wink-client-apache-httpclient\",\"latestVersion\":\"1.4\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1377495535000,\"versionCount\":10,\"text\":[\"org.apache.wink\",\"wink-client-apache-httpclient\",\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\".pom\"]},{\"id\":\"org.apache.directory.studio:org.apache.httpcomponents.httpclient\",\"g\":\"org.apache.directory.studio\",\"a\":\"org.apache.httpcomponents.httpclient\",\"latestVersion\":\"4.1.2\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1330103792000,\"versionCount\":2,\"text\":[\"org.apache.directory.studio\",\"org.apache.httpcomponents.httpclient\",\"-sources.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\".jar\",\".pom\"]},{\"id\":\"org.apache.servicemix.bundles:org.apache.servicemix.bundles.commons-httpclient\",\"g\":\"org.apache.servicemix.bundles\",\"a\":\"org.apache.servicemix.bundles.commons-httpclient\",\"latestVersion\":\"3.1_7\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1327862012000,\"versionCount\":7,\"text\":[\"org.apache.servicemix.bundles\",\"org.apache.servicemix.bundles.commons-httpclient\",\"-sources.jar\",\".jar\",\".pom\"],\"ec\":[\"-sources.jar\",\".jar\",\".pom\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5-deployment\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5-deployment\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217358000,\"versionCount\":24,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient5-deployment\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217356000,\"versionCount\":24,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient5\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient-deployment\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient-deployment\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217264000,\"versionCount\":88,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient-deployment\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761217261000,\"versionCount\":88,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]},{\"id\":\"org.apache.httpcomponents.client5:httpclient5-testing\",\"g\":\"org.apache.httpcomponents.client5\",\"a\":\"httpclient5-testing\",\"latestVersion\":\"5.6-alpha1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761076523000,\"versionCount\":41,\"text\":[\"org.apache.httpcomponents.client5\",\"httpclient5-testing\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]},{\"id\":\"org.apache.httpcomponents.client5:httpclient5-fluent\",\"g\":\"org.apache.httpcomponents.client5\",\"a\":\"httpclient5-fluent\",\"latestVersion\":\"5.6-alpha1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1761076418000,\"versionCount\":42,\"text\":[\"org.apache.httpcomponents.client5\",\"httpclient5-fluent\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\".jar\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "X-Cache" : "Miss from cloudfront",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-query_string" : "q=apache+httpclient&core=&start=10&rows=10&wt=",
+      "X-Amz-Cf-Pop" : "CPH50-P1",
+      "Date" : "Sun, 09 Nov 2025 20:47:10 GMT",
+      "Via" : "1.1 6ee89b3e6dcaec24bb10163246825fba.cloudfront.net (CloudFront)",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-request_uri" : "/solrsearch/select?start=10&rows=10&q=apache+httpclient",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Amz-Cf-Id" : "V3T-zTMxMZWGkDHnKpCb_NSEeIN2O3I2H5C_vzK_V8VCJ3oL72eFNw==",
+      "X-XSS-Protection" : "1; mode=block",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "3e2d83a8-92ed-431b-92f9-26d21cad5fe0",
+  "persistent" : true,
+  "insertionIndex" : 41
+}
