@@ -236,10 +236,6 @@ public class ArtifactSearchWidget {
 		return new PhaseHandler(rootPhase, versionSelectionPhase);
 	}
 
-	private Set<Artifact> artifactsToConsider() {
-		return phase.current().artifactsToConsider();
-	}
-
 	public ArtifactSearchWidget(Terminal terminal) {
 		this.terminal = terminal;
 		this.attrs = terminal.getAttributes();
