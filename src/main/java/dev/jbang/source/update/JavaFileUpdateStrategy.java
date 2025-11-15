@@ -13,11 +13,12 @@ class JavaFileUpdateStrategy implements FileUpdateStrategy {
 	@Override
 	public boolean canHandle(Path file) {
 		String fileName = file.getFileName().toString();
-		return fileName.endsWith(".java");
+		return fileName.endsWith(".java") || fileName.endsWith(".jbang");
 	}
 
 	@Override
-	public void updateFile(Path file, List<String> newDeps) throws IOException {
+	public void updateFile(Path file, List<String> newDeps)
+			throws IOException {
 		String content = Util.readFileContent(file);
 		List<String> lines = new ArrayList<>();
 		boolean depsAdded = false;

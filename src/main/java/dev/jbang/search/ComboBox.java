@@ -12,6 +12,7 @@ import org.jline.keymap.BindingReader;
 import org.jline.keymap.KeyMap;
 import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.InfoCmp.Capability;
 
 class Combobox<T> {
@@ -26,12 +27,13 @@ class Combobox<T> {
 	private Function<String, List<T>> filter;
 	private Function<T, AttributedString> itemRenderer = (t) -> new AttributedString(t.toString());
 	private BiFunction<T, List<T>, Integer> selector = (item, matches) -> matches.indexOf(item);
-	private String prefix = "Search: ";
+	private AttributedString prefix = new AttributedString("Search: ");
 
-	Combobox(Terminal terminal) {
+	Combobox(Terminal terminal, String initialQuery) {
 		this.terminal = terminal;
 		reader = new BindingReader(terminal.reader());
 		this.itemRenderer = (t) -> new AttributedString(t.toString());
+		this.qb = new StringBuilder(initialQuery);
 
 		// Define key bindings
 		keys.setNomatch("nomatch"); // Any printable char
@@ -94,11 +96,11 @@ class Combobox<T> {
 		return selection;
 	}
 
-	public String prefix() {
+	public AttributedString prefix() {
 		return prefix;
 	}
 
-	public void withPrefix(String prefix) {
+	public void withPrefix(AttributedString prefix) {
 		this.prefix = prefix;
 	}
 
@@ -116,9 +118,9 @@ class Combobox<T> {
 
 	public void render() {
 		terminal.puts(Capability.clear_screen);
-		String header = this.prefix + qb;
-		terminal.writer().println(header);
-		terminal.writer().println(new String(new char[header.length()]).replace("\0", "-"));
+		AttributedString header = new AttributedStringBuilder().append(this.prefix).append(qb).toAttributedString();
+		terminal.writer().println(header.toAnsi(terminal));
+		terminal.writer().println(new String(new char[this.prefix.length()]).replace("\0", "-"));
 		for (int i = 0; i < matches.size(); i++) {
 			if (i == selectedIndex) {
 				terminal.writer().println("> " + itemRenderer.apply(matches.get(i)));
@@ -127,7 +129,11 @@ class Combobox<T> {
 			}
 		}
 
-		terminal.puts(Capability.cursor_address, 0, this.prefix.length() + qb.length());
+		// Handle newlines in prefix and qb so the cursor stays in the right spot
+		String[] lines = header.toString().split("\\R", -1); // "\\R" matches any newline, -1 keeps trailing empty lines
+		int line = lines.length - 1;
+		int col = lines[lines.length - 1].length();
+		terminal.puts(Capability.cursor_address, line, header.columnLength());
 		terminal.flush();
 	}
 

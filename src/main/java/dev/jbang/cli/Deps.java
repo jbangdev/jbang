@@ -33,23 +33,70 @@ public class Deps extends BaseCommand {
 	}
 }
 
-@Command(name = "search", description = "Search for artifacts.")
+@Command(name = "search", header = "Search for artifacts in local and central Maven repositories.", description = {
+		"",
+		"  ${COMMAND-FULL-NAME}",
+		"        (to search for artifacts interactively)",
+		"  or  ${COMMAND-FULL-NAME} jash",
+		"        (to search for 'jash' interactively)",
+		"  or  ${COMMAND-FULL-NAME} myapp.java",
+		"        (to search for dependencies and add them to myapp.java)",
+		"  or  ${COMMAND-FULL-NAME} jash myapp.java",
+		"        (to search initially for 'jash' and add dependency to myapp.java)",
+		"",
+		" note: JBang will detect if the arguments are a file or query, but if you want to be explicit you can use the --query and --target options.",
+		"",
+		"" })
 class DepsSearch extends BaseCommand {
 
 	@CommandLine.Option(names = "--max", description = "Maximum number of results to return.", defaultValue = "100")
 	int max;
 
 	@CommandLine.Option(names = { "--query",
-			"-q" }, description = "Artifact pattern to search for. If no pattern is provided, the user will be prompted to enter a pattern.", arity = "0..1")
-	Optional<String> artifactPattern;
+			"-q" }, description = "Artifact pattern to search for.", arity = "0..1")
+	Optional<String> query;
 
-	@CommandLine.Parameters(description = "Target file (.java or build.jbang)", arity = "0..1")
+	@CommandLine.Option(names = {
+			"--target" }, description = "Target where to add the dependency, i.e. app.java or build.jbang", arity = "0..1")
 	Optional<Path> target;
 
-	boolean useWidget = true;
+	@CommandLine.Parameters(arity = "0..2", paramLabel = "[query] [target]", description = "Artifact pattern to search for and target where to add the dependency, i.e. app.java or build.jbang. Query and target can both be optional")
+	List<String> args = new ArrayList<>();
+
+	private boolean looksLikeATarget(String a0) {
+		return Files.exists(Paths.get(a0));
+	}
+
+	private void updateTarget(String a0) throws IOException {
+		if (target.isPresent()) {
+			throw new IllegalArgumentException("Cannot provide both target as as parameter and as option");
+		} else {
+			target = Optional.of(Paths.get(a0));
+		}
+	}
+
+	private void updateQuery(String a0) {
+		if (query.isPresent()) {
+			throw new IllegalArgumentException("Cannot provide both query as as parameter and as option");
+		} else {
+			query = Optional.of(a0);
+		}
+	}
 
 	@Override
 	public Integer doCall() throws IOException {
+
+		if (args.size() == 1) { // either query or target
+			String a0 = args.get(0);
+			if (looksLikeATarget(a0)) {
+				updateTarget(a0);
+			} else {
+				updateQuery(a0);
+			}
+		} else if (args.size() == 2) { // both query and target
+			updateQuery(args.get(0));
+			updateTarget(args.get(1));
+		}
 
 		if (target.isPresent() && !Files.exists(target.get())) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + target.get());
@@ -57,7 +104,7 @@ class DepsSearch extends BaseCommand {
 
 		try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
 			try {
-				Artifact artifact = new ArtifactSearchWidget(terminal).search();
+				Artifact artifact = new ArtifactSearchWidget(terminal).search(query.orElse(""));
 				if (target.isPresent()) {
 					DepsAdd.updateFile(target.get(), Collections.singletonList(artifactGav(artifact)));
 					info("Added " + artifactGav(artifact) + " to " + target.get());

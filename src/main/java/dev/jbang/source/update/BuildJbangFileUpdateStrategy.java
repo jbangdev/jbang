@@ -17,7 +17,8 @@ class BuildJbangFileUpdateStrategy implements FileUpdateStrategy {
 	}
 
 	@Override
-	public void updateFile(Path file, List<String> newDeps) throws IOException {
+	public void updateFile(Path file, List<String> newDeps)
+			throws IOException {
 		String content = Util.readFileContent(file);
 		List<String> lines = new ArrayList<>();
 		boolean depsAdded = false;
