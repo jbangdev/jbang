@@ -84,7 +84,7 @@ jobs:
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@eec48106e0bf45f2976c2ff0c3e22395cced8243 # v1
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
