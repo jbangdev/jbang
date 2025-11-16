@@ -400,7 +400,7 @@ testing {
 				implementation "org.junit.platform:junit-platform-launcher"
 				implementation "org.assertj:assertj-core:3.24.2"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
-				implementation platform("io.qameta.allure:allure-bom:2.29.1")
+				implementation platform("io.qameta.allure:allure-bom:2.31.0")
 				implementation "io.qameta.allure:allure-junit5"
 				implementation "org.wiremock:wiremock:3.13.2"
 				implementation 'dev.jbang:devkitman:0.3.0'
