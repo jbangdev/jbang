@@ -172,7 +172,7 @@ dependencies {
 	testImplementation platform('org.junit:junit-bom:5.13.4')
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
-	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.0"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "org.wiremock:wiremock:3.13.2"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
