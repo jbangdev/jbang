@@ -22,7 +22,7 @@ plugins {
 
 }
 
-def allureVersion = '2.29.1'
+def allureVersion = '2.31.0'
 def aspectJVersion = '1.9.25'
 
 configurations {
