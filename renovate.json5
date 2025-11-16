@@ -1,7 +1,8 @@
 {
   extends: [
     'config:best-practices',
-    'group:monorepos',
+    'group:allNonMajor',
+    'group:monorepos'
   ],
   packageRules: [
     {
