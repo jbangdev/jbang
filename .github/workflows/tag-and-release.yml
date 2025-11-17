@@ -52,7 +52,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
@@ -89,6 +89,6 @@ jobs:
     
       - name: Start tmate session
         if: always() && needs.check-debug.outputs.debug_enabled == 'true'
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
         with:
             limit-access-to-actor: true

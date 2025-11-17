@@ -23,7 +23,7 @@ plugins {
 }
 
 def allureVersion = '2.29.1'
-def aspectJVersion = '1.9.22'
+def aspectJVersion = '1.9.25'
 def versionJline = '3.30.5'
 
 configurations {
@@ -163,23 +163,23 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.33"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.33"
+	implementation "eu.maveniverse.maven.mima:context:2.4.36"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
 	implementation "org.jline:jline-console-ui:$versionJline"
 	implementation "org.jline:jline-terminal-jni:$versionJline"
 
-	implementation "eu.maveniverse.maven.nisse:core:0.6.0"
-	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
+	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
+	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
-	testImplementation platform('org.junit:junit-bom:5.13.4')
+	testImplementation platform('org.junit:junit-bom:5.14.1')
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.assertj:assertj-core:3.24.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
-	testImplementation "org.wiremock:wiremock:3.12.1"
+	testImplementation "org.wiremock:wiremock:3.13.2"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
@@ -400,14 +400,14 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()  // todo: shouldn't even need to depend on main code?
-				implementation platform('org.junit:junit-bom:5.13.4')
+				implementation platform('org.junit:junit-bom:5.14.1')
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
 				implementation "org.assertj:assertj-core:3.24.2"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
 				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
-				implementation "org.wiremock:wiremock:3.12.1"
+				implementation "org.wiremock:wiremock:3.13.2"
 				implementation 'dev.jbang:devkitman:0.3.0'
 			}
 

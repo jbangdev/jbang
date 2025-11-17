@@ -84,7 +84,7 @@ jobs:
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@eec48106e0bf45f2976c2ff0c3e22395cced8243 # v1
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
@@ -135,7 +135,7 @@ jobs:
       matrix:
         os: *os_matrix
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
+      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
         with:
@@ -195,7 +195,7 @@ jobs:
               java-version: 21
     name: integration-tests
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
+      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
