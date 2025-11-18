@@ -152,4 +152,10 @@ public class RunIT extends BaseIT {
 		assumeTrue(testJavaMajorVersion >= 9, "Piping code via stdin requires JShell which is not supported on Java 8");
 		assertThat(shell("jbang run -c \"System.exit(42)\"")).exitedWith(42);
 	}
+
+	@Test
+	public void shouldDownloadBinaryRemoteArgument() {
+		assertThat(shell("jbang readimg.java %https://github.com/jbangdev/jbang/blob/main/images/jbang_icon.png"))
+			.outNotContains("null");
+	}
 }

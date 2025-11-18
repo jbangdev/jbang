@@ -1,5 +1,7 @@
 package dev.jbang.net;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.devkitman.JdkManager;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -70,4 +73,10 @@ class TestJdkManager extends BaseTest {
 		assertFalse(javaVersion.isPresent());
 	}
 
+	@Test
+	void testAllProviders() {
+		JdkManager jm = JavaUtil.defaultJdkManager("all");
+		assertThat(jm.providers().size(), equalTo(JavaUtil.JdkManBuilder.PROVIDERS_ALL.size()));
+		assertThat(jm.providers(), containsInAnyOrder(JavaUtil.JdkManBuilder.PROVIDERS_ALL.toArray()));
+	}
 }

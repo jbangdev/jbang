@@ -1458,7 +1458,9 @@ public class Util {
 			}
 			if (txt.startsWith("http://") || txt.startsWith("https://")) {
 				try {
-					return Matcher.quoteReplacement(NetUtil.downloadAndCacheFile(txt).toString());
+					String url = Util.swizzleURL(txt);
+					Path file = NetUtil.downloadAndCacheFile(url);
+					return Matcher.quoteReplacement(file.toString());
 				} catch (IOException e) {
 					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt,
 							e);
