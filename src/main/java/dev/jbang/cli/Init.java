@@ -129,7 +129,8 @@ public class Init extends BaseCommand {
 				try {
 					Util.infoMsg("JBang AI activated, using " + provider.getName() + ":" + provider.getModel()
 							+ " for init. Have a bit of patience - Ctrl+C to abort.");
-					String response = provider.generateCode(baseName, extension, String.join(" ", params));
+					String response = provider.generateCode(baseName, extension, String.join(" ", params),
+							"" + reqVersion);
 					// sometimes gpt adds a markdown ```java block so lets remove all lines starting
 					// with ``` in the output.
 					response = response.replaceAll("(?m)^```.*(?:\r?\n|$)", "");

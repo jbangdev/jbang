@@ -45,31 +45,36 @@ public class AIProviderFactory {
 		// order)
 		// order below is more or less arbitrary as those are all fairly unique keys
 		map.put("openai", new ProviderConfig("OPENAI_API_KEY", "openai", "https://api.openai.com/v1",
-				"gpt-4o-mini"));
+				"gpt-5.1"));
 		map.put("openrouter", new ProviderConfig("OPENROUTER_API_KEY", "openrouter",
-				"https://openrouter.ai/api/v1", "anthropic/claude-3.5-haiku"));
-		map.put("anthropic", new ProviderConfig("CLAUDE_API_KEY", "anthropic",
-				"https://api.anthropic.com/v1", "claude-3.5-haiku"));
+				"https://openrouter.ai/api/v1", "x-ai/grok-code-fast-1"));
+		// map.put("anthropic", new ProviderConfig("CLAUDE_API_KEY", "anthropic",
+		// "https://api.anthropic.com/v1", "claude-3.5-haiku"));
 		map.put("google", new ProviderConfig("GEMINI_API_KEY", "google",
 				"https://generativelanguage.googleapis.com/v1beta/openai", "gemini-3-pro-preview"));
-		map.put("groq", new ProviderConfig("GROQ_API_KEY", "groq", "https://api.groq.com/openai/v1",
-				"llama-3.1-70b-versatile"));
-		map.put("together", new ProviderConfig("TOGETHER_API_KEY", "together",
-				"https://api.together.xyz/v1", "meta-llama/Llama-3-70b-chat-hf"));
-		map.put("mistral", new ProviderConfig("MISTRAL_API_KEY", "mistral", "https://api.mistral.ai/v1",
-				"mistral-large-latest"));
-		map.put("deepinfra", new ProviderConfig("DEEPINFRA_API_KEY", "deepinfra",
-				"https://api.deepinfra.com/v1/openai", "meta-llama/Llama-3-70b-chat-hf"));
+		// map.put("groq", new ProviderConfig("GROQ_API_KEY", "groq",
+		// "https://api.groq.com/openai/v1",
+		// "llama-3.1-70b-versatile"));
+		// map.put("together", new ProviderConfig("TOGETHER_API_KEY", "together",
+		// "https://api.together.xyz/v1", "meta-llama/Llama-3-70b-chat-hf"));
+		// map.put("mistral", new ProviderConfig("MISTRAL_API_KEY", "mistral",
+		// "https://api.mistral.ai/v1",
+		// "mistral-large-latest"));
+		// map.put("deepinfra", new ProviderConfig("DEEPINFRA_API_KEY", "deepinfra",
+		// "https://api.deepinfra.com/v1/openai", "meta-llama/Llama-3-70b-chat-hf"));
 		map.put("opencode", new ProviderConfig("OPENCODE_API_KEY", "opencode",
-				"https://opencode.ai/zen/v1", "gpt-4"));
-		map.put("fireworks", new ProviderConfig("FIREWORKS_API_KEY", "fireworks",
-				"https://api.fireworks.ai/inference/v1", "accounts/fireworks/models/llama-v3-70b-instruct"));
-		map.put("anyscale", new ProviderConfig("ANYSCALE_API_KEY", "anyscale",
-				"https://api.endpoints.anyscale.com/v1", "meta-llama/Llama-3-70b-chat-hf"));
-		map.put("huggingface", new ProviderConfig("HUGGINGFACE_API_KEY", "huggingface",
-				"https://api-inference.huggingface.co/v1", "meta-llama/Llama-3-70b-chat-hf"));
-		map.put("perplexity", new ProviderConfig("PERPLEXITY_API_KEY", "perplexity",
-				"https://api.perplexity.ai", "llama-3-sonar-large-32k-online"));
+				"https://opencode.ai/zen/v1", "gpt-5.1"));
+		// map.put("fireworks", new ProviderConfig("FIREWORKS_API_KEY", "fireworks",
+		// "https://api.fireworks.ai/inference/v1",
+		// "accounts/fireworks/models/llama-v3-70b-instruct"));
+		// map.put("anyscale", new ProviderConfig("ANYSCALE_API_KEY", "anyscale",
+		// "https://api.endpoints.anyscale.com/v1", "meta-llama/Llama-3-70b-chat-hf"));
+		// map.put("huggingface", new ProviderConfig("HUGGINGFACE_API_KEY",
+		// "huggingface",
+		// "https://api-inference.huggingface.co/v1",
+		// "meta-llama/Llama-3-70b-chat-hf"));
+		// map.put("perplexity", new ProviderConfig("PERPLEXITY_API_KEY", "perplexity",
+		// "https://api.perplexity.ai", "llama-3-sonar-large-32k-online"));
 
 		// putting github last as GITHUB_TOKEN could be a personal access token or a PAT
 		// for many other things.
@@ -98,10 +103,8 @@ public class AIProviderFactory {
 	 * 
 	 * <p>
 	 * Otherwise, auto-detection checks providers in order (first match wins):
-	 * OpenAI, OpenRouter, Anthropic (Claude), Google (Gemini), Groq, Together AI,
-	 * Mistral, DeepInfra, OpenCode Zen, Fireworks, Anyscale, Hugging Face,
-	 * Perplexity, GitHub (checked last due to potential token ambiguity), Ollama
-	 * (only when explicitly set).
+	 * OpenAI, OpenRouter, Google (Gemini), OpenCode Zen, GitHub (checked last due
+	 * to potential token ambiguity), Ollama (only when explicitly set).
 	 * </p>
 	 *
 	 * @return An AI provider if a valid API key is found, null otherwise

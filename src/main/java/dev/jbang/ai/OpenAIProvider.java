@@ -9,7 +9,12 @@ import java.util.*;
 
 import com.google.gson.Gson;
 
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
+
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateInstance;
 
 /**
  * Implementation for AI providers using OpenAI-compatible API.
@@ -34,7 +39,7 @@ public class OpenAIProvider implements AIProvider {
 	}
 
 	@Override
-	public String generateCode(String baseName, String extension, String request)
+	public String generateCode(String baseName, String extension, String request, String javaVersion)
 			throws IllegalStateException, IOException {
 		String answer = null;
 		URL url = new URL(endpoint + "/chat/completions");
@@ -55,13 +60,7 @@ public class OpenAIProvider implements AIProvider {
 		Gson gson = new Gson();
 
 		List<Map<String, String>> messages = new ArrayList<>();
-		messages.add(createPrompt("system",
-				"You are to generate a response that only contain code that is written in a file ending in "
-						+ extension + " in the style of jbang. The main class must be named "
-						+ baseName
-						+ " " +
-						". Add no additional text." +
-						"You can put comments in the code."));
+		messages.add(createPrompt("system", buildSystemPrompt(baseName, extension, javaVersion)));
 		messages.add(createPrompt("user", request));
 		prompt.put("messages", messages);
 		String requestJson = gson.toJson(prompt);
@@ -114,5 +113,28 @@ public class OpenAIProvider implements AIProvider {
 		m.put("role", role);
 		m.put("content", content);
 		return m;
+	}
+
+	private String buildSystemPrompt(String baseName, String extension, String javaVersion) {
+		String extLower = extension.toLowerCase();
+		boolean isJava = extLower.equals(".java");
+		boolean isKotlin = extLower.equals(".kt");
+		boolean isGroovy = extLower.equals(".groovy");
+
+		Template template = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/ai-system-prompt.qute"));
+		if (template == null) {
+			throw new IllegalStateException("Could not load AI system prompt template");
+		}
+
+		TemplateInstance instance = template.instance()
+			.data("baseName", baseName)
+			.data("extension", extension)
+			.data("isJava", isJava)
+			.data("isKotlin", isKotlin)
+			.data("isGroovy", isGroovy)
+			.data("javaVersion", javaVersion);
+
+		return instance.render();
 	}
 }

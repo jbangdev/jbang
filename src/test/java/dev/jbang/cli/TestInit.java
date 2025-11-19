@@ -38,7 +38,7 @@ public class TestInit extends BaseTest {
 		String prompt = "write me a helloworld with StringUtils from commons-lang3";
 		AIProvider provider = new AIProviderFactory().createProvider();
 		if (provider != null) {
-			String result = provider.generateCode("test", "java", prompt);
+			String result = provider.generateCode("test", "java", prompt, "25");
 			Assertions.assertNotNull(result);
 			Assertions.assertNotEquals(result, "");
 		} else {
