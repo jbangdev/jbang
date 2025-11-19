@@ -223,6 +223,9 @@
       ]
     },
     {
+      "type": "dev.jbang.cli.AIOptions"
+    },
+    {
       "type": "dev.jbang.cli.Deps"
     },
     {
@@ -245,6 +248,12 @@
     },
     {
       "type": "dev.jbang.search.MsrResponse",
+      "allDeclaredConstructors" : true,
+      "allPublicConstructors" : true,
+      "allPublicFields" : true
+    },
+    {
+      "type": "dev.jbang.ai.AIProvider",
       "allDeclaredConstructors" : true,
       "allPublicConstructors" : true,
       "allPublicFields" : true
