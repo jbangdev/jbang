@@ -20,6 +20,7 @@ plugins {
 	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.9.2'
 	id 'io.qameta.allure-report' version '2.12.0'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
+	id "net.ltgt.errorprone" version "5.1.0"
 }
 
 def allureVersion = '2.29.1'
@@ -152,6 +153,8 @@ sourceSets {
 sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
+	errorprone "com.google.errorprone:error_prone_core:2.50.0"
+
 	implementation "dev.jbang:devkitman:${devkitmanVersion}"
 
 	implementation 'org.jspecify:jspecify:1.0.0'
