@@ -1,0 +1,19 @@
+{
+  "id" : "88b5e402-be7e-47b1-b517-55f180955002",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=1&rows=10&q=httpclient",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":0,\"params\":{\"q\":\"httpclient\",\"core\":\"\",\"indent\":\"off\",\"spellcheck\":\"false\",\"start\":\"\",\"spellcheck.count\":\"0\",\"sort\":\"\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"None\"}},\"response\":{\"numFound\":659,\"start\":1,\"docs\":[{\"id\":\"com.github.paweladamski:HttpClientMock\",\"g\":\"com.github.paweladamski\",\"a\":\"HttpClientMock\",\"latestVersion\":\"2.2.2\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1672658562000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"com.pgs-soft:HttpClientMock\",\"g\":\"com.pgs-soft\",\"a\":\"HttpClientMock\",\"latestVersion\":\"1.0.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1551863574000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"com.github.jalasoft:JalasoftHttpClient\",\"g\":\"com.github.jalasoft\",\"a\":\"JalasoftHttpClient\",\"latestVersion\":\"1.0.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1430584803000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"com.github.jalasoft:NettyHttpClient\",\"g\":\"com.github.jalasoft\",\"a\":\"NettyHttpClient\",\"latestVersion\":\"1.0.5\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1436899225000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"com.jhintersoftware.simplehttpclient:SimpleHttpClient\",\"g\":\"com.jhintersoftware.simplehttpclient\",\"a\":\"SimpleHttpClient\",\"latestVersion\":\"1.0.3\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1752601183000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.eclipse.aether:aether-connector-asynchttpclient\",\"g\":\"org.eclipse.aether\",\"a\":\"aether-connector-asynchttpclient\",\"latestVersion\":\"0.9.0.M2\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1361044755000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.sonatype.aether:aether-connector-asynchttpclient\",\"g\":\"org.sonatype.aether\",\"a\":\"aether-connector-asynchttpclient\",\"latestVersion\":\"1.13.1\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1322573577000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.bithon.agent:agent-plugin-httpclient-apache\",\"g\":\"org.bithon.agent\",\"a\":\"agent-plugin-httpclient-apache\",\"latestVersion\":\"1.1.0-RELEASE\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1639383508000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.bithon.agent:agent-plugin-httpclient-jdk\",\"g\":\"org.bithon.agent\",\"a\":\"agent-plugin-httpclient-jdk\",\"latestVersion\":\"1.1.0-RELEASE\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1639383508000,\"versionCount\":0,\"ec\":[\"jar\"]},{\"id\":\"org.bithon.agent:agent-plugin-httpclient-jetty\",\"g\":\"org.bithon.agent\",\"a\":\"agent-plugin-httpclient-jetty\",\"latestVersion\":\"1.1.0-RELEASE\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1639383503000,\"versionCount\":0,\"ec\":[\"jar\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "Date" : "Sun, 09 Nov 2025 20:47:16 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "88b5e402-be7e-47b1-b517-55f180955002",
+  "persistent" : true,
+  "insertionIndex" : 49
+}

@@ -30,7 +30,7 @@ public abstract class BaseCommand implements Callable<Integer> {
 	public static final int EXIT_INTERNAL_ERROR = 4;
 	public static final int EXIT_EXECUTE = 255;
 
-	private static final Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");
+	private static final Logger logger = Logger.getLogger("dev.jbang.cli");
 	static {
 		logger.setLevel(Level.SEVERE);
 	}

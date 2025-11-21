@@ -1,0 +1,31 @@
+{
+  "id" : "08ea9c38-1ff8-4adc-a490-c6f960024b4f",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=0&rows=10&q=g%3Aorg.apache.httpcomponents+AND+a%3Ahttpclient&core=gav",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":9,\"params\":{\"q\":\"g:org.apache.httpcomponents AND a:httpclient\",\"core\":\"gav\",\"indent\":\"off\",\"fl\":\"id,g,a,v,p,ec,timestamp,tags\",\"start\":\"0\",\"sort\":\"score desc,timestamp desc,g asc,a asc,v desc\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"2.2\"}},\"response\":{\"numFound\":55,\"start\":0,\"docs\":[{\"id\":\"org.apache.httpcomponents:httpclient:4.5.14\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.14\",\"p\":\"jar\",\"timestamp\":1669833654000,\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\"-tests.jar\",\".jar\"],\"tags\":[\"apache\",\"httpcomponents\",\"client\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.13\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.13\",\"p\":\"jar\",\"timestamp\":1601736461000,\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\"-tests.jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.12\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.12\",\"p\":\"jar\",\"timestamp\":1583326015000,\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\".jar\",\"-tests.jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.11\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.11\",\"p\":\"jar\",\"timestamp\":1579084575000,\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.10\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.10\",\"p\":\"jar\",\"timestamp\":1567683485000,\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\".jar\",\"-tests.jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.9\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.9\",\"p\":\"jar\",\"timestamp\":1559913915000,\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.8\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.8\",\"p\":\"jar\",\"timestamp\":1553588647000,\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.7\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.7\",\"p\":\"jar\",\"timestamp\":1547994200000,\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.6\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.6\",\"p\":\"jar\",\"timestamp\":1530790943000,\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]},{\"id\":\"org.apache.httpcomponents:httpclient:4.5.5\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"v\":\"4.5.5\",\"p\":\"jar\",\"timestamp\":1516276449000,\"ec\":[\"-sources.jar\",\"-javadoc.jar\",\"-tests.jar\",\".jar\",\".pom\"],\"tags\":[\"client\",\"httpcomponents\",\"apache\"]}]}}",
+    "headers" : {
+      "X-Cache" : "Miss from cloudfront",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-query_string" : "q=g%3Aorg.apache.httpcomponents+AND+a%3Ahttpclient&core=gav&start=0&rows=10&wt=",
+      "X-Amz-Cf-Pop" : "CPH50-P1",
+      "Date" : "Sun, 09 Nov 2025 20:47:12 GMT",
+      "Via" : "1.1 220ad20f083e33191aaa4ae459647b18.cloudfront.net (CloudFront)",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-request_uri" : "/solrsearch/select?start=0&rows=10&q=g%3Aorg.apache.httpcomponents+AND+a%3Ahttpclient&core=gav",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Amz-Cf-Id" : "byy031QGAtuZ8417cw039QEaeeWCqe7b5JAPtYbtaSKpIMcsYKBxcw==",
+      "X-XSS-Protection" : "1; mode=block",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "08ea9c38-1ff8-4adc-a490-c6f960024b4f",
+  "persistent" : true,
+  "insertionIndex" : 45
+}

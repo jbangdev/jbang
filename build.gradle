@@ -24,6 +24,7 @@ plugins {
 
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
+def versionJline = '3.30.5'
 
 configurations {
 	agent {
@@ -166,6 +167,9 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
+	implementation "org.jline:jline-console-ui:$versionJline"
+	implementation "org.jline:jline-terminal-jni:$versionJline"
+
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
@@ -173,6 +177,7 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "org.assertj:assertj-core:3.24.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "org.wiremock:wiremock:3.13.2"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
@@ -324,7 +329,7 @@ compileJava9Java {
 }
 
 shadowJar {
-	minimize() {
+	/*minimize() {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('dev.jbang:devkitman:.*'))
 		exclude(dependency('eu.maveniverse.maven.mima:context:.*'))
@@ -332,7 +337,7 @@ shadowJar {
 		exclude(dependency('org.slf4j:jcl-over-slf4j:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
-	}
+	}*/
 	mergeServiceFiles()
 	manifest {
 		attributes(

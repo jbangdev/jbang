@@ -1,0 +1,31 @@
+{
+  "id" : "a5406930-fd28-43a1-9fca-1523b5b0fc56",
+  "name" : "solrsearch_select",
+  "request" : {
+    "url" : "/solrsearch/select?start=0&rows=10&q=apache+httpclient",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"responseHeader\":{\"status\":0,\"QTime\":6,\"params\":{\"q\":\"apache httpclient\",\"core\":\"\",\"defType\":\"dismax\",\"qf\":\"text^20 g^5 a^10\",\"indent\":\"off\",\"spellcheck\":\"true\",\"fl\":\"id,g,a,latestVersion,p,ec,repositoryId,text,timestamp,versionCount\",\"start\":\"0\",\"spellcheck.count\":\"5\",\"sort\":\"score desc,timestamp desc,g asc,a asc\",\"rows\":\"10\",\"wt\":\"json\",\"version\":\"2.2\"}},\"response\":{\"numFound\":91,\"start\":0,\"docs\":[{\"id\":\"org.wso2.apache.httpcomponents:httpclient\",\"g\":\"org.wso2.apache.httpcomponents\",\"a\":\"httpclient\",\"latestVersion\":\"4.3.1.wso2v1\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1425712753000,\"versionCount\":1,\"text\":[\"org.wso2.apache.httpcomponents\",\"httpclient\",\".jar\",\".pom\"],\"ec\":[\".jar\",\".pom\"]},{\"id\":\"org.wso2.orbit.org.apache.httpcomponents:httpclient\",\"g\":\"org.wso2.orbit.org.apache.httpcomponents\",\"a\":\"httpclient\",\"latestVersion\":\"4.5.13.wso2v1\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1608659834000,\"versionCount\":5,\"text\":[\"org.wso2.orbit.org.apache.httpcomponents\",\"httpclient\",\".jar\",\".pom\"],\"ec\":[\".jar\",\".pom\"]},{\"id\":\"org.apache.httpcomponents:httpclient\",\"g\":\"org.apache.httpcomponents\",\"a\":\"httpclient\",\"latestVersion\":\"4.5.14\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1669833654000,\"versionCount\":55,\"text\":[\"org.apache.httpcomponents\",\"httpclient\",\"-sources.jar\",\".pom\",\"-javadoc.jar\",\"-tests.jar\",\".jar\"],\"ec\":[\"-sources.jar\",\".pom\",\"-javadoc.jar\",\"-tests.jar\",\".jar\"]},{\"id\":\"io.quarkus:quarkus-apache-httpclient-parent\",\"g\":\"io.quarkus\",\"a\":\"quarkus-apache-httpclient-parent\",\"latestVersion\":\"3.23.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1747918141000,\"versionCount\":269,\"text\":[\"io.quarkus\",\"quarkus-apache-httpclient-parent\",\".pom\"],\"ec\":[\".pom\"]},{\"id\":\"hu.blackbelt.karaf.features:apache-httpclient\",\"g\":\"hu.blackbelt.karaf.features\",\"a\":\"apache-httpclient\",\"latestVersion\":\"4.5.3_2\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1556322239000,\"versionCount\":3,\"text\":[\"hu.blackbelt.karaf.features\",\"apache-httpclient\",\".pom\"],\"ec\":[\".pom\"]},{\"id\":\"org.httpobjects.apache-httpclient-4.x:httpobjects-apache-httpclient-4.x\",\"g\":\"org.httpobjects.apache-httpclient-4.x\",\"a\":\"httpobjects-apache-httpclient-4.x\",\"latestVersion\":\"0.27.0\",\"repositoryId\":\"central\",\"p\":\"jar\",\"timestamp\":1565577305000,\"versionCount\":4,\"text\":[\"org.httpobjects.apache-httpclient-4.x\",\"httpobjects-apache-httpclient-4.x\",\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"],\"ec\":[\"-javadoc.jar\",\"-sources.jar\",\".jar\",\".pom\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient5-parent\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient5-parent\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1761217353000,\"versionCount\":24,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient5-parent\",\".pom\"],\"ec\":[\".pom\"]},{\"id\":\"org.apache.camel.quarkus:camel-quarkus-support-httpclient-parent\",\"g\":\"org.apache.camel.quarkus\",\"a\":\"camel-quarkus-support-httpclient-parent\",\"latestVersion\":\"3.29.0\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1761217258000,\"versionCount\":88,\"text\":[\"org.apache.camel.quarkus\",\"camel-quarkus-support-httpclient-parent\",\".pom\"],\"ec\":[\".pom\"]},{\"id\":\"org.wso2.orbit.org.apache.httpcomponents:httpclient5\",\"g\":\"org.wso2.orbit.org.apache.httpcomponents\",\"a\":\"httpclient5\",\"latestVersion\":\"5.4.1.wso2v1\",\"repositoryId\":\"central\",\"p\":\"bundle\",\"timestamp\":1737090200000,\"versionCount\":1,\"text\":[\"org.wso2.orbit.org.apache.httpcomponents\",\"httpclient5\",\".pom\",\".jar\"],\"ec\":[\".pom\",\".jar\"]},{\"id\":\"io.opentracing.contrib:opentracing-apache-httpclient-parent\",\"g\":\"io.opentracing.contrib\",\"a\":\"opentracing-apache-httpclient-parent\",\"latestVersion\":\"0.3.3\",\"repositoryId\":\"central\",\"p\":\"pom\",\"timestamp\":1597658224000,\"versionCount\":9,\"text\":[\"io.opentracing.contrib\",\"opentracing-apache-httpclient-parent\",\".pom\"],\"ec\":[\".pom\"]}]},\"spellcheck\":{\"suggestions\":[]}}",
+    "headers" : {
+      "X-Cache" : "Miss from cloudfront",
+      "Server" : "nginx",
+      "X-Content-Type-Options" : "nosniff",
+      "X-query_string" : "q=apache+httpclient&core=&start=0&rows=10&wt=",
+      "X-Amz-Cf-Pop" : "CPH50-P1",
+      "Date" : "Sun, 09 Nov 2025 20:47:10 GMT",
+      "Via" : "1.1 1df45692f7304ec32e8154a5de939176.cloudfront.net (CloudFront)",
+      "Referrer-Policy" : "strict-origin-when-cross-origin",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-request_uri" : "/solrsearch/select?start=0&rows=10&q=apache+httpclient",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Amz-Cf-Id" : "ztGy5QTjzCnFIOSTAJ2h4fKwcmidtdR-YxFX_q_oV1rzRhc1633TZg==",
+      "X-XSS-Protection" : "1; mode=block",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "a5406930-fd28-43a1-9fca-1523b5b0fc56",
+  "persistent" : true,
+  "insertionIndex" : 42
+}
