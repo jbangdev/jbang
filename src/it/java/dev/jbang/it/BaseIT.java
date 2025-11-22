@@ -106,7 +106,7 @@ public class BaseIT {
 		String javaMajorVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
 
 		if (testJavaHome == null) {
-			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
+			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of(), List.of());
 			// if env not avail it is null and will use default jdk
 			// to use same jdk as what tetss run with to make it more
 			// deterministic.
