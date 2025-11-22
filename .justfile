@@ -33,6 +33,9 @@ itest *args:
 jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
+jbangdebug *args:
+    JBANG_JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044 PATH="build/install/jbang/bin:$PATH" jbang {{args}}
+
 java *args:
     java {{args}}
 
