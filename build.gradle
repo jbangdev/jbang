@@ -178,7 +178,7 @@ dependencies {
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.assertj:assertj-core:3.24.2"
-	testImplementation "org.hamcrest:hamcrest-library:2.2"
+	testImplementation "org.hamcrest:hamcrest-library:3.0"
 	testImplementation "org.wiremock:wiremock:3.13.2"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
