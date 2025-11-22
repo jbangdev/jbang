@@ -39,6 +39,16 @@ Or from command line:
 jbang --runtime-option="-Xmx2g" --runtime-option="--enable-preview" myapp.java
 ----
 
+=== Runtime Options (Cross-Platform Compatibility)
+
+Most standard Java VM (JVM) options are generic and can be used on all Java versions and on all OS platforms, but some JVM options are platform-specific. If a OS specific option is used on a OS platform that do not support the specific option, the JVM will display an error message and terminate. To prevent this from happening, also add JVM option
+
+* `-XX:+IgnoreUnrecognizedVMOptions`
+
+On macOS, some Java application require option `-XstartOnFirstThread` to be set. You can add this option using `//RUNTIME_OPTIONS` or `--runtime-option`. To ensure that the Java application continue work on other platforms use JBang runtime options:
+
+* `//RUNTIME_OPTIONS -XX:+IgnoreUnrecognizedVMOptions -XstartOnFirstThread`
+
 === Compile Options
 
 Control the Java compiler with `//COMPILE_OPTIONS` or `--compile-option`:
