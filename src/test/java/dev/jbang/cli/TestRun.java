@@ -407,8 +407,8 @@ public class TestRun extends BaseTest {
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
-		assertThat(e.getMessage(), startsWith("no main class"));
-
+		assertThat(e.getMessage(), startsWith("No main class"));
+		assertThat(e.getMessage(), containsString("- picocli.codegen.docgen.manpage.ManPageGenerator"));
 	}
 
 	@Test
@@ -2533,7 +2533,8 @@ public class TestRun extends BaseTest {
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
-		assertThat(e.getMessage(), startsWith("no main class"));
+		assertThat(e.getMessage(), startsWith("No main class"));
+		assertThat(e.getMessage(), containsString("- com.oracle.graal.python.shell.GraalPythonMain"));
 	}
 
 	@Test

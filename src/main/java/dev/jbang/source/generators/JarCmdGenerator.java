@@ -1,17 +1,23 @@
 package dev.jbang.source.generators;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.Indexer;
+
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.*;
+import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -222,10 +228,51 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				fullArgs.add(main);
 			}
 		} else if (mainRequired) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"no main class deduced, specified nor found in a manifest");
-		}
+			List<ClassInfo> mains = Collections.emptyList();
+			try {
+				Indexer indexer = new Indexer();
+				Index index;
+				// Iterate all .class files in ctx.getJar and put in jandex index
+				Path jarPath = ctx.getJarFile();
+				if (jarPath != null && Files.exists(jarPath) && Files.isRegularFile(jarPath)) {
+					try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
+						java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
+						while (entries.hasMoreElements()) {
+							java.util.jar.JarEntry entry = entries.nextElement();
+							if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
+								try (InputStream is = jarFile.getInputStream(entry)) {
+									indexer.index(is);
+								}
+							}
+						}
+					}
+				}
+				index = indexer.complete();
 
+				Collection<ClassInfo> classes = index.getKnownClasses();
+
+				mains = classes.stream()
+					.filter(CompileBuildStep.getMainFinder())
+					.collect(Collectors.toList());
+
+			} catch (IOException e) {
+				Util.warnMsg("Error indexing jar file: " + e.getMessage());
+			}
+
+			if (mains.isEmpty()) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"No main class deduced, specified nor found in a manifest nor jar");
+			} else {
+
+				String mainClasses = mains.stream()
+					.map(m -> "\n - " + m.name().toString())
+					.collect(Collectors.joining());
+
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
+								+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
+			}
+		}
 		fullArgs.addAll(arguments);
 
 		return fullArgs;
