@@ -114,7 +114,8 @@ jobs:
           JBANG_USE_NATIVE: true
         run: |
           ./gradlew --no-daemon integrationTest
-      - uses: ./.github/actions/shared-test-archiving
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
@@ -147,7 +148,8 @@ jobs:
       - name: test
         run: |
           ./gradlew --no-daemon test
-      - uses: ./.github/actions/shared-test-archiving
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
@@ -207,7 +209,8 @@ jobs:
           _JBANG_TEST_JAVA_VERSION: ${{ matrix.java-version }}
         run: |
           ./gradlew --no-daemon integrationTest
-      - uses: ./.github/actions/shared-test-archiving
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
@@ -295,7 +298,8 @@ jobs:
           merge-multiple: true
       - id: generate-report
         run: ./gradlew --no-daemon allureReport --clean   
-      - uses: ./.github/actions/shared-test-archiving
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
           suffix: ${{ matrix.os }}
