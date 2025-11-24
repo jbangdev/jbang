@@ -161,7 +161,7 @@ dependencies {
 
 	implementation "org.slf4j:slf4j-nop:1.7.36"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
-	implementation "org.jboss:jandex:2.2.3.Final"
+	implementation "org.jboss:jandex:3.3.1"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.36"
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
