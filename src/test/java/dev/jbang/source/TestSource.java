@@ -26,11 +26,11 @@ import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.PropertiesValueResolver;
+
 import io.qameta.allure.Issue;
 
 public class TestSource extends BaseTest {
 
-	
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
 			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n"
 			+ "\n"
@@ -216,7 +216,7 @@ public class TestSource extends BaseTest {
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 		assertEquals(1, deps.size());
 		// not sure what to expect - most likely a build error.
-		
+
 	}
 
 	@Test
