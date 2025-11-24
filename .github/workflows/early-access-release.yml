@@ -10,6 +10,10 @@ on:
     - main
   workflow_dispatch:
 
+concurrency:
+  group: earlyaccess-release
+  cancel-in-progress: true
+
 jobs:
   ci-build:
     uses: ./.github/workflows/ci-build.yml
