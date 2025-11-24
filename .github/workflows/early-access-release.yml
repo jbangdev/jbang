@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/shared-build-setup
         with:
           java-version: 11
-      - uses: .github/workflows/ci-build.yml
+      - uses: jbangdev/jbang/.github/workflows/ci-build.yml
       - name: Download artifacts
         uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
