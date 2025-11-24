@@ -17,7 +17,7 @@ plugins {
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
 	id 'maven-publish'
-	id 'io.qameta.allure-report' version '2.12.0'
+	id 'io.qameta.allure-report' version '3.0.1'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
 
 }
