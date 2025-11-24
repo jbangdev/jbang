@@ -18,7 +18,7 @@ plugins {
 	id 'jacoco'
 	id 'maven-publish'
 	id 'io.qameta.allure-report' version '2.12.0'
-	id "io.qameta.allure-adapter-base" version "2.12.0"
+	id "io.qameta.allure-adapter-base" version "3.0.1"
 
 }
 
