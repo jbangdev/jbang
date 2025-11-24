@@ -1,0 +1,28 @@
+name: early-access-release
+
+## Intent is to run the ci-build workflow and download the artifacts
+## and perform as much of jreleaser flow as possible and publish
+## as an ever moving earlyaccess release.
+
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+        with:
+          java-version: 11
+      - uses: .github/workflows/ci-build.yml
+      - name: Download artifacts
+        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
+          path: build/install/jbang
+     
