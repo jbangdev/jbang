@@ -18,6 +18,8 @@ on:
         description: 'Run tmate debugging in detached mode'
         required: false
         default: true
+  workflow_call:
+
 
 jobs:
   website-check: ## TODO: move to its own workflow just for push to main (or even tags))
