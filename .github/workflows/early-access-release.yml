@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: 11
       - name: Download artifacts
-        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
