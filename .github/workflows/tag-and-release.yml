@@ -52,6 +52,8 @@ jobs:
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
+        env:
+          _JBANG_TEST_JAVA_VERSION: 11
         run: |
           ./gradlew integrationTest
       - name: Arcive test results
