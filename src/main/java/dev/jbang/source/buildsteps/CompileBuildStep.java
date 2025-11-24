@@ -272,7 +272,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	protected abstract String getMainExtension();
 
-	protected Predicate<ClassInfo> getMainFinder() {
+	public static Predicate<ClassInfo> getMainFinder() {
 		return pubClass -> (pubClass.method("main", STRINGARRAYTYPE) != null
 				|| pubClass.method("main") != null);
 	}
