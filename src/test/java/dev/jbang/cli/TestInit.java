@@ -25,6 +25,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ai.AIProvider;
+import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
@@ -32,10 +34,16 @@ public class TestInit extends BaseTest {
 
 	@Test
 	@Disabled("just for quick testing. requires key to be present")
-	void testGPT() {
+	void testGPT() throws IOException {
 		String prompt = "write me a helloworld with StringUtils from commons-lang3";
-		String result = Init.fetchGptResponse("test", "java", prompt, System.getenv("OPENAI_API_KEY"));
-		Assertions.assertEquals(result, "magic");
+		AIProvider provider = new AIProviderFactory().createProvider();
+		if (provider != null) {
+			String result = provider.generateCode("test", "java", prompt, "25");
+			Assertions.assertNotNull(result);
+			Assertions.assertNotEquals(result, "");
+		} else {
+			Assertions.fail("No AI provider available. Set OPENAI_API_KEY or OPENROUTER_API_KEY");
+		}
 	}
 
 	@Test

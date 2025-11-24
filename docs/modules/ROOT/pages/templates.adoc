@@ -80,3 +80,136 @@ Templates can refer to properties passed in using `-Dkey=value` on the `jbang in
 Any key specified via `-Dkey=value` becomes available as `\{key}` inside the templates.
 
 It is recommended you write templates where there is some kind of valid default or fallback on behavior as users might not be aware there is need for a key.
+
+== AI-Powered Code Generation
+
+JBang supports 100% optional AI-powered code generation when using the `init` command. When you pass parameters to `jbang init`, JBang will attempt to use an AI provider to generate code based on your description.
+
+The simplest way to get started is to set an API key environment variable and run:
+
+[source,bash]
+----
+$ export OPENAI_API_KEY="your-api-key"
+$ jbang init hello.java "create a simple hello world with command line arguments"
+----
+
+JBang will automatically detect and use your API key. The generated code will be inserted into the template using the `magiccontent` property.
+
+=== Trying Different Models
+
+If you want to try a different model, you can override just the model name:
+
+[source,bash]
+----
+$ jbang init --ai-model=gpt-4o hello.java "create a simple hello world with command line arguments"
+----
+
+This works with any of the configuration methods below.
+
+=== Advanced Configuration
+
+For power users who need more control, JBang provides multiple ways to configure AI providers, with the following priority order (highest to lowest):
+
+1. **Command-line options**: Pass options directly to the `init` command
+2. **Environment variables**: Set environment variables in your shell
+3. **Config properties**: Set persistent configuration using `jbang config set`
+4. **Auto-detection**: JBang will automatically detect provider based on common API key/token environment variables if available
+
+==== Command-Line Options
+
+You can specify AI provider settings directly on the command line:
+
+[source,bash]
+----
+$ jbang init --ai-provider=openai --ai-api-key=your-key --ai-model=gpt-4o-mini myapp.java "create a REST API client"
+----
+
+Available options:
+* `--ai-provider`: Provider to use (e.g., `openai`, `openrouter`)
+* `--ai-api-key`: API key/token for the AI provider
+* `--ai-endpoint`: OpenAI-compatible endpoint URL
+* `--ai-model`: Model name to use
+
+==== Environment Variables
+
+You can configure AI providers using environment variables:
+
+* `JBANG_AI_PROVIDER`: Provider name
+* `JBANG_AI_API_KEY`: API key/token
+* `JBANG_AI_ENDPOINT`: API endpoint URL
+* `JBANG_AI_MODEL`: Model name
+
+[source,bash]
+----
+export JBANG_AI_API_KEY="your-api-key"
+export JBANG_AI_ENDPOINT="https://api.openai.com/v1"
+export JBANG_AI_MODEL="gpt-4o-mini"
+jbang init myapp.java "create a REST API client"
+----
+
+==== Configuration Properties
+
+You can set AI provider defaults using JBang's configuration system:
+
+[source,bash]
+----
+$ jbang config set default.ai.provider openai
+$ jbang config set default.ai.api-key your-api-key
+$ jbang config set default.ai.endpoint https://api.openai.com/v1
+$ jbang config set default.ai.model gpt-4o-mini
+----
+
+These settings will persist and apply to all `jbang init` commands unless overridden by command-line options.
+
+==== Auto-Detection
+
+If you don't configure anything explicitly, JBang will automatically detect and use common API keys from your environment. 
+
+**Important**: If you explicitly set a provider (via `--ai-provider`, `JBANG_AI_PROVIDER`, or config), that provider will be used regardless of which API keys are detected. This ensures predictable behavior when you want to use a specific provider.
+
+When auto-detecting, JBang checks providers in the following order (first match wins):
+
+[cols="1,2,3,3"]
+|===
+|Provider Name |Environment Variable |Endpoint |Default Model
+
+|`openai`
+|`OPENAI_API_KEY`
+|`https://api.openai.com/v1`
+|`gpt-5.1`
+
+|`openrouter`
+|`OPENROUTER_API_KEY`
+|`https://openrouter.ai/api/v1`
+|`x-ai/grok-code-fast-1`
+
+|`google`
+|`GEMINI_API_KEY`
+|`https://generativelanguage.googleapis.com/v1beta/openai`
+|`gemini-3-pro-preview`
+
+|`opencode`
+|`OPENCODE_API_KEY`
+|`https://opencode.ai/zen/v1`
+|`gpt-4`
+
+|`github`
+|`GITHUB_TOKEN`
+|`https://models.github.ai/inference`
+|`openai/gpt-4.1`
+
+|`ollama` (explicit only)
+|N/A (no auth required)
+|`http://localhost:11434/v1`
+|`llama3`
+|===
+
+NOTE: The `github` provider is checked last because `GITHUB_TOKEN` is commonly used for other GitHub operations and may cause false positives.
+
+NOTE: The `ollama` provider is not auto-detected and must be explicitly set using `--ai-provider=ollama` or `JBANG_AI_PROVIDER=ollama`. It connects to a local Ollama instance and does not require an API key.
+
+If you have any of these environment variables set, JBang will automatically use them without requiring any additional configuration.
+
+If no AI provider API key is found, JBang will fall back to normal template initialization without AI generation.
+
+NOTE: AI-generated code results can vary greatly. Sometimes it works perfectly, other times it may require adjustments or serve as inspiration.

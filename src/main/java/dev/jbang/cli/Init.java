@@ -1,11 +1,8 @@
 package dev.jbang.cli;
 
 import static dev.jbang.util.Util.entry;
-import static java.lang.System.getenv;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,8 +11,8 @@ import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 
-import com.google.gson.Gson;
-
+import dev.jbang.ai.AIProvider;
+import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
@@ -27,12 +24,17 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseCommand {
 
 	@CommandLine.Mixin
 	BuildMixin buildMixin;
+
+	// @CommandLine.Mixin
+	@ArgGroup(heading = "AI Options for init with a prompt:\n", exclusive = false)
+	AIOptions aiOptions = new AIOptions();
 
 	@CommandLine.Option(names = { "--template",
 			"-t" }, description = "Init script with a java class useful for scripting")
@@ -94,21 +96,6 @@ public class Init extends BaseCommand {
 		properties.put("compactSourceFiles", reqVersion >= 25);
 		// properties.put("magiccontent", "//no gpt response. make sure you ran with
 		// --preview and OPENAI_API_KEY set");
-		if (Util.isPreview() && !params.isEmpty()) {
-			Util.infoMsg("JBangGPT Preview activated");
-			Util.warnMsg(
-					"The result can vary greatly. Sometimes it works - other times it is just for inspiration or a good laugh.");
-			String openaiKey = getenv("OPENAI_API_KEY");
-			if (openaiKey != null && !openaiKey.trim().isEmpty()) {
-				String response = fetchGptResponse(baseName, extension, String.join(" ", params), openaiKey);
-				// sometimes gpt adds a markdown ```java block so lets remove all lines starting
-				// with ``` in the output.
-				response = response.replaceAll("(?m)^```.*(?:\r?\n|$)", "");
-				properties.put("magiccontent", response);
-			} else {
-				Util.warnMsg("OPENAI_API_KEY environment variable not found. Will use normal jbang init.");
-			}
-		}
 
 		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
 			.stream()
@@ -121,8 +108,6 @@ public class Init extends BaseCommand {
 					ResourceResolver.combined(tpl.catalog.catalogRef, ResourceResolver.forResources())))
 			.collect(Collectors.toList());
 
-		applyTemplateProperties(tpl);
-
 		if (!force) {
 			// Check if any of the files already exist
 			for (RefTarget refTarget : refTargets) {
@@ -133,6 +118,35 @@ public class Init extends BaseCommand {
 				}
 			}
 		}
+
+		if (!params.isEmpty()) {
+
+			AIProvider provider = new AIProviderFactory(aiOptions.provider, aiOptions.apiKey,
+					aiOptions.endpoint,
+					aiOptions.model)
+				.createProvider();
+			if (provider != null) {
+				try {
+					Util.infoMsg("JBang AI activated, using " + provider.getName() + ":" + provider.getModel()
+							+ " for init. Have a bit of patience - Ctrl+C to abort.");
+					String response = provider.generateCode(baseName, extension, String.join(" ", params),
+							"" + reqVersion);
+					// sometimes gpt adds a markdown ```java block so lets remove all lines starting
+					// with ``` in the output.
+					response = response.replaceAll("(?m)^```.*(?:\r?\n|$)", "");
+					properties.put("magiccontent", response);
+				} catch (IllegalStateException | IOException e) {
+					Util.errorMsg(
+							"Failed to generate code with " + provider.getName(), e);
+					return EXIT_INTERNAL_ERROR;
+				}
+			} else {
+				Util.warnMsg(
+						"JBang AI activated, but no AI provider API key found. Will use normal jbang init.");
+			}
+		}
+
+		applyTemplateProperties(tpl);
 
 		try {
 			for (RefTarget refTarget : refTargets) {
@@ -169,101 +183,6 @@ public class Init extends BaseCommand {
 					+ renderedScriptOrFile + "'. See https://jbang.dev/ide");
 		}
 		return EXIT_OK;
-	}
-
-	static class GPTResponse {
-		public String id;
-		public String object;
-		public double created;
-		public String model;
-		public Map<String, Double> usage;
-		public List<Choice> choices;
-
-		static public class Choice {
-			public Message message;
-
-			public static class Message {
-				public String role;
-				public String content;
-			}
-		}
-
-		public Error error;
-
-		static public class Error {
-			String message;
-			String type;
-			String param;
-			String code;
-
-			@Override
-			public String toString() {
-				return type + ": " + message + " (code:" + code + "/param:" + param + ")";
-			}
-		}
-	}
-
-	public static String fetchGptResponse(String baseName, String extension, String request, String key) {
-		String answer = null;
-		try {
-			URL url = new URL("https://api.openai.com/v1/chat/completions");
-			HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-			httpConn.setRequestMethod("POST");
-
-			httpConn.setRequestProperty("Content-Type", "application/json");
-			httpConn.setRequestProperty("Authorization", "Bearer " + key);
-
-			httpConn.setDoOutput(true);
-			OutputStreamWriter writer = new OutputStreamWriter(httpConn.getOutputStream());
-
-			Map<String, Object> prompt = new HashMap<>();
-			prompt.put("model", "gpt-3.5-turbo");
-			prompt.put("temperature", 0.8); // reduce variation, more deterministic
-			Gson gson = new Gson();
-
-			List<Map<String, String>> messages = new ArrayList<>();
-			messages.add(prompt("system",
-					"You are to generate a response that only contain code that is written in a file ending in "
-							+ extension + " in the style of jbang. The main class must be named "
-							+ baseName
-							+ " " +
-							". Add no additional text." +
-							"You can put comments in the code."));
-			messages.add(prompt("user", request));
-			prompt.put("messages", messages);
-			Util.verboseMsg("ChatGPT prompt " + prompt);
-			writer.write(gson.toJson(prompt));
-			writer.flush();
-			writer.close();
-			httpConn.getOutputStream().close();
-
-			InputStream responseStream = httpConn.getResponseCode() / 100 == 2
-					? httpConn.getInputStream()
-					: httpConn.getErrorStream();
-			String response;
-			try (Scanner s = new Scanner(responseStream).useDelimiter("\\A")) {
-				response = s.hasNext() ? s.next() : "";
-			}
-			Util.verboseMsg("ChatGPT response: " + response);
-			GPTResponse result = gson.fromJson(response, GPTResponse.class);
-			if (result.choices != null && result.error == null) {
-				answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
-			} else {
-				Util.errorMsg(
-						"Received no useful response from ChatGPT. Usage limit exceeded or wrong key? " + result.error);
-				throw new ExitException(EXIT_UNEXPECTED_STATE);
-			}
-		} catch (IOException e) {
-			Util.errorMsg("Problem fetching response from ChatGPT", e);
-		}
-		return answer;
-	}
-
-	private static Map<String, String> prompt(String role, String content) {
-		Map<String, String> m = new HashMap<>();
-		m.put("role", role);
-		m.put("content", content);
-		return m;
 	}
 
 	private void applyTemplateProperties(dev.jbang.catalog.Template tpl) {
