@@ -58,6 +58,11 @@ jobs:
       - name: integration-test
         run: |
           ./gradlew integrationTest
+      - uses: ./.github/actions/shared-test-archiving
+        if: always()
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-
+          suffix: -jvm
       - name: integration-test-bash
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
