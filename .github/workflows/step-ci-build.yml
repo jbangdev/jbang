@@ -1,0 +1,283 @@
+name: step-ci-build
+on:
+  workflow_dispatch:
+    inputs: &inputs
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        type: boolean
+        default: false
+      debug_detached:
+        description: 'Run tmate debugging in detached mode'
+        required: false
+        type: boolean
+        default: true
+  workflow_call:
+    inputs: *inputs
+
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/shared-build-setup
+      - name: check formatting and comment on PR if failed
+        id: check-formatting
+        run: ./gradlew --no-daemon spotlessCheck
+
+  build-shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - name: build-with-no-tests
+        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
+      - name: Upload jbang.zip
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
+          path: build/install/jbang
+      - name: Upload build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+
+  build-test-native-image:
+    needs: build-shared
+    strategy:
+      fail-fast: false
+      matrix:
+        os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - name: setup-graalvm
+        uses: graalvm/setup-graalvm@eec48106e0bf45f2976c2ff0c3e22395cced8243 # v1
+        with:
+            java-version: '25'      
+            distribution: 'graalvm-community' # like to use mandrel but using community for now
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            set-java-home: false # we should not use graalvm for java builds (we need java 11)
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: build-native-image
+        run: |
+          ./gradlew --no-daemon nativeImage
+      - name: upload-native-image
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
+          path: build/native-image/*
+          if-no-files-found: error
+      - name: ensure native image is executable
+        run: |
+          chmod -v +x build/native-image/jbang.bin*
+      - name: create install with jbang.bin
+        run: |
+          ./gradlew --no-daemon installDist
+      - name: integration-test-native-image
+        env:
+          JBANG_USE_NATIVE: true
+        run: |
+          ./gradlew --no-daemon integrationTest
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
+        if: always()
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
+          suffix: -${{matrix.os}}
+      - name: Archive build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
+          path: build
+
+ 
+  unit-test-jvm:
+    needs: build-shared
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: *os_matrix
+    steps:
+      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+        with:
+            java-version: 11
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: test
+        run: |
+          ./gradlew --no-daemon test
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
+        if: always()
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
+          suffix: -${{matrix.os}}
+      - name: Archive build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
+          path: build
+      - name: Write out Unit Test report annotation for forked repo
+        if: always()
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: 'build/test-results/test/TEST-*.xml'
+          annotate_only: true # forked repo cannot write to checks so just do annotations
+      - name: Add artifact.ci links
+        if: always()
+        run: |
+          echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
+
+  integration-test-jvm:
+    needs: build-shared
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [8,11,17,21,25]
+        os: *os_matrix
+        exclude: 
+            # Windows should only run Java 11 and 25
+            - os: windows-latest
+              java-version: 8
+            - os: windows-latest
+              java-version: 17
+            - os: windows-latest
+              java-version: 21
+
+            # macOS should only run Java 11 and 25
+            - os: macos-latest
+              java-version: 8
+            - os: macos-latest
+              java-version: 17
+            - os: macos-latest
+              java-version: 21
+    name: integration-tests
+    steps:
+      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: integration-test
+        env:
+          _JBANG_TEST_JAVA_VERSION: ${{ matrix.java-version }}
+        run: |
+          ./gradlew --no-daemon integrationTest
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
+        if: always()
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
+          suffix: -${{matrix.os}}-${{ matrix.java-version }}
+      - name: Archive build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
+          path: build
+
+      - name: Write out Unit Test report annotation for forked repo
+        if: always()
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: 'build/test-results/test/TEST-*.xml'
+          annotate_only: true # forked repo cannot write to checks so just do annotations
+      - name: Add artifact.ci links
+        if: always()
+        run: |
+          echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
+
+  smoke-test:
+    needs: build-shared
+    strategy:
+      ## disable fail-fast so on variance failing don't fail the rest
+      #fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        java: [8,11,17,21,25]
+    runs-on: ${{ matrix.os }}
+    env:
+      _JBANG_: ./build/install/jbang/bin/jbang
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+        with:
+          add-job-summary: 'never'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: smoke-test
+        run: |
+          java -version
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=cli helloworld.java
+          $_JBANG_ --verbose helloworld.java
+          rm helloworld.java
+      - name: smoke-quarkus-test
+        run: |
+          java -version
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=qcli qcli.java
+          $_JBANG_ --fresh --verbose qcli.java
+          rm qcli.java
+      - name: smoke-quarkus-diff-version-test
+        run: |
+          java -version
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=qcli qcli.java
+          $_JBANG_ --fresh --verbose --java 17 qcli.java
+          rm qcli.java
+      - name: integration-test-non-windows
+        if: runner.os != 'Windows'
+        run: |
+          export PATH=`pwd`/build/install/jbang/bin:$PATH
+          cd build/itests
+          chmod +x ./test_suite.sh
+          ./test_suite.sh
+
+  merge-test-reports:
+    needs: [unit-test-jvm, integration-test-jvm]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup       
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
+          path: build/allure-results
+          merge-multiple: true
+      - id: generate-report
+        run: ./gradlew --no-daemon allureReport --clean   
+      - name: Arcive test results
+        uses: ./.github/actions/shared-test-archiving
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
+          suffix: ${{ matrix.os }}
+  
+      
+      

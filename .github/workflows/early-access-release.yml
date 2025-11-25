@@ -27,9 +27,20 @@ jobs:
         uses: ./.github/actions/shared-build-setup
         with:
           java-version: 11
-      - name: Download artifacts
-        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: Download jbang distribution
+        uses: actions/download-artifact@v4
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
      
+      - name: Download native image
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-*
+          path: build/native-image
+    
+      - name: Show workspace tree
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          tree -a
+          ls -la
