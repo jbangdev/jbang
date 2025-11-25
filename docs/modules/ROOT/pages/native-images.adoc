@@ -60,8 +60,13 @@ sdk use java 25.0.1-graal
 
 **Option 2: Manual Download**
 
-1. Download GraalVM from https://www.graalvm.org/downloads/
-2. Set `GRAALVM_HOME` or ensure `native-image` is in PATH
+. Download GraalVM from https://www.graalvm.org/downloads/
+
+. Unpack the archive to folder /path/to/<graalvm>
+
+. export `JAVA_HOME=/path/to/<graalvm>`
+
+. export `PATH=/path/to/<graalvm>/bin:$PATH`
 
 **Option 3: Package Managers**
 
