@@ -72,9 +72,10 @@ sdk use java 25.0.1-graal
 
 [source,bash]
 ----
-# macOS with Homebrew
+# macOS with Homebrew (using Bash)
 brew install --cask graalvm-jdk@25
-export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-25.jdk/Contents/Home
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+export PATH=$JAVA_HOME/bin:$PATH
 
 # Linux distributions
 # Follow GraalVM documentation for your distro
