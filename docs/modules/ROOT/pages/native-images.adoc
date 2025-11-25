@@ -25,7 +25,26 @@ Native images are compiled, standalone executables that:
 
 Perfect for CLI tools, serverless functions, and anywhere startup time matters.
 
-== Prerequisites
+== Prerequisites for Native Image on Linux
+
+Oracle Linux::
+
+  * sudo yum install gcc glibc-devel zlib-devel
+
+Debian/Ubuntu/Mint::
+
+  * sudo apt-get install build-essential zlib1g-dev
+
+Fedora/CentOS/RHEL::
+
+  * sudo dnf install gcc glibc-devel zlib-devel libstdc++-static
+
+[NOTE]
+====
+Without these packages installed on Linux, native image compilation may fail with errors related to missing headers or libraries.
+====
+
+== Installing GraalVM and Native Image
 
 You need GraalVM with `native-image` installed:
 
