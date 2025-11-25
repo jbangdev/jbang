@@ -32,19 +32,20 @@ You need GraalVM with `native-image` installed:
 === Installing GraalVM
 
 **Option 1: SDKMAN (Recommended)**
+
 [source,bash]
 ----
-sdk install java 21-graal
-sdk use java 21-graal
-gu install native-image
+sdk install java 25.0.1-graal
+sdk use java 25.0.1-graal
 ----
 
 **Option 2: Manual Download**
+
 1. Download GraalVM from https://www.graalvm.org/downloads/
 2. Set `GRAALVM_HOME` or ensure `native-image` is in PATH
-3. Install native-image: `gu install native-image`
 
 **Option 3: Package Managers**
+
 [source,bash]
 ----
 # macOS with Homebrew
