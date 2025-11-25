@@ -49,9 +49,8 @@ sdk use java 25.0.1-graal
 [source,bash]
 ----
 # macOS with Homebrew
-brew install --cask graalvm/tap/graalvm-jdk21
-export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-21.jdk/Contents/Home
-$GRAALVM_HOME/bin/gu install native-image
+brew install --cask graalvm-jdk@25
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-25.jdk/Contents/Home
 
 # Linux distributions
 # Follow GraalVM documentation for your distro
