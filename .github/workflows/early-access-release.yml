@@ -38,11 +38,10 @@ jobs:
       - name: Download native image'
         uses: actions/download-artifact@v4
         with:
-          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-*
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-*
           path: build/native-image
     
       - name: Show workspace tree
         run: |
           echo "Workspace: $GITHUB_WORKSPACE"
-          tree -a
-          ls -la
+          tree -a build
