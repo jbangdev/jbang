@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: true
+      skip_tests:
+        description: 'Skip all test jobs (tests, integration tests, smoke tests)'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs: *inputs
 
@@ -72,26 +77,29 @@ jobs:
       - name: build-native-image
         run: |
           ./gradlew --no-daemon nativeImage
+      - name: ensure native image is executable
+        run: |
+            chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
           if-no-files-found: error
-      - name: ensure native image is executable
-        run: |
-          chmod -v +x build/native-image/jbang.bin*
+      
       - name: create install with jbang.bin
+        if: ${{ !inputs.skip_tests }}
         run: |
           ./gradlew --no-daemon installDist
       - name: integration-test-native-image
+        if: ${{ !inputs.skip_tests }}
         env:
           JBANG_USE_NATIVE: true
         run: |
           ./gradlew --no-daemon integrationTest
       - name: Arcive test results
+        if: ${{ !inputs.skip_tests && always() }}
         uses: ./.github/actions/shared-test-archiving
-        if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
@@ -104,6 +112,7 @@ jobs:
 
  
   unit-test-jvm:
+    if: ${{ !inputs.skip_tests }}
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
@@ -147,6 +156,7 @@ jobs:
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
   integration-test-jvm:
+    if: ${{ !inputs.skip_tests }}
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
@@ -209,6 +219,7 @@ jobs:
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
   smoke-test:
+    if: ${{ !inputs.skip_tests }}
     needs: build-shared
     strategy:
       ## disable fail-fast so on variance failing don't fail the rest
@@ -259,9 +270,9 @@ jobs:
           ./test_suite.sh
 
   merge-test-reports:
+    if: always() && !inputs.skip_tests
     needs: [unit-test-jvm, integration-test-jvm]
     runs-on: ubuntu-latest
-    if: always()
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - id: shared-build
