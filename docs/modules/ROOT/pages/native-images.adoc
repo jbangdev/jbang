@@ -90,7 +90,7 @@ native-image --version
 [source,bash]
 ----
 # Compile to native image
-jbang --native hello.java
+jbang export native hello.java
 
 # Run the native executable
 ./hello
