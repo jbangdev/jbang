@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   ci-build:
-    uses: ./.github/workflows/ci-build.yml
+    uses: ./.github/workflows/step-ci-build.yml
     with:
         skip_tests: true # temporary until we have jreleaser parts working
     
@@ -35,7 +35,7 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
      
-      - name: Download native image
+      - name: Download native image'
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-*
