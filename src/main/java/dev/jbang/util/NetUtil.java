@@ -151,6 +151,88 @@ public class NetUtil {
 		return connect(fileURL, cfg, handler);
 	}
 
+	/**
+	 * Downloads content from a URL as a string.
+	 *
+	 * @param fileURL HTTP URL of the content to be downloaded
+	 * @return The content as a string
+	 * @throws IOException
+	 */
+	public static String downloadString(String fileURL) throws IOException {
+		return downloadString(fileURL, -1);
+	}
+
+	/**
+	 * Downloads content from a URL as a string.
+	 *
+	 * @param fileURL HTTP URL of the content to be downloaded
+	 * @param timeOut the timeout in milliseconds to use for opening the connection.
+	 *                0 is an infinite timeout while -1 uses the defaults
+	 * @return The content as a string
+	 * @throws IOException
+	 */
+	public static String downloadString(String fileURL, Integer timeOut) throws IOException {
+		if (isOffline()) {
+			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
+		}
+		URL url = new URL(swizzleURL(fileURL));
+		URLConnection urlConnection = url.openConnection();
+		ConnectionConfigurator cfg = ConnectionConfigurator.all(
+				ConnectionConfigurator.userAgent(),
+				ConnectionConfigurator.authentication(),
+				ConnectionConfigurator.timeout(timeOut));
+		cfg.configure(urlConnection);
+
+		if (urlConnection instanceof HttpURLConnection) {
+			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
+			verboseMsg(String.format("Headers %s", httpConn.getRequestProperties()));
+		} else {
+			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
+		}
+
+		try {
+			urlConnection.connect();
+
+			if (urlConnection instanceof HttpURLConnection) {
+				HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+				int responseCode = httpConn.getResponseCode();
+				if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+					throw new FileNotFoundException(
+							"No content at " + fileURL + ". Server replied HTTP code: " + responseCode);
+				} else if (responseCode >= 400) {
+					String message = null;
+					if (httpConn.getErrorStream() != null) {
+						String err;
+						try (BufferedReader reader = new BufferedReader(
+								new InputStreamReader(httpConn.getErrorStream()))) {
+							err = reader.lines()
+								.collect(Collectors.joining("\n"))
+								.trim();
+						}
+						verboseMsg("HTTP: " + responseCode + " - " + err);
+						message = "Server replied HTTP code: " + responseCode;
+						if (err != null && !err.isEmpty()) {
+							message += " - " + err;
+						}
+					} else {
+						message = "Server replied HTTP code: " + responseCode;
+					}
+					throw new IOException(message);
+				}
+			}
+
+			try (BufferedReader reader = new BufferedReader(
+					new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8))) {
+				return reader.lines().collect(Collectors.joining("\n"));
+			}
+		} finally {
+			if (urlConnection instanceof HttpURLConnection) {
+				((HttpURLConnection) urlConnection).disconnect();
+			}
+		}
+	}
+
 	static Path etagFile(Path cachedFile, Path metaSaveDir) {
 		return metaSaveDir.resolve(cachedFile.getFileName() + ".etag");
 	}

@@ -69,6 +69,7 @@ public interface ResourceResolver {
 	@NonNull
 	static ResourceResolver forResources() {
 		return new CombinedResourceResolver(
+				new GitHubResourceResolver(),
 				new RemoteResourceResolver(true),
 				new ClasspathResourceResolver(),
 				new FileResourceResolver());

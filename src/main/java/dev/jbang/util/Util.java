@@ -291,7 +291,91 @@ public class Util {
 	}
 
 	static public boolean isPattern(String pattern) {
-		return pattern.contains("?") || pattern.contains("*");
+		return pattern != null && (pattern.contains("*") || pattern.contains("?"));
+	}
+
+	static public boolean isGitHubUrl(String url) {
+		return url != null && (url.startsWith("https://github.com/")
+				|| url.startsWith("https://raw.githubusercontent.com/"));
+	}
+
+	private static List<String> explodeGitHubPattern(String sourceUrl, String filePattern) {
+		try {
+			dev.jbang.filesystem.github.GitHubRepoInfo repoInfo = dev.jbang.filesystem.github.GitHubFileSystemProvider
+					.parseGitHubUrl(sourceUrl);
+			java.net.URI fsUri = dev.jbang.filesystem.github.GitHubFileSystemProvider.toGitHubUri(repoInfo);
+			java.nio.file.FileSystem fs = FileSystems.newFileSystem(fsUri, Collections.emptyMap());
+
+			try {
+				// Determine the base directory from the URL
+				String basePathStr = extractPathFromGitHubUrl(sourceUrl, repoInfo);
+				Path basePath = fs.getPath(basePathStr);
+
+				// If no pattern or empty pattern, return the base path
+				if (filePattern == null || filePattern.isEmpty()) {
+					return Collections.singletonList(basePathStr);
+				}
+
+				// Resolve the pattern relative to the base path
+				Path patternPath = basePath.resolve(filePattern).normalize();
+				String patternStr = patternPath.toString();
+
+				// Extract the base directory and the pattern
+				Path base = basePathWithoutPattern(patternStr);
+				String pattern = patternStr.substring(base.toString().length());
+
+				// Create a path matcher
+				PathMatcher matcher = fs.getPathMatcher("glob:" + pattern);
+
+				List<String> results = new ArrayList<>();
+				FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
+						Path relpath = base.relativize(file);
+						if (matcher.matches(relpath)) {
+							// Return the path relative to the base path
+							Path relativeToBase = basePath.relativize(file);
+							results.add(relativeToBase.toString());
+						}
+						return FileVisitResult.CONTINUE;
+					}
+				};
+
+				Files.walkFileTree(base, matcherVisitor);
+				return results;
+			} finally {
+				fs.close();
+			}
+		} catch (Exception e) {
+			warnMsg("Failed to explode GitHub pattern " + filePattern + " in " + sourceUrl + ": " + e.getMessage());
+			return Collections.emptyList();
+		}
+	}
+
+	private static String extractPathFromGitHubUrl(String url, dev.jbang.filesystem.github.GitHubRepoInfo repoInfo) {
+		if (url.startsWith("https://raw.githubusercontent.com/")) {
+			String path = url.substring("https://raw.githubusercontent.com/".length());
+			String[] parts = path.split("/", 4);
+			if (parts.length > 3) {
+				return "/" + parts[3];
+			}
+			return repoInfo.getBasePath();
+		} else if (url.startsWith("https://github.com/")) {
+			String path = url.substring("https://github.com/".length());
+			String[] parts = path.split("/");
+			// Format: owner/repo/tree/branch/path or owner/repo/blob/branch/path
+			if (parts.length >= 5 && ("tree".equals(parts[2]) || "blob".equals(parts[2]))) {
+				StringBuilder filePath = new StringBuilder();
+				for (int i = 4; i < parts.length; i++) {
+					if (filePath.length() > 0) {
+						filePath.append("/");
+					}
+					filePath.append(parts[i]);
+				}
+				return "/" + filePath.toString();
+			}
+		}
+		return repoInfo.getBasePath();
 	}
 
 	/**
@@ -301,6 +385,10 @@ public class Util {
 	 */
 	public static List<String> explode(String source, Path baseDir, String filePattern) {
 		if (source != null && isURL(source)) {
+			// Check if it's a GitHub URL that supports glob patterns
+			if (isGitHubUrl(source)) {
+				return explodeGitHubPattern(source, filePattern);
+			}
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
 			if (isPattern(filePattern)) {
@@ -310,6 +398,10 @@ public class Util {
 				return Collections.singletonList(filePattern);
 			}
 		} else if (isURL(filePattern)) {
+			// Check if it's a GitHub URL
+			if (isGitHubUrl(filePattern)) {
+				return explodeGitHubPattern(filePattern, "");
+			}
 			return Collections.singletonList(filePattern);
 		}
 

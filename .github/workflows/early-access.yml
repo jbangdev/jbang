@@ -1,0 +1,29 @@
+name: Early Access
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  actions: write
+  id-token: write
+  contents: write
+
+jobs:
+    build:
+        uses: ./.github/workflows/ci-build.yml
+
+    release:
+        name: Release
+        needs: [build]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+            - id: shared-build
+              uses: ./.github/actions/shared-build-setup
+            - name: Download shared-build-jbang
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
+                path: build/install/jbang
+             
