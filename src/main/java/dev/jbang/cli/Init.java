@@ -142,7 +142,7 @@ public class Init extends BaseCommand {
 				}
 			} else {
 				Util.warnMsg(
-						"JBang AI activated, but no AI provider API key found. Will use normal jbang init.");
+						"JBang AI activated, but no AI provider or API key found. Will use normal jbang init.");
 			}
 		}
 
