@@ -189,10 +189,10 @@ Get a copy of the native binary:
 [source,bash]
 ----
 # Export native binary to current directory
-jbang export local --native myapp.java
+jbang export native myapp.java
 
 # Export to specific location
-jbang export local --native --output-dir=/usr/local/bin myapp.java
+jbang export native --output=/usr/local/bin/myapp myapp.java
 ----
 
 === Cross-Platform Considerations
