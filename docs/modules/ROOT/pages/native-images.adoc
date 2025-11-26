@@ -25,32 +25,44 @@ Native images are compiled, standalone executables that:
 
 Perfect for CLI tools, serverless functions, and anywhere startup time matters.
 
-== Prerequisites
+== Prerequisites for Native Image
+
+Additional software development tools are required for native image compilation on Linux, MacOS and Windows:
+
+* https://www.graalvm.org/latest/reference-manual/native-image/#prerequisites
+
+== Installing GraalVM and Native Image
 
 You need GraalVM with `native-image` installed:
 
 === Installing GraalVM
 
 **Option 1: SDKMAN (Recommended)**
+
 [source,bash]
 ----
-sdk install java 21-graal
-sdk use java 21-graal
-gu install native-image
+sdk install java 25.0.1-graal
+sdk use java 25.0.1-graal
 ----
 
 **Option 2: Manual Download**
-1. Download GraalVM from https://www.graalvm.org/downloads/
-2. Set `GRAALVM_HOME` or ensure `native-image` is in PATH
-3. Install native-image: `gu install native-image`
+
+. Download GraalVM from https://www.graalvm.org/downloads/
+
+. Unpack the archive to folder /path/to/<graalvm>
+
+. export `JAVA_HOME=/path/to/<graalvm>`
+
+. export `PATH=/path/to/<graalvm>/bin:$PATH`
 
 **Option 3: Package Managers**
+
 [source,bash]
 ----
-# macOS with Homebrew
-brew install --cask graalvm/tap/graalvm-jdk21
-export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-21.jdk/Contents/Home
-$GRAALVM_HOME/bin/gu install native-image
+# macOS with Homebrew (using Bash)
+brew install --cask graalvm-jdk@25
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+export PATH=$JAVA_HOME/bin:$PATH
 
 # Linux distributions
 # Follow GraalVM documentation for your distro
@@ -70,14 +82,12 @@ native-image --version
 
 [source,bash]
 ----
-# Compile to native image
+# Compile to native image and run it
 jbang --native hello.java
 
-# Run the native executable
-./hello
 ----
 
-The native executable will be created in the same directory as your script.
+The native executable will be created in the global JBang cache directory.
 
 === Native Image Options
 
@@ -179,10 +189,10 @@ Get a copy of the native binary:
 [source,bash]
 ----
 # Export native binary to current directory
-jbang export local --native myapp.java
+jbang export native myapp.java
 
 # Export to specific location
-jbang export local --native --output-dir=/usr/local/bin myapp.java
+jbang export native --output=/usr/local/bin/myapp myapp.java
 ----
 
 === Cross-Platform Considerations
