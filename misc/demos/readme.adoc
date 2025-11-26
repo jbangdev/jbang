@@ -1,14 +1,27 @@
 = Scripts for jbang demos
 
+These a scripts to record demos for the jbang documentation.
+
+It uses `vhs`(https://github.com/charmbracelet/vhs) to record the demos.
+
+I prefer to use fork https://github.com/charmbracelet/vhs/discussions/644 which has a fork that supports generating svg images.
+
+To install: `brew install agentstation/tap/vhs`
+
 To record run:
 
-`asciinema rec -c "./basic-jbang.sh" video`
+`vhs yourvhs.vhs`
 
-Strip long pauses:
+It should generate a images/movides in `images` directory.
 
-`asciinema-edit quantize --range 0.3 ./video > realvideo`
+## Basic rules for `.tape` files
 
-when okey, upload:
+- Use `Source shared/style.tape` at start to use the same style for all demos.
+- Do not set `Output` at start, set it from commandline
 
-`asciinema upload realvideo`
+You can generate svg images for all using:
+
+`find . -name  "*.tape" | grep -v shared/style.tape | xargs -I {} vhs -o {}.svg {}`
+
+
 
