@@ -4,7 +4,8 @@ on:
       - published
   workflow_dispatch:  
     
-name: release-3rdparty
+name: publish-packages
+
 jobs:   
   build:
     runs-on: ubuntu-latest
