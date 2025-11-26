@@ -82,14 +82,12 @@ native-image --version
 
 [source,bash]
 ----
-# Compile to native image
+# Compile to native image and run it
 jbang --native hello.java
 
-# Run the native executable
-./hello
 ----
 
-The native executable will be created in the same directory as your script.
+The native executable will be created in the global JBang cache directory.
 
 === Native Image Options
 
