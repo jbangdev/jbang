@@ -1,4 +1,4 @@
-name: early-access-release
+name: main-build
 
 ## Intent is to run the ci-build workflow and download the artifacts
 ## and perform as much of jreleaser flow as possible and publish

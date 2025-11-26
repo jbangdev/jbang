@@ -1,4 +1,4 @@
-name: Clear cache
+name: cache-clear
 
 on:
   #schedule:
