@@ -119,15 +119,18 @@ public class AIProviderFactory {
 				if (provider != null) {
 					return provider;
 				} else {
-					Util.verboseMsg("No provider found for explicitly set provider: " + defaultProvider);
+					Util.verboseMsg("No provider could be created for explicitly set provider: " + defaultProvider);
 					return null;
 				}
+			} else {
+				Util.verboseMsg("No provider config found for explicitly setprovider: " + defaultProvider);
+				return null;
 			}
 		}
 
 		for (ProviderConfig config : PROVIDER_MAP.values()) {
 			AIProvider provider = config.createProvider(this);
-			if (provider != null) {
+			if (config.canCreateProvider(this)) {
 				return provider;
 			}
 		}
@@ -149,6 +152,14 @@ public class AIProviderFactory {
 			this.providerName = providerName;
 			this.endpoint = endpoint;
 			this.model = model;
+		}
+
+		public boolean canCreateProvider(AIProviderFactory aiProviderFactory) {
+			if (aiProviderFactory.defaultKey != null && !aiProviderFactory.defaultKey.trim().isEmpty()) {
+				return true;
+			} else {
+				return keySupplier.get() != null && !keySupplier.get().trim().isEmpty();
+			}
 		}
 
 		AIProvider createProvider(AIProviderFactory factory) {

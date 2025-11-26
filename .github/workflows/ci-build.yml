@@ -20,6 +20,6 @@ jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml
     with:
-      debug_enabled: ${{ inputs.debug_enabled }}
-      debug_detached: ${{ inputs.debug_detached }}
+      debug_enabled: ${{ inputs.debug_enabled || false }}
+      debug_detached: ${{ inputs.debug_detached || true }}
       
