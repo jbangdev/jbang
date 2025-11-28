@@ -269,7 +269,7 @@ public abstract class Directives {
 			.filter(d -> d.getName().equals(name))
 			.map(Directive::getValue);
 
-		String envOptions = System.getenv("JBANG_" + name);
+		String envOptions = System.getenv("JBANG_APP_" + name);
 		if (envOptions != null) {
 			javaOptions = Stream.concat(javaOptions, Stream.of(envOptions));
 		}
