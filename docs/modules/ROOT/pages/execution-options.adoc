@@ -94,7 +94,9 @@ The `//PREVIEW` directive automatically adds the necessary compile and runtime o
 
 === Java Options
 
-As JBang is run using java, it respects standard Java environment variables:
+__JDK_JAVA_OPTIONS__
+
+JBang, being a Java-based application, respects standard Java environment variables. One such variable is `JDK_JAVA_OPTIONS`, which allows you to set default JVM options for all Java applications:
 
 [source,bash]
 ----
@@ -102,12 +104,40 @@ As JBang is run using java, it respects standard Java environment variables:
 export JDK_JAVA_OPTIONS="-Xmx1g -Dfile.encoding=UTF-8"
 ----
 
-But if you want to set JBang-specific variables, you can do so by setting the `JBANG_JAVA_OPTIONS` environment variables.
+Runtime options set via `JDK_JAVA_OPTIONS` applies to all Java applications, including JBang and the app/script that JBang runs.
 
 [source,bash]
 ----
-# JBang-specific variables
-export JBANG_JAVA_OPTIONS="-Xmx2g"
+$ jbang run hello.java
+<1>
+NOTE: Picked up JDK_JAVA_OPTIONS: -Xmx1g -Dfile.encoding=UTF-8
+[jbang] Building jar for hello.java...
+<2>
+NOTE: Picked up JDK_JAVA_OPTIONS: -Xmx1g -Dfile.encoding=UTF-8
+Hello World
+----
+<1> JBang process
+<2> JBang application process
+
+
+__JBANG_JAVA_OPTIONS__
+
+Java runtime options intended only for the JBang Java process is set via the `JBANG_JAVA_OPTIONS` environment variable.
+
+[source,bash]
+----
+# JBang-specific Java runtime options
+export JBANG_JAVA_OPTIONS="-XX:TieredStopAtLevel=1"
+----
+
+__JBANG_APP_JAVA_OPTIONS__
+
+Java runtime options intended only for the application/script that JBang runs is set via the `JBANG_APP_JAVA_OPTIONS` environment variable.
+
+[source,bash]
+----
+# JBang App-specific Java runtime options
+export JBANG_APP_JAVA_OPTIONS="-Xmx2g"
 ----
 
 === First time install
