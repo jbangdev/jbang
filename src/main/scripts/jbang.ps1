@@ -1,5 +1,5 @@
 #Requires -Version 5
-$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 #
 # To run this script remotely type this in your PowerShell
 # (where <args>... are the arguments you want to pass to JBang):
