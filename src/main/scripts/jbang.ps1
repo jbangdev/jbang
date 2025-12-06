@@ -1,5 +1,5 @@
 #Requires -Version 5
-$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 #
 # To run this script remotely type this in your PowerShell
 # (where <args>... are the arguments you want to pass to JBang):
@@ -203,5 +203,19 @@ if (-not $binaryPath) {
   }
 }
 
-# Execute jbang
-Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
+# Save the current console encodings
+$OriginalOutputEncoding = $OutputEncoding
+$OriginalInputEncoding = [Console]::InputEncoding
+$OriginalConsoleOutputEncoding = [Console]::OutputEncoding
+
+try {
+    # Set console output to UTF-8
+    $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    # Execute jbang
+    Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
+} finally {
+    # Restore original console encodings
+    $OutputEncoding = $OriginalOutputEncoding
+    [Console]::InputEncoding = $OriginalInputEncoding
+    [Console]::OutputEncoding = $OriginalConsoleOutputEncoding
+}
