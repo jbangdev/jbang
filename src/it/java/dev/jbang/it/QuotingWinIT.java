@@ -33,7 +33,7 @@ public class QuotingWinIT extends BaseIT {
 	// Then match out == "0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"\n"
 	@Test
 	public void shouldHandleSpecialCharacters() {
-		assertThat(shell("jbang echo.java \" ~!@#$%^&*()-+\\:;\'`<>?/,.{}[]\"")).outIsExactly(
+		assertThat(shell("jbang echo.java \" ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"")).outIsExactly(
 				"0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]" + lineSeparator());
 	}
 
