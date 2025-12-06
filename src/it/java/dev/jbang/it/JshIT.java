@@ -32,9 +32,9 @@ public class JshIT extends BaseIT {
 	@Test
 	@Description("jshell arguments")
 	public void shouldHandleJShellArguments() {
-		assertThat(shell("jbang helloworld.jsh JSH!"))
+		assertThat(shell("jbang helloworld.jsh JSH"))
 			.succeeded()
-			.outIsExactly("Hello JSH!" + lineSeparator());
+			.outIsExactly("Hello JSH" + lineSeparator());
 	}
 
 	// Scenario: jsh default system property
