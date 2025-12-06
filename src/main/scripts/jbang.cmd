@@ -1,6 +1,6 @@
 @echo off
 
-setlocal
+setlocal ENABLEDELAYEDEXPANSION
 
 :: Save the current code page
 :: The 'chcp' command outputs "Active code page: 437"
