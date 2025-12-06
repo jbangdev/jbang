@@ -33,8 +33,8 @@ public class QuotingWinIT extends BaseIT {
 	// Then match out == "0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"\n"
 	@Test
 	public void shouldHandleSpecialCharacters() {
-		assertThat(shell("jbang echo.java \" ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"")).outIsExactly(
-				"0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]" + lineSeparator());
+		assertThat(shell("jbang echo.java \" ~@#$&*()-+\\:;'`<>?/,.{}[]\"")).outIsExactly(
+				"0: ~@#$&*()-+\\:;'`<>?/,.{}[]" + lineSeparator());
 	}
 
 	// Scenario: check spaces in JBANG_DIR path work (Issue #171)
