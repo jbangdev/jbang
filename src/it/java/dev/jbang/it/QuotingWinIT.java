@@ -29,7 +29,7 @@ public class QuotingWinIT extends BaseIT {
 	}
 
 	// Scenario: check special characters on command line work
-	// When command('jbang echo.java " ~!@#$%^&*()-+\\:;\'`<>?/,.{}[]""')
+	// When command('jbang echo.java " ~@#$&*()-+\\:;\'`<>?/,.{}[]""')
 	// Then match out == "0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"\n"
 	@Test
 	public void shouldHandleSpecialCharacters() {
