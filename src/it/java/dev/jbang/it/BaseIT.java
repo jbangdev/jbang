@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,8 +166,8 @@ public class BaseIT {
 				.redirectError(errorStream)
 				.execute();
 
-			out = new String(stdoutStream.toByteArray(), StandardCharsets.US_ASCII);
-			err = new String(errorStream.toByteArray(), StandardCharsets.US_ASCII);
+			out = new String(stdoutStream.toByteArray(), "UTF-8");
+			err = new String(errorStream.toByteArray(), "UTF-8");
 		} catch (InvalidExitValueException | IOException | InterruptedException | TimeoutException e) {
 			throw new IllegalStateException("Could not run " + command, e);
 		}
