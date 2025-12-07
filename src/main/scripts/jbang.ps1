@@ -210,7 +210,10 @@ $OriginalConsoleOutputEncoding = [Console]::OutputEncoding
 
 try {
     # Set console output to UTF-8
-    $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_NO_BANG') -ne 'true')
+    {
+        $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    }
     # Execute jbang
     Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
 } finally {
