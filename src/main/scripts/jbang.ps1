@@ -210,7 +210,7 @@ $OriginalConsoleOutputEncoding = [Console]::OutputEncoding
 
 try {
     # Set console output to UTF-8
-    if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_NO_BANG') -ne 'true')
+    if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_NO_UTF8') -ne 'true')
     {
         $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
     }
