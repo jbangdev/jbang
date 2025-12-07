@@ -1,4 +1,7 @@
 @echo off
+if not "%JBANG_CMD_NO_UTF8%" == "1" (
+  chcp 65001 > nul
+)
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
 rem The Java version to install when it's not installed on the system yet
