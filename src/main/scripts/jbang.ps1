@@ -203,22 +203,11 @@ if (-not $binaryPath) {
   }
 }
 
-# Save the current console encodings
-$OriginalOutputEncoding = $OutputEncoding
-$OriginalInputEncoding = [Console]::InputEncoding
-$OriginalConsoleOutputEncoding = [Console]::OutputEncoding
-
-try {
-    # Set console output to UTF-8
-    if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_NO_UTF8') -ne 'true')
-    {
-        $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-    }
-    # Execute jbang
-    Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
-} finally {
-    # Restore original console encodings
-    $OutputEncoding = $OriginalOutputEncoding
-    [Console]::InputEncoding = $OriginalInputEncoding
-    [Console]::OutputEncoding = $OriginalConsoleOutputEncoding
+# Set console output to UTF-8
+if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_NO_UTF8') -ne 'true')
+{
+    $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 }
+
+# Execute jbang
+Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
