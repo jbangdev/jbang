@@ -1,5 +1,5 @@
 @echo off
-if not "%JBANG_WIN_NO_UTF8%" == "true" (
+if "%JBANG_WIN_ENABLE_UTF8%" == "true" (
   chcp 65001 > nul
 )
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
