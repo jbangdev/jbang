@@ -159,6 +159,8 @@ execute_jbang() {
   
   if [ $err -eq 255 ]; then
     eval "exec $output"
+    # should not reach here
+    err=$?
   elif [ -n "$output" ]; then
     echo "$output"
   fi
