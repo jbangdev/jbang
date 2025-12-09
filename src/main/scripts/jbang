@@ -8,13 +8,29 @@
 
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
+originalWindowsCodePage=0
 
-enable_console_utf8_if_needed_on_windows() {
+windows_save_code_page() {
+  # Check if the script is running on Git Bash (MSYS environment)
+  if [[ "$OSTYPE" == "msys" ]]; then
+    if [[ "$JBANG_WIN_NO_UTF8" != "true" ]]; then
+      CURRENT_CODEPAGE=$(chcp.com | grep -o '[0-9]*')
+      if [ $CURRENT_CODEPAGE -ne 65001 ]; then
+        originalWindowsCodePage=$CURRENT_CODEPAGE
+        chcp.com 65001 > /dev/null
+      fi
+    fi
+  fi
+}
+
+windows_restore_code_page() {
     # Check if the script is running on Git Bash (MSYS environment)
     if [[ "$OSTYPE" == "msys" ]]; then
-        if [[ "$JBANG_WIN_NO_UTF8" != "true" ]]; then
-            chcp.com 65001 > /dev/null
+      if [[ "$JBANG_WIN_NO_UTF8" != "true" ]]; then
+        if [ $originalWindowsCodePage -ne 0 ]; then
+          chcp.com $originalWindowsCodePage > /dev/null
         fi
+      fi
     fi
 }
 
@@ -145,13 +161,11 @@ execute_jbang() {
     eval "exec $output"
   elif [ -n "$output" ]; then
     echo "$output"
-    exit $err
-  else
-    exit $err
   fi
+  return $err
 }
 
-enable_console_utf8_if_needed_on_windows
+windows_save_code_page
 
 abs_jbang_dir=$(script_dir)
 
@@ -287,4 +301,6 @@ if [[ -z "$binaryPath" ]]; then
   setup_java_exec
 fi
 
-execute_jbang "$@"
+err=$(execute_jbang "$@")
+windows_restore_code_page
+exit $err
