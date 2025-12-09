@@ -1,4 +1,8 @@
 @echo off
+if not defined JBANG_WIN_ENABLE_UTF8 (
+  setx JBANG_WIN_ENABLE_UTF8 true > nul
+  set  JBANG_WIN_ENABLE_UTF8=true
+)
 if "%JBANG_WIN_ENABLE_UTF8%" == "true" (
   chcp 65001 > nul
 )

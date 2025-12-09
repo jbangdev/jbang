@@ -11,6 +11,12 @@ javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
 # Check if the script is running on Git Bash (MSYS environment)
 if [[ "$OSTYPE" == "msys" ]]; then
+  if [[ -z "$JBANG_WIN_ENABLE_UTF8" ]]; then
+    setx JBANG_WIN_ENABLE_UTF8 true > /dev/null
+    # We really want to export this to the outer shell, but /usr/bin/env bash,
+    # prevents us from doing so.
+    export JBANG_WIN_ENABLE_UTF8="true"
+  fi
   if [[ "$JBANG_WIN_ENABLE_UTF8" == "true" ]]; then
     chcp.com 65001 > /dev/null
   fi
