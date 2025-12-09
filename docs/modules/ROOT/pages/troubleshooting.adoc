@@ -299,7 +299,7 @@ jbang --verbose script.java
 2. **Antivirus interference**: Add JBang directories to exclusions
 3. **PowerShell execution policy**: `Set-ExecutionPolicy RemoteSigned`
 4. **Line endings**: Ensure scripts use LF, not CRLF
-5. **UTF-8 console support**: JBang can enable UTF-8 console support by executing command  `chcp.com 65001`. To enable this functionality, set  environment variable `JBANG_WIN_ENABLE_UTF8` to `true`. UTF-8 support will remain enabled in the current console session after JBang terminates.
+5. **UTF-8 console support**: JBang will automatically enable UTF-8 console support by executing command  `chcp.com 65001` and creating environment variable `JBANG_WIN_ENABLE_UTF8` and setting it to `true`. To disable this functionality, set  environment variable `JBANG_WIN_ENABLE_UTF8` to `false` and restart the shell session.
 
 === macOS Issues
 
