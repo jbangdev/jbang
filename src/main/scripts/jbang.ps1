@@ -203,7 +203,6 @@ if (-not $binaryPath) {
   }
 }
 
-# Set console output to UTF-8
 if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8') -eq 'true') {
   $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 }
