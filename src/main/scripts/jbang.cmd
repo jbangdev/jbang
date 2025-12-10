@@ -1,7 +1,7 @@
 @echo off
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
-rem Set unicode codepage unless disabled
+rem Set UTF-8 code page unless disabled
 if not "%JBANG_WIN_UTF8%" == "false" (chcp 65001 > nul)
 
 rem The Java version to install when it's not installed on the system yet
