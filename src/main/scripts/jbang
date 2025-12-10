@@ -198,10 +198,8 @@ case "$(uname -m)" in
 esac
 
 ## Enable UTF-8 code page on Windows unless explicitly disabled
-if [[ "$os" == "windows" ]]; then
-  if [[ "$JBANG_WIN_UTF8" != "false" ]]; then
-    chcp.com 65001 > /dev/null
-  fi
+if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+  chcp.com 65001 > /dev/null
 fi
 
 ## when using cygwin fall out to just running the bat file.
