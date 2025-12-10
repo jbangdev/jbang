@@ -9,15 +9,6 @@
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
-# Check if the script is running on Git Bash (MSYS environment)
-if [[ "$OSTYPE" == "msys" ]]; then
-  if [[ -z "$JBANG_WIN_ENABLE_UTF8" ]]; then
-    chcp.com 65001 > /dev/null
-  elif [[ "$JBANG_WIN_ENABLE_UTF8" == "true" ]]; then
-    chcp.com 65001 > /dev/null
-  fi
-fi
-
 script_dir() {
   script=${BASH_SOURCE[0]}
   while [ -L "$script" ]; do
@@ -205,6 +196,15 @@ case "$(uname -m)" in
     fi
     ;;
 esac
+
+## Enable UTF-8 code page on Windows unless explicitly disabled
+if [[ $os == windows ]]; then
+  if [[ -z "$JBANG_WIN_ENABLE_UTF8" ]]; then
+    chcp.com 65001 > /dev/null
+  elif [[ "$JBANG_WIN_ENABLE_UTF8" == "true" ]]; then
+    chcp.com 65001 > /dev/null
+  fi
+fi
 
 ## when using cygwin fall out to just running the bat file.
 if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" && "$(uname -s)" == CYGWIN* ]]; then
