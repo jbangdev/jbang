@@ -1,11 +1,10 @@
 @echo off
-if not defined JBANG_WIN_ENABLE_UTF8 (
-  chcp 65001 > nul
-) else (
-    if "%JBANG_WIN_ENABLE_UTF8%" == "true" (
-      chcp 65001 > nul
-    )
-)
+if not defined JBANG_WIN_UTF8 goto :EnableUtf8
+if "%JBANG_WIN_UTF8%" == "true" goto :EnableUtf8
+goto :SkipUtf8
+:EnableUtf8
+chcp 65001 > nul
+:SkipUtf8
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
 rem The Java version to install when it's not installed on the system yet

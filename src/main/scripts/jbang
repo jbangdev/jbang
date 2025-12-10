@@ -198,10 +198,8 @@ case "$(uname -m)" in
 esac
 
 ## Enable UTF-8 code page on Windows unless explicitly disabled
-if [[ $os == windows ]]; then
-  if [[ -z "$JBANG_WIN_ENABLE_UTF8" ]]; then
-    chcp.com 65001 > /dev/null
-  elif [[ "$JBANG_WIN_ENABLE_UTF8" == "true" ]]; then
+if [[ "$os" == "windows" ]]; then
+  if [[ -z "$JBANG_WIN_UTF8" || "$JBANG_WIN_UTF8" == "true" ]]; then
     chcp.com 65001 > /dev/null
   fi
 fi
