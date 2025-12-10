@@ -204,10 +204,8 @@ if (-not $binaryPath) {
 }
 
 if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8') -eq $null) {
-  [System.Environment]::SetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8', 'true', 'User')
-  [System.Environment]::SetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8', 'true', 'Process')
-}
-if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8') -eq 'true') {
+  $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+} elseif ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_ENABLE_UTF8') -eq 'true') {
   $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 }
 
