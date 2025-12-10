@@ -199,7 +199,7 @@ esac
 
 ## Enable UTF-8 code page on Windows unless explicitly disabled
 if [[ "$os" == "windows" ]]; then
-  if [[ -z "$JBANG_WIN_UTF8" || "$JBANG_WIN_UTF8" == "true" ]]; then
+  if [[ "$JBANG_WIN_UTF8" != "false" ]]; then
     chcp.com 65001 > /dev/null
   fi
 fi

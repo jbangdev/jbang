@@ -203,7 +203,7 @@ if (-not $binaryPath) {
   }
 }
 
-if ([System.Environment]::GetEnvironmentVariable('JBANG_WIN_UTF8') -eq $null -or [System.Environment]::GetEnvironmentVariable('JBANG_WIN_UTF8') -eq 'true') {
+if ($env:JBANG_WIN_UTF8 -ne "false") {
     $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 }
 

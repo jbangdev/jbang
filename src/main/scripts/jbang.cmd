@@ -1,11 +1,8 @@
 @echo off
-if not defined JBANG_WIN_UTF8 goto :EnableUtf8
-if "%JBANG_WIN_UTF8%" == "true" goto :EnableUtf8
-goto :SkipUtf8
-:EnableUtf8
-chcp 65001 > nul
-:SkipUtf8
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
+
+rem Set unicode codepage unless disabled
+if not "%JBANG_WIN_UTF8%" == "false" (chcp 65001 > nul)
 
 rem The Java version to install when it's not installed on the system yet
 if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
