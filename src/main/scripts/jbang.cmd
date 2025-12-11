@@ -154,3 +154,4 @@ if %ERROR% EQU 255 (
   )
   exit /b %ERROR%
 )
+REM another foojay test comment
