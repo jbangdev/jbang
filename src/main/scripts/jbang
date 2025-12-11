@@ -133,12 +133,22 @@ execute_jbang() {
   fi
   
   if [ $err -eq 255 ]; then
-    # Jbang does not return from here ...
-    eval "exec $output"
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      bash -c "$output"
+    else
+      # Jbang does not return from here ...
+      eval "exec $output"
+    fi
   elif [ -n "$output" ]; then
     echo "$output"
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      chcp.com $_original_cp > /dev/null
+    fi
     exit $err
   else
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      chcp.com $_original_cp > /dev/null
+    fi
     exit $err
   fi
 }
@@ -207,7 +217,11 @@ fi
 ## when using cygwin fall out to just running the bat file.
 if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" && "$(uname -s)" == CYGWIN* ]]; then
   cmd /c "$(cygpath -m "$abs_jbang_dir"/jbang.cmd)" "$@"
-  exit $?
+  err=$?
+  if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+    chcp.com $_original_cp > /dev/null
+  fi
+  exit $err
 fi
 
 if [[ -z "$JBANG_JDK_VENDOR" ]]; then
