@@ -198,7 +198,8 @@ case "$(uname -m)" in
 esac
 
 ## Enable UTF-8 code page on Windows unless explicitly disabled
-if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+if [[ $os == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+  _original_cp=$(chcp.com | grep -o '[0-9]\+')
   chcp.com 65001 > /dev/null
 fi
 
@@ -282,3 +283,8 @@ if [[ -z "$binaryPath" ]]; then
 fi
 
 execute_jbang "$@"
+
+## Restore the original  Windows code page (if required)
+if [[ $os == windows ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+  chcp.com $_original_cp > /dev/null
+fi
