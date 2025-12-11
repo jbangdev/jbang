@@ -154,4 +154,3 @@ if %ERROR% EQU 255 (
   )
   exit /b %ERROR%
 )
-REM - foojay test
