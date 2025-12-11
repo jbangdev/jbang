@@ -955,7 +955,7 @@ public class Util {
 		if (!Files.exists(link)) {
 			// On Windows we use junction for directories because their
 			// creation doesn't require any special privileges.
-			if (getOS() == OS.windows && Files.isDirectory(target)) {
+			if (isWindows() && Files.isDirectory(target)) {
 				if (createJunction(link, target.toAbsolutePath())) {
 					return;
 				}
