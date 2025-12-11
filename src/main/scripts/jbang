@@ -133,6 +133,7 @@ execute_jbang() {
   fi
   
   if [ $err -eq 255 ]; then
+    # Jbang does not return from here ...
     eval "exec $output"
   elif [ -n "$output" ]; then
     echo "$output"
