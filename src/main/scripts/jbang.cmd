@@ -41,7 +41,11 @@ if "!binaryPath!"=="" if "!jarPath!"=="" (
     if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
   )
   call "%JBDIR%\bin\jbang.cmd" %*
-  exit /b %ERRORLEVEL%
+  set ERROR=%ERRORLEVEL%
+  if not "%JBANG_WIN_UTF8%" == "false" (
+    chcp %_original_cp% > nul
+  )
+  exit /b %ERROR%
 )
 
 if not "!binaryPath!"=="" goto :run_with_cli
