@@ -408,7 +408,7 @@ testing {
 				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
 				implementation "org.wiremock:wiremock:3.13.2"
-				implementation 'dev.jbang:devkitman:0.3.0'
+				implementation 'dev.jbang:devkitman:0.3.2'
 			}
 
 			sources {
