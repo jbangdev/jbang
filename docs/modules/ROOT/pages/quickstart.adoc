@@ -66,6 +66,11 @@ $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System
 chcp.com 65001 > /dev/null
 ----
 
+Alternatively, UTF-8 can be enabled globally on Windows for all programs and shells by opening the `intl.cpl` control panel applet and enabling option:
+
+* `[ ] Beta: Use Unicode UTF-8 for worldwide language support`
+
+
 == Step 1: Install JBang
 
 Choose your preferred installation method:
