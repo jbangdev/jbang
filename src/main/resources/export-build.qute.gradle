@@ -44,6 +44,7 @@ dependencies {
 application {
 	mainClass = '{fullClassName}'
 	applicationDefaultJvmArgs = [{jvmArgs}]
+	applicationDefaultJvmArgs += ['-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8']
 {#if enablePreview eq 'true'}
 	applicationDefaultJvmArgs += ['--enable-preview']
 {/if}
