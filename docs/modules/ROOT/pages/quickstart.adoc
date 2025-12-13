@@ -14,6 +14,63 @@ endif::[]
 
 This guide will get you up and running with JBang in just a few minutes!
 
+== Step 0: Prerequisites
+
+=== Windows (UTF-8)
+
+Modern Linux distributions and MacOS terminal environments are configured to use UTF-8 as the default character encoding for the console, allowing them to handle a vast array of international characters and symbols seamlessly. In contrast, Windows environments have historically relied on legacy, region-specific code pages (such as CP437 or Windows-1252) for both the Command Prompt (CMD) and Windows PowerShell. Consequently, Windows users often encounter encoding issues when displaying special characters unless they manually configure their shell settings to explicitly support UTF-8.
+
+.Test.java
+[source,java]
+----
+public class Test {
+    public static void main(String[] args) {
+        String heart = "\u2764";
+        System.out.println("I " + heart + "  JBang!");
+    }
+}
+----
+
+To check if UTF-8 support is enabled on Windows, run program `Test.java` using command:
+
+* `C:\> java Test.java`
+
+from CMD or PowerShell. If UTF-8 support is enabled, the following text will be displayed
+
+* I ❤ JBang!
+
+otherwise the text will appear as
+
+* I ? JBang!
+
+UTF-8 support can be temporarily enabled for CMD, PowerShell, or Bash with command: `chcp.com 65001`. To permanently enable UTF-8 support:
+
+* CMD - add the following registry key:
++
+[source,shell]
+----
+reg add "HKLM\Software\Microsoft\Command Processor" /v "Autorun" /t REG_SZ /d "@chcp 65001>nul" /f
+----
+
+* PowerShell - add the following line to the file specified by $PROFILE
++
+[source]
+----
+$OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+----
+
+* Bash (Git-Bash or Cygwin) - add the following line to ~/.bashrc
++
+[source,shell]
+----
+chcp.com 65001 > /dev/null
+----
+
+Alternatively, UTF-8 can be enabled globally on Windows for all programs and shells by opening the `intl.cpl` control panel applet and enabling option:
+
+* `[ ] Beta: Use Unicode UTF-8 for worldwide language support`
+
+
 == Step 1: Install JBang
 
 Choose your preferred installation method:
