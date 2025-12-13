@@ -1,6 +1,7 @@
 package dev.jbang.util;
 
-import java.awt.*;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +13,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
@@ -20,11 +31,19 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -37,7 +56,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -53,6 +73,9 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.devkitman.util.OsUtils;
+import dev.jbang.devkitman.util.OsUtils.Arch;
+import dev.jbang.devkitman.util.OsUtils.OS;
 import dev.jbang.source.Source;
 
 public class Util {
@@ -410,14 +433,6 @@ public class Util {
 		return name;
 	}
 
-	public enum OS {
-		linux, alpine_linux, mac, windows, aix, unknown
-	}
-
-	public enum Arch {
-		x32, x64, aarch64, arm, arm64, ppc64, ppc64le, s390x, riscv64, unknown
-	}
-
 	public enum Shell {
 		bash, cmd, powershell
 	}
@@ -543,53 +558,15 @@ public class Util {
 			"(?sm)public class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)");
 
 	public static OS getOS() {
-		String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", "");
-		if (os.startsWith("mac") || os.startsWith("osx")) {
-			return OS.mac;
-		} else if (os.startsWith("linux")) {
-			if (Files.exists(Paths.get("/etc/alpine-release"))) {
-				return OS.alpine_linux;
-			} else {
-				return OS.linux;
-			}
-		} else if (os.startsWith("win")) {
-			return OS.windows;
-		} else if (os.startsWith("aix")) {
-			return OS.aix;
-		} else {
-			verboseMsg("Unknown OS: " + os);
-			return OS.unknown;
-		}
+		return OsUtils.getOS();
 	}
 
 	public static Arch getArch() {
-		String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", "");
-		if (arch.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
-			return Arch.x64;
-		} else if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
-			return Arch.x32;
-		} else if (arch.matches("^(aarch64)$")) {
-			return Arch.aarch64;
-		} else if (arch.matches("^(arm)$")) {
-			return Arch.arm;
-		} else if (arch.matches("^(ppc64)$")) {
-			return Arch.ppc64;
-		} else if (arch.matches("^(ppc64le)$")) {
-			return Arch.ppc64le;
-		} else if (arch.matches("^(s390x)$")) {
-			return Arch.s390x;
-		} else if (arch.matches("^(arm64)$")) {
-			return Arch.arm64;
-		} else if (arch.matches("^(riscv64)$")) {
-			return Arch.riscv64;
-		} else {
-			verboseMsg("Unknown Arch: " + arch);
-			return Arch.unknown;
-		}
+		return OsUtils.getArch();
 	}
 
 	public static boolean isWindows() {
-		return getOS() == OS.windows;
+		return OsUtils.isWindows();
 	}
 
 	public static Shell getShell() {
@@ -602,7 +579,7 @@ public class Util {
 	}
 
 	public static boolean isMac() {
-		return getOS() == OS.mac;
+		return OsUtils.isMac();
 	}
 
 	public static String getVendor() {
@@ -978,7 +955,7 @@ public class Util {
 		if (!Files.exists(link)) {
 			// On Windows we use junction for directories because their
 			// creation doesn't require any special privileges.
-			if (getOS() == OS.windows && Files.isDirectory(target)) {
+			if (isWindows() && Files.isDirectory(target)) {
 				if (createJunction(link, target.toAbsolutePath())) {
 					return;
 				}

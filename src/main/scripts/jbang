@@ -152,8 +152,13 @@ case "$(uname -s)" in
   Linux*)
     os=linux
     if [ -f /etc/alpine-release ]; then
-      os=alpine-linux
-      javaVersion=16
+      os=alpine-linux 
+      libc_type=musl
+      # alpine linux does not work below java 16 (or not available at time of writing)
+      # Thus we set javaVersion to 17 if it's unset or less than 16
+      if [[ -z "${javaVersion}" || "${javaVersion}" -lt 16 ]]; then
+        javaVersion=17
+      fi
     fi
     ;;
   Darwin*)

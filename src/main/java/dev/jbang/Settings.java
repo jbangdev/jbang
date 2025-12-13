@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
 import dev.jbang.catalog.Catalog;
+import dev.jbang.devkitman.util.OsUtils;
 import dev.jbang.util.Util;
 
 public class Settings {
@@ -141,7 +142,7 @@ public class Settings {
 		if (v != null) {
 			return Integer.parseInt(v);
 		}
-		if (Util.getOS() == Util.OS.alpine_linux) {
+		if (Util.getOS() == OsUtils.OS.alpine_linux) {
 			return DEFAULT_ALPINE_JAVA_VERSION;
 		} else {
 			return DEFAULT_JAVA_VERSION;

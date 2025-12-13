@@ -24,7 +24,12 @@ plugins {
 
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
-def versionJline = '3.30.5'
+def assertjVersion = '3.24.2'
+def devkitmanVersion = '0.3.3'
+def junitBomVersion = '5.14.1'
+def testcontainersVersion = '2.0.2'
+def jlineVersion = '3.30.5'
+def wiremockVersion = '3.13.2'
 
 configurations {
 	agent {
@@ -146,7 +151,7 @@ sourceSets {
 sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
-	implementation 'dev.jbang:devkitman:0.3.0'
+	implementation "dev.jbang:devkitman:${devkitmanVersion}"
 
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.11.0'
@@ -167,19 +172,19 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
-	implementation "org.jline:jline-console-ui:$versionJline"
-	implementation "org.jline:jline-terminal-jni:$versionJline"
+	implementation "org.jline:jline-console-ui:$jlineVersion"
+	implementation "org.jline:jline-terminal-jni:$jlineVersion"
 
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
-	testImplementation platform('org.junit:junit-bom:5.14.1')
+	testImplementation platform("org.junit:junit-bom:${junitBomVersion}")
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
-	testImplementation "org.assertj:assertj-core:3.24.2"
+	testImplementation "org.assertj:assertj-core:${assertjVersion}"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
-	testImplementation "org.wiremock:wiremock:3.13.2"
+	testImplementation "org.wiremock:wiremock:${wiremockVersion}"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
@@ -400,15 +405,17 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()  // todo: shouldn't even need to depend on main code?
-				implementation platform('org.junit:junit-bom:5.14.1')
+				implementation platform("org.junit:junit-bom:${junitBomVersion}")
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
-				implementation "org.assertj:assertj-core:3.24.2"
+				implementation "org.assertj:assertj-core:${assertjVersion}"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
-				implementation platform("io.qameta.allure:allure-bom:2.29.1")
+				implementation platform("io.qameta.allure:allure-bom:${allureVersion}")
 				implementation "io.qameta.allure:allure-junit5"
-				implementation "org.wiremock:wiremock:3.13.2"
-				implementation 'dev.jbang:devkitman:0.3.0'
+				implementation "org.wiremock:wiremock:${wiremockVersion}"
+				implementation "dev.jbang:devkitman:${devkitmanVersion}"
+				implementation "org.testcontainers:testcontainers:${testcontainersVersion}"
+				implementation "org.testcontainers:testcontainers-junit-jupiter:${testcontainersVersion}"
 			}
 
 			sources {
