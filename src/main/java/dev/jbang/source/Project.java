@@ -112,10 +112,26 @@ public class Project {
 
 	@NonNull
 	public List<String> getRuntimeOptions() {
-		Set<String> uniqueRuntimeOptions_ = new HashSet<>(runtimeOptions);
-		ArrayList<String> uniqueRuntimeOptions = new ArrayList<>(uniqueRuntimeOptions_);
-		Collections.sort(uniqueRuntimeOptions);
-		return Collections.unmodifiableList(uniqueRuntimeOptions);
+		// "--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"
+		boolean skipNextOption = false;
+		Set<String> seen = new HashSet<>();
+		List<String> uniqueList = new ArrayList<>();
+		for (String option : runtimeOptions) {
+			if (skipNextOption) {
+				skipNextOption = false;
+				uniqueList.add(option);
+				continue;
+			}
+			if (!seen.contains(option)) {
+				if (option.startsWith("--add-")) {
+					skipNextOption = true;
+				} else {
+					seen.add(option);
+				}
+				uniqueList.add(option);
+			}
+		}
+		return Collections.unmodifiableList(uniqueList);
 	}
 
 	@NonNull
