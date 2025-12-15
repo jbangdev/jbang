@@ -114,6 +114,7 @@ public class Project {
 	public List<String> getRuntimeOptions() {
 		Set<String> uniqueRuntimeOptions_ = new HashSet<>(runtimeOptions);
 		ArrayList<String> uniqueRuntimeOptions = new ArrayList<>(uniqueRuntimeOptions_);
+		Collections.sort(uniqueRuntimeOptions);
 		return Collections.unmodifiableList(uniqueRuntimeOptions);
 	}
 
