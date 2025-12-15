@@ -177,7 +177,7 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build("alltags");
 		assertThat(prj.getDescription().get(), equalTo("some description"));
-		assertThat(prj.getRuntimeOptions(), iterableWithSize(4));
+		assertThat(prj.getRuntimeOptions(), iterableWithSize(3));
 		assertThat(prj.getRuntimeOptions(),
 				contains("--add-opens=java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(7));
