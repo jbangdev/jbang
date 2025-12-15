@@ -114,20 +114,20 @@ public class Project {
 	public List<String> getRuntimeOptions() {
 		// "--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot
 		// mies"
-		boolean skipNextOption = false;
-		Set<String> seen = new HashSet<>();
+		boolean addNextOption = false;
+		Set<String> duplicates = new HashSet<>();
 		List<String> uniqueList = new ArrayList<>();
 		for (String option : runtimeOptions) {
-			if (skipNextOption) {
-				skipNextOption = false;
+			if (addNextOption) {
 				uniqueList.add(option);
+				addNextOption = false;
 				continue;
 			}
-			if (!seen.contains(option)) {
+			if (!duplicates.contains(option)) {
 				if (option.startsWith("--add-")) {
-					skipNextOption = true;
+					addNextOption = true;
 				} else {
-					seen.add(option);
+					duplicates.add(option);
 				}
 				uniqueList.add(option);
 			}
