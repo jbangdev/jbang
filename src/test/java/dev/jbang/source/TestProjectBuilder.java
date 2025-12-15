@@ -73,8 +73,8 @@ public class TestProjectBuilder extends BaseTest {
 		Path src = examplesTestFolder.resolve("alltags.java");
 		Project prj = pb.build(src);
 		assertThat(prj.getDescription().get(), equalTo("some description"));
-		assertThat(prj.getRuntimeOptions(), iterableWithSize(2));
-		assertThat(prj.getRuntimeOptions(), contains("--add-opens", "java.base/java.net=ALL-UNNAMED"));
+		assertThat(prj.getRuntimeOptions(), iterableWithSize(1));
+		assertThat(prj.getRuntimeOptions(), contains("--add-opens=java.base/java.net=ALL-UNNAMED"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(6));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
 				ResourceRef.forFile(src),
