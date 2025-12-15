@@ -112,7 +112,7 @@ public class Project {
 
 	@NonNull
 	public List<String> getRuntimeOptions() {
-		Set<String> uniqueRuntimeOptions_= new HashSet<>(runtimeOptions);
+		Set<String> uniqueRuntimeOptions_ = new HashSet<>(runtimeOptions);
 		ArrayList<String> uniqueRuntimeOptions = new ArrayList<>(uniqueRuntimeOptions_);
 		return Collections.unmodifiableList(uniqueRuntimeOptions);
 	}
