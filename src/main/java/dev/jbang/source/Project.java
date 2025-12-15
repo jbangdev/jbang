@@ -112,7 +112,8 @@ public class Project {
 
 	@NonNull
 	public List<String> getRuntimeOptions() {
-		// "--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"
+		// "--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot
+		// mies"
 		boolean skipNextOption = false;
 		Set<String> seen = new HashSet<>();
 		List<String> uniqueList = new ArrayList<>();
