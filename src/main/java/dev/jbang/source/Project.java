@@ -117,6 +117,7 @@ public class Project {
 		boolean addNextOption = false;
 		Set<String> duplicates = new HashSet<>();
 		List<String> uniqueList = new ArrayList<>();
+		// Preserve order but remove duplicates, except for "--add-..." options
 		for (String option : runtimeOptions) {
 			if (addNextOption) {
 				uniqueList.add(option);
