@@ -112,9 +112,8 @@ public class Project {
 
 	@NonNull
 	public List<String> getRuntimeOptions() {
-		Set<String> uniqueRuntimeOptions_ = new HashSet<>(runtimeOptions);
-		ArrayList<String> uniqueRuntimeOptions = new ArrayList<>(uniqueRuntimeOptions_);
-		return Collections.unmodifiableList(uniqueRuntimeOptions);
+		List<String> list = runtimeOptions.stream().distinct().collect(Collectors.toList());
+		return Collections.unmodifiableList(list);
 	}
 
 	@NonNull
