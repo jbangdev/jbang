@@ -125,12 +125,12 @@ public class Project {
 				continue;
 			}
 			if (!duplicates.contains(option)) {
-				if (option.startsWith("--add-")) {
-					addNextOption = true;
-				} else {
-					duplicates.add(option);
-				}
 				uniqueList.add(option);
+				if (!option.startsWith("--add-")) {
+					duplicates.add(option);
+				} else {
+					addNextOption = true;
+				}
 			}
 		}
 		return Collections.unmodifiableList(uniqueList);
