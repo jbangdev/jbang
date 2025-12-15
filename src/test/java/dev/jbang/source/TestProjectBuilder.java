@@ -179,7 +179,7 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getDescription().get(), equalTo("some description"));
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(4));
 		assertThat(prj.getRuntimeOptions(),
-				contains("--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
+				contains("--add-opens=java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(7));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
 				new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null),
