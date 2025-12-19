@@ -5,8 +5,16 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Index;
@@ -16,9 +24,11 @@ import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.devkitman.Jdk;
-import dev.jbang.source.*;
+import dev.jbang.source.BuildContext;
+import dev.jbang.source.Project;
 import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.Glob;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
@@ -219,7 +229,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		fullArgs.addAll(optionalArgs);
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
-		if (main != null) {
+		if (main != null && !Glob.isGlob(main)) {
 			if (moduleName != null && project.getModuleName().isPresent()) {
 				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
 				fullArgs.add("-m");
@@ -264,13 +274,30 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 						"No main class deduced, specified nor found in a manifest nor jar");
 			} else {
 
-				String mainClasses = mains.stream()
-					.map(m -> "\n - " + m.name().toString())
-					.collect(Collectors.joining());
+				Stream<ClassInfo> filteredMains = mains.stream();
 
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-						"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
-								+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
+				if (Glob.isGlob(main)) {
+					filteredMains = filteredMains
+						.filter(m -> Glob.matches(main, m.name().toString()));
+				}
+
+				String[] mainClassOptions = filteredMains.map(m -> m.name().toString()).toArray(String[]::new);
+				int result = Util.askInput(
+						"No main class deduced, specified nor found in a manifest, but found these candidates:", 30, 0,
+						mainClassOptions);
+
+				if (result <= 0) {
+					String mainClasses = mains.stream()
+						.map(m -> "\n - " + m)
+						.collect(Collectors.joining());
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+							"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
+									+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
+				} else {
+					mainClass = mainClassOptions[result - 1];
+					Util.verboseMsg("User chose main:" + mainClass);
+					fullArgs.add(mainClass);
+				}
 			}
 		}
 		fullArgs.addAll(arguments);
@@ -288,4 +315,5 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
 		properties.forEach((k, e) -> result.add(def + k + "=" + e));
 	}
+
 }
