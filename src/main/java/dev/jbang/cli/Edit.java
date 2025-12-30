@@ -299,20 +299,19 @@ public class Edit extends BaseCommand {
 					"Do you want to";
 
 			List<String> options = new ArrayList<>();
-			options.add("Download and run VSCodium");
-
 			List<String> pathEditors = findEditorsOnPath();
 			for (String ed : pathEditors) {
 				options.add("Use '" + ed + "'");
 			}
+			options.add("Download and run VSCodium");
 
 			int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
 			if (result == 0) {
 				return Optional.empty();
-			} else if (result == 1) {
+			} else if (result == options.size()) {
 				setupEditor(editorBinPath, dataPath);
-			} else if (result > 1) {
-				String ed = pathEditors.get(result - 2);
+			} else if (result > 0) {
+				String ed = pathEditors.get(result - 1);
 				showStartingMsg(ed, true);
 				return Optional.of(ed);
 			} else {
