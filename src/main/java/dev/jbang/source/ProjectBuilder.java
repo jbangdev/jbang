@@ -279,8 +279,8 @@ public class ProjectBuilder {
 				.filter(ch -> ch == ':')
 				.count();
 		}
-		// If not a G:A:V style ref and matches alias:V or url:V
-		if (colonCount != 2 && matcher.find()) {
+		// Matches alias:V or url:V
+		if (colonCount == 1 && matcher.find()) {
 			resource = matcher.group(1);
 			version = matcher.group(2);
 			System.setProperty("jbang.app.version", version);
