@@ -268,9 +268,19 @@ public class ProjectBuilder {
 	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
 		String resource;
 		String version = "";
-		Pattern pattern = Pattern.compile("^(.+)#(\\d+(?:\\.\\d+)+)$");
+		Pattern pattern = Pattern.compile("^(.+):(\\d+(?:\\.\\d+)+)$");
 		Matcher matcher = pattern.matcher(_resource);
-		if (matcher.find()) {
+		long colonCount = 0;
+		// Ignore G:A:V, but process alias:V or url:V
+		if (_resource.startsWith("http://") || _resource.startsWith("https://")) {
+			colonCount = 1;
+		} else {
+			colonCount = _resource.chars()
+				.filter(ch -> ch == ':')
+				.count();
+		}
+		// If not a G:A:V style ref and matches alias:V or url:V
+		if (colonCount != 2 && matcher.find()) {
 			resource = matcher.group(1);
 			version = matcher.group(2);
 			System.setProperty("jbang.app.version", version);
