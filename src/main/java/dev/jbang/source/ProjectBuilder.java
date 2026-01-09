@@ -270,7 +270,7 @@ public class ProjectBuilder {
 		if (idx != -1) {
 			String version = _resource.substring(idx + 1);
 			resource = _resource.substring(0, idx);
-			System.setProperty("jbang.alias.version", version);
+			System.setProperty("jbang.app.version", version);
 		} else {
 			resource = _resource;
 		}
