@@ -266,16 +266,20 @@ public class ProjectBuilder {
 	}
 
 	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
-		Util.verboseMsg("Resolving resource ref: " + _resource);
 		String resource;
+		String version = "";
 		Pattern pattern = Pattern.compile("^(.+)#(\\d+(?:\\.\\d+)+)$");
 		Matcher matcher = pattern.matcher(_resource);
 		if (matcher.find()) {
 			resource = matcher.group(1);
-			String version = matcher.group(2);
+			version = matcher.group(2);
 			System.setProperty("jbang.app.version", version);
 		} else {
 			resource = _resource;
+		}
+		Util.verboseMsg("Resolving resource ref: " + resource);
+		if (!version.isEmpty()) {
+			Util.verboseMsg("Resource version: " + version);
 		}
 		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
