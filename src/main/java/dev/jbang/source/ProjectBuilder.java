@@ -263,8 +263,18 @@ public class ProjectBuilder {
 		return build(resourceRef);
 	}
 
-	private ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
-		Util.verboseMsg("Resolving resource ref: " + resource);
+	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
+		Util.verboseMsg("Resolving resource ref: " + _resource);
+		String resource;
+		String version = "";
+		int idx = _resource.indexOf("#");
+		if (idx != -1) {
+			version = _resource.substring(idx + 1);
+			resource = _resource.substring(0, idx);
+			System.setProperty("jbang.alias.version", version);
+		} else {
+			resource = _resource;
+		}
 		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
 						|| Util.isRemoteRef(resource));
