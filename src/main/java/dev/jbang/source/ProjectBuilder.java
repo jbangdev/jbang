@@ -21,6 +21,8 @@ import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.maven.model.Model;
@@ -266,10 +268,11 @@ public class ProjectBuilder {
 	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
 		Util.verboseMsg("Resolving resource ref: " + _resource);
 		String resource;
-		int idx = _resource.indexOf("#");
-		if (idx != -1) {
-			String version = _resource.substring(idx + 1);
-			resource = _resource.substring(0, idx);
+		Pattern pattern = Pattern.compile("^(.+)#(\\d+(?:\\.\\d+)+)$");
+		Matcher matcher = pattern.matcher(_resource);
+		if (matcher.find()) {
+			resource = matcher.group(1);
+			String version = matcher.group(2);
 			System.setProperty("jbang.app.version", version);
 		} else {
 			resource = _resource;
