@@ -266,10 +266,9 @@ public class ProjectBuilder {
 	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
 		Util.verboseMsg("Resolving resource ref: " + _resource);
 		String resource;
-		String version = "";
 		int idx = _resource.indexOf("#");
 		if (idx != -1) {
-			version = _resource.substring(idx + 1);
+			String version = _resource.substring(idx + 1);
 			resource = _resource.substring(0, idx);
 			System.setProperty("jbang.alias.version", version);
 		} else {
