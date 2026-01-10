@@ -265,32 +265,59 @@ public class ProjectBuilder {
 		return build(resourceRef);
 	}
 
-	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
-		String resource;
+	private String extractJBangAppVersion(String _resource) {
 		String version = "";
+		String resource = _resource;
 		Pattern pattern = Pattern.compile("^(.+):(\\d+(?:\\.\\d+)+)$");
-		Matcher matcher = pattern.matcher(_resource);
-		long colonCount = 0;
-		// Ignore G:A:V, but process alias:V or url:V
+		long colonCount = _resource.chars()
+			.filter(ch -> ch == ':')
+			.count();
 		if (_resource.startsWith("http://") || _resource.startsWith("https://")) {
-			colonCount = 1;
+			// Matches url:V
+			Matcher matcher = pattern.matcher(_resource);
+			if (matcher.find()) {
+				String url = matcher.group(1);
+				version = matcher.group(2);
+				if (!version.isEmpty()) {
+					System.setProperty("jbang.app.version", version);
+					resource = url;
+				}
+			}
+		} else if (_resource.contains("@")) {
+			// Matches alias:V@url
+			String[] parts = _resource.split("@", 2);
+			Matcher matcher = pattern.matcher(parts[0]);
+			if (matcher.find()) {
+				parts[0] = matcher.group(1);
+				version = matcher.group(2);
+			}
+			if (!version.isEmpty()) {
+				System.setProperty("jbang.app.version", version);
+				resource = parts[0] + "@" + parts[1];
+			}
 		} else {
-			colonCount = _resource.chars()
-				.filter(ch -> ch == ':')
-				.count();
-		}
-		// Matches alias:V or url:V
-		if (colonCount == 1 && matcher.find()) {
-			resource = matcher.group(1);
-			version = matcher.group(2);
-			System.setProperty("jbang.app.version", version);
-		} else {
-			resource = _resource;
+			if (colonCount == 1) {
+				// Matches alias:V
+				Matcher matcher = pattern.matcher(_resource);
+				if (matcher.find()) {
+					String alias = matcher.group(1);
+					version = matcher.group(2);
+					if (!version.isEmpty()) {
+						System.setProperty("jbang.app.version", version);
+						resource = alias;
+					}
+				}
+			}
 		}
 		Util.verboseMsg("Resolving resource ref: " + resource);
 		if (!version.isEmpty()) {
 			Util.verboseMsg("Resource version: " + version);
 		}
+		return resource;
+	}
+
+	private ResourceRef resolveChecked(ResourceResolver resolver, String _resource) {
+		String resource = extractJBangAppVersion(_resource);
 		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
 						|| Util.isRemoteRef(resource));
