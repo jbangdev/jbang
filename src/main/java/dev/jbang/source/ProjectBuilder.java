@@ -265,7 +265,7 @@ public class ProjectBuilder {
 		return build(resourceRef);
 	}
 
-	private String extractJBangAppVersion(String _resource) {
+	public String extractJBangAppVersion(String _resource) {
 		String version = "";
 		String resource = _resource;
 		Pattern pattern = Pattern.compile("^(.+):(\\d+(?:\\.\\d+)+)$");
