@@ -1308,6 +1308,9 @@ public class Util {
 	}
 
 	public static int askInput(String message, int timeout, int defaultValue, String... options) {
+		if (options.length == 0) {
+			return -1;
+		}
 		ConsoleInput con = ConsoleInput.get(1, timeout, TimeUnit.SECONDS);
 		if (con != null) {
 			StringBuilder msg = new StringBuilder(message + "\n\n");
