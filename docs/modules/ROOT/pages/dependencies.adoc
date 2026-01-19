@@ -230,6 +230,16 @@ username/passwords.
 
 By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.
 
+=== Relative Repository Paths [EXPERIMENTAL]
+
+You can use relative paths to reference repositories. This is useful if you want to use a local Maven repository or a custom repository. For example using Gradle and its `publishAllPublicationsToBuildRepository` task, it can be useful to use: `--repos local=./build/repo`.
+
+[WARNING]
+====
+Relative paths are relative to the current working directory. Thus it will only work if you are using `jbang` from a consistent relative path.  
+====
+
+
 === Transitive repositories
 
 JBang honors by default the repositories found in transitive dependencies (similar to how Maven does).

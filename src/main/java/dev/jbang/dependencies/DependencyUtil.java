@@ -6,6 +6,9 @@ import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.verboseMsg;
 
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,9 +74,9 @@ public class DependencyUtil {
 
 		// Turn any URL dependencies into regular GAV coordinates
 		List<String> depIds = deps
-			.stream()
-			.map(JitPackUtil::ensureGAV)
-			.collect(Collectors.toList());
+				.stream()
+				.map(JitPackUtil::ensureGAV)
+				.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(deps) && repos.stream().noneMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
@@ -99,17 +102,17 @@ public class DependencyUtil {
 		}
 
 		try (ArtifactResolver resolver = ArtifactResolver.Builder
-			.create()
-			.repositories(repos)
-			.withUserSettings(true)
-			.localFolder(getJBangLocalMavenRepoOverride())
-			.offline(offline)
-			.ignoreTransitiveRepositories(
-					ignoreTransitiveRepositories)
-			.forceCacheUpdate(updateCache)
-			.logging(loggingEnabled)
-			.downloadSources(downloadSources)
-			.build()) {
+				.create()
+				.repositories(repos)
+				.withUserSettings(true)
+				.localFolder(getJBangLocalMavenRepoOverride())
+				.offline(offline)
+				.ignoreTransitiveRepositories(
+						ignoreTransitiveRepositories)
+				.forceCacheUpdate(updateCache)
+				.logging(loggingEnabled)
+				.downloadSources(downloadSources)
+				.build()) {
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
 			ModularClassPath mcp = new ModularClassPath(artifacts);
@@ -170,9 +173,9 @@ public class DependencyUtil {
 
 	public static String removeLastCharOptional(String s) {
 		return Optional.ofNullable(s)
-			.filter(str -> str.length() != 0)
-			.map(str -> str.substring(0, str.length() - 1))
-			.orElse(s);
+				.filter(str -> str.length() != 0)
+				.map(str -> str.substring(0, str.length() - 1))
+				.orElse(s);
 	}
 
 	public static MavenRepo toMavenRepo(String repoReference) {
@@ -194,6 +197,15 @@ public class DependencyUtil {
 		if (repo != null) {
 			return new MavenRepo(repoid, repo);
 		} else {
+			URI uri = URI.create(reporef);
+			if (uri.getScheme() == null && !uri.isAbsolute()) {
+				Path base = Paths.get(".").toAbsolutePath().normalize();
+				Path resolved = base.resolve(reporef).normalize();
+				reporef = resolved.toUri().toString();
+				verboseMsg("Maven local path resolved: " + repoReference + " -> " + reporef);
+				// TODO: should we throw an error if the resolved path is not a child of the
+				// base path?
+			}
 			return new MavenRepo(repoid, reporef);
 		}
 	}
