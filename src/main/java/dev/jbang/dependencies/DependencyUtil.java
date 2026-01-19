@@ -36,6 +36,8 @@ public class DependencyUtil {
 		aliasToRepos.put("google", "https://maven.google.com/");
 		aliasToRepos.put(ALIAS_JITPACK, REPO_JITPACK);
 		aliasToRepos.put("sponge", "https://repo.spongepowered.org/maven");
+		aliasToRepos.put("central-portal-snapshots", "https://central.sonatype.com/repository/maven-snapshots/");
+
 		aliasToRepos.put("sonatype-snapshots", "https://oss.sonatype.org/content/repositories/snapshots");
 		aliasToRepos.put("s01sonatype-snapshots", "https://s01.oss.sonatype.org/content/repositories/snapshots");
 		aliasToRepos.put("spring-snapshot", "https://repo.spring.io/snapshot");
