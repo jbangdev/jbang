@@ -4,9 +4,9 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Settings.getJBangLocalMavenRepoOverride;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
+import static dev.jbang.util.Util.isWindows;
 import static dev.jbang.util.Util.verboseMsg;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -196,17 +196,26 @@ public class DependencyUtil {
 		String repo = aliasToRepos.get(reporef.toLowerCase());
 		if (repo != null) {
 			return new MavenRepo(repoid, repo);
+		} else if (isRelativePathRepoReference(reporef)) {
+			Path base = Paths.get(".").toAbsolutePath().normalize();
+			Path resolved = base.resolve(reporef).normalize();
+			String resolvedUrl = resolved.toUri().toString();
+			verboseMsg("Maven local path resolved: " + repoReference + " -> " + resolvedUrl);
+			// TODO: should we throw an error if the resolved path is not a child of the
+			// base path?
+			return new MavenRepo(repoid, resolvedUrl);
 		} else {
-			URI uri = URI.create(reporef);
-			if (uri.getScheme() == null && !uri.isAbsolute()) {
-				Path base = Paths.get(".").toAbsolutePath().normalize();
-				Path resolved = base.resolve(reporef).normalize();
-				reporef = resolved.toUri().toString();
-				verboseMsg("Maven local path resolved: " + repoReference + " -> " + reporef);
-				// TODO: should we throw an error if the resolved path is not a child of the
-				// base path?
-			}
 			return new MavenRepo(repoid, reporef);
 		}
+	}
+
+	private static boolean isRelativePathRepoReference(String reporef) {
+		if (reporef.startsWith("./") || reporef.startsWith("../")) {
+			return true;
+		}
+		// On Windows, relative paths can use \ but on linux that will fail.
+		// to be nice to windows we accept it but if users want to be portable best to
+		// use /
+		return isWindows() && (reporef.startsWith(".\\") || reporef.startsWith("..\\"));
 	}
 }

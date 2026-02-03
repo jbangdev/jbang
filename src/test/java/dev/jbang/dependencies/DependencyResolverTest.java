@@ -137,10 +137,9 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testRelativePathsRepos() {
-		assertThat(toMavenRepo("local=build/repo").getUrl().toString())
+		assertThat(toMavenRepo("local=./build/repo").getUrl().toString())
 			.startsWith("file:///")
 			.endsWith("/build/repo");
-
 	}
 
 	@Test
