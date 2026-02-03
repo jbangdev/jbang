@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,12 @@ public class DependencyCache {
 
 					Type empMapType = new TypeToken<Map<String, List<ArtifactInfo>>>() {
 					}.getType();
-					depCache = parser.fromJson(out, empMapType);
+					Map<String, List<ArtifactInfo>> parsed = parser.fromJson(out, empMapType);
+					if (parsed == null) {
+						Util.warnMsg("Dependency cache file was empty or invalid: "
+								+ Settings.getCacheDependencyFile());
+					}
+					depCache = parsed != null ? parsed : new HashMap<>();
 				} catch (IOException e) {
 					Util.errorMsg("Issue writing to dependency cache", e);
 					depCache = new HashMap<>();
@@ -63,20 +69,43 @@ public class DependencyCache {
 		Map<String, List<ArtifactInfo>> cache = getCache();
 		cache.put(depsHash, artifacts);
 
-		try (Writer out = Files.newBufferedWriter(Settings.getCacheDependencyFile())) {
-			JsonSerializer<ArtifactInfo> serializer = (src, typeOfSrc, context) -> {
-				JsonObject json = new JsonObject();
-				json.addProperty("gav", src.getCoordinate().toCanonicalForm());
-				json.addProperty("file", src.getFile().toString());
-				json.addProperty("ts", src.getTimestamp());
-				return json;
-			};
-			Gson parser = new GsonBuilder()
-				.setPrettyPrinting()
-				.registerTypeAdapter(ArtifactInfo.class, serializer)
-				.create();
+		Path cacheFile = Settings.getCacheDependencyFile();
+		Path cacheDir = cacheFile.getParent();
 
-			parser.toJson(cache, out);
+		try {
+			if (cacheDir != null) {
+				Files.createDirectories(cacheDir);
+			}
+
+			Path tmpFile = Files.createTempFile(
+					cacheDir != null ? cacheDir : cacheFile.toAbsolutePath().getParent(),
+					cacheFile.getFileName().toString(),
+					".tmp");
+
+			try (Writer out = Files.newBufferedWriter(tmpFile)) {
+				JsonSerializer<ArtifactInfo> serializer = (src, typeOfSrc, context) -> {
+					JsonObject json = new JsonObject();
+					json.addProperty("gav", src.getCoordinate().toCanonicalForm());
+					json.addProperty("file", src.getFile().toString());
+					json.addProperty("ts", src.getTimestamp());
+					return json;
+				};
+				Gson parser = new GsonBuilder()
+					.setPrettyPrinting()
+					.registerTypeAdapter(ArtifactInfo.class, serializer)
+					.create();
+
+				parser.toJson(cache, out);
+			}
+
+			try {
+				Files.move(tmpFile, cacheFile,
+						StandardCopyOption.ATOMIC_MOVE,
+						StandardCopyOption.REPLACE_EXISTING);
+			} catch (IOException e) {
+				// Fallback when atomic move not supported (e.g. across filesystems/drives)
+				Files.move(tmpFile, cacheFile, StandardCopyOption.REPLACE_EXISTING);
+			}
 		} catch (IOException e) {
 			Util.errorMsg("Issue writing to dependency cache", e);
 		}

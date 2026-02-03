@@ -114,6 +114,7 @@ public class Util {
 	private static Path cwd;
 	private static Boolean downloadSources;
 	private static Instant startTime = Instant.now();
+	private static boolean printExceptions = false;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -140,6 +141,14 @@ public class Util {
 
 	public static boolean isQuiet() {
 		return quiet;
+	}
+
+	public static void setPrintExceptions(boolean printExceptions) {
+		Util.printExceptions = printExceptions;
+	}
+
+	public static boolean printExceptions() {
+		return printExceptions;
 	}
 
 	public static void setOffline(boolean offline) {
@@ -448,7 +457,9 @@ public class Util {
 		if (isVerbose()) {
 			System.err.print(getMsgHeader());
 			System.err.println(msg);
-			e.printStackTrace();
+			if (printExceptions() || isVerbose()) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -472,7 +483,7 @@ public class Util {
 			System.err.print(getMsgHeader());
 			System.err.print("[WARN] ");
 			System.err.println(msg);
-			if (isVerbose()) {
+			if (printExceptions()) {
 				verboseInfo.printStackTrace();
 			}
 		}
@@ -494,13 +505,13 @@ public class Util {
 		} else {
 			System.err.println(e.getClass().toGenericString());
 		}
-		if (isVerbose()) {
+		if (isVerbose() || printExceptions()) {
 			e.printStackTrace();
 		} else {
 			if (msg != null) {
 				infoMsg(e.getMessage());
 			}
-			infoMsg("Run with --verbose for more details. The --verbose must be placed before the jbang command. I.e. jbang --verbose run [...]");
+			infoMsg("Run with --verbose or -x for more details. The --verbose or -x must be placed before the jbang command. I.e. jbang --verbose run [...]");
 		}
 	}
 
@@ -1505,4 +1516,5 @@ public class Util {
 	public static boolean isJavaKeyword(String s) {
 		return JAVA_KEYWORDS.contains(s);
 	}
+
 }
