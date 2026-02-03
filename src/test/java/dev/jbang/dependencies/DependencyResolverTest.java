@@ -141,7 +141,6 @@ class DependencyResolverTest extends BaseTest {
 			.startsWith("file:///")
 			.endsWith("/build/repo");
 
-			
 	}
 
 	@Test
