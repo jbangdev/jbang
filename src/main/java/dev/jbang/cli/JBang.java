@@ -89,6 +89,13 @@ public class JBang extends BaseCommand {
 		}
 	}
 
+	@CommandLine.Option(names = {
+			"-x",
+			"--stacktrace" }, description = "Print exceptions stacktraces to stderr (even when quiet).", scope = ScopeType.INHERIT)
+	void printExceptions(boolean printExceptions) {
+		Util.setPrintExceptions(printExceptions);
+	}
+
 	@CommandLine.ArgGroup(exclusive = true)
 	OfflineFreshExclusive offlineFreshExclusive = new OfflineFreshExclusive();
 
