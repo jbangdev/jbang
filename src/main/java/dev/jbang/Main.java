@@ -24,8 +24,8 @@ public class Main {
 		}
 
 		CommandLine cli = JBang.getCommandLine();
-		args = handleDefaultRun(cli.getCommandSpec(), args);
-		int exitcode = cli.execute(args);
+		String[] nargs = handleDefaultRun(cli.getCommandSpec(), args);
+		int exitcode = cli.execute(nargs);
 		System.exit(exitcode);
 	}
 
