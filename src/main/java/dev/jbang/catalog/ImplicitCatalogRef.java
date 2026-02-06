@@ -31,7 +31,12 @@ public class ImplicitCatalogRef {
 	}
 
 	private String repoUrl(String host, String infix) {
-		String fs = path.endsWith("/") ? "" : "/";
+		String fs = "";
+		if (!path.isEmpty()) {
+			if (!path.endsWith("/")) {
+				fs = "/";
+			}
+		}
 		return host + org + "/" + repo + infix + ref + "/" + path + fs + Catalog.JBANG_CATALOG_JSON;
 	}
 
