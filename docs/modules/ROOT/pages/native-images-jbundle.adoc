@@ -35,6 +35,23 @@ https://jbundle.avelino.run/[JBundle] makes it easy to create native images from
 +
 Hello World
 
+== Configuration
+
+Additional https://jbundle.avelino.run/user-guide/configuration[configuration options] can be specified on the command-line or stored in a `jbundle.toml` file in the local folder.
+
+```toml
+# jbundle.toml
+
+java_version = 25
+profile = "server"
+jvm_args = ["-Xmx512m", "-XX:+UseZGC"]
+shrink = true
+appcds = false
+crac = false
+```
+
+
+
 == Limitations
 
 JBundle is currently only supported on Linux and MacOS.
