@@ -27,17 +27,11 @@ public class ImplicitCatalogRef {
 		this.org = org;
 		this.repo = repo;
 		this.ref = ref;
-		this.path = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+		this.path = path;
 	}
 
 	private String repoUrl(String host, String infix) {
-		String fs = "";
-		if (!path.isEmpty()) {
-			if (!path.endsWith("/")) {
-				fs = "/";
-			}
-		}
-		return host + org + "/" + repo + infix + ref + "/" + path + fs + Catalog.JBANG_CATALOG_JSON;
+		return host + org + "/" + repo + infix + ref + "/" + path + Catalog.JBANG_CATALOG_JSON;
 	}
 
 	/**
