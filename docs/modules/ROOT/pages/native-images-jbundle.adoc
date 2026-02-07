@@ -29,7 +29,7 @@ https://jbundle.avelino.run/[JBundle] makes it easy to create native images from
 * Step 1 - create a JBang fatjar
 ** jbang export fatjar hello.java
 * Step 2 - use JBundle to create a native image from the fatjar
-**  jbundle build --input ./hello-fatjar.jar --output ./dist/hello  --no-appcds
+**  jbundle build --input ./hello-fatjar.jar --output ./dist/hello
 * Step 3 - run the native image
 ** ./dist/hello
 +
