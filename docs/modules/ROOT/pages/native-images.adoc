@@ -14,21 +14,6 @@ endif::[]
 
 JBang supports creating native images using GraalVM's `native-image` tool, allowing you to compile your Java scripts into standalone native executables.
 
-== JBundle (Experimental)
-
-https://jbundle.avelino.run/[JBundle] makes it easy to create native images from JBang scripts without the need for complex configuration. JBundle uses `jlink` to analyze your application and its dependencies, then generates an native executable with a minimal embedded JVM runtime providing only the necessary modules required by your application.
-
-* Step 0 - Create a JBang script
-** jbang init hello.java
-* Step 1 - create a JBang fatjar
-** jbang export fatjar hello.java
-* Step 2 - use JBundle to create a native image from the fatjar
-**  jbundle --input ./hello-fatjar.jar --output ./dist/hello  --no-appcds
-* Step 3 - run the native image
-** ./dist/hello
-+
-Hello World
-
 == What are Native Images?
 
 Native images are compiled, standalone executables that:
