@@ -126,8 +126,8 @@ class AppInstall extends BaseBuildCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		String scriptRef = scriptMixin.scriptOrFile;
 		ProjectBuilder pb = createProjectBuilder();
+		String scriptRef = pb.extractJBangAppVersion(scriptMixin.scriptOrFile);
 		Project prj = pb.build(scriptRef);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(scriptRef);
@@ -157,10 +157,20 @@ class AppInstall extends BaseBuildCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	private static void installScripts(String name, String scriptRef, List<String> runOpts, List<String> runArgs)
+	private static void installScripts(String name, String _scriptRef, List<String> runOpts, List<String> runArgs)
 			throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		binDir.toFile().mkdirs();
+		String version = System.getProperty("jbang.app.version");
+		String scriptRef = _scriptRef;
+		if (version != null) {
+			if (scriptRef.contains("@")) {
+				String[] parts = scriptRef.split("@", 2);
+				scriptRef = parts[0] + ":" + version + "@" + parts[1];
+			} else {
+				scriptRef = scriptRef + ":" + version;
+			}
+		}
 		if (Util.isWindows()) {
 			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, runOpts, runArgs);
 			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, runOpts, runArgs);
