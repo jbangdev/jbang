@@ -34,3 +34,7 @@ https://jbundle.avelino.run/[JBundle] makes it easy to create native images from
 ** ./dist/hello
 +
 Hello World
+
+== Limitations
+
+JBundle is currently only supported on Linux and MacOS.
