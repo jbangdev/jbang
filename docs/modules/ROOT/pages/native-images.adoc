@@ -29,7 +29,6 @@ https://jbundle.avelino.run/[JBundle] makes it easy to create native images from
 +
 Hello World
 
-
 == What are Native Images?
 
 Native images are compiled, standalone executables that:
