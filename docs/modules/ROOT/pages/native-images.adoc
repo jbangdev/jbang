@@ -1,4 +1,4 @@
-= Native Images
+= Native Images with GraalVM
 :idprefix:
 :idseparator: -
 ifndef::env-github[]

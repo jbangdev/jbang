@@ -16,7 +16,8 @@
 * Running & Execution
 ** xref:jbang:ROOT:execution-options.adoc[Execution Options]
 ** xref:jbang:ROOT:remote-execution.adoc[Remote Execution]
-** xref:jbang:ROOT:native-images.adoc[Native Images]
+** xref:jbang:ROOT:native-images.adoc[Native Images (GraalVM)]
+** xref:jbang:ROOT:native-images-jbundle.adoc[Native Images (JBundle)]
 ** xref:jbang:ROOT:editing.adoc[IDE Integration]
 
 * Distribution & Deployment
