@@ -112,7 +112,8 @@ public class Project {
 
 	@NonNull
 	public List<String> getRuntimeOptions() {
-		return Collections.unmodifiableList(runtimeOptions);
+		List<String> list = runtimeOptions.stream().distinct().collect(Collectors.toList());
+		return Collections.unmodifiableList(list);
 	}
 
 	@NonNull
