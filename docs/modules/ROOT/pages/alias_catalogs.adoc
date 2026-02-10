@@ -120,7 +120,7 @@ looking until it finds a file to use (as a last option it will always be written
 This means that if you want to write the alias to `jbang-catalog.json` in your local folder you will either have to create
 the file first (eg by running `touch jbang-catalog.json`) or by explicitly specifying the file location:
 
-  jbang alias add -f jbang-catalog.json hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+  jbang alias add -f jbang-catalog.json --name hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
 
 Btw, the flag `--show-origin` is very useful when listing aliases to find out where exactly an alias is defined:
 
