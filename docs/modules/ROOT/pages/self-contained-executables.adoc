@@ -30,13 +30,13 @@ JBundle offers a practical and easy to use solution by bundling a minimal JVM ru
 
 === Creating Self-Contained Executables with JBundle
 
-https://jbundle.avelino.run/[JBundle] makes it easy to create self-contained executables from JBang applications without the need for complex configuration. JBundle uses `jlink` to analyze your application and its dependencies, then generates a self-contained binary executable file with a minimal embedded JVM runtime providing only the necessary modules required by your application.
+https://jbundle.avelino.run/[JBundle] makes it easy to create self-contained executables from JBang applications without the need for complex configuration. JBundle uses `jlink` to analyze your application and its dependencies, then generates a self-contained executable file with a minimal embedded JVM runtime providing only the necessary modules required by your application.
 
 * Step 0 - Create a JBang script (or use an existing application)
 ** jbang init hello.java
 * Step 1 - create a JBang fatjar
 ** jbang export fatjar hello.java
-* Step 2 - use JBundle to create a self-contained binary from the fatjar
+* Step 2 - use JBundle to create a self-contained executable from the fatjar
 **  jbundle build --input ./hello-fatjar.jar --output ./dist/hello
 * Step 3 - run the self-contained binary file
 ** ./dist/hello
