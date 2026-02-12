@@ -396,9 +396,6 @@ public class TestRun extends BaseTest {
 		String url = "https://github.com/wfouche/";
 		String alias = "hello@wfouche~hello";
 		try {
-			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
-			environmentVariables.clear("JAVA_HOME");
-
 			// Add WireMock stubs for the expected catalog and source file requests
 			wms.stubFor(WireMock
 				.get(urlPathEqualTo(
