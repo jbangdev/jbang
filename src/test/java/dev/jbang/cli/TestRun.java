@@ -408,7 +408,7 @@ public class TestRun extends BaseTest {
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "text/plain")
 					.withBody(
-							"public class App { public static void main(String... args) {} }")));
+							"public class hello { public static void main(String... args) {} }")));
 
 			wms.start();
 
