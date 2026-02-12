@@ -27,7 +27,7 @@ public class ImplicitCatalogRef {
 		this.org = org;
 		this.repo = repo;
 		this.ref = ref;
-		this.path = path;
+		this.path = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
 	}
 
 	private String repoUrl(String host, String infix) {
