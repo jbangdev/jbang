@@ -405,14 +405,15 @@ public class TestRun extends BaseTest {
 					.withBody("{\"aliases\": {\"testapp2\": {\"script-ref\": \"io/tulip/App.java\"}}}")));
 
 			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/App.java"))
-					.willReturn(aResponse()
-							.withHeader("Content-Type", "text/plain")
-							.withBody("package io.tulip; import io.tulip.JavaHttpUser; public class App { public static void main(String... args) {} }")));
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "text/plain")
+					.withBody(
+							"package io.tulip; import io.tulip.JavaHttpUser; public class App { public static void main(String... args) {} }")));
 
 			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/JavaHttpUser.java"))
-					.willReturn(aResponse()
-							.withHeader("Content-Type", "text/plain")
-							.withBody("package io.tulip; public class JavaHttpUser {}")));
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "text/plain")
+					.withBody("package io.tulip; public class JavaHttpUser {}")));
 
 			wms.start();
 
