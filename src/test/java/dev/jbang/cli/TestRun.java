@@ -404,6 +404,16 @@ public class TestRun extends BaseTest {
 					.withHeader("Content-Type", "application/json")
 					.withBody("{\"aliases\": {\"testapp2\": {\"script-ref\": \"io/tulip/App.java\"}}}")));
 
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/benchmark_config.json"))
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "application/json")
+					.withBody("{}")));
+
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/logback.xml"))
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "application/xml")
+					.withBody("<configuration></configuration>")));
+
 			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/App.java"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "text/plain")
