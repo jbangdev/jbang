@@ -399,12 +399,15 @@ public class TestRun extends BaseTest {
 			environmentVariables.clear("JAVA_HOME");
 
 			// Add WireMock stubs for the expected catalog and source file requests
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/hello/jbang-catalog.json"))
+			wms.stubFor(WireMock
+				.get(urlEqualTo(
+						"https://raw.githubusercontent.com/wfouche/jbang-catalog/HEAD/hello/jbang-catalog.json"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "application/json")
 					.withBody("{\"aliases\": {\"hello\": {\"script-ref\": \"hello.java\"}}}")));
 
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/hello/hello.java"))
+			wms.stubFor(WireMock
+				.get(urlEqualTo("https://raw.githubusercontent.com/wfouche/jbang-catalog/HEAD/hello/hello.java"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "text/plain")
 					.withBody(
