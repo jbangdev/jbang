@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
@@ -400,14 +401,14 @@ public class TestRun extends BaseTest {
 
 			// Add WireMock stubs for the expected catalog and source file requests
 			wms.stubFor(WireMock
-				.get(urlEqualTo(
-						"https://raw.githubusercontent.com/wfouche/jbang-catalog/HEAD/hello/jbang-catalog.json"))
+				.get(urlMatching(
+						".*jbang-catalog\\.json"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "application/json")
 					.withBody("{\"aliases\": {\"hello\": {\"script-ref\": \"hello.java\"}}}")));
 
 			wms.stubFor(WireMock
-				.get(urlEqualTo("https://raw.githubusercontent.com/wfouche/jbang-catalog/HEAD/hello/hello.java"))
+				.get(urlMatching(".*hello\\.java"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "text/plain")
 					.withBody(
