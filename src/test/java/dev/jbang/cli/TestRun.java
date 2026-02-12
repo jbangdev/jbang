@@ -393,37 +393,22 @@ public class TestRun extends BaseTest {
 	@Test
 	void testTildeCatalogPath(@TempDir Path tdir) throws IOException {
 		String url = "https://github.com/wfouche/";
-		String alias = "testapp2@wfouche~testapp2";
+		String alias = "hello@wfouche~hello";
 		try {
 			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
 			environmentVariables.clear("JAVA_HOME");
 
 			// Add WireMock stubs for the expected catalog and source file requests
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/jbang-catalog.json"))
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/hello/jbang-catalog.json"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "application/json")
-					.withBody("{\"aliases\": {\"testapp2\": {\"script-ref\": \"io/tulip/App.java\"}}}")));
+					.withBody("{\"aliases\": {\"hello\": {\"script-ref\": \"hello.java\"}}}")));
 
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/benchmark_config.json"))
-				.willReturn(aResponse()
-					.withHeader("Content-Type", "application/json")
-					.withBody("{}")));
-
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/logback.xml"))
-				.willReturn(aResponse()
-					.withHeader("Content-Type", "application/xml")
-					.withBody("<configuration></configuration>")));
-
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/App.java"))
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/hello/hello.java"))
 				.willReturn(aResponse()
 					.withHeader("Content-Type", "text/plain")
 					.withBody(
-							"package io.tulip; import io.tulip.JavaHttpUser; public class App { public static void main(String... args) {} }")));
-
-			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/JavaHttpUser.java"))
-				.willReturn(aResponse()
-					.withHeader("Content-Type", "text/plain")
-					.withBody("package io.tulip; public class JavaHttpUser {}")));
+							"public class App { public static void main(String... args) {} }")));
 
 			wms.start();
 
