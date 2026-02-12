@@ -398,6 +398,24 @@ public class TestRun extends BaseTest {
 			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
 			environmentVariables.clear("JAVA_HOME");
 
+			// Add WireMock stubs for the expected catalog and source file requests
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/jbang-catalog.json"))
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "application/json")
+					.withBody("{\"aliases\": {\"testapp2\": {\"script-ref\": \"io/tulip/App.java\"}}}")));
+
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/App.java"))
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "text/plain")
+					.withBody("public class App { public static void main(String... args) {} }")));
+
+			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/testapp2/io/tulip/JavaHttpUser.java"))
+				.willReturn(aResponse()
+					.withHeader("Content-Type", "text/plain")
+					.withBody("public class JavaHttpUser {}")));
+
+			wms.start();
+
 			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", alias);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
