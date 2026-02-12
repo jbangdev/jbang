@@ -393,16 +393,16 @@ public class TestRun extends BaseTest {
 	@Test
 	void testTildeCatalogPath(@TempDir Path tdir) throws IOException {
 		String url = "https://github.com/wfouche/";
+		String alias = "testapp2@wfouche~testapp2";
 		try {
 			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
 			environmentVariables.clear("JAVA_HOME");
 
-			String refName = "testapp2@wfouche~testapp2";
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", refName);
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", alias);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 			ProjectBuilder pb = run.createProjectBuilderForRun();
-			Project prj = pb.build(refName);
+			Project prj = pb.build(alias);
 
 			assertThat(prj.getResourceRef().getFile().toString(),
 					matchesPattern(".*\\.(java|json)"));
