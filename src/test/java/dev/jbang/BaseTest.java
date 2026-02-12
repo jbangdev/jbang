@@ -271,6 +271,11 @@ public abstract class BaseTest {
 				.filter(se -> se.getStubMapping() == null)
 				.map(ServeEvent::getRequest)
 				.collect(Collectors.toList());
+			// Debug code: begin - to be removed
+			for (LoggedRequest req : requests) {
+				Util.errorMsg("Unmatched request: " + req.toString());
+			}
+			// Debug code: end - to be removed
 			if (!requests.isEmpty()) {
 				throw new AssertionError("Test generated unmatched requests: "
 						+ requests.stream()
