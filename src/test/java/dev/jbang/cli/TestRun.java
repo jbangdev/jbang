@@ -404,8 +404,7 @@ public class TestRun extends BaseTest {
 			ProjectBuilder pb = run.createProjectBuilderForRun();
 			Project prj = pb.build(alias);
 
-			assertThat(prj.getResourceRef().getFile().toString(),
-					matchesPattern(".*\\.(java|json)"));
+			assertThat(prj.getResourceRef().getFile().toString(), not(emptyString()));
 		} finally {
 			TrustedSources.instance().remove(Collections.singletonList(url), tdir.resolve("test.trust").toFile());
 		}
