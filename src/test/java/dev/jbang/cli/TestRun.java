@@ -392,12 +392,9 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testTildeCatalogPath(@TempDir Path tdir) throws IOException {
-		String url = "https://github.com/wfouche/";
+		String url = "";
 		String alias = "hello@wfouche~hello";
 		try {
-			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
-			environmentVariables.clear("JAVA_HOME");
-
 			// Add WireMock stubs for the expected catalog and source file requests
 			wms.stubFor(WireMock.get(urlEqualTo("/wfouche/jbang-catalog/HEAD/hello/jbang-catalog.json"))
 				.willReturn(aResponse()
@@ -412,6 +409,10 @@ public class TestRun extends BaseTest {
 
 			wms.start();
 
+			url = "http://localhost:" + wms.port() + "/";
+			TrustedSources.instance().add(url, tdir.resolve("test.trust").toFile());
+			environmentVariables.clear("JAVA_HOME");
+
 			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", alias);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -420,7 +421,9 @@ public class TestRun extends BaseTest {
 
 			assertThat(prj.getResourceRef().getFile().toString(), not(emptyString()));
 		} finally {
-			TrustedSources.instance().remove(Collections.singletonList(url), tdir.resolve("test.trust").toFile());
+			if (!url.isEmpty()) {
+				TrustedSources.instance().remove(Collections.singletonList(url), tdir.resolve("test.trust").toFile());
+			}
 		}
 	}
 
