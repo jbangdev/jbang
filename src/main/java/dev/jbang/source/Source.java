@@ -37,7 +37,7 @@ public abstract class Source {
 
 	public enum Type {
 		java("java", "java"), jshell("jsh", "java"),
-		kotlin("kt", "kotlin"), groovy("groovy", "groovy"),
+		kotlin("kt", "kotlin"), groovy("groovy", "groovy"), scala("scala", "scala"),
 		markdown("md", "java");
 
 		public final String extension;
@@ -148,6 +148,8 @@ public abstract class Source {
 			return new KotlinSource(resourceRef, replaceProperties);
 		} else if (ext.equals("groovy")) {
 			return new GroovySource(resourceRef, replaceProperties);
+		} else if (ext.equals("scala")) {
+			return new ScalaSource(resourceRef, replaceProperties);
 		} else if (ext.equals("jsh")) {
 			return new JshSource(resourceRef, replaceProperties);
 		} else if (ext.equals("md")) {

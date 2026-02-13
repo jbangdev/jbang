@@ -27,25 +27,25 @@ public class CacheIT extends AbstractHelpBaseIT {
 // Scenario: clear cache default
 // When command('jbang cache clear --all')
 // * match exit == 0
-// * match err == "[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
+// * match err == "[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for scalacs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
 	@Test
 	public void clearCacheAll() {
 		assertThat(shell("jbang cache clear --all"))
 			.succeeded()
 			.errContains(
-					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
+					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for scalacs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
 						.replace(
 								"\n", lineSeparator()));
 	}
 
 // Scenario: clear cache default
-// When command('jbang cache clear --all --no-jdk --no-url --no-jar --no-project --no-script --no-stdin --no-deps --no-kotlinc --groovyc')
+// When command('jbang cache clear --all --no-jdk --no-url --no-jar --no-project --no-script --no-stdin --no-deps --no-kotlinc --no-scalac --no-groovyc')
 // * match exit == 0
 // * match err == ""
 	@Test
 	public void clearNoCache() {
 		assertThat(shell(
-				"jbang cache clear --all --no-jdk --no-url --no-jar --no-project --no-script --no-stdin --no-deps --no-kotlinc --groovyc"))
+				"jbang cache clear --all --no-jdk --no-url --no-jar --no-project --no-script --no-stdin --no-deps --no-kotlinc --no-scalac --no-groovyc"))
 			.succeeded()
 			.errContains(
 					"");
