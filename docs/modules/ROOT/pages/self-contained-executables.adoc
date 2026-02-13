@@ -1,0 +1,63 @@
+= Self-Contained Executables
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+Self-contained executables are executables that you can run without needing a pre-existing runtime to be installed.
+
+GraalVM's native-image is one way of doing this, but GraalVM also deal with optimizing the runtime for performance by doing additional compilation/optimization.
+
+This section is not about GraalVM's native-image, but about other ways of creating self-contained executables.
+
+== JBundle
+
+https://jbundle.avelino.run/[JBundle] can be used with JBang to compile your Java scripts into standalone self-contained executables.
+
+== Why JBundle?
+
+GraalVM's native-image can be challenging to use due to slow compilations, reflection configurations, and libraries that might not work well in native image.
+
+JBundle offers a practical and easy to use solution by bundling a minimal JVM runtime with your uberjar into a single executable. The result is a single executable file, without any  external dependencies, and with full JVM compatibility.
+
+=== Creating Self-Contained Executables with JBundle
+
+https://jbundle.avelino.run/[JBundle] makes it easy to create self-contained executables from JBang applications without the need for complex configuration. JBundle uses `jlink` to analyze your application and its dependencies, then generates a self-contained executable file with a minimal embedded JVM runtime providing only the necessary modules required by your application.
+
+* Step 0 - Create a JBang script (or use an existing application)
+** jbang init hello.java
+* Step 1 - create a JBang fatjar
+** jbang export fatjar hello.java
+* Step 2 - use JBundle to create a self-contained executable from the fatjar
+**  jbundle build --input ./hello-fatjar.jar --output ./dist/hello
+* Step 3 - run the self-contained binary file
+** ./dist/hello
++
+Hello World
+
+=== JBundle Configuration
+
+Additional https://jbundle.avelino.run/user-guide/configuration[configuration options] can be specified on the command-line or stored in a `jbundle.toml` file in the local folder.
+
+```toml
+# jbundle.toml
+
+java_version = 25
+profile = "server"
+jvm_args = ["-Xmx512m", "-XX:+UseZGC"]
+shrink = true
+appcds = false
+crac = false
+```
+
+=== Limitations
+
+JBundle is currently only supported on Linux and MacOS.
