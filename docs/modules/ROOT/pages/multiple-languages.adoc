@@ -158,7 +158,14 @@ Control the Kotlin version used:
 
 == Scala Scripts (.scala) [EXPERIMENTAL]
 
-JBang supports Scala scripts using the Scala compiler.
+JBang supports Scala using the Scala compiler. Scala support in JBang is provided to complement Java, Kotlin, and Groovy in the same workflow—same directives, same tool, same jbang-catalogs—so you can mix JVM languages in one project or catalog.
+
+[NOTE]
+====
+**Scala-first scripting**: If you want truly first-class Scala scripting via .sc files (Scala-native tooling, best-in-class Scala UX, and the full Scala ecosystem focus), we recommend using https://scala-cli.virtuslab.org/[scala-cli]. `scala-cli` is fully integrated in Scala ecosystem and is very close to how one could imagine if jbang was the cli for Java :)
+====
+
+**Difference in approach**: scala-cli is Scala-centric and optimized for Scala projects and workflows. JBang is multi-language JVM–centric: one CLI for Java, JShell, Kotlin, Groovy, and Scala, with a unified model for dependencies, JDK selection, and catalogs. Choose scala-cli for Scala-only or Scala-primary work; choose JBang when Scala is one of several JVM languages in your scripts or catalogs. 
 
 === Basic Scala Usage
 
