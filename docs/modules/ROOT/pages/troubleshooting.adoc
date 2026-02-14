@@ -330,8 +330,9 @@ jbang --verbose script.java
 jbang cache clear
 
 # Clear specific cache types
-jbang cache clear jars
-jbang cache clear deps
+jbang cache clear --jar
+jbang cache clear --deps
+jbang cache clear --scalac
 
 # Check cache location
 jbang cache list
