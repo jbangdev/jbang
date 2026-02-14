@@ -455,6 +455,7 @@ Yes! JBang supports:
 
 - **Kotlin** (`.kt` files)
 - **Groovy** (`.groovy` files)  
+- **Scala** (`.scala` files)
 - **JShell** (`.jsh` files)
 - **Markdown** (`.md` files with code blocks)
 
