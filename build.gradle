@@ -361,7 +361,7 @@ test {
 		jvmArgsList.addAll([
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
 			"--add-opens", "java.base/java.util=ALL-UNNAMED"
-		] as Collection<? extends GString>)
+		])
 	}
 	jvmArgs = jvmArgsList
 	//testLogging.showStandardStreams = true
