@@ -47,7 +47,8 @@ Hello World
 
 Additional https://jbundle.avelino.run/user-guide/configuration[configuration options] can be specified on the command-line or stored in a `jbundle.toml` file in the local folder.
 
-```toml
+[source, toml]
+----
 # jbundle.toml
 
 java_version = 25
@@ -56,7 +57,7 @@ jvm_args = ["-Xmx512m", "-XX:+UseZGC"]
 shrink = true
 appcds = false
 crac = false
-```
+----
 
 === Limitations
 
