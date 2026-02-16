@@ -19,7 +19,6 @@ plugins {
 	id 'maven-publish'
 	id 'io.qameta.allure-report' version '2.12.0'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
-
 }
 
 def allureVersion = '2.29.1'
