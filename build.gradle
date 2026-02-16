@@ -2,7 +2,7 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.gradleup.shadow" version "9.0.2"
+	id "com.gradleup.shadow" version "8.3.9"
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
