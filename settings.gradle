@@ -1,24 +1,12 @@
-pluginManagement {
-	plugins {
-		id "com.gradle.enterprise" version "3.7.2"
-	}
-}
-
 plugins {
-	id "com.gradle.enterprise"
+	id "com.gradle.develocity" version "4.3.2"
 	id "org.gradle.toolchains.foojay-resolver-convention" version "0.10.0"
 }
 
-
-
-// Configuration of com.gradle.enterprise (build scan) plugin
-gradleEnterprise {
+develocity {
 	buildScan {
-		// Accept the license agreement for com.gradle.build-scan plugin
-		termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-		termsOfServiceAgree = 'yes'
-
-		// Always publish scan (no more need for --scan option)
-		//publishAlways()
+		termsOfUseUrl.set("https://gradle.com/help/legal-terms-of-use")
+		termsOfUseAgree.set("yes")
+		publishing.onlyIf { false }
 	}
 }
