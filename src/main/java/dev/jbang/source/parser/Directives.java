@@ -52,6 +52,7 @@ public abstract class Directives {
 		// Directives introduced by non-Java source types extensions
 		public static final String GROOVY = "GROOVY";
 		public static final String KOTLIN = "KOTLIN";
+		public static final String SCALA = "SCALA";
 	}
 
 	public abstract Stream<Directive> getAll();
