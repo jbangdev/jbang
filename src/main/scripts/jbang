@@ -133,11 +133,22 @@ execute_jbang() {
   fi
   
   if [ $err -eq 255 ]; then
-    eval "exec $output"
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      bash -c "$output"
+    else
+      # Jbang does not return from here ...
+      eval "exec $output"
+    fi
   elif [ -n "$output" ]; then
     echo "$output"
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      chcp.com $_original_cp > /dev/null
+    fi
     exit $err
   else
+    if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+      chcp.com $_original_cp > /dev/null
+    fi
     exit $err
   fi
 }
@@ -202,10 +213,20 @@ case "$(uname -m)" in
     ;;
 esac
 
+## Enable UTF-8 code page on Windows unless explicitly disabled
+if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+  _original_cp=$(chcp.com | grep -o '[0-9]\+')
+  chcp.com 65001 > /dev/null
+fi
+
 ## when using cygwin fall out to just running the bat file.
 if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" && "$(uname -s)" == CYGWIN* ]]; then
   cmd /c "$(cygpath -m "$abs_jbang_dir"/jbang.cmd)" "$@"
-  exit $?
+  err=$?
+  if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+    chcp.com $_original_cp > /dev/null
+  fi
+  exit $err
 fi
 
 if [[ -z "$JBANG_JDK_VENDOR" ]]; then
@@ -282,3 +303,8 @@ if [[ -z "$binaryPath" ]]; then
 fi
 
 execute_jbang "$@"
+
+## Restore the original  Windows code page (if required)
+if [[ "$os" == "windows" ]] && [[ "$JBANG_WIN_UTF8" != "false" ]]; then
+  chcp.com $_original_cp > /dev/null
+fi
