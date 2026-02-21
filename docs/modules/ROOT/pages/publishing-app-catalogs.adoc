@@ -161,7 +161,7 @@ jbang alias add --file jbang-catalog.json --name mytool-lts \
 # Also supported: alias pointing to script
 jbang alias add --file jbang-catalog.json --name mytool-dev \
   --description "Run MyTool development script" \
-  https://github.com/your-org/your-repo/blob/main/mytool.java
+  mytool.java
 ----
 
 See the full reference for xref:jbang:cli:jbang-alias.adoc[`jbang alias`] and xref:jbang:cli:jbang-catalog.adoc[`jbang catalog`].
