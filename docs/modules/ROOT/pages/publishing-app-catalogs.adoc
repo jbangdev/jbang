@@ -18,6 +18,9 @@ If you follow this guide, users can run your tools like this:
 ----
 jbang <cmd>@<your-org>
 
+jbang mytool@your-org      # GAV-backed alias
+jbang mytool-lts@your-org  # JAR-backed alias
+
 jbang minecraft-server@microsoft
 jbang camel@redhat-camel
 jbang quarkus@quarkusio
