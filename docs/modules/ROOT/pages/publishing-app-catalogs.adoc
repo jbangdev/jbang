@@ -26,15 +26,27 @@ jbang arthas@alibaba
 
 That is the main value of a catalog: your users get a short, stable command name, and JBang handles how to run the app behind it.
 
+For most teams publishing apps, the best starting point is aliases that target released Maven artifacts (GAVs) or JARs. Script aliases are also supported.
+
 == Why publish a catalog?
 
 A catalog gives you:
 
 - A simple command UX (`<cmd>@<your-org>`) for your users
 - One place to curate and describe your app commands
-- Flexibility to point commands at scripts, JARs, or Maven coordinates without changing user-facing command names
+- Flexibility to point commands at Maven coordinates, JARs, or scripts without changing user-facing command names
 
 In other words, you publish app names; JBang handles execution details.
+
+== What should aliases point to?
+
+For app catalogs, this is the recommended order:
+
+1. **Maven artifact (GAV)** - best default for versioned releases
+2. **JAR** - great for private/internal distribution or direct downloads
+3. **Script** - fully supported, but usually a secondary publishing path for app catalogs
+
+JBang treats all of these as runnable app targets behind the same alias UX.
 
 == Where should the catalog live?
 
@@ -68,14 +80,18 @@ Use a minimal app-focused catalog like this:
 {
   "aliases": {
     "mytool": {
-      "script-ref": "https://github.com/your-org/your-repo/blob/main/mytool.java",
-      "description": "Run MyTool from your-org"
+      "script-ref": "com.yourorg:mytool-cli:1.3.0",
+      "description": "Run MyTool CLI from Maven"
+    },
+    "mytool-lts": {
+      "script-ref": "https://downloads.yourorg.com/mytool/mytool-cli-1.2.5.jar",
+      "description": "Run MyTool LTS jar"
     }
   }
 }
 ----
 
-`script-ref` can point to whatever app reference you already publish (script, JAR, or GAV).
+`script-ref` is the target field name and can point to a GAV, JAR, or script. For app catalogs, prefer GAV or JAR targets first.
 
 === 3) Commit and push
 
@@ -109,8 +125,19 @@ Instead of editing JSON by hand, you can add aliases via CLI:
 
 [source,bash]
 ----
+# Preferred: alias pointing to Maven artifact (GAV)
 jbang alias add --file jbang-catalog.json --name mytool \
-  --description "Run MyTool from your-org" \
+  --description "Run MyTool CLI from Maven" \
+  com.yourorg:mytool-cli:1.3.0
+
+# Preferred: alias pointing to JAR
+jbang alias add --file jbang-catalog.json --name mytool-lts \
+  --description "Run MyTool LTS jar" \
+  https://downloads.yourorg.com/mytool/mytool-cli-1.2.5.jar
+
+# Also supported: alias pointing to script
+jbang alias add --file jbang-catalog.json --name mytool-dev \
+  --description "Run MyTool development script" \
   https://github.com/your-org/your-repo/blob/main/mytool.java
 ----
 
