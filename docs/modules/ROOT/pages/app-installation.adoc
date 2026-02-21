@@ -311,6 +311,7 @@ ls -la ~/.jbang/bin/
 
 == What's Next?
 
+- **Publish your apps via catalogs** → xref:publishing-app-catalogs.adoc[Publishing App Catalogs]
 - **Share your tools** → xref:alias_catalogs.adoc[Aliases & Catalogs]
 - **Build complex apps** → xref:organizing.adoc[Organizing Code]
 - **Create native binaries** → xref:native-images.adoc[Native Images]
