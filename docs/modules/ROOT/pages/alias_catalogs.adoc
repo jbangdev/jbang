@@ -15,6 +15,8 @@ endif::[]
 To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
 to setup and manage aliases to actual scripts.
 
+NOTE: If your goal is to publish app commands for others, start with xref:publishing-app-catalogs.adoc[Publishing App Catalogs]. It is a shorter, app-focused guide for enabling commands like `jbang <cmd>@<your-org>`.
+
 [source,bash]
 ----
 jbang alias add --name hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
