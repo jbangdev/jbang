@@ -181,7 +181,6 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
-	testImplementation "junit:junit:4.13.2"
 	testImplementation "org.assertj:assertj-core:${assertjVersion}"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "org.wiremock:wiremock:${wiremockVersion}"
