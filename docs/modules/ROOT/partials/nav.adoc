@@ -23,6 +23,7 @@
 * Distribution & Deployment
 ** xref:jbang:ROOT:exporting.adoc[Exporting Projects]
 ** xref:jbang:ROOT:app-installation.adoc[Installing as Apps]
+** xref:jbang:ROOT:third-party-catalogs.adoc[Publishing Third-Party Catalogs]
 ** xref:jbang:ROOT:alias_catalogs.adoc[Aliases & Catalogs]
 ** xref:jbang:ROOT:integration.adoc[Build Integration]
 

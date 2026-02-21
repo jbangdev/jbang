@@ -1,0 +1,123 @@
+= Publish Third-Party Apps with a JBang Catalog
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+If you follow this guide, users can run your tools like this:
+
+[source,bash]
+----
+jbang <cmd>@<your-org>
+
+jbang minecraft-server@microsoft
+jbang camel@redhat-camel
+jbang quarkus@quarkusio
+jbang arthas@alibaba
+----
+
+That is the main value of a catalog: your users get a short, stable command name, and JBang handles how to run the app behind it.
+
+== Why publish a catalog?
+
+A catalog gives you:
+
+- A simple command UX (`<cmd>@<your-org>`) for your users
+- One place to curate and describe your app commands
+- Flexibility to point commands at scripts, JARs, or Maven coordinates without changing user-facing command names
+
+In other words, you publish app names; JBang handles execution details.
+
+== Where should the catalog live?
+
+[cols="1,2,2,2", options="header"]
+|===
+|Option |Where to put it |How users run it |Best for
+
+|**Org-level catalog** (recommended)
+|Create a repository named `jbang-catalog` under your org/user
+|`jbang <cmd>@<your-org>`
+|Multiple tools and a stable, org-wide command namespace
+
+|**Repo-level catalog**
+|Add `jbang-catalog.json` to an existing repository
+|`jbang <cmd>@<your-org>/<repo>`
+|A single product/repository that owns its own commands
+|===
+
+== Option A: org-level catalog repository (recommended)
+
+=== 1) Create the catalog repository
+
+Create `https://github.com/<your-org>/jbang-catalog` (or equivalent on GitLab/Bitbucket).
+
+=== 2) Add `jbang-catalog.json`
+
+Use a minimal app-focused catalog like this:
+
+[source,json]
+----
+{
+  "aliases": {
+    "mytool": {
+      "script-ref": "https://github.com/your-org/your-repo/blob/main/mytool.java",
+      "description": "Run MyTool from your-org"
+    }
+  }
+}
+----
+
+`script-ref` can point to whatever app reference you already publish (script, JAR, or GAV).
+
+=== 3) Commit and push
+
+Publish the file in the default branch.
+
+=== 4) Validate the user command
+
+[source,bash]
+----
+jbang mytool@your-org
+----
+
+If needed while iterating on changes, test with `--fresh` to bypass caches.
+
+== Option B: catalog file in an existing repository
+
+If you do not want a dedicated `jbang-catalog` repository, add `jbang-catalog.json` to your existing repository.
+
+With a file in the repo root, users can run:
+
+[source,bash]
+----
+jbang mytool@your-org/your-repo
+----
+
+This is often a good fit when command aliases are tightly coupled to one project.
+
+== Managing entries quickly
+
+Instead of editing JSON by hand, you can add aliases via CLI:
+
+[source,bash]
+----
+jbang alias add --file jbang-catalog.json --name mytool \
+  --description "Run MyTool from your-org" \
+  https://github.com/your-org/your-repo/blob/main/mytool.java
+----
+
+See the full reference for xref:jbang:cli:jbang-alias.adoc[`jbang alias`] and xref:jbang:cli:jbang-catalog.adoc[`jbang catalog`].
+
+== Beyond app commands (optional)
+
+Catalogs can also include templates and other entries (for example, jshell-oriented helpers), but most teams should start by publishing clear app aliases first.
+
+For advanced catalog behavior and implicit catalog syntax details, see xref:alias_catalogs.adoc[Aliases & Catalogs] and xref:templates.adoc[Templates].

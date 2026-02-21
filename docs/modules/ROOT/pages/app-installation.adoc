@@ -311,6 +311,7 @@ ls -la ~/.jbang/bin/
 
 == What's Next?
 
+- **Publish for third parties** → xref:third-party-catalogs.adoc[Publishing Third-Party Catalogs]
 - **Share your tools** → xref:alias_catalogs.adoc[Aliases & Catalogs]
 - **Build complex apps** → xref:organizing.adoc[Organizing Code]
 - **Create native binaries** → xref:native-images.adoc[Native Images]
