@@ -18,9 +18,22 @@ If you follow this guide, users can run your tools like this:
 ----
 jbang <cmd>@<your-org>
 
-jbang mytool@your-org      # GAV-backed alias
-jbang mytool-lts@your-org  # JAR-backed alias
+jbang mytool@your-org     
+jbang mytool-lts@your-org
+----
 
+Once you have such a name for you app, users can run it via jbang - but can also install it as a command on their system, using `jbang app install <cmd>@<your-org>`.
+
+[source,bash]
+----
+jbang app install mytool@your-org
+mytool --help
+----
+
+Real-world examples of commands you can run:
+
+[source,bash]
+---
 jbang minecraft-server@microsoft
 jbang camel@redhat-camel
 jbang quarkus@quarkusio
@@ -29,7 +42,9 @@ jbang arthas@alibaba
 
 That is the main value of a catalog: your users get a short, stable command name, and JBang handles how to run the app behind it.
 
-For most teams publishing apps, the best starting point is aliases that target released Maven artifacts (GAVs) or JARs. Script aliases are also supported.
+
+For most teams publishing apps, the best starting point is aliases that target released Maven artifacts (GAVs) or JARs. JBang scripts are also supported, but
+not a requirement.
 
 == Why publish a catalog?
 
@@ -46,7 +61,7 @@ In other words, you publish app names; JBang handles execution details.
 For app catalogs, this is the recommended order:
 
 1. **Maven artifact (GAV)** - best default for versioned releases
-2. **JAR** - great for private/internal distribution or direct downloads
+2. **JAR** - great for private/internal distribution or direct downloads, i.e. github releases
 3. **Script** - fully supported, but usually a secondary publishing path for app catalogs
 
 JBang treats all of these as runnable app targets behind the same alias UX.
@@ -60,15 +75,20 @@ JBang treats all of these as runnable app targets behind the same alias UX.
 |**Org-level catalog** (recommended)
 |Create a repository named `jbang-catalog` under your org/user
 |`jbang <cmd>@<your-org>`
-|Multiple tools and a stable, org-wide command namespace
+|Multiple tools and a stable, shorter, org-wide command namespace
 
 |**Repo-level catalog**
 |Add `jbang-catalog.json` to an existing repository
 |`jbang <cmd>@<your-org>/<repo>`
-|A single product/repository that owns its own commands
+|A single product/repository that owns its own commands, and no org-wide command namespace
 |===
 
 == Option A: org-level catalog repository (recommended)
+
+[TIP]
+====
+Run `jbang init -t jbang-catalog jbang-catalog` to quickly create a catalog repository with renovatebot and GitHub action setup to keep dependencies up to date. Then you can skip to step #3
+====
 
 === 1) Create the catalog repository
 
