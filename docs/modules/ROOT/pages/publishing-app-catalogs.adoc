@@ -1,4 +1,4 @@
-= Publish Third-Party Apps with a JBang Catalog
+= Publish Apps with a JBang Catalog
 :idprefix:
 :idseparator: -
 ifndef::env-github[]

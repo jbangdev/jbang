@@ -80,7 +80,7 @@ Explore powerful JBang capabilities:
 * xref:running.adoc[Running & Execution] - Advanced execution options
 * xref:editing.adoc[IDE Integration] - Edit with full IDE support
 * xref:exporting.adoc[Exporting Projects] - Convert to traditional projects
-* xref:third-party-catalogs.adoc[Publishing Third-Party Catalogs] - Let users run your tools as `jbang <cmd>@<your-org>`
+* xref:publishing-app-catalogs.adoc[Publishing App Catalogs] - Let users run your tools as `jbang <cmd>@<your-org>`
 * xref:alias_catalogs.adoc[Aliases & Catalogs] - Share and manage scripts
 
 === ⚙️ Configuration & Tools
