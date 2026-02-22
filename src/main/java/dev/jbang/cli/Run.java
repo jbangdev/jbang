@@ -104,23 +104,25 @@ public class Run extends BaseBuildCommand {
 			String actualDigest = digestResource(prj, "sha256");
 			String lockDigest = null;
 			List<String> lockSources = Collections.emptyList();
+			List<String> lockDeps = Collections.emptyList();
 			if (locked || lockWrite) {
 				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
 				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
+				lockDeps = LockFileUtil.readDeps(effectiveLockFile, scriptOrFile);
 			}
 
 			if (verifyDigest != null) {
-				verifyDigestSpec(actualDigest, verifyDigest, "--verify");
+				verifyDigestSpec(actualDigest, verifyDigest, "--verify for " + scriptOrFile);
 			}
 			if (refWithChecksum != null && refWithChecksum.checksum != null) {
-				verifyDigestSpec(actualDigest, refWithChecksum.checksum, "reference checksum");
+				verifyDigestSpec(actualDigest, refWithChecksum.checksum, "reference checksum for " + scriptOrFile);
 			}
 			if (locked) {
 				if (lockDigest == null) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"No lock entry for reference: " + scriptOrFile + " in " + effectiveLockFile, null);
 				}
-				verifyDigestSpec(actualDigest, lockDigest, "lockfile");
+				verifyDigestSpec(actualDigest, lockDigest, "lockfile for " + scriptOrFile);
 				if (!lockSources.isEmpty()) {
 					Set<String> expected = new LinkedHashSet<>(lockSources);
 					Set<String> actual = prj.getMainSourceSet().getSources().stream()
@@ -129,6 +131,19 @@ public class Run extends BaseBuildCommand {
 					if (!actual.equals(expected)) {
 						throw new ExitException(EXIT_INVALID_INPUT,
 								"Locked sources mismatch for " + scriptOrFile + ". Expected " + expected + " but got " + actual,
+								null);
+					}
+				}
+				if (!lockDeps.isEmpty()) {
+					Set<String> expectedDeps = new LinkedHashSet<>(lockDeps);
+					Set<String> actualDeps = BuildContext.forProject(prj).resolveClassPath().getArtifacts().stream()
+							.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
+							.filter(s -> !s.isEmpty())
+							.collect(Collectors.toCollection(LinkedHashSet::new));
+					if (!actualDeps.equals(expectedDeps)) {
+						throw new ExitException(EXIT_INVALID_INPUT,
+								"Locked dependency graph mismatch for " + scriptOrFile + ". Expected " + expectedDeps + " but got "
+										+ actualDeps,
 								null);
 					}
 				}
