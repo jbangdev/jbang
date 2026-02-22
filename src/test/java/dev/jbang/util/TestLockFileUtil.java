@@ -20,4 +20,21 @@ public class TestLockFileUtil {
 		assertEquals(Arrays.asList("a.java", "b.java"), LockFileUtil.readSources(tmp, "alias@catalog"));
 		assertEquals(Arrays.asList("g:a:1", "g:b:2"), LockFileUtil.readDeps(tmp, "alias@catalog"));
 	}
+
+	@Test
+	void missingEntriesReturnEmptyCollectionsOrNull() throws Exception {
+		Path tmp = Files.createTempFile("jbang-lock-empty", ".lock");
+		assertEquals(null, LockFileUtil.readDigest(tmp, "missing@ref"));
+		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readSources(tmp, "missing@ref"));
+		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readDeps(tmp, "missing@ref"));
+	}
+
+	@Test
+	void writeDigestDoesNotRequireSourcesOrDeps() throws Exception {
+		Path tmp = Files.createTempFile("jbang-lock-digest", ".lock");
+		LockFileUtil.writeDigest(tmp, "x:y:z", "sha256:deadbeefdead");
+		assertEquals("sha256:deadbeefdead", LockFileUtil.readDigest(tmp, "x:y:z"));
+		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readSources(tmp, "x:y:z"));
+		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readDeps(tmp, "x:y:z"));
+	}
 }
