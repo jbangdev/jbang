@@ -237,10 +237,8 @@ public class Run extends BaseBuildCommand {
 		if (idx < 0 || idx == ref.length() - 1) {
 			return new RefWithChecksum(ref, null);
 		}
-		String digest = ref.substring(idx + 1);
-		if (!digest.contains(":")) {
-			return new RefWithChecksum(ref, null);
-		}
+		String suffix = ref.substring(idx + 1);
+		String digest = suffix.contains(":") ? suffix : "sha256:" + suffix;
 		return new RefWithChecksum(ref.substring(0, idx), digest);
 	}
 
