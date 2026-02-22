@@ -103,8 +103,10 @@ public class Run extends BaseBuildCommand {
 			Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
 			String actualDigest = digestResource(prj, "sha256");
 			String lockDigest = null;
+			List<String> lockSources = Collections.emptyList();
 			if (locked || lockWrite) {
 				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
+				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
 			}
 
 			if (verifyDigest != null) {
@@ -119,6 +121,17 @@ public class Run extends BaseBuildCommand {
 							"No lock entry for reference: " + scriptOrFile + " in " + effectiveLockFile, null);
 				}
 				verifyDigestSpec(actualDigest, lockDigest, "lockfile");
+				if (!lockSources.isEmpty()) {
+					Set<String> expected = new LinkedHashSet<>(lockSources);
+					Set<String> actual = prj.getMainSourceSet().getSources().stream()
+							.map(s -> s.getOriginalResource() == null ? "" : s.getOriginalResource())
+							.collect(Collectors.toCollection(LinkedHashSet::new));
+					if (!actual.equals(expected)) {
+						throw new ExitException(EXIT_INVALID_INPUT,
+								"Locked sources mismatch for " + scriptOrFile + ". Expected " + expected + " but got " + actual,
+								null);
+					}
+				}
 			}
 			if (lockWrite) {
 				LockFileUtil.writeDigest(effectiveLockFile, scriptOrFile, actualDigest);
