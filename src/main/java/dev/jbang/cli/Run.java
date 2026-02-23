@@ -128,11 +128,7 @@ public class Run extends BaseBuildCommand {
 					Set<String> actual = prj.getMainSourceSet().getSources().stream()
 							.map(s -> s.getOriginalResource() == null ? "" : s.getOriginalResource())
 							.collect(Collectors.toCollection(LinkedHashSet::new));
-					if (!actual.equals(expected)) {
-						throw new ExitException(EXIT_INVALID_INPUT,
-								"Locked sources mismatch for " + scriptOrFile + ". Expected " + expected + " but got " + actual,
-								null);
-					}
+					verifyLockedSet("sources", scriptOrFile, expected, actual);
 				}
 				if (!lockDeps.isEmpty()) {
 					Set<String> expectedDeps = new LinkedHashSet<>(lockDeps);
@@ -140,12 +136,7 @@ public class Run extends BaseBuildCommand {
 							.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
 							.filter(s -> !s.isEmpty())
 							.collect(Collectors.toCollection(LinkedHashSet::new));
-					if (!actualDeps.equals(expectedDeps)) {
-						throw new ExitException(EXIT_INVALID_INPUT,
-								"Locked dependency graph mismatch for " + scriptOrFile + ". Expected " + expectedDeps + " but got "
-										+ actualDeps,
-								null);
-					}
+					verifyLockedSet("dependency graph", scriptOrFile, expectedDeps, actualDeps);
 				}
 			}
 			if (lockWrite) {
@@ -279,6 +270,14 @@ public class Run extends BaseBuildCommand {
 			sb.append(String.format("%02x", b));
 		}
 		return sb.toString();
+	}
+
+	static void verifyLockedSet(String kind, String ref, Set<String> expected, Set<String> actual) {
+		if (!actual.equals(expected)) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Locked " + kind + " mismatch for " + ref + ". Expected " + expected + " but got " + actual,
+					null);
+		}
 	}
 
 	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source) {
