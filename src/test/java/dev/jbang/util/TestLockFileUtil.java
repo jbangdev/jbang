@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +16,7 @@ public class TestLockFileUtil {
 	@Test
 	void writesAndReadsDigestAndSources() throws Exception {
 		Path tmp = Files.createTempFile("jbang-lock", ".lock");
-		java.util.Map<String, String> depDigests = new java.util.LinkedHashMap<>();
+		Map<String, String> depDigests = new LinkedHashMap<>();
 		depDigests.put("g:a:1", "sha256:aaaabbbbcccc");
 		depDigests.put("g:b:2", "sha256:ddddeeeeffff");
 		LockFileUtil.write(tmp, "alias@catalog", "sha256:abcdef123456", Arrays.asList("a.java", "b.java"),
@@ -28,8 +31,8 @@ public class TestLockFileUtil {
 	void missingEntriesReturnEmptyCollectionsOrNull() throws Exception {
 		Path tmp = Files.createTempFile("jbang-lock-empty", ".lock");
 		assertEquals(null, LockFileUtil.readDigest(tmp, "missing@ref"));
-		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readSources(tmp, "missing@ref"));
-		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readDeps(tmp, "missing@ref"));
+		assertEquals(Collections.emptyList(), LockFileUtil.readSources(tmp, "missing@ref"));
+		assertEquals(Collections.emptyList(), LockFileUtil.readDeps(tmp, "missing@ref"));
 	}
 
 	@Test
@@ -37,7 +40,7 @@ public class TestLockFileUtil {
 		Path tmp = Files.createTempFile("jbang-lock-digest", ".lock");
 		LockFileUtil.writeDigest(tmp, "x:y:z", "sha256:deadbeefdead");
 		assertEquals("sha256:deadbeefdead", LockFileUtil.readDigest(tmp, "x:y:z"));
-		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readSources(tmp, "x:y:z"));
-		assertEquals(java.util.Collections.emptyList(), LockFileUtil.readDeps(tmp, "x:y:z"));
+		assertEquals(Collections.emptyList(), LockFileUtil.readSources(tmp, "x:y:z"));
+		assertEquals(Collections.emptyList(), LockFileUtil.readDeps(tmp, "x:y:z"));
 	}
 }

@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public final class LockFileUtil {
 
 	private static List<String> readList(Path lockFile, String key) throws IOException {
 		if (!Files.exists(lockFile)) {
-			return java.util.Collections.emptyList();
+			return Collections.emptyList();
 		}
 		Properties p = new Properties();
 		try (InputStream in = Files.newInputStream(lockFile)) {
@@ -46,7 +47,7 @@ public final class LockFileUtil {
 		}
 		String val = p.getProperty(key);
 		if (val == null || val.trim().isEmpty()) {
-			return java.util.Collections.emptyList();
+			return Collections.emptyList();
 		}
 		return Arrays.stream(val.split(",")).filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
 	}
