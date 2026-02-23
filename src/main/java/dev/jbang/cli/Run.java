@@ -25,6 +25,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "run", description = "Builds and runs provided script. (default command)")
 public class Run extends BaseBuildCommand {
 
+	private static final int MIN_DIGEST_PREFIX_LENGTH = 12;
+
 	@CommandLine.Mixin
 	public RunMixin runMixin;
 
@@ -32,17 +34,11 @@ public class Run extends BaseBuildCommand {
 			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
 	public Optional<String> literalScript;
 
-	@CommandLine.Option(names = { "--verify" }, description = "Verify script content with digest, e.g. sha256:abc123")
-	String verifyDigest;
-
-	@CommandLine.Option(names = { "--locked" }, description = "Require matching digest from lock file")
-	boolean locked;
+	@CommandLine.Option(names = { "--locked" }, description = "Lock behavior: none, lenient, strict")
+	LockMode lockMode = LockMode.lenient;
 
 	@CommandLine.Option(names = { "--lock-file" }, description = "Path to lock file (default: .jbang.lock)")
 	Path lockFile;
-
-	@CommandLine.Option(names = { "--lock-write" }, description = "Write/update digest entry in lock file")
-	boolean lockWrite;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
@@ -76,9 +72,9 @@ public class Run extends BaseBuildCommand {
 			scriptOrFile = refWithChecksum.ref;
 		}
 
-		Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
+		Path effectiveLockFile = resolveLockFile(scriptOrFile);
 		List<String> preLockSources = Collections.emptyList();
-		if (locked && scriptOrFile != null) {
+		if (lockMode != LockMode.none && scriptOrFile != null && java.nio.file.Files.exists(effectiveLockFile)) {
 			preLockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
 		}
 
@@ -109,48 +105,54 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (!literalScript.isPresent() && scriptOrFile != null) {
+			String resolvedLocation = prj.getResourceRef().getFile().toAbsolutePath().toString();
 			String actualDigest = digestResource(prj, "sha256");
 			String lockDigest = null;
 			List<String> lockSources = Collections.emptyList();
 			List<String> lockDeps = Collections.emptyList();
-			if (locked || lockWrite) {
+			boolean hasLockFile = java.nio.file.Files.exists(effectiveLockFile);
+			if (lockMode != LockMode.none && hasLockFile) {
 				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
 				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
 				lockDeps = LockFileUtil.readDeps(effectiveLockFile, scriptOrFile);
 			}
 
-			if (verifyDigest != null) {
-				verifyDigestSpec(actualDigest, verifyDigest, "--verify for " + scriptOrFile);
-			}
 			if (refWithChecksum != null && refWithChecksum.checksum != null) {
-				verifyDigestSpec(actualDigest, refWithChecksum.checksum, "reference checksum for " + scriptOrFile);
+				verifyDigestSpec(actualDigest, refWithChecksum.checksum,
+						"reference checksum for " + scriptOrFile + " (resolved " + resolvedLocation + ")");
 			}
-			if (locked) {
-				if (lockDigest == null) {
+			if (lockMode != LockMode.none && hasLockFile) {
+				if (lockMode == LockMode.strict && lockDigest == null) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"No lock entry for reference: " + scriptOrFile + " in " + effectiveLockFile, null);
 				}
-				verifyDigestSpec(actualDigest, lockDigest, "lockfile for " + scriptOrFile);
+				if (lockDigest != null) {
+					verifyDigestSpec(actualDigest, lockDigest,
+							"lockfile for " + scriptOrFile + " (resolved " + resolvedLocation + ")",
+							lockMode != LockMode.strict);
+				}
 				if (!lockSources.isEmpty()) {
 					Set<String> expected = new LinkedHashSet<>(lockSources);
-					Set<String> actual = prj.getMainSourceSet().getSources().stream()
-							.map(s -> s.getOriginalResource() == null ? "" : s.getOriginalResource())
-							.collect(Collectors.toCollection(LinkedHashSet::new));
+					Set<String> actual = prj.getMainSourceSet()
+						.getSources()
+						.stream()
+						.map(s -> s.getOriginalResource() == null ? "" : s.getOriginalResource())
+						.collect(Collectors.toCollection(LinkedHashSet::new));
 					verifyLockedSet("sources", scriptOrFile, expected, actual);
 				}
 				if (!lockDeps.isEmpty()) {
 					Set<String> expectedDeps = new LinkedHashSet<>(lockDeps);
-					Set<String> actualDeps = BuildContext.forProject(prj).resolveClassPath().getArtifacts().stream()
-							.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
-							.filter(s -> !s.isEmpty())
-							.collect(Collectors.toCollection(LinkedHashSet::new));
+					Set<String> actualDeps = BuildContext.forProject(prj)
+						.resolveClassPath()
+						.getArtifacts()
+						.stream()
+						.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
+						.filter(s -> !s.isEmpty())
+						.collect(Collectors.toCollection(LinkedHashSet::new));
 					verifyLockedSet("dependency graph", scriptOrFile, expectedDeps, actualDeps);
 				}
 			}
-			if (lockWrite) {
-				LockFileUtil.writeDigest(effectiveLockFile, scriptOrFile, actualDigest);
-				info("Updated lock entry for " + scriptOrFile + " in " + effectiveLockFile);
-			}
+
 		}
 
 		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
@@ -236,6 +238,24 @@ public class Run extends BaseBuildCommand {
 		return result;
 	}
 
+	enum LockMode {
+		none, lenient, strict
+	}
+
+	private Path resolveLockFile(String scriptOrFile) {
+		if (lockFile != null) {
+			return lockFile;
+		}
+		if (scriptOrFile != null) {
+			java.nio.file.Path p = java.nio.file.Paths.get(scriptOrFile);
+			java.nio.file.Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
+			if (java.nio.file.Files.exists(candidate) && java.nio.file.Files.isRegularFile(candidate)) {
+				return java.nio.file.Paths.get(scriptOrFile + ".lock");
+			}
+		}
+		return Util.getCwd().resolve(".jbang.lock");
+	}
+
 	static final class RefWithChecksum {
 		final String ref;
 		final String checksum;
@@ -289,22 +309,31 @@ public class Run extends BaseBuildCommand {
 	}
 
 	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source) {
+		verifyDigestSpec(actualDigest, expectedDigest, source, true);
+	}
+
+	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source, boolean allowPrefix) {
 		String[] actualParts = actualDigest.split(":", 2);
 		String[] expectedParts = expectedDigest.split(":", 2);
 		if (expectedParts.length != 2) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Invalid digest format from " + source + ": " + expectedDigest, null);
+			throw new ExitException(EXIT_INVALID_INPUT, "Invalid digest format from " + source + ": " + expectedDigest,
+					null);
 		}
 		if (!actualParts[0].equalsIgnoreCase(expectedParts[0])) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Digest algorithm mismatch in " + source + ": expected " + expectedParts[0] + ", got " + actualParts[0], null);
+					"Digest algorithm mismatch in " + source + ": expected " + expectedParts[0] + ", got "
+							+ actualParts[0],
+					null);
 		}
 		String expectedHex = expectedParts[1].toLowerCase(Locale.ROOT);
 		String actualHex = actualParts[1].toLowerCase(Locale.ROOT);
-		if (expectedHex.length() < 12) {
+		if (allowPrefix && expectedHex.length() < MIN_DIGEST_PREFIX_LENGTH) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Digest prefix too short in " + source + ". Use at least 12 hex characters.", null);
+					"Digest prefix too short in " + source + ". Use at least " + MIN_DIGEST_PREFIX_LENGTH
+							+ " hex characters.",
+					null);
 		}
-		if (!actualHex.startsWith(expectedHex)) {
+		if (allowPrefix ? !actualHex.startsWith(expectedHex) : !actualHex.equals(expectedHex)) {
 			throw new ExitException(EXIT_INVALID_INPUT,
 					"Digest mismatch in " + source + ": expected " + expectedDigest + ", got " + actualDigest, null);
 		}

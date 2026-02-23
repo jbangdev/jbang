@@ -14,6 +14,7 @@ import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.LockFileUtil;
 import dev.jbang.util.Util;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "lock", description = "Generate or refresh lock entries for script references")
@@ -36,17 +37,34 @@ public class Lock extends BaseBuildCommand {
 		Project prj = pb.build(ref);
 
 		String digest = digestResource(prj, algorithm);
-		Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
-		List<String> sources = prj.getMainSourceSet().getSources().stream()
-				.map(s -> relativizeSafe(s.getOriginalResource()))
-				.collect(Collectors.toList());
-		List<String> deps = BuildContext.forProject(prj).resolveClassPath().getArtifacts().stream()
-				.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
-				.filter(s -> !s.isEmpty())
-				.collect(Collectors.toList());
+		Path effectiveLockFile = resolveLockFile(ref);
+		List<String> sources = prj.getMainSourceSet()
+			.getSources()
+			.stream()
+			.map(s -> relativizeSafe(s.getOriginalResource()))
+			.collect(Collectors.toList());
+		List<String> deps = BuildContext.forProject(prj)
+			.resolveClassPath()
+			.getArtifacts()
+			.stream()
+			.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
+			.filter(s -> !s.isEmpty())
+			.collect(Collectors.toList());
 		LockFileUtil.write(effectiveLockFile, ref, digest, sources, deps);
 		info("Locked " + ref + " => " + digest + " in " + effectiveLockFile);
 		return EXIT_OK;
+	}
+
+	private Path resolveLockFile(String ref) {
+		if (lockFile != null) {
+			return lockFile;
+		}
+		java.nio.file.Path p = java.nio.file.Paths.get(ref);
+		java.nio.file.Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
+		if (java.nio.file.Files.exists(candidate) && java.nio.file.Files.isRegularFile(candidate)) {
+			return java.nio.file.Paths.get(ref + ".lock");
+		}
+		return Util.getCwd().resolve(".jbang.lock");
 	}
 
 	private static String relativizeSafe(String val) {

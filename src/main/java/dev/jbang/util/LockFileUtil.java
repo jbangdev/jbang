@@ -53,7 +53,8 @@ public final class LockFileUtil {
 		write(lockFile, ref, digest, null, null);
 	}
 
-	public static void write(Path lockFile, String ref, String digest, List<String> sources, List<String> deps) throws IOException {
+	public static void write(Path lockFile, String ref, String digest, List<String> sources, List<String> deps)
+			throws IOException {
 		Properties p = new Properties();
 		if (Files.exists(lockFile)) {
 			try (InputStream in = Files.newInputStream(lockFile)) {
