@@ -13,11 +13,15 @@ public class TestLockFileUtil {
 	@Test
 	void writesAndReadsDigestAndSources() throws Exception {
 		Path tmp = Files.createTempFile("jbang-lock", ".lock");
+		java.util.Map<String, String> depDigests = new java.util.LinkedHashMap<>();
+		depDigests.put("g:a:1", "sha256:aaaabbbbcccc");
+		depDigests.put("g:b:2", "sha256:ddddeeeeffff");
 		LockFileUtil.write(tmp, "alias@catalog", "sha256:abcdef123456", Arrays.asList("a.java", "b.java"),
-				Arrays.asList("g:a:1", "g:b:2"));
+				Arrays.asList("g:a:1", "g:b:2"), depDigests);
 		assertEquals("sha256:abcdef123456", LockFileUtil.readDigest(tmp, "alias@catalog"));
 		assertEquals(Arrays.asList("a.java", "b.java"), LockFileUtil.readSources(tmp, "alias@catalog"));
 		assertEquals(Arrays.asList("g:a:1", "g:b:2"), LockFileUtil.readDeps(tmp, "alias@catalog"));
+		assertEquals(depDigests, LockFileUtil.readDepDigests(tmp, "alias@catalog"));
 	}
 
 	@Test

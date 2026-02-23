@@ -6,7 +6,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -49,11 +51,32 @@ public final class LockFileUtil {
 		return Arrays.stream(val.split(",")).filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
 	}
 
-	public static void writeDigest(Path lockFile, String ref, String digest) throws IOException {
-		write(lockFile, ref, digest, null, null);
+
+	public static Map<String, String> readDepDigests(Path lockFile, String ref) throws IOException {
+		Map<String, String> result = new LinkedHashMap<>();
+		if (!Files.exists(lockFile)) {
+			return result;
+		}
+		Properties p = new Properties();
+		try (InputStream in = Files.newInputStream(lockFile)) {
+			p.load(in);
+		}
+		String prefix = ref + ".dep.";
+		for (String key : p.stringPropertyNames()) {
+			if (key.startsWith(prefix)) {
+				String coord = key.substring(prefix.length());
+				result.put(coord, p.getProperty(key));
+			}
+		}
+		return result;
 	}
 
-	public static void write(Path lockFile, String ref, String digest, List<String> sources, List<String> deps)
+	public static void writeDigest(Path lockFile, String ref, String digest) throws IOException {
+		write(lockFile, ref, digest, null, null, null);
+	}
+
+	public static void write(Path lockFile, String ref, String digest, List<String> sources, List<String> deps,
+			Map<String, String> depDigests)
 			throws IOException {
 		Properties p = new Properties();
 		if (Files.exists(lockFile)) {
@@ -67,6 +90,9 @@ public final class LockFileUtil {
 		}
 		if (deps != null && !deps.isEmpty()) {
 			p.setProperty(ref + ".deps", String.join(",", deps));
+		}
+		if (depDigests != null && !depDigests.isEmpty()) {
+			depDigests.forEach((coord, dg) -> p.setProperty(ref + ".dep." + coord, dg));
 		}
 		if (lockFile.getParent() != null) {
 			Files.createDirectories(lockFile.getParent());

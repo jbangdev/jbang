@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -43,14 +45,25 @@ public class Lock extends BaseBuildCommand {
 			.stream()
 			.map(s -> relativizeSafe(s.getOriginalResource()))
 			.collect(Collectors.toList());
-		List<String> deps = BuildContext.forProject(prj)
+		BuildContext bctx = BuildContext.forProject(prj);
+		List<String> deps = bctx
 			.resolveClassPath()
 			.getArtifacts()
 			.stream()
 			.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
 			.filter(s -> !s.isEmpty())
 			.collect(Collectors.toList());
-		LockFileUtil.write(effectiveLockFile, ref, digest, sources, deps);
+		Map<String, String> depDigests = new LinkedHashMap<>();
+		bctx.resolveClassPath().getArtifacts().forEach(a -> {
+			if (a.getCoordinate() != null) {
+				try {
+					depDigests.put(a.getCoordinate().toCanonicalForm(), digestPath(a.getFile(), "sha256"));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		LockFileUtil.write(effectiveLockFile, ref, digest, sources, deps, depDigests);
 		info("Locked " + ref + " => " + digest + " in " + effectiveLockFile);
 		return EXIT_OK;
 	}
@@ -72,6 +85,23 @@ public class Lock extends BaseBuildCommand {
 			return "";
 		}
 		return val;
+	}
+
+
+	private static String digestPath(java.nio.file.Path path, String algorithm) throws IOException {
+		try {
+			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
+			try (InputStream in = java.nio.file.Files.newInputStream(path)) {
+				byte[] buffer = new byte[8192];
+				int read;
+				while ((read = in.read(buffer)) >= 0) {
+					md.update(buffer, 0, read);
+				}
+			}
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
+		} catch (NoSuchAlgorithmException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported digest algorithm: " + algorithm, e);
+		}
 	}
 
 	private static String digestResource(Project prj, String algorithm) throws IOException {

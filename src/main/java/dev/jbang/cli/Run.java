@@ -110,11 +110,13 @@ public class Run extends BaseBuildCommand {
 			String lockDigest = null;
 			List<String> lockSources = Collections.emptyList();
 			List<String> lockDeps = Collections.emptyList();
+			Map<String, String> lockDepDigests = Collections.emptyMap();
 			boolean hasLockFile = java.nio.file.Files.exists(effectiveLockFile);
 			if (lockMode != LockMode.none && hasLockFile) {
 				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
 				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
 				lockDeps = LockFileUtil.readDeps(effectiveLockFile, scriptOrFile);
+				lockDepDigests = LockFileUtil.readDepDigests(effectiveLockFile, scriptOrFile);
 			}
 
 			if (refWithChecksum != null && refWithChecksum.checksum != null) {
@@ -142,7 +144,8 @@ public class Run extends BaseBuildCommand {
 				}
 				if (!lockDeps.isEmpty()) {
 					Set<String> expectedDeps = new LinkedHashSet<>(lockDeps);
-					Set<String> actualDeps = BuildContext.forProject(prj)
+					BuildContext depCtx = BuildContext.forProject(prj);
+					Set<String> actualDeps = depCtx
 						.resolveClassPath()
 						.getArtifacts()
 						.stream()
@@ -150,6 +153,34 @@ public class Run extends BaseBuildCommand {
 						.filter(s -> !s.isEmpty())
 						.collect(Collectors.toCollection(LinkedHashSet::new));
 					verifyLockedSet("dependency graph", scriptOrFile, expectedDeps, actualDeps);
+
+					if (lockMode == LockMode.strict && !expectedDeps.isEmpty() && lockDepDigests.size() < expectedDeps.size()) {
+						Set<String> missing = new LinkedHashSet<>(expectedDeps);
+						missing.removeAll(lockDepDigests.keySet());
+						throw new ExitException(EXIT_INVALID_INPUT,
+								"Strict lock requires dependency digests for all locked deps in " + scriptOrFile + ". Missing: " + missing,
+								null);
+					}
+
+					if (!lockDepDigests.isEmpty()) {
+						Map<String, String> actualDepDigests = depCtx.resolveClassPath().getArtifacts().stream()
+							.filter(a -> a.getCoordinate() != null)
+							.collect(Collectors.toMap(a -> a.getCoordinate().toCanonicalForm(),
+									a -> digestPath(a.getFile(), "sha256"), (a, b) -> a, LinkedHashMap::new));
+						for (Map.Entry<String, String> e : lockDepDigests.entrySet()) {
+							String coord = e.getKey();
+							String expected = e.getValue();
+							String actual = actualDepDigests.get(coord);
+							if (actual == null) {
+								throw new ExitException(EXIT_INVALID_INPUT,
+										"Locked dependency digest missing resolved artifact for " + coord + " in " + scriptOrFile,
+										null);
+							}
+							verifyDigestSpec(actual, expected,
+									"lock dependency digest for " + coord + " in " + scriptOrFile,
+									lockMode != LockMode.strict);
+						}
+					}
 				}
 			}
 
@@ -274,6 +305,23 @@ public class Run extends BaseBuildCommand {
 		String suffix = ref.substring(idx + 1);
 		String digest = suffix.contains(":") ? suffix : "sha256:" + suffix;
 		return new RefWithChecksum(ref.substring(0, idx), digest);
+	}
+
+
+	private static String digestPath(java.nio.file.Path path, String algorithm) {
+		try {
+			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
+			try (InputStream in = java.nio.file.Files.newInputStream(path)) {
+				byte[] buffer = new byte[8192];
+				int read;
+				while ((read = in.read(buffer)) >= 0) {
+					md.update(buffer, 0, read);
+				}
+			}
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
+		} catch (IOException | NoSuchAlgorithmException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unable to digest dependency artifact: " + path, e);
+		}
 	}
 
 	private static String digestResource(Project prj, String algorithm) throws IOException {
