@@ -1,0 +1,33 @@
+// Manual page for new lock command (until picocli docs are regenerated)
+:doctype: manpage
+:manmanual: jbang Manual
+:man-linkstyle: pass:[blue R < >]
+= jbang-lock(1)
+
+== Name
+
+jbang-lock - Generate or refresh lock entries for script references.
+
+== Synopsis
+
+*jbang lock* [*--lock-file*=_<lockFile>_] [*--algorithm*=_<algorithm>_] [_<scriptOrFile>_]
+
+== Description
+
+Resolves the given reference and writes lock metadata to a lock file.
+
+Entries include:
+
+- Root digest (`ref=sha256:...`)
+- Resolved source manifest (`ref.sources=...`) when available
+- Resolved transitive dependency coordinates (`ref.deps=...`) when available
+
+== Options
+
+*--algorithm*=_<algorithm>_: `sha256` by default.
+
+*--lock-file*=_<lockFile>_: path to lock file, default is `.jbang.lock`.
+
+== Arguments
+
+[_<scriptOrFile>_]: reference to lock (alias, URL, GAV, file, etc.).
