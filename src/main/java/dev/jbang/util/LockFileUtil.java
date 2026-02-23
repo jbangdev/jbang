@@ -27,6 +27,14 @@ public final class LockFileUtil {
 	}
 
 	public static List<String> readSources(Path lockFile, String ref) throws IOException {
+		return readList(lockFile, ref + ".sources");
+	}
+
+	public static List<String> readDeps(Path lockFile, String ref) throws IOException {
+		return readList(lockFile, ref + ".deps");
+	}
+
+	private static List<String> readList(Path lockFile, String key) throws IOException {
 		if (!Files.exists(lockFile)) {
 			return java.util.Collections.emptyList();
 		}
@@ -34,7 +42,7 @@ public final class LockFileUtil {
 		try (InputStream in = Files.newInputStream(lockFile)) {
 			p.load(in);
 		}
-		String val = p.getProperty(ref + ".sources");
+		String val = p.getProperty(key);
 		if (val == null || val.trim().isEmpty()) {
 			return java.util.Collections.emptyList();
 		}
@@ -42,10 +50,10 @@ public final class LockFileUtil {
 	}
 
 	public static void writeDigest(Path lockFile, String ref, String digest) throws IOException {
-		write(lockFile, ref, digest, null);
+		write(lockFile, ref, digest, null, null);
 	}
 
-	public static void write(Path lockFile, String ref, String digest, List<String> sources) throws IOException {
+	public static void write(Path lockFile, String ref, String digest, List<String> sources, List<String> deps) throws IOException {
 		Properties p = new Properties();
 		if (Files.exists(lockFile)) {
 			try (InputStream in = Files.newInputStream(lockFile)) {
@@ -55,6 +63,9 @@ public final class LockFileUtil {
 		p.setProperty(ref, digest);
 		if (sources != null && !sources.isEmpty()) {
 			p.setProperty(ref + ".sources", String.join(",", sources));
+		}
+		if (deps != null && !deps.isEmpty()) {
+			p.setProperty(ref + ".deps", String.join(",", deps));
 		}
 		if (lockFile.getParent() != null) {
 			Files.createDirectories(lockFile.getParent());

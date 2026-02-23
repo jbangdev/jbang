@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.LockFileUtil;
@@ -39,7 +40,11 @@ public class Lock extends BaseBuildCommand {
 		List<String> sources = prj.getMainSourceSet().getSources().stream()
 				.map(s -> relativizeSafe(s.getOriginalResource()))
 				.collect(Collectors.toList());
-		LockFileUtil.write(effectiveLockFile, ref, digest, sources);
+		List<String> deps = BuildContext.forProject(prj).resolveClassPath().getArtifacts().stream()
+				.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
+				.filter(s -> !s.isEmpty())
+				.collect(Collectors.toList());
+		LockFileUtil.write(effectiveLockFile, ref, digest, sources, deps);
 		info("Locked " + ref + " => " + digest + " in " + effectiveLockFile);
 		return EXIT_OK;
 	}
