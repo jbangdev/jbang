@@ -292,7 +292,7 @@ public class JBang extends BaseCommand {
 		private Map<String, List<String>> sections() {
 			if (sections == null) {
 				sections = new LinkedHashMap<>();
-				sections.put("Essentials", asList("run", "build"));
+				sections.put("Essentials", asList("run", "build", "lock"));
 				sections.put("Editing", asList("init", "edit", "deps"));
 				sections.put("Caching", asList("cache", "export", "jdk"));
 				sections.put("Configuration", asList("config", "trust", "alias", "template", "catalog", "app"));
