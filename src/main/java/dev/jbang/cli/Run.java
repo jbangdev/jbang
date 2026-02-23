@@ -76,7 +76,16 @@ public class Run extends BaseBuildCommand {
 			scriptOrFile = refWithChecksum.ref;
 		}
 
+		Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
+		List<String> preLockSources = Collections.emptyList();
+		if (locked && scriptOrFile != null) {
+			preLockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
+		}
+
 		ProjectBuilder pb = createProjectBuilderForRun();
+		if (!preLockSources.isEmpty()) {
+			pb.lockedSourcesOverride(preLockSources);
+		}
 
 		Project prj;
 		if (literalScript.isPresent()) {
@@ -100,7 +109,6 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (!literalScript.isPresent() && scriptOrFile != null) {
-			Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
 			String actualDigest = digestResource(prj, "sha256");
 			String lockDigest = null;
 			List<String> lockSources = Collections.emptyList();

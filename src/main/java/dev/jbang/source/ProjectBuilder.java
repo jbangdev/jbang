@@ -66,6 +66,7 @@ import dev.jbang.util.Util;
  */
 public class ProjectBuilder {
 	private List<String> additionalSources = new ArrayList<>();
+	private List<String> lockedSourcesOverride = Collections.emptyList();
 	private List<String> additionalResources = new ArrayList<>();
 	private List<String> additionalDeps = new ArrayList<>();
 	private List<String> additionalRepos = new ArrayList<>();
@@ -112,6 +113,15 @@ public class ProjectBuilder {
 			this.additionalSources = new ArrayList<>(sources);
 		} else {
 			this.additionalSources = Collections.emptyList();
+		}
+		return this;
+	}
+
+	public ProjectBuilder lockedSourcesOverride(List<String> sources) {
+		if (sources != null) {
+			this.lockedSourcesOverride = new ArrayList<>(sources);
+		} else {
+			this.lockedSourcesOverride = Collections.emptyList();
 		}
 		return this;
 	}
@@ -684,7 +694,12 @@ public class ProjectBuilder {
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
-			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
+			List<String> sourceRefs = src.getDirectives().sources();
+			if (!lockedSourcesOverride.isEmpty() && prj.getMainSource() != null
+					&& srcRef.equals(prj.getMainSource().getResourceRef())) {
+				sourceRefs = lockedSourcesOverride;
+			}
+			List<Source> includedSources = allToSource(sourceRefs, srcRef, sibRes2);
 			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
 			}
