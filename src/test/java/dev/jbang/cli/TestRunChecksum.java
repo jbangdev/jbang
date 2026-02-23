@@ -52,7 +52,7 @@ public class TestRunChecksum {
 		actual.add("x:y:jar:3");
 		ExitException ex = assertThrows(ExitException.class,
 				() -> Run.verifyLockedSet("dependency graph", "demo@cat", expected, actual));
-		assertTrue(ex.getMessage().contains("Locked dependency graph mismatch for demo@cat"));
+		assertTrue(ex.getMessage().contains("Lock verification failed for demo@cat (dependency graph mismatch)"));
 	}
 
 	@Test
@@ -63,6 +63,6 @@ public class TestRunChecksum {
 		actual.add("https://example/b.java");
 		ExitException ex = assertThrows(ExitException.class,
 				() -> Run.verifyLockedSet("sources", "env@jbangdev", expected, actual));
-		assertTrue(ex.getMessage().contains("Locked sources mismatch for env@jbangdev"));
+		assertTrue(ex.getMessage().contains("Lock verification failed for env@jbangdev (sources mismatch)"));
 	}
 }

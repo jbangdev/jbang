@@ -128,7 +128,13 @@ public class Run extends BaseBuildCommand {
 			if (lockMode != LockMode.none && hasLockFile) {
 				if (lockMode == LockMode.strict && lockDigest == null) {
 					throw new ExitException(EXIT_INVALID_INPUT,
-							"No lock entry for reference: " + scriptOrFile + " in " + effectiveLockFile, null);
+							"Lock verification failed for " + scriptOrFile + " (missing lock entry in "
+									+ effectiveLockFile
+									+ ").\nPossible security issue: expected lock data is absent.\n"
+									+ "What to do: inspect the lock file path, regenerate with `jbang lock "
+									+ scriptOrFile
+									+ "` only if trusted, or stop and review changes.",
+							null);
 				}
 				if (lockDigest != null) {
 					verifyDigestSpec(actualDigest, lockDigest,
@@ -161,8 +167,12 @@ public class Run extends BaseBuildCommand {
 						Set<String> missing = new LinkedHashSet<>(expectedDeps);
 						missing.removeAll(lockDepDigests.keySet());
 						throw new ExitException(EXIT_INVALID_INPUT,
-								"Strict lock requires dependency digests for all locked deps in " + scriptOrFile
-										+ ". Missing: " + missing,
+								"Lock verification failed for " + scriptOrFile
+										+ " (strict mode requires dependency digests for all locked dependencies).\n"
+										+ "Possible security issue: lock file is incomplete or modified.\n"
+										+ "Missing digest entries for: " + missing + "\n"
+										+ "What to do: regenerate with `jbang lock " + scriptOrFile
+										+ "` only if trusted, otherwise review lock/source history.",
 								null);
 					}
 
@@ -179,8 +189,11 @@ public class Run extends BaseBuildCommand {
 							String actual = actualDepDigests.get(coord);
 							if (actual == null) {
 								throw new ExitException(EXIT_INVALID_INPUT,
-										"Locked dependency digest missing resolved artifact for " + coord + " in "
-												+ scriptOrFile,
+										"Lock verification failed for " + scriptOrFile
+												+ " (dependency artifact missing for locked digest).\n"
+												+ "Dependency: " + coord + "\n"
+												+ "Possible security/integrity issue: resolved dependency set differs from lock.\n"
+												+ "What to do: inspect dependency changes; regenerate lock only if trusted.",
 										null);
 							}
 							verifyDigestSpec(actual, expected,
@@ -356,8 +369,17 @@ public class Run extends BaseBuildCommand {
 
 	static void verifyLockedSet(String kind, String ref, Set<String> expected, Set<String> actual) {
 		if (!actual.equals(expected)) {
+			Set<String> missing = new LinkedHashSet<>(expected);
+			missing.removeAll(actual);
+			Set<String> extra = new LinkedHashSet<>(actual);
+			extra.removeAll(expected);
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Locked " + kind + " mismatch for " + ref + ". Expected " + expected + " but got " + actual,
+					"Lock verification failed for " + ref + " (" + kind + " mismatch).\n"
+							+ "Possible security issue: lock file and resolved content differ.\n"
+							+ "Missing from resolved: " + missing + "\n"
+							+ "Unexpected in resolved: " + extra + "\n"
+							+ "What to do: inspect lock/source changes; regenerate with `jbang lock " + ref
+							+ "` only if trusted.",
 					null);
 		}
 	}
@@ -370,26 +392,34 @@ public class Run extends BaseBuildCommand {
 		String[] actualParts = actualDigest.split(":", 2);
 		String[] expectedParts = expectedDigest.split(":", 2);
 		if (expectedParts.length != 2) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Invalid digest format from " + source + ": " + expectedDigest,
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed: invalid digest format from " + source + ": " + expectedDigest + "\n"
+							+ "What to do: use `sha256:<digest>` (or valid algorithm prefix).",
 					null);
 		}
 		if (!actualParts[0].equalsIgnoreCase(expectedParts[0])) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Digest algorithm mismatch in " + source + ": expected " + expectedParts[0] + ", got "
-							+ actualParts[0],
+					"Lock verification failed: digest algorithm mismatch in " + source + ": expected "
+							+ expectedParts[0] + ", got " + actualParts[0] + "\n"
+							+ "What to do: regenerate lock or use matching digest algorithm if trusted.",
 					null);
 		}
 		String expectedHex = expectedParts[1].toLowerCase(Locale.ROOT);
 		String actualHex = actualParts[1].toLowerCase(Locale.ROOT);
 		if (allowPrefix && expectedHex.length() < MIN_DIGEST_PREFIX_LENGTH) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Digest prefix too short in " + source + ". Use at least " + MIN_DIGEST_PREFIX_LENGTH
-							+ " hex characters.",
+					"Lock verification failed: digest prefix too short in " + source + ". Use at least "
+							+ MIN_DIGEST_PREFIX_LENGTH + " hex characters.\n"
+							+ "What to do: provide a longer checksum prefix or full digest.",
 					null);
 		}
 		if (allowPrefix ? !actualHex.startsWith(expectedHex) : !actualHex.equals(expectedHex)) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Digest mismatch in " + source + ": expected " + expectedDigest + ", got " + actualDigest, null);
+					"Lock verification failed: digest mismatch in " + source + ": expected " + expectedDigest
+							+ ", got " + actualDigest + "\n"
+							+ "Possible security issue: content differs from lock/checksum.\n"
+							+ "What to do: inspect changes; regenerate lock only if trusted.",
+					null);
 		}
 	}
 
