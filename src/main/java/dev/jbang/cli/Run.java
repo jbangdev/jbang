@@ -1,6 +1,10 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +17,7 @@ import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
+import dev.jbang.util.LockFileUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -26,6 +31,18 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "-c",
 			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
 	public Optional<String> literalScript;
+
+	@CommandLine.Option(names = { "--verify" }, description = "Verify script content with digest, e.g. sha256:abc123")
+	String verifyDigest;
+
+	@CommandLine.Option(names = { "--locked" }, description = "Require matching digest from lock file")
+	boolean locked;
+
+	@CommandLine.Option(names = { "--lock-file" }, description = "Path to lock file (default: .jbang.lock)")
+	Path lockFile;
+
+	@CommandLine.Option(names = { "--lock-write" }, description = "Write/update digest entry in lock file")
+	boolean lockWrite;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
@@ -54,6 +71,10 @@ public class Run extends BaseBuildCommand {
 
 		userParams = handleRemoteFiles(userParams);
 		String scriptOrFile = scriptMixin.scriptOrFile;
+		RefWithChecksum refWithChecksum = scriptOrFile != null ? splitRefAndChecksum(scriptOrFile) : null;
+		if (refWithChecksum != null) {
+			scriptOrFile = refWithChecksum.ref;
+		}
 
 		ProjectBuilder pb = createProjectBuilderForRun();
 
@@ -75,6 +96,33 @@ public class Run extends BaseBuildCommand {
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
 				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", scriptMixin.forceType));
+			}
+		}
+
+		if (!literalScript.isPresent() && scriptOrFile != null) {
+			Path effectiveLockFile = lockFile != null ? lockFile : Util.getCwd().resolve(".jbang.lock");
+			String actualDigest = digestResource(prj, "sha256");
+			String lockDigest = null;
+			if (locked || lockWrite) {
+				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
+			}
+
+			if (verifyDigest != null) {
+				verifyDigestSpec(actualDigest, verifyDigest, "--verify");
+			}
+			if (refWithChecksum != null && refWithChecksum.checksum != null) {
+				verifyDigestSpec(actualDigest, refWithChecksum.checksum, "reference checksum");
+			}
+			if (locked) {
+				if (lockDigest == null) {
+					throw new ExitException(EXIT_INVALID_INPUT,
+							"No lock entry for reference: " + scriptOrFile + " in " + effectiveLockFile, null);
+				}
+				verifyDigestSpec(actualDigest, lockDigest, "lockfile");
+			}
+			if (lockWrite) {
+				LockFileUtil.writeDigest(effectiveLockFile, scriptOrFile, actualDigest);
+				info("Updated lock entry for " + scriptOrFile + " in " + effectiveLockFile);
 			}
 		}
 
@@ -159,6 +207,74 @@ public class Run extends BaseBuildCommand {
 		Map<String, String> result = new HashMap<>();
 		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
 		return result;
+	}
+
+	static final class RefWithChecksum {
+		final String ref;
+		final String checksum;
+
+		RefWithChecksum(String ref, String checksum) {
+			this.ref = ref;
+			this.checksum = checksum;
+		}
+	}
+
+	static RefWithChecksum splitRefAndChecksum(String ref) {
+		int idx = ref.lastIndexOf('#');
+		if (idx < 0 || idx == ref.length() - 1) {
+			return new RefWithChecksum(ref, null);
+		}
+		String digest = ref.substring(idx + 1);
+		if (!digest.contains(":")) {
+			return new RefWithChecksum(ref, null);
+		}
+		return new RefWithChecksum(ref.substring(0, idx), digest);
+	}
+
+	private static String digestResource(Project prj, String algorithm) throws IOException {
+		try {
+			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
+			try (InputStream in = prj.getResourceRef().getInputStream()) {
+				byte[] buffer = new byte[8192];
+				int read;
+				while ((read = in.read(buffer)) >= 0) {
+					md.update(buffer, 0, read);
+				}
+			}
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
+		} catch (NoSuchAlgorithmException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported digest algorithm: " + algorithm, e);
+		}
+	}
+
+	private static String toHex(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length * 2);
+		for (byte b : bytes) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
+	}
+
+	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source) {
+		String[] actualParts = actualDigest.split(":", 2);
+		String[] expectedParts = expectedDigest.split(":", 2);
+		if (expectedParts.length != 2) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Invalid digest format from " + source + ": " + expectedDigest, null);
+		}
+		if (!actualParts[0].equalsIgnoreCase(expectedParts[0])) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Digest algorithm mismatch in " + source + ": expected " + expectedParts[0] + ", got " + actualParts[0], null);
+		}
+		String expectedHex = expectedParts[1].toLowerCase(Locale.ROOT);
+		String actualHex = actualParts[1].toLowerCase(Locale.ROOT);
+		if (expectedHex.length() < 12) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Digest prefix too short in " + source + ". Use at least 12 hex characters.", null);
+		}
+		if (!actualHex.startsWith(expectedHex)) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Digest mismatch in " + source + ": expected " + expectedDigest + ", got " + actualDigest, null);
+		}
 	}
 
 	/**
