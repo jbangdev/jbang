@@ -15,10 +15,10 @@ public class TestRunChecksum {
 	}
 
 	@Test
-	void splitRefAndChecksumLeavesUrlsWithoutDigestUntouched() {
-		Run.RefWithChecksum ref = Run.splitRefAndChecksum("https://example.org/foo#frag");
-		assertEquals("https://example.org/foo#frag", ref.ref);
-		assertEquals(null, ref.checksum);
+	void splitRefAndChecksumTreatsBareSuffixAsSha256Prefix() {
+		Run.RefWithChecksum ref = Run.splitRefAndChecksum("env@jbangdev#blanah");
+		assertEquals("env@jbangdev", ref.ref);
+		assertEquals("sha256:blanah", ref.checksum);
 	}
 
 	@Test
