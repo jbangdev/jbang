@@ -51,7 +51,6 @@ public final class LockFileUtil {
 		return Arrays.stream(val.split(",")).filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
 	}
 
-
 	public static Map<String, String> readDepDigests(Path lockFile, String ref) throws IOException {
 		Map<String, String> result = new LinkedHashMap<>();
 		if (!Files.exists(lockFile)) {

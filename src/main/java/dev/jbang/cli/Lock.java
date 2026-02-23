@@ -2,13 +2,15 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.jbang.source.BuildContext;
@@ -72,10 +74,10 @@ public class Lock extends BaseBuildCommand {
 		if (lockFile != null) {
 			return lockFile;
 		}
-		java.nio.file.Path p = java.nio.file.Paths.get(ref);
-		java.nio.file.Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
-		if (java.nio.file.Files.exists(candidate) && java.nio.file.Files.isRegularFile(candidate)) {
-			return java.nio.file.Paths.get(ref + ".lock");
+		Path p = Paths.get(ref);
+		Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
+		if (Files.exists(candidate) && Files.isRegularFile(candidate)) {
+			return Paths.get(ref + ".lock");
 		}
 		return Util.getCwd().resolve(".jbang.lock");
 	}
@@ -87,11 +89,10 @@ public class Lock extends BaseBuildCommand {
 		return val;
 	}
 
-
-	private static String digestPath(java.nio.file.Path path, String algorithm) throws IOException {
+	private static String digestPath(Path path, String algorithm) throws IOException {
 		try {
 			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
-			try (InputStream in = java.nio.file.Files.newInputStream(path)) {
+			try (InputStream in = Files.newInputStream(path)) {
 				byte[] buffer = new byte[8192];
 				int read;
 				while ((read = in.read(buffer)) >= 0) {

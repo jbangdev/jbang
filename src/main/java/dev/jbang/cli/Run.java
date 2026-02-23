@@ -2,7 +2,9 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -74,7 +76,7 @@ public class Run extends BaseBuildCommand {
 
 		Path effectiveLockFile = resolveLockFile(scriptOrFile);
 		List<String> preLockSources = Collections.emptyList();
-		if (lockMode != LockMode.none && scriptOrFile != null && java.nio.file.Files.exists(effectiveLockFile)) {
+		if (lockMode != LockMode.none && scriptOrFile != null && Files.exists(effectiveLockFile)) {
 			preLockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
 		}
 
@@ -111,7 +113,7 @@ public class Run extends BaseBuildCommand {
 			List<String> lockSources = Collections.emptyList();
 			List<String> lockDeps = Collections.emptyList();
 			Map<String, String> lockDepDigests = Collections.emptyMap();
-			boolean hasLockFile = java.nio.file.Files.exists(effectiveLockFile);
+			boolean hasLockFile = Files.exists(effectiveLockFile);
 			if (lockMode != LockMode.none && hasLockFile) {
 				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
 				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
@@ -154,16 +156,20 @@ public class Run extends BaseBuildCommand {
 						.collect(Collectors.toCollection(LinkedHashSet::new));
 					verifyLockedSet("dependency graph", scriptOrFile, expectedDeps, actualDeps);
 
-					if (lockMode == LockMode.strict && !expectedDeps.isEmpty() && lockDepDigests.size() < expectedDeps.size()) {
+					if (lockMode == LockMode.strict && !expectedDeps.isEmpty()
+							&& lockDepDigests.size() < expectedDeps.size()) {
 						Set<String> missing = new LinkedHashSet<>(expectedDeps);
 						missing.removeAll(lockDepDigests.keySet());
 						throw new ExitException(EXIT_INVALID_INPUT,
-								"Strict lock requires dependency digests for all locked deps in " + scriptOrFile + ". Missing: " + missing,
+								"Strict lock requires dependency digests for all locked deps in " + scriptOrFile
+										+ ". Missing: " + missing,
 								null);
 					}
 
 					if (!lockDepDigests.isEmpty()) {
-						Map<String, String> actualDepDigests = depCtx.resolveClassPath().getArtifacts().stream()
+						Map<String, String> actualDepDigests = depCtx.resolveClassPath()
+							.getArtifacts()
+							.stream()
 							.filter(a -> a.getCoordinate() != null)
 							.collect(Collectors.toMap(a -> a.getCoordinate().toCanonicalForm(),
 									a -> digestPath(a.getFile(), "sha256"), (a, b) -> a, LinkedHashMap::new));
@@ -173,7 +179,8 @@ public class Run extends BaseBuildCommand {
 							String actual = actualDepDigests.get(coord);
 							if (actual == null) {
 								throw new ExitException(EXIT_INVALID_INPUT,
-										"Locked dependency digest missing resolved artifact for " + coord + " in " + scriptOrFile,
+										"Locked dependency digest missing resolved artifact for " + coord + " in "
+												+ scriptOrFile,
 										null);
 							}
 							verifyDigestSpec(actual, expected,
@@ -278,10 +285,10 @@ public class Run extends BaseBuildCommand {
 			return lockFile;
 		}
 		if (scriptOrFile != null) {
-			java.nio.file.Path p = java.nio.file.Paths.get(scriptOrFile);
-			java.nio.file.Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
-			if (java.nio.file.Files.exists(candidate) && java.nio.file.Files.isRegularFile(candidate)) {
-				return java.nio.file.Paths.get(scriptOrFile + ".lock");
+			Path p = Paths.get(scriptOrFile);
+			Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
+			if (Files.exists(candidate) && Files.isRegularFile(candidate)) {
+				return Paths.get(scriptOrFile + ".lock");
 			}
 		}
 		return Util.getCwd().resolve(".jbang.lock");
@@ -307,11 +314,10 @@ public class Run extends BaseBuildCommand {
 		return new RefWithChecksum(ref.substring(0, idx), digest);
 	}
 
-
-	private static String digestPath(java.nio.file.Path path, String algorithm) {
+	private static String digestPath(Path path, String algorithm) {
 		try {
 			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
-			try (InputStream in = java.nio.file.Files.newInputStream(path)) {
+			try (InputStream in = Files.newInputStream(path)) {
 				byte[] buffer = new byte[8192];
 				int read;
 				while ((read = in.read(buffer)) >= 0) {
