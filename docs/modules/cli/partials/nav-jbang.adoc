@@ -58,3 +58,4 @@
 *** xref:jbang:cli:jbang-config-set.adoc[set]
 *** xref:jbang:cli:jbang-config-unset.adoc[unset]
 *** xref:jbang:cli:jbang-config-list.adoc[list]
+** xref:jbang:cli:jbang-lock.adoc[lock]

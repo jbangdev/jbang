@@ -134,6 +134,9 @@ xref:jbang:cli:jbang-export.adoc[*export*]::
 xref:jbang:cli:jbang-config.adoc[*config*]::
   Read and write configuration options.
 
+xref:jbang:cli:jbang-lock.adoc[*lock*]::
+  Generate or refresh lock entries for script references.
+
 // end::picocli-generated-man-section-commands[]
 
 // tag::picocli-generated-man-section-exit-status[]

@@ -122,6 +122,15 @@ Builds and runs provided script. (default command)
 *--manifest*=_<String=String>_::
   
 
+*--lock-file*=_<lockFile>_::
+  Path to lock file (default: .jbang.lock)
+
+*--lock-write*::
+  Write/update digest entry in the lock file for this ref.
+
+*--locked*::
+  Require matching lock entry and enforce lock checks.
+
 *--module*[=_<module>_]::
   Treat resource as a module. Optionally with the given module name
 
@@ -148,6 +157,9 @@ Builds and runs provided script. (default command)
 
 *-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*--verify*=_<digest>_::
+  Verify script content with digest, e.g. `sha256:abc123`.
 
 *--verbose*::
   jbang will be verbose on what it does.
