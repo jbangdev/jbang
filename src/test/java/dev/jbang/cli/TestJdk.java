@@ -53,7 +53,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+				equalTo("Installed JDKs (<=default):\n   13 (13.0.7)\n   12 (12.0.7)\n   11 (11.0.7) <\n"));
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+				equalTo("Installed JDKs (<=default):\n   13 (13.0.7)\n   12 (12.0.7)\n   11 (11.0.7) <\n"));
 	}
 
 	@Test
@@ -86,30 +86,30 @@ class TestJdk extends BaseTest {
 	void testDefault() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
-		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("12"));
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("12", false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null));
+		result = checkedRun(jdk -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.normalizedOut(), containsString("* -> 12-jbang"));
 	}
 
 	@Test
 	void testDefaultPlus() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("16+"));
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("16+", false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 17"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null));
+		result = checkedRun(jdk -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 17\n"));
+		assertThat(result.normalizedOut(), containsString("* -> 17-jbang"));
 	}
 
 	@Test
@@ -233,16 +233,18 @@ class TestJdk extends BaseTest {
 		initMockJdkDir(jdkPath, "12.0.7");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
-		CaptureResult<Integer> result = checkedRun((Jdk jdk) -> jdk.defaultJdk("12"), "jdk", "--jdk-providers",
-				"default,javahome,jbang");
+		CaptureResult<Integer> result = checkedRun(
+				(Jdk jdk) -> jdk.defaultJdk("12", false, false, FormatMixin.Format.text),
+				"jdk", "--jdk-providers", "default,javahome,jbang");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
-		result = checkedRun(jdk -> jdk.defaultJdk(null));
+		result = checkedRun((Jdk jdk) -> jdk.defaultJdk(null, false, false, FormatMixin.Format.text),
+				"jdk", "--jdk-providers", "default,javahome,jbang");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.normalizedOut(), containsString("* -> javahome"));
 	}
 
 	@Test
@@ -277,10 +279,9 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath() + "\n"));
-		assertTrue(Util.isLink(jdkPath.resolve("11")));
-		System.err.println("ASSERT: " + javaDir.toPath() + " - " + jdkPath.resolve("11").toRealPath());
-		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
+				equalTo("[jbang] JDK 11-linked has been linked to: " + javaDir.toPath() + "\n"));
+		assertTrue(Util.isLink(jdkPath.resolve("11-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11-linked").toRealPath()));
 	}
 
 	@Test
@@ -293,7 +294,7 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> {
 			try {
-				return jdk.install(true, "11", javaDir.toPath().toString());
+				return jdk.install(true, "my11", javaDir.toPath().toString());
 			} catch (IOException e) {
 				// Escaping with a runtime exception
 				throw new RuntimeException(e);
@@ -302,9 +303,9 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Util.isLink(jdkPath.resolve("11")));
-		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
+				equalTo("[jbang] JDK my11-linked has been linked to: " + javaDir.toPath().toString() + "\n"));
+		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("my11-linked").toRealPath()));
 	}
 
 	@Test
@@ -361,7 +362,7 @@ class TestJdk extends BaseTest {
 
 		result = checkedRun(jdk -> {
 			try {
-				return jdk.install(true, "11", jdkOk.toString());
+				return jdk.install(true, "my11", jdkOk.toString());
 			} catch (IOException e) {
 				// Escaping with a runtime exception
 				throw new RuntimeException(e);
@@ -370,9 +371,9 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
-		assertTrue(Util.isLink(jdkPath.resolve("11")));
-		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("11").toRealPath())));
+				equalTo("[jbang] JDK my11-linked has been linked to: " + jdkOk + "\n"));
+		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
+		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("my11-linked").toRealPath())));
 	}
 
 	@Test
@@ -384,7 +385,9 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Default JDK unset"));
+				containsString("[jbang] Global default JDK unset"));
+		assertThat(result.normalizedErr(),
+				containsString("[jbang] Versioned default JDK unset"));
 		assertThat(result.normalizedErr(),
 				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
 	}
@@ -402,7 +405,9 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Default JDK unset"));
+				containsString("[jbang] Global default JDK unset"));
+		assertThat(result.normalizedErr(),
+				containsString("[jbang] Versioned default JDK unset"));
 		assertThat(result.normalizedErr(),
 				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
 	}
