@@ -156,6 +156,53 @@ Control the Kotlin version used:
 //KOTLIN 2.0.21
 ----
 
+== Scala Scripts (.scala) [EXPERIMENTAL]
+
+JBang supports Scala using the Scala compiler. Scala support in JBang is provided to complement Java, Kotlin, and Groovy in the same workflow—same directives, same tool, same jbang-catalogs—so you can mix JVM languages in one project or catalog.
+
+[NOTE]
+====
+**Scala-first scripting**: If you want truly first-class Scala scripting via .sc files (Scala-native tooling, best-in-class Scala UX, and the full Scala ecosystem focus), we recommend using https://scala-cli.virtuslab.org/[scala-cli]. `scala-cli` is fully integrated in Scala ecosystem and is very close to how one could imagine if jbang was the cli for Java :)
+====
+
+**Difference in approach**: scala-cli is Scala-centric and optimized for Scala projects and workflows. JBang is multi-language JVM–centric: one CLI for Java, JShell, Kotlin, Groovy, and Scala, with a unified model for dependencies, JDK selection, and catalogs. Choose scala-cli for Scala-only or Scala-primary work; choose JBang when Scala is one of several JVM languages in your scripts or catalogs. 
+
+=== Basic Scala Usage
+
+Create a file called `hello.scala`:
+
+[source,scala]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//SCALA 3.8.1
+
+object hello {
+  def main(args: Array[String]): Unit = {
+    val name = args.headOption.getOrElse("World")
+    println(s"Hello $name")
+  }
+}
+----
+
+Run it:
+[source,bash]
+----
+jbang hello.scala
+# First time: Downloads and installs Scala
+# Output: Hello World
+
+jbang hello.scala JBang
+# Output: Hello JBang
+----
+
+=== Scala Version Control
+
+Control the Scala version used:
+[source,scala]
+----
+//SCALA 3.8.1
+----
+
 == Groovy Scripts (.groovy) [EXPERIMENTAL]
 
 JBang supports Groovy scripts using the Groovy compiler.
@@ -294,6 +341,12 @@ jbang readme.md YOLO
 - Coroutines support
 - Interop with Java libraries
 
+=== Scala (.scala)
+- Powerful static type system
+- Functional programming support
+- Rich collections and pattern matching
+- Interop with Java libraries
+
 === Groovy (.groovy)
 - Dynamic scripting
 - Powerful metaprogramming
@@ -337,6 +390,7 @@ echo 'System.out.println("Hello World")' | jbang -
 - **Java**: For production scripts, complex logic, performance-critical code
 - **JShell**: For quick experiments, interactive exploration, simple scripts
 - **Kotlin**: For modern language features, null safety, functional programming
+- **Scala**: For advanced type systems, FP-heavy code, and concise JVM applications
 - **Groovy**: For dynamic scripting, text processing, DSLs
 - **Markdown**: For documentation, tutorials, literate programming
 
@@ -344,7 +398,7 @@ echo 'System.out.println("Hello World")' | jbang -
 
 **Compilation vs. Interpretation**:
 
-- Java/Kotlin/Groovy: Compiled and cached (faster execution)
+- Java/Kotlin/Groovy/Scala: Compiled and cached (faster execution)
 - JShell: Interpreted (faster development)
 - Markdown: Depends on extracted code
 
@@ -352,13 +406,13 @@ echo 'System.out.println("Hello World")' | jbang -
 
 - Java: Fastest after first compilation
 - JShell: Moderate
-- Kotlin/Groovy: Slower first time (compiler download)
+- Kotlin/Groovy/Scala: Slower first time (compiler download)
 
 == Common Issues and Solutions
 
 === Language Not Found
 
-**Problem**: "kotlinc not found" or similar
+**Problem**: "kotlinc not found", "scalac not found" or similar
 **Solution**: JBang automatically downloads language compilers on first use
 
 === Version Conflicts
@@ -369,6 +423,7 @@ echo 'System.out.println("Hello World")' | jbang -
 ----
 //KOTLIN 2.0.21
 //GROOVY 3.0.19
+//SCALA 3.8.1
 ----
 
 === Dependencies Not Working

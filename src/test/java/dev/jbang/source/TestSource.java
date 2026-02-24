@@ -20,11 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.net.ScalaManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.source.sources.KotlinSource;
+import dev.jbang.source.sources.ScalaSource;
 import dev.jbang.util.PropertiesValueResolver;
 
 import io.qameta.allure.Issue;
@@ -177,6 +179,21 @@ public class TestSource extends BaseTest {
 			"\n" +
 			"public fun main() {\n" +
 			"    println(\"Hello World\");\n" +
+			"}\n";
+
+	String scalaExample = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+			"//SCALA 3\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"\n" +
+			"//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" +
+			"//JAVA_OPTIONS --enable-preview\n" +
+			"//COMPILE_OPTIONS --enable-preview\n" +
+			"//NATIVE_OPTIONS -O1\n" +
+			"\n" +
+			"object ScalaExample {\n" +
+			"  def main(args: Array[String]): Unit = {\n" +
+			"    println(\"Hello World\")\n" +
+			"  }\n" +
 			"}\n";
 
 	@Test
@@ -352,6 +369,26 @@ public class TestSource extends BaseTest {
 		assertEquals(Arrays.asList("--enable-preview", "-Dvalue='this is space'", "--enable-preview"),
 				s.getRuntimeOptions());
 
+	}
+
+	@Test
+	void testExtractScalaOptions() {
+		Source s = new ScalaSource(ResourceRef.forLiteral(scalaExample), null);
+
+		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("--enable-preview", "-Dvalue='this is space'", "--enable-preview"),
+				s.getRuntimeOptions());
+	}
+
+	@Test
+	void testScalaRuntimeDependency() {
+		Source s = new ScalaSource(ResourceRef.forLiteral(scalaExample), null);
+		Project prj = Project.builder().build(s);
+
+		assertThat(prj.getMainSourceSet().getDependencies(),
+				containsInAnyOrder("info.picocli:picocli:4.6.3",
+						"org.scala-lang:scala3-library_3:" + ScalaManager.DEFAULT_SCALA_VERSION));
 	}
 
 	@Test

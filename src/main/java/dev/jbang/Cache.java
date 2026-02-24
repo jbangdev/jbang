@@ -13,7 +13,7 @@ import dev.jbang.util.Util;
 public class Cache {
 
 	public enum CacheClass {
-		urls, jars, jdks, kotlincs, groovycs, projects, scripts, stdins, deps
+		urls, jars, jdks, kotlincs, scalacs, groovycs, projects, scripts, stdins, deps
 	}
 
 	static void setupCache(Path dir) {

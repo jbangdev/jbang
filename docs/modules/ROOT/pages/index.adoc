@@ -16,7 +16,7 @@ image:jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Want to learn, explore or use Java instantly without setup?
 
-Do you like Java but use Python, Groovy, Kotlin or similar languages for scripts, experimentation and exploration?
+Do you like Java but use Python, Groovy, Kotlin, Scala or similar languages for scripts, experimentation and exploration?
 
 Ever wanted to just be able to run Java from anywhere without any or very minimal setup?
 
@@ -50,7 +50,7 @@ JBang is a tool that makes it easy to write and run Java scripts without the tra
 
 | **Zero Setup** | Run Java files directly - no project setup needed
 | **Dependency Management** | Declare dependencies with `//DEPS` - automatic resolution
-| **Multiple Languages** | Support for `.java`, `.jsh`, `.kt`, `.groovy`, and `.md` files
+| **Multiple Languages** | Support for `.java`, `.jsh`, `.kt`, `.groovy`, `.scala`, and `.md` files
 | **Native Images** | Generate native binaries with GraalVM
 | **IDE Integration** | Edit with full IDE support using `jbang edit`
 | **Templates** | Quick start with built-in templates
