@@ -22,6 +22,10 @@ public class TestImplicitAlias extends BaseTest {
 				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
 		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev/jbang-examples").get(),
 				Matchers.equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
+		assertThat(
+				ImplicitCatalogRef.parse("jbangdev~hello")
+					.repoUrl("https://github.com/", "/blob/"),
+				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/hello/jbang-catalog.json"));
 	}
 
 	@Test

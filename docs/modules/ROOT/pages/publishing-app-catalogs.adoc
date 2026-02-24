@@ -1,0 +1,173 @@
+= Publish Apps with a JBang Catalog
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+If you follow this guide, users can run your tools like this:
+
+[source,bash]
+----
+jbang <cmd>@<your-org>
+
+jbang mytool@your-org     
+jbang mytool-lts@your-org
+----
+
+Once you have such a name for you app, users can run it via jbang - but can also install it as a command on their system, using `jbang app install <cmd>@<your-org>`.
+
+[source,bash]
+----
+jbang app install mytool@your-org
+mytool --help
+----
+
+Real-world examples of commands you can run:
+
+[source,bash]
+---
+jbang minecraft-server@microsoft
+jbang camel@redhat-camel
+jbang quarkus@quarkusio
+jbang arthas@alibaba
+----
+
+That is the main value of a catalog: your users get a short, stable command name, and JBang handles how to run the app behind it.
+
+
+For most teams publishing apps, the best starting point is aliases that target released Maven artifacts (GAVs) or JARs. JBang scripts are also supported, but
+not a requirement.
+
+== Why publish a catalog?
+
+A catalog gives you:
+
+- A simple command UX (`<cmd>@<your-org>`) for your users
+- One place to curate and describe your app commands
+- Flexibility to point commands at Maven coordinates, JARs, or scripts without changing user-facing command names
+
+In other words, you publish app names; JBang handles execution details.
+
+== What should aliases point to?
+
+For app catalogs, this is the recommended order:
+
+1. **Maven artifact (GAV)** - best default for versioned releases
+2. **JAR** - great for private/internal distribution or direct downloads, i.e. github releases
+3. **Script** - fully supported, but usually a secondary publishing path for app catalogs
+
+JBang treats all of these as runnable app targets behind the same alias UX.
+
+== Where should the catalog live?
+
+[cols="1,2,2,2", options="header"]
+|===
+|Option |Where to put it |How users run it |Best for
+
+|**Org-level catalog** (recommended)
+|Create a repository named `jbang-catalog` under your org/user
+|`jbang <cmd>@<your-org>`
+|Multiple tools and a stable, shorter, org-wide command namespace
+
+|**Repo-level catalog**
+|Add `jbang-catalog.json` to an existing repository
+|`jbang <cmd>@<your-org>/<repo>`
+|A single product/repository that owns its own commands, and no org-wide command namespace
+|===
+
+== Option A: org-level catalog repository (recommended)
+
+[TIP]
+====
+Run `jbang init -t jbang-catalog jbang-catalog` to quickly create a catalog repository with renovatebot and GitHub action setup to keep dependencies up to date. Then you can skip to step #3
+====
+
+=== 1) Create the catalog repository
+
+Create `https://github.com/<your-org>/jbang-catalog` (or equivalent on GitLab/Bitbucket).
+
+=== 2) Add `jbang-catalog.json`
+
+Use a minimal app-focused catalog like this:
+
+[source,json]
+----
+{
+  "aliases": {
+    "mytool": {
+      "script-ref": "com.yourorg:mytool-cli:1.3.0",
+      "description": "Run MyTool CLI from Maven"
+    },
+    "mytool-lts": {
+      "script-ref": "https://downloads.yourorg.com/mytool/mytool-cli-1.2.5.jar",
+      "description": "Run MyTool LTS jar"
+    }
+  }
+}
+----
+
+`script-ref` is the target field name and can point to a GAV, JAR, or script. For app catalogs, prefer GAV or JAR targets first.
+
+=== 3) Commit and push
+
+Publish the file in the default branch.
+
+=== 4) Validate the user command
+
+[source,bash]
+----
+jbang mytool@your-org
+----
+
+If needed while iterating on changes, test with `--fresh` to bypass caches.
+
+== Option B: catalog file in an existing repository
+
+If you do not want a dedicated `jbang-catalog` repository, add `jbang-catalog.json` to your existing repository.
+
+With a file in the repo root, users can run:
+
+[source,bash]
+----
+jbang mytool@your-org/your-repo
+----
+
+This is often a good fit when command aliases are tightly coupled to one project.
+
+== Managing entries quickly
+
+Instead of editing JSON by hand, you can add aliases via CLI:
+
+[source,bash]
+----
+# Preferred: alias pointing to Maven artifact (GAV)
+jbang alias add --file jbang-catalog.json --name mytool \
+  --description "Run MyTool CLI from Maven" \
+  com.yourorg:mytool-cli:1.3.0
+
+# Preferred: alias pointing to JAR
+jbang alias add --file jbang-catalog.json --name mytool-lts \
+  --description "Run MyTool LTS jar" \
+  https://downloads.yourorg.com/mytool/mytool-cli-1.2.5.jar
+
+# Also supported: alias pointing to script
+jbang alias add --file jbang-catalog.json --name mytool-dev \
+  --description "Run MyTool development script" \
+  mytool.java
+----
+
+See the full reference for xref:jbang:cli:jbang-alias.adoc[`jbang alias`] and xref:jbang:cli:jbang-catalog.adoc[`jbang catalog`].
+
+== Beyond app commands (optional)
+
+Catalogs can also include templates and other entries (for example, jshell-oriented helpers), but most teams should start by publishing clear app aliases first.
+
+For advanced catalog behavior and implicit catalog syntax details, see xref:alias_catalogs.adoc[Aliases & Catalogs] and xref:templates.adoc[Templates].

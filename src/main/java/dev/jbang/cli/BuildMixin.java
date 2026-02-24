@@ -35,7 +35,7 @@ public class BuildMixin {
 	}
 
 	@CommandLine.Option(names = { "-m",
-			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
+			"--main" }, description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
 	String main;
 
 	@CommandLine.Option(names = {

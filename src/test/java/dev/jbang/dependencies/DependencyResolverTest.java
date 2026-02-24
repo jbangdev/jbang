@@ -2,6 +2,7 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -130,6 +131,19 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testRedHatJBossRepos() {
+		assertEquals(toMavenRepo("jbossorg").getUrl(), "https://repository.jboss.org/nexus/content/groups/public/");
+		assertEquals(toMavenRepo("redhat").getUrl(), "https://maven.repository.redhat.com/ga/");
+	}
+
+	@Test
+	void testRelativePathsRepos() {
+		assertThat(toMavenRepo("local=./build/repo").getUrl().toString())
+			.startsWith("file:///")
+			.endsWith("/build/repo");
+	}
+
+	@Test
+	void test() {
 		assertEquals(toMavenRepo("jbossorg").getUrl(), "https://repository.jboss.org/nexus/content/groups/public/");
 		assertEquals(toMavenRepo("redhat").getUrl(), "https://maven.repository.redhat.com/ga/");
 	}
