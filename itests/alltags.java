@@ -12,7 +12,7 @@
 //DOCS readme.adoc
 
 //COMPILE_OPTIONS --enable-preview --verbose
-//RUNTIME_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
+//RUNTIME_OPTIONS --add-opens=java.base/java.net=ALL-UNNAMED
 //NATIVE_OPTIONS -O1 -d
 
 //JAVA 11+
