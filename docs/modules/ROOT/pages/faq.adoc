@@ -21,7 +21,7 @@ Why use gradle resource locators rather than ?::
   kscript used it and it's nice as it is a one-liner and easily parsable.
 
 How does this compare to ?::
-After doing `jbang` I've learned about similar projects and others poppped up so thought it would be nice to have a list with some comparison. Below is a list in order when they were created.
+After releasing `jbang` in December 2019 I've learned about similar projects and others poppped up so thought it would be nice to have a list with some comparison. Below is a list in order when they were created.
 
 
 https://github.com/fizzed/blaze.git[blaze] (November, 2014): a tool for using JVM languages for scripting. It's goals are similar to early jbang but it's more opinionated on how to setup and run scripts. Provides useful libraries for scripting thus actually useable *from* JBang as well as a dependency and jbang can be used torun it: `jbang app install --name blaze com.fizzed:blaze-lite:RELEASE`
@@ -34,7 +34,9 @@ https://github.com/com-lihaoyi/mill/[mill] (October, 2017): Object-oriented buil
 
 https://github.com/rife2/bld[bld] (May, 2023): Build tool for Java using Java.
 
-https://github.com/sormuras/bach[bach] (March, 2018): Build tool for Modules based Java projectsusing Java.
+https://github.com/sormuras/bach[bach] (March, 2018): Build tool for Modules based Java projects using Java.
+
+https://github.com/babashka/babashka[babashka] (August, 2019): A native Clojure interpreter for scripting with fast startup. Offers scripting features similar to JBang but with a focus on Clojure; not for running Java applications.
 
 https://github.com/codejive/java-jpm[jpm] (July, 2024): A simple command line tool, taking inspiration from Node's npm, to manage Maven dependencies for Java projects that are not using build systems like Maven or Gradle.
 
