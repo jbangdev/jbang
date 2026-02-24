@@ -153,7 +153,7 @@ dependencies {
 	implementation "dev.jbang:devkitman:${devkitmanVersion}"
 
 	implementation 'org.jspecify:jspecify:1.0.0'
-	implementation 'org.apache.commons:commons-text:1.11.0'
+	implementation 'org.apache.commons:commons-text:1.15.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
 	implementation 'info.picocli:picocli:4.7.7'
 	annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
