@@ -133,7 +133,7 @@ class hello implements Runnable {
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.javalin:javalin:7.0.0
 //DEPS org.slf4j:slf4j-simple:2.0.17
-//JAVA 17
+//JAVA 21
 
 import io.javalin.Javalin;
 
@@ -141,6 +141,7 @@ class WebServer {
     public static void main(String[] args) {
         String response  = "Hello from JBang!";
         var app = Javalin.create(config -> {
+            config.concurrency.useVirtualThreads = true;
             config.routes.get("/", ctx -> ctx.result(response));
         }).start(8000);
     }
