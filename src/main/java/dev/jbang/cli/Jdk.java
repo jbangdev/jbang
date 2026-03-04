@@ -1,7 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -14,6 +12,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.Cache;
+import dev.jbang.Settings;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
 import dev.jbang.util.CommandBuffer;
@@ -22,30 +22,112 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "jdk", description = "Manage Java Development Kits installed by jbang.")
+@CommandLine.Command(name = "jdk", description = "Manage Java Development Kits installed by jbang.", subcommands = {
+		JdkInstall.class, JdkList.class, JdkUninstall.class, JdkHome.class, JdkJavaEnv.class, JdkExec.class,
+		JdkDefault.class })
 public class Jdk {
 
 	@CommandLine.Mixin
 	HelpMixin helpMixin;
 
-	@CommandLine.Spec
-	CommandLine.Model.CommandSpec spec;
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+}
+
+abstract class BaseJdkCommand extends BaseCommand {
 
 	@CommandLine.Mixin
 	JdkProvidersMixin jdkProvidersMixin;
 
-	@CommandLine.Command(name = "install", aliases = "i", description = "Installs a JDK.")
-	public Integer install(
-			@CommandLine.Option(names = { "--force",
-					"-f" }, description = "Force installation even when already installed") boolean force,
-			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version or id to install", arity = "1") String versionOrId,
-			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
-			throws IOException {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+	protected JdkManager getJdkManager() {
+		return jdkProvidersMixin.getJdkManager();
+	}
+
+	static class JdkOut implements Comparable<JdkOut> {
+		String id;
+		int version;
+		String fullVersion;
+		String providerName;
+		String javaHomeDir;
+		String realHomeDir;
+		String linkedId;
+		@SerializedName("default")
+		Boolean isDefault;
+		Set<String> tags;
+
+		public JdkOut(String id, String version, String providerName, Path home, String linkedId, boolean isDefault,
+				Set<String> tags) {
+			this.id = id;
+			this.version = JavaUtil.parseJavaVersion(version);
+			this.fullVersion = version;
+			this.providerName = providerName;
+			if (home != null) {
+				this.javaHomeDir = home.toString();
+				this.realHomeDir = home.toString();
+				try {
+					this.realHomeDir = home.toRealPath().toString();
+				} catch (IOException e) {
+					// Ignore
+				}
+			}
+			this.linkedId = linkedId;
+			if (isDefault) {
+				this.isDefault = true;
+			}
+			this.tags = tags != null ? trimTags(tags) : Collections.emptySet();
+		}
+
+		private Set<String> trimTags(Set<String> tags) {
+			Set<String> trimmedTags = new HashSet<>();
+			for (String tag : tags) {
+				if (!tag.equalsIgnoreCase("ga")
+						&& !tag.equalsIgnoreCase("jdk")) {
+					trimmedTags.add(tag.toLowerCase());
+				}
+			}
+			return trimmedTags;
+		}
+
+		@Override
+		public int compareTo(JdkOut o) {
+			if (version != o.version) {
+				return Integer.compare(version, o.version);
+			} else {
+				return id.compareTo(o.id);
+			}
+		}
+	}
+}
+
+@CommandLine.Command(name = "install", aliases = "i", description = "Installs a JDK.")
+class JdkInstall extends BaseJdkCommand {
+
+	@CommandLine.Option(names = { "--force",
+			"-f" }, description = "Force installation even when already installed")
+	boolean force;
+
+	@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version or id to install", arity = "1")
+	String versionOrId;
+
+	@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1")
+	String path;
+
+	@Override
+	public Integer doCall() throws IOException {
+		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canInstall);
 		if (force || jdk == null) {
 			if (!Util.isNullOrBlankString(path)) {
-				jdkMan.linkToExistingJdk(Paths.get(path), versionOrId);
+				if (isValidInteger(versionOrId)) {
+					throw new IllegalArgumentException(
+							"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+				}
+				Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
+				Path jdkPath = Paths.get(path);
+				if (jdkPath.toAbsolutePath().startsWith(jdkCacheDir.toAbsolutePath())) {
+					throw new IllegalArgumentException("The provided path cannot point to a JBang managed JDK");
+				}
+				jdkMan.linkToExistingJdk(jdkPath, versionOrId);
 			} else {
 				if (jdk == null) {
 					jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
@@ -64,16 +146,35 @@ public class Jdk {
 		return EXIT_OK;
 	}
 
-	@CommandLine.Command(name = "list", aliases = "l", description = "Lists installed JDKs.")
-	public Integer list(
-			@CommandLine.Option(names = {
-					"--available", "-a" }, description = "Shows versions available for installation") boolean available,
-			@CommandLine.Option(names = {
-					"--show-details", "--details",
-					"-d" }, description = "Shows detailed information for each JDK (only when format=text)") boolean details,
-			@CommandLine.Option(names = {
-					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+	private boolean isValidInteger(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+}
+
+@CommandLine.Command(name = "list", aliases = "l", description = "Lists installed JDKs.")
+class JdkList extends BaseJdkCommand {
+
+	@CommandLine.Option(names = {
+			"--available", "-a" }, description = "Shows versions available for installation")
+	boolean available;
+
+	@CommandLine.Option(names = {
+			"--show-details", "--details",
+			"-d" }, description = "Shows detailed information for each JDK (only when format=text)")
+	boolean details;
+
+	@CommandLine.Option(names = {
+			"--format" }, description = "Specify output format ('text' or 'json')")
+	FormatMixin.Format format;
+
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk defaultJdk = jdkMan.getDefaultJdk();
 		String defVersion = defaultJdk != null ? defaultJdk.version() : "";
 		PrintStream out = System.out;
@@ -144,66 +245,17 @@ public class Jdk {
 		}
 		return EXIT_OK;
 	}
+}
 
-	static class JdkOut implements Comparable<JdkOut> {
-		String id;
-		int version;
-		String fullVersion;
-		String providerName;
-		String javaHomeDir;
-		String realHomeDir;
-		String linkedId;
-		@SerializedName("default")
-		Boolean isDefault;
-		Set<String> tags;
+@CommandLine.Command(name = "uninstall", aliases = "u", description = "Uninstalls an existing JDK.")
+class JdkUninstall extends BaseJdkCommand {
 
-		public JdkOut(String id, String version, String providerName, Path home, String linkedId, boolean isDefault,
-				Set<String> tags) {
-			this.id = id;
-			this.version = JavaUtil.parseJavaVersion(version);
-			this.fullVersion = version;
-			this.providerName = providerName;
-			if (home != null) {
-				this.javaHomeDir = home.toString();
-				this.realHomeDir = home.toString();
-				try {
-					this.realHomeDir = home.toRealPath().toString();
-				} catch (IOException e) {
-					// Ignore
-				}
-			}
-			this.linkedId = linkedId;
-			if (isDefault) {
-				this.isDefault = true;
-			}
-			this.tags = tags != null ? trimTags(tags) : Collections.emptySet();
-		}
+	@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version to install", arity = "1")
+	String versionOrId;
 
-		private Set<String> trimTags(Set<String> tags) {
-			Set<String> trimmedTags = new HashSet<>();
-			for (String tag : tags) {
-				if (!tag.equalsIgnoreCase("ga")
-						&& !tag.equalsIgnoreCase("jdk")) {
-					trimmedTags.add(tag.toLowerCase());
-				}
-			}
-			return trimmedTags;
-		}
-
-		@Override
-		public int compareTo(JdkOut o) {
-			if (version != o.version) {
-				return Integer.compare(version, o.version);
-			} else {
-				return id.compareTo(o.id);
-			}
-		}
-	}
-
-	@CommandLine.Command(name = "uninstall", aliases = "u", description = "Uninstalls an existing JDK.")
-	public Integer uninstall(
-			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version to install", arity = "1") String versionOrId) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		// This will first select for JDKs from providers that can actually install JDKs
 		dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getInstalledJdk(versionOrId,
 				JdkProvider.Predicates.canInstall);
@@ -218,11 +270,17 @@ public class Jdk {
 		Util.infoMsg("Uninstalled JDK:\n  " + jdk.id());
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "home", description = "Prints the folder where the given JDK is installed.")
-	public Integer home(
-			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+@CommandLine.Command(name = "home", description = "Prints the folder where the given JDK is installed.")
+class JdkHome extends BaseJdkCommand {
+
+	@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1")
+	String versionOrId;
+
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
 		if (jdk.isInstalled()) {
 			Path home = jdk.home();
@@ -231,11 +289,17 @@ public class Jdk {
 		}
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "java-env", aliases = "env", description = "Prints out the environment variables needed to use the given JDK.")
-	public Integer javaEnv(
-			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+@CommandLine.Command(name = "java-env", aliases = "env", description = "Prints out the environment variables needed to use the given JDK.")
+class JdkJavaEnv extends BaseJdkCommand {
+
+	@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1")
+	String versionOrId;
+
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk jdk = null;
 		if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
 			jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
@@ -281,13 +345,21 @@ public class Jdk {
 		}
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "exec", aliases = "x", description = "Executes the given command using the default (or specified) JDK.")
-	public Integer exec(
-			@CommandLine.Option(names = { "-j",
-					"--java" }, description = "JDK version to use for executing the command.") String versionOrId,
-			@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute") List<String> args) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+@CommandLine.Command(name = "exec", aliases = "x", description = "Executes the given command using the default (or specified) JDK.")
+class JdkExec extends BaseJdkCommand {
+
+	@CommandLine.Option(names = { "-j",
+			"--java" }, description = "JDK version to use for executing the command.")
+	String versionOrId;
+
+	@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute")
+	List<String> args;
+
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk jdk = null;
 		if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
 			jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canUpdate);
@@ -315,19 +387,31 @@ public class Jdk {
 		}
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
-	public Integer defaultJdk(
-			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId,
-			@CommandLine.Option(names = {
-					"--for-version",
-					"-v" }, description = "Sets the default for the specified major version") boolean forVersion,
-			@CommandLine.Option(names = {
-					"--show-details", "--details",
-					"-d" }, description = "Shows detailed information for each JDK (only when format=text)") boolean details,
-			@CommandLine.Option(names = {
-					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
-		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
+class JdkDefault extends BaseJdkCommand {
+
+	@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1")
+	String versionOrId;
+
+	@CommandLine.Option(names = {
+			"--for-version",
+			"-v" }, description = "Sets the default for the specified major version")
+	boolean forVersion;
+
+	@CommandLine.Option(names = {
+			"--show-details", "--details",
+			"-d" }, description = "Shows detailed information for each JDK (only when format=text)")
+	boolean details;
+
+	@CommandLine.Option(names = {
+			"--format" }, description = "Specify output format ('text' or 'json')")
+	FormatMixin.Format format;
+
+	@Override
+	public Integer doCall() {
+		JdkManager jdkMan = getJdkManager();
 		if (!jdkMan.hasDefaultProvider()) {
 			Util.warnMsg("Cannot perform operation, the 'default' provider was not found");
 			return EXIT_INVALID_INPUT;

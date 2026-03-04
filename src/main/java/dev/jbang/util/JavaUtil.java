@@ -17,6 +17,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.devkitman.*;
 import dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller;
+import dev.jbang.devkitman.jdkinstallers.MetadataJdkInstaller;
 import dev.jbang.devkitman.jdkproviders.*;
 import dev.jbang.devkitman.util.RemoteAccessProvider;
 
@@ -47,6 +48,11 @@ public class JavaUtil {
 	}
 
 	@NonNull
+	public static JdkManager defaultJdkManager(List<String> providers, List<String> vendors, String installer) {
+		return defaultJdkManagerBuilder(providers, vendors, installer).build();
+	}
+
+	@NonNull
 	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> vendors) {
 		if (providers == null || providers.isEmpty()) {
 			providers = JdkManBuilder.PROVIDERS_DEFAULT;
@@ -57,9 +63,23 @@ public class JavaUtil {
 			.defaultJavaVersion(Settings.getDefaultJavaVersion());
 	}
 
+	@NonNull
+	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> vendors,
+			String installer) {
+		if (providers == null || providers.isEmpty()) {
+			providers = JdkManBuilder.PROVIDERS_DEFAULT;
+		}
+		return (JdkManBuilder) (new JdkManBuilder())
+			.provider(providers)
+			.vendor(vendors)
+			.installer(installer)
+			.defaultJavaVersion(Settings.getDefaultJavaVersion());
+	}
+
 	public static class JdkManBuilder extends JdkManager.Builder {
 		private final Set<String> providerNames = new LinkedHashSet<>();
 		private final Set<String> vendorNames = new LinkedHashSet<>();
+		private String installerName;
 
 		public static final List<String> PROVIDERS_ALL = JdkProviders.instance().allNames();
 		public static final List<String> PROVIDERS_DEFAULT = JdkProviders.instance().basicNames();
@@ -91,6 +111,11 @@ public class JavaUtil {
 			if (names != null) {
 				vendorNames.addAll(names);
 			}
+			return this;
+		}
+
+		public JdkManBuilder installer(String name) {
+			this.installerName = name;
 			return this;
 		}
 
@@ -133,10 +158,20 @@ public class JavaUtil {
 				if (!vendorNames.isEmpty()) {
 					distro = String.join(",", vendorNames);
 				}
-				FoojayJdkInstaller installer = new FoojayJdkInstaller(p)
-					.distro(distro)
-					.remoteAccessProvider(new JBangRemoteAccessProvider());
-				p.installer(installer);
+				if ("metadata".equals(installerName)) {
+					MetadataJdkInstaller installer = new MetadataJdkInstaller(p)
+						.distro(distro)
+						.remoteAccessProvider(new JBangRemoteAccessProvider());
+					p.installer(installer);
+				} else {
+					if (installerName != null && !"foojay".equals(installerName)) {
+						Util.warnMsg("Unknown JDK installer: " + providerName);
+					}
+					FoojayJdkInstaller installer = new FoojayJdkInstaller(p)
+						.distro(distro)
+						.remoteAccessProvider(new JBangRemoteAccessProvider());
+					p.installer(installer);
+				}
 				provider = p;
 				break;
 			default:
