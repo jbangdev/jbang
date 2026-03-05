@@ -10,7 +10,7 @@ import picocli.CommandLine;
 
 public class JdkProvidersMixin {
 	protected static List<String> jdkProviders;
-	protected static List<String> jdkVendors;
+	protected static List<String> jdkDistros;
 	protected static String jdkInstaller;
 
 	@CommandLine.Option(names = {
@@ -20,9 +20,9 @@ public class JdkProvidersMixin {
 	}
 
 	@CommandLine.Option(names = {
-			"--jdk-vendors" }, description = "Use the given vendors/distributions to install new JDKs", split = ",")
-	void setJdkVendors(List<String> jdkVendors) {
-		JdkProvidersMixin.jdkVendors = jdkVendors;
+			"--jdk-distros" }, description = "Use the given distributions to install new JDKs", split = ",")
+	void setJdkVendors(List<String> jdkDistros) {
+		JdkProvidersMixin.jdkDistros = jdkDistros;
 	}
 
 	@CommandLine.Option(names = {
@@ -35,7 +35,7 @@ public class JdkProvidersMixin {
 
 	protected JdkManager getJdkManager() {
 		if (jdkMan == null) {
-			jdkMan = JavaUtil.defaultJdkManager(jdkProviders, jdkVendors, jdkInstaller);
+			jdkMan = JavaUtil.defaultJdkManager(jdkProviders, jdkDistros, jdkInstaller);
 		}
 		return jdkMan;
 	}
@@ -47,6 +47,16 @@ public class JdkProvidersMixin {
 				opts.add("--jdk-providers");
 				opts.add(p);
 			}
+		}
+		if (jdkDistros != null) {
+			for (String d : jdkDistros) {
+				opts.add("--jdk-distros");
+				opts.add(d);
+			}
+		}
+		if (jdkInstaller != null) {
+			opts.add("--jdk-installer");
+			opts.add(jdkInstaller);
 		}
 		return opts;
 	}

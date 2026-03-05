@@ -43,42 +43,42 @@ public class JavaUtil {
 	}
 
 	@NonNull
-	public static JdkManager defaultJdkManager(List<String> providers, List<String> vendors) {
-		return defaultJdkManagerBuilder(providers, vendors).build();
+	public static JdkManager defaultJdkManager(List<String> providers, List<String> distros) {
+		return defaultJdkManagerBuilder(providers, distros).build();
 	}
 
 	@NonNull
-	public static JdkManager defaultJdkManager(List<String> providers, List<String> vendors, String installer) {
-		return defaultJdkManagerBuilder(providers, vendors, installer).build();
+	public static JdkManager defaultJdkManager(List<String> providers, List<String> distros, String installer) {
+		return defaultJdkManagerBuilder(providers, distros, installer).build();
 	}
 
 	@NonNull
-	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> vendors) {
+	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> distros) {
 		if (providers == null || providers.isEmpty()) {
 			providers = JdkManBuilder.PROVIDERS_DEFAULT;
 		}
 		return (JdkManBuilder) (new JdkManBuilder())
 			.provider(providers)
-			.vendor(vendors)
+			.distro(distros)
 			.defaultJavaVersion(Settings.getDefaultJavaVersion());
 	}
 
 	@NonNull
-	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> vendors,
+	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> distros,
 			String installer) {
 		if (providers == null || providers.isEmpty()) {
 			providers = JdkManBuilder.PROVIDERS_DEFAULT;
 		}
 		return (JdkManBuilder) (new JdkManBuilder())
 			.provider(providers)
-			.vendor(vendors)
+			.distro(distros)
 			.installer(installer)
 			.defaultJavaVersion(Settings.getDefaultJavaVersion());
 	}
 
 	public static class JdkManBuilder extends JdkManager.Builder {
 		private final Set<String> providerNames = new LinkedHashSet<>();
-		private final Set<String> vendorNames = new LinkedHashSet<>();
+		private final Set<String> distroNames = new LinkedHashSet<>();
 		private String installerName;
 
 		public static final List<String> PROVIDERS_ALL = JdkProviders.instance().allNames();
@@ -103,13 +103,13 @@ public class JavaUtil {
 			return this;
 		}
 
-		public JdkManBuilder vendor(String... names) {
-			return vendor(names != null ? Arrays.asList(names) : null);
+		public JdkManBuilder distro(String... names) {
+			return distro(names != null ? Arrays.asList(names) : null);
 		}
 
-		public JdkManBuilder vendor(List<String> names) {
+		public JdkManBuilder distro(List<String> names) {
 			if (names != null) {
-				vendorNames.addAll(names);
+				distroNames.addAll(names);
 			}
 			return this;
 		}
@@ -154,13 +154,13 @@ public class JavaUtil {
 				break;
 			case "jbang":
 				JBangJdkProvider p = new JBangJdkProvider();
-				String distro = Util.getVendor();
-				if (!vendorNames.isEmpty()) {
-					distro = String.join(",", vendorNames);
+				String distros = Util.getDistro();
+				if (!distroNames.isEmpty()) {
+					distros = String.join(",", distroNames);
 				}
 				if ("metadata".equals(installerName)) {
 					MetadataJdkInstaller installer = new MetadataJdkInstaller(p)
-						.distro(distro)
+						.distros(distros)
 						.remoteAccessProvider(new JBangRemoteAccessProvider());
 					p.installer(installer);
 				} else {
@@ -168,7 +168,7 @@ public class JavaUtil {
 						Util.warnMsg("Unknown JDK installer: " + providerName);
 					}
 					FoojayJdkInstaller installer = new FoojayJdkInstaller(p)
-						.distro(distro)
+						.distros(distros)
 						.remoteAccessProvider(new JBangRemoteAccessProvider());
 					p.installer(installer);
 				}
