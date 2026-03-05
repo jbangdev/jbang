@@ -14,6 +14,7 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.devkitman.JdkDistroQuery;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
 import dev.jbang.util.CommandBuffer;
@@ -164,6 +165,14 @@ class JdkList extends BaseJdkCommand {
 	boolean available;
 
 	@CommandLine.Option(names = {
+			"--providers", "-P" }, description = "Shows available providers")
+	boolean listProviders;
+
+	@CommandLine.Option(names = {
+			"--distros", "-D" }, description = "Shows distributions available for installation")
+	boolean listDistros;
+
+	@CommandLine.Option(names = {
 			"--show-details", "--details",
 			"-d" }, description = "Shows detailed information for each JDK (only when format=text)")
 	boolean details;
@@ -178,6 +187,31 @@ class JdkList extends BaseJdkCommand {
 		dev.jbang.devkitman.Jdk defaultJdk = jdkMan.getDefaultJdk();
 		String defVersion = defaultJdk != null ? defaultJdk.version() : "";
 		PrintStream out = System.out;
+
+		if (listProviders) {
+			List<JdkProvider> providers = new ArrayList<>(jdkMan.providers());
+			providers.sort(Comparator.comparing(JdkProvider::name));
+			if (format == FormatMixin.Format.json) {
+				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+				parser.toJson(providers, out);
+			} else {
+				out.println("Available JDK Providers:");
+				providers.forEach(p -> out.println("   " + p.name()));
+			}
+			return EXIT_OK;
+		} else if (listDistros) {
+			List<JdkDistroQuery.JdkDistro> distros = jdkMan.listDistros();
+			distros.sort(Comparator.comparing(JdkDistroQuery.JdkDistro::name));
+			if (format == FormatMixin.Format.json) {
+				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+				parser.toJson(distros, out);
+			} else {
+				out.println("Available JDK Distributions:");
+				distros.forEach(d -> out.println("   " + d.name()));
+			}
+			return EXIT_OK;
+		}
+
 		List<JdkOut> jdkOuts;
 		if (available) {
 			List<dev.jbang.devkitman.Jdk.AvailableJdk> jdks = jdkMan.listAvailableJdks();
