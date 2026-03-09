@@ -181,7 +181,12 @@ Beyond scripting, JBang can launch any Java application packaged as a JAR. Check
 
 == Documentation
 
-📖 **Full documentation:** https://jbang.dev/documentation
+📖 **User documentation:** https://jbang.dev/documentation
+
+📖 **Technical documentation:** https://deepwiki.com/jbangdev/jbang, AI generated from source code.
+
+
+
 
 Quick links:
 
