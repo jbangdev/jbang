@@ -23,7 +23,7 @@ plugins {
 
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
-def assertjVersion = '3.24.2'
+def assertjVersion = '3.27.7'
 def devkitmanVersion = '0.3.3'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
