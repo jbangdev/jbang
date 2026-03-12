@@ -21,10 +21,30 @@ Why use gradle resource locators rather than ?::
   kscript used it and it's nice as it is a one-liner and easily parsable.
 
 How does this compare to ?::
-After doing `jbang` I've learned about similar projects and thought it would be nice with some comparison;
-+
-https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
-+
+After releasing `jbang` in December 2019 I've learned about similar projects and others poppped up so thought it would be nice to have a list with some comparison. Below is a list in order when they were created.
+
+
+https://github.com/fizzed/blaze.git[blaze] (November, 2014): a tool for using JVM languages for scripting. It's goals are similar to early jbang but it's more opinionated on how to setup and run scripts. Provides useful libraries for scripting thus actually useable *from* JBang as well as a dependency and jbang can be used torun it: `jbang app install --name blaze com.fizzed:blaze-lite:RELEASE`
+
+https://github.com/kscripting/kscript[kscript] (March, 2016): provides scripting for Kotlin before Kotlin had support for it. Was the main inspiration/kickoff for JBang as: "Cool you can do this with Kotlin, but why can't I just use Java?".
+
+https://github.com/scijava/jgo[jgo] (March, 2017): an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
+
+https://github.com/com-lihaoyi/mill/[mill] (October, 2017): Object-oriented buil tool for the JVM. Has some scripting features similar to JBang but tied to be "inside" th project.
+
+https://github.com/rife2/bld[bld] (May, 2023): Build tool for Java using Java.
+
+https://github.com/sormuras/bach[bach] (March, 2018): Build tool for Modules based Java projects using Java.
+
+https://github.com/babashka/babashka[babashka] (August, 2019): A native Clojure interpreter for scripting with fast startup. Offers scripting features similar to JBang but with a focus on Clojure; not for running Java applications.
+
+https://github.com/codejive/java-jpm[jpm] (July, 2024): A simple command line tool, taking inspiration from Node's npm, to manage Maven dependencies for Java projects that are not using build systems like Maven or Gradle.
+
+https://github.com/jpm-hub[jpm] (August, 2025): npm inspired package/build tool for Java projects.
+
+https://github.com/AnharHussainMiah/grind[Grind] (Oct, 2025): Shares similar goals to JBang but instead of using Java it uses Go. This leave it at a disadvantage as have to re-implement alot of the dependency resolution instead of using Java.
+
+https://github.com/blazmrak/veles[Veles] (Oct, 2025): Java cli, at least on surface looks very similar to JBang but focus more on replacing build tool rather than general use as JBang. Only target Java 25+.
 
 Why is JBang scripting examples using lower case class names ?::
   JBang works with any valid Java class names including Java's standard camel case conventions. The scripting examples are using lower case because the scripts can be used as a command line tool. i.e. `./hello.java`. Just like people are used to Java using camel case for class names, they are also used to using lower case for command line tools. So JBang is just following the convention most relevant for the scripting use case. Thus `helloworld.java` instead of `HelloWorld.java`; but if you prefer the latter you can always use it.
