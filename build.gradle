@@ -26,7 +26,7 @@ def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
 def devkitmanVersion = '0.3.3'
 def junitBomVersion = '5.14.1'
-def testcontainersVersion = '2.0.2'
+def testcontainersVersion = '2.0.4'
 def jlineVersion = '3.30.5'
 def wiremockVersion = '3.13.2'
 
