@@ -2,7 +2,7 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.github.johnrengelman.shadow" version "8.0.0"
+	id "com.gradleup.shadow" version "8.3.9"
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
@@ -153,7 +153,7 @@ dependencies {
 	implementation "dev.jbang:devkitman:${devkitmanVersion}"
 
 	implementation 'org.jspecify:jspecify:1.0.0'
-	implementation 'org.apache.commons:commons-text:1.11.0'
+	implementation 'org.apache.commons:commons-text:1.15.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
 	implementation 'info.picocli:picocli:4.7.7'
 	annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
