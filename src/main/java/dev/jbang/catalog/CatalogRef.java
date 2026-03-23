@@ -14,10 +14,10 @@ import dev.jbang.util.Util;
 
 public class CatalogRef extends CatalogItem {
 	@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
-	public final String catalogRef;
-	public final String description;
+	public String catalogRef;
+	public String description;
 	@SerializedName(value = "import")
-	public final Boolean importItems;
+	public Boolean importItems;
 
 	CatalogRef(String catalogRef, String description, Boolean importItems, Catalog catalog) {
 		super(catalog);

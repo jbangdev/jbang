@@ -20,57 +20,57 @@ import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
-	public final String scriptRef;
-	public final String description;
-	public final List<String> arguments;
+	public String scriptRef;
+	public  String description;
+	public List<String> arguments;
 	@SerializedName(value = "runtime-options", alternate = { "java-options" })
-	public final List<String> runtimeOptions;
-	public final List<String> sources;
+	public List<String> runtimeOptions;
+	public List<String> sources;
 	@SerializedName(value = "files")
-	public final List<String> resources;
-	public final List<String> dependencies;
-	public final List<String> repositories;
-	public final List<String> classpaths;
-	public final Map<String, String> properties;
+	public List<String> resources;
+	public List<String> dependencies;
+	public List<String> repositories;
+	public List<String> classpaths;
+	public Map<String, String> properties;
 	@SerializedName(value = "java")
-	public final String javaVersion;
+	public String javaVersion;
 	@SerializedName(value = "main")
-	public final String mainClass;
+	public String mainClass;
 	@SerializedName(value = "module")
-	public final String moduleName;
+	public String moduleName;
 	@SerializedName(value = "compile-options")
-	public final List<String> compileOptions;
+	public List<String> compileOptions;
 	@SerializedName(value = "native-image")
-	public final Boolean nativeImage;
+	public Boolean nativeImage;
 	@SerializedName(value = "native-options")
-	public final List<String> nativeOptions;
+	public List<String> nativeOptions;
 	@SerializedName(value = "source-type")
-	public final String forceType;
-	public final Boolean integrations;
-	public final String jfr;
-	public final Map<String, String> debug;
-	public final Boolean cds;
-	public final Boolean interactive;
+	public String forceType;
+	public Boolean integrations;
+	public String jfr;
+	public Map<String, String> debug;
+	public Boolean cds;
+	public Boolean interactive;
 	@SerializedName(value = "enable-preview")
-	public final Boolean enablePreview;
+	public Boolean enablePreview;
 	@SerializedName(value = "enable-assertions")
-	public final Boolean enableAssertions;
+	public Boolean enableAssertions;
 	@SerializedName(value = "enable-system-assertions")
-	public final Boolean enableSystemAssertions;
+	public Boolean enableSystemAssertions;
 	@SerializedName(value = "manifest-options")
-	public final Map<String, String> manifestOptions;
+	public Map<String, String> manifestOptions;
 	@SerializedName(value = "java-agents")
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<JavaAgent> javaAgents;
+	public List<JavaAgent> javaAgents;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<String> docs;
+	public List<String> docs;
 
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
 		@NonNull
-		public final String agentRef;
+		public String agentRef;
 		@NonNull
-		public final String options;
+		public String options;
 
 		public JavaAgent() { // to make gson happy in native image
 			this(null, null);
