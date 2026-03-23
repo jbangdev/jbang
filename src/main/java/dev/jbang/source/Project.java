@@ -322,12 +322,36 @@ public class Project {
 		return CodeBuilderProvider.create(ctx).get();
 	}
 
+	/**
+	 * @return true if this project is backed by an executable archive (jar or war)
+	 * @deprecated Use isExecutableArchive() for clarity. Kept for backwards
+	 *             compatibility.
+	 */
+	@Deprecated
 	public boolean isJar() {
-		return Project.isJar(getResourceRef().getFile());
+		return isExecutableArchive();
+	}
+
+	public boolean isExecutableArchive() {
+		return Project.isExecutableArchive(getResourceRef().getFile());
+	}
+
+	static boolean isExecutableArchive(Path backingFile) {
+		return hasExecutableExtension(backingFile);
 	}
 
 	static boolean isJar(Path backingFile) {
 		return backingFile != null && backingFile.toString().endsWith(".jar");
+	}
+
+	/**
+	 * Checks if the given file has an executable archive extension (.jar or .war)
+	 *
+	 * @param backingFile the file to check
+	 * @return true if the file has a .jar or .war extension, false otherwise
+	 */
+	static boolean hasExecutableExtension(Path backingFile) {
+		return Util.hasExecutableExtension(backingFile);
 	}
 
 	public boolean isJShell() {

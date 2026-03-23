@@ -305,7 +305,7 @@ public class ProjectBuilder {
 		}
 
 		Project prj;
-		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
+		if (Project.hasExecutableExtension(resourceRef.getFile())) {
 			prj = createJarProject(resourceRef);
 		} else if (Util.isPreview()
 				&& resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {

@@ -82,6 +82,7 @@ import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
+import dev.jbang.util.WarTestFixtures;
 
 import picocli.CommandLine;
 
@@ -2661,6 +2662,34 @@ public class TestRun extends BaseTest {
 			if (Files.exists(p)) {
 				Files.delete(p);
 			}
+		}
+	}
+
+	@Test
+	void testRunLocalWarFile() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+
+		Path warPath = jbangTempDir.resolve("test-app.war");
+		try {
+			// Create executable WAR file
+			WarTestFixtures.createExecutableWar(warPath, "TestMain");
+			String war = warPath.toAbsolutePath().toString();
+
+			// Verify the WAR file can be run
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", war);
+			Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+			ProjectBuilder pb = run.createProjectBuilderForRun();
+			Project code = pb.build(war);
+
+			// The WAR file should be recognized as a JAR/executable
+			assertThat(code.getResourceRef().getFile().toString(), equalTo(war));
+			assertThat(code.isJar(), equalTo(true));
+
+			// Main class should be set from WAR manifest
+			assertThat(code.getMainClass(), equalTo("TestMain"));
+		} finally {
+			Files.deleteIfExists(warPath);
 		}
 	}
 }
