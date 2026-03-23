@@ -21,7 +21,7 @@ import dev.jbang.util.Util;
 public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
 	public String scriptRef;
-	public  String description;
+	public String description;
 	public List<String> arguments;
 	@SerializedName(value = "runtime-options", alternate = { "java-options" })
 	public List<String> runtimeOptions;
