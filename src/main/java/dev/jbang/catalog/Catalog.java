@@ -61,7 +61,7 @@ public class Catalog {
 
 	static final String JBANG_CATALOG_REPO = "jbang-catalog";
 
-	// HEAD at least on GitHub gives you latest commit on default branch
+	// HEAD at least on github gives you latest commit on default branch
 	static final String DEFAULT_REF = "HEAD";
 
 	private static final String CACHE_BUILTIN = ":::BUILTIN:::";
@@ -74,8 +74,8 @@ public class Catalog {
 	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
-	public String baseRef;
-	public String description;
+	public final String baseRef;
+	public final String description;
 	public transient ResourceRef catalogRef;
 
 	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, CatalogRef> catalogs,

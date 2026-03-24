@@ -12,9 +12,9 @@ import dev.jbang.util.Util;
 
 public class Template extends CatalogItem {
 	@SerializedName(value = "file-refs")
-	public Map<String, String> fileRefs;
-	public String description;
-	public Map<String, TemplateProperty> properties;
+	public final Map<String, String> fileRefs;
+	public final String description;
+	public final Map<String, TemplateProperty> properties;
 
 	public Template(Map<String, String> fileRefs, String description, Map<String, TemplateProperty> properties,
 			Catalog catalog) {
