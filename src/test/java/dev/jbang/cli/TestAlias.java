@@ -564,4 +564,56 @@ public class TestAlias extends BaseTest {
 
 	}
 
+	@Test
+	void testParseVersionedAlias() throws IOException {
+		clearSettingsCaches();
+		// Use existing "one" alias from standard catalog
+		Alias alias = Alias.get("one:2.0.0");
+
+		assertThat(alias, notNullValue());
+		assertThat(alias.requestedVersion, equalTo("2.0.0"));
+		assertThat(alias.scriptRef, equalTo("http://dummy"));
+	}
+
+	@Test
+	void testParseVersionedAliasFromCatalog() throws IOException {
+		String catalog = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"test\": {\n" +
+				"      \"script-ref\": \"com.example:artifact:1.0.0\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), catalog.getBytes());
+		clearSettingsCaches();
+		Catalog cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
+
+		Alias alias = Alias.get(cat, "test:2.0.0");
+
+		assertThat(alias, notNullValue());
+		assertThat(alias.requestedVersion, equalTo("2.0.0"));
+	}
+
+	@Test
+	void testGavNotParsedAsVersionedAlias() {
+		Alias alias = Alias.get("io.quarkus:artifact:1.0.0@jar");
+		assertThat(alias, nullValue());
+	}
+
+	@Test
+	void testEmptyVersionThrowsError() {
+		Exception exception = assertThrows(RuntimeException.class, () -> {
+			Alias.get("test:@catalog");
+		});
+		assertThat(exception.getMessage(), containsString("Invalid alias syntax"));
+	}
+
+	@Test
+	void testEmptyAliasNameThrowsError() {
+		Exception exception = assertThrows(RuntimeException.class, () -> {
+			Alias.get(":1.0@catalog");
+		});
+		assertThat(exception.getMessage(), containsString("Invalid alias"));
+	}
+
 }
