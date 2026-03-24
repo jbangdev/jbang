@@ -303,6 +303,7 @@ jar {
 	manifest {
 		attributes(
 			'Main-Class': 'dev.jbang.Main',
+			'Enable-Final-Field-Mutation': 'ALL-UNNAMED',
 			'JBang-Version': project.version
 		)
 	}
