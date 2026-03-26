@@ -115,7 +115,7 @@ public class TestRun extends BaseTest {
 
 		String result = Project.codeBuilder(ctx).build().build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+.helloworld\\.jar.*"));
@@ -146,7 +146,7 @@ public class TestRun extends BaseTest {
 		pb.catalog(cat.toFile());
 		String result = run.updateGeneratorForRun(pb.build("helloworld").codeBuilder().build()).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
@@ -181,7 +181,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString(arg));
 		assertThat(result.split(Pattern.quote(arg), -1).length, equalTo(2));
@@ -208,7 +208,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(result,
 				matchesPattern(
-						"^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
+						"^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
 		assertThat(result, containsString("eclipse-collections-api"));
 	}
 
@@ -227,7 +227,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)?.*$"));
 		assertThat(result, containsString("firstarg"));
 	}
 
@@ -242,7 +242,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -262,7 +262,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -285,7 +285,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -304,7 +304,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("empty.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -326,7 +326,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("hellojsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -351,7 +351,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)?.*"));
 		assertThat(code.getMainClass(), not(nullValue()));
 
 		assertThat(result, containsString("picocli-4.6.3.jar"));
@@ -428,7 +428,7 @@ public class TestRun extends BaseTest {
 				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.*"));
 		assertThat(code.getMainClass(), nullValue());
 
 		assertThat(code.isJar(), equalTo(true));
@@ -610,7 +610,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)? .*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -633,7 +633,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, containsString("funcs.jsh"));
 		assertThat(result, containsString("main.jsh"));
 		assertThat(result, containsString("--startup=DEFAULT"));
@@ -653,7 +653,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 //		assertThat(result, containsString(" --source 11 "));
@@ -674,7 +674,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=4004"));
@@ -694,7 +694,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"));
@@ -716,7 +716,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("classpath_example.java"));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -737,7 +737,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)? .*$"));
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -767,7 +767,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("-Dwonka=panda"));
 		if (Util.isWindows()) {
 			assertThat(result, containsString("^\"-Dquoted=see^ this^\""));
@@ -2297,7 +2297,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
@@ -2343,7 +2343,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
