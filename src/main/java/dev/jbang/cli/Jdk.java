@@ -37,11 +37,8 @@ public class Jdk {
 
 abstract class BaseJdkCommand extends BaseCommand {
 
-	@CommandLine.Mixin
-	JdkProvidersMixin jdkProvidersMixin;
-
 	protected JdkManager getJdkManager() {
-		return jdkProvidersMixin.getJdkManager();
+		return ((Jdk) spec.parent().userObject()).jdkProvidersMixin.getJdkManager();
 	}
 
 	static class JdkOut implements Comparable<JdkOut> {
