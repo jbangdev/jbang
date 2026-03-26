@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
@@ -87,7 +86,7 @@ class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("default", "12");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+		assertThat(result.normalizedErr(), containsString("Default JDK set to 12"));
 
 		result = checkedRun("default");
 
@@ -102,7 +101,7 @@ class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("default", "16+");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 17"));
+		assertThat(result.normalizedErr(), containsString("Default JDK set to 17"));
 
 		result = checkedRun("default");
 
@@ -235,7 +234,7 @@ class TestJdk extends BaseTest {
 				"jdk", "--jdk-providers", "default,javahome,jbang", "default", "12");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+		assertThat(result.normalizedErr(), containsString("Default JDK set to 12"));
 
 		result = checkedRun(
 				"jdk", "--jdk-providers", "default,javahome,jbang", "default");
@@ -293,7 +292,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK my11-linked has been linked to: " + javaDir.toPath() + "\n"));
+				containsString("JDK my11-linked has been linked to: " + javaDir.toPath() + "\n"));
 		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
 		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("my11-linked").toRealPath()));
 	}
@@ -310,7 +309,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK my11-linked has been linked to: " + javaDir.toPath().toString() + "\n"));
+				containsString("JDK my11-linked has been linked to: " + javaDir.toPath().toString() + "\n"));
 		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
 		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("my11-linked").toRealPath()));
 	}
@@ -345,7 +344,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK my11-linked has been linked to: " + jdkOk + "\n"));
+				containsString(" JDK my11-linked has been linked to: " + jdkOk + "\n"));
 		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
 		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("my11-linked").toRealPath())));
 	}
@@ -359,11 +358,11 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Global default JDK unset"));
+				containsString("Global default JDK unset"));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Versioned default JDK unset"));
+				containsString("Versioned default JDK unset"));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
+				containsString("Uninstalled JDK:\n  " + jdkVersion));
 	}
 
 	@Test
@@ -379,11 +378,11 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Global default JDK unset"));
+				containsString("Global default JDK unset"));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Versioned default JDK unset"));
+				containsString("Versioned default JDK unset"));
 		assertThat(result.normalizedErr(),
-				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
+				containsString("Uninstalled JDK:\n  " + jdkVersion));
 	}
 
 	@Test

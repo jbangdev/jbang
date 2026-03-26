@@ -9,27 +9,17 @@ import dev.jbang.util.JavaUtil;
 import picocli.CommandLine;
 
 public class JdkProvidersMixin {
-	protected static List<String> jdkProviders;
-	protected static List<String> jdkDistros;
-	protected static String jdkInstaller;
+	@CommandLine.Option(names = {
+			"--jdk-providers" }, description = "Use the given providers to manage JDKs", split = ",", scope = CommandLine.ScopeType.INHERIT)
+	List<String> jdkProviders;
 
 	@CommandLine.Option(names = {
-			"--jdk-providers" }, description = "Use the given providers to manage JDKs", split = ",")
-	void setJdkProviders(List<String> jdkProviders) {
-		JdkProvidersMixin.jdkProviders = jdkProviders;
-	}
+			"--jdk-distros" }, description = "Use the given distributions to install new JDKs", split = ",", scope = CommandLine.ScopeType.INHERIT)
+	List<String> jdkDistros;
 
 	@CommandLine.Option(names = {
-			"--jdk-distros" }, description = "Use the given distributions to install new JDKs", split = ",")
-	void setJdkVendors(List<String> jdkDistros) {
-		JdkProvidersMixin.jdkDistros = jdkDistros;
-	}
-
-	@CommandLine.Option(names = {
-			"--jdk-installer" }, description = "Use the given installer to install new JDKs", hidden = true)
-	void setJdkInstaller(String jdkInstaller) {
-		JdkProvidersMixin.jdkInstaller = jdkInstaller;
-	}
+			"--jdk-installer" }, description = "Use the given installer to install new JDKs", hidden = true, scope = CommandLine.ScopeType.INHERIT)
+	String jdkInstaller;
 
 	protected JdkManager jdkMan;
 

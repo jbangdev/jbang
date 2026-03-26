@@ -23,6 +23,11 @@ public class Main {
 			// Ignore
 		}
 
+		Util.setVerbose(false);
+		Util.setQuiet(false);
+		Util.setOffline(false);
+		Util.setFresh(false);
+		Util.setPreview(false);
 		CommandLine cli = JBang.getCommandLine();
 		String[] new_args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(new_args);
