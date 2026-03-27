@@ -444,14 +444,11 @@ public class ProjectBuilder {
 					// TODO: this does mean we can't separate from user specified options and jar
 					// origined ones, but not sure if needed?
 					// https://openjdk.org/jeps/261#Breaking-encapsulation
-					String exports = attrs.getValue("Add-Exports");
-					if (exports != null) {
-						prj.getManifestAttributes().put("Add-Exports", exports);
-					}
-					String opens = attrs.getValue("Add-Opens");
-					if (opens != null) {
-						prj.getManifestAttributes().put("Add-Opens", exports);
-					}
+					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_EXPORTS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_OPENS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_ENABLE_NATIVE_ACCESS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_READS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_SPLASH_SCREEN_IMAGE);
 
 				}
 

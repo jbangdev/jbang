@@ -54,6 +54,11 @@ public class Project {
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
+	public static final String ATTR_ADD_EXPORTS = "Add-Exports";
+	public static final String ATTR_ADD_OPENS = "Add-Opens";
+	public static final String ATTR_ENABLE_NATIVE_ACCESS = "Enable-Native-Access";
+	public static final String ATTR_ADD_READS = "Add-Reads";
+	public static final String ATTR_SPLASH_SCREEN_IMAGE = "SplashScreen-Image";
 
 	public enum BuildFile {
 		jbang("build.jbang");

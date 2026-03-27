@@ -18,7 +18,7 @@ public class KeyValue {
 	}
 
 	public static KeyValue of(String line) {
-		String[] split = line.split("=");
+		String[] split = line.split("=", 2);
 		String key;
 		String value = null;
 

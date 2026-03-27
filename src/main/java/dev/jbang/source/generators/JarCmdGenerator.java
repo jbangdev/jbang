@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,6 +86,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		super(ctx);
 	}
 
+	private boolean isRunAsModule() {
+		return moduleName != null && ctx.getProject().getModuleName().isPresent();
+	}
+
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
@@ -97,19 +102,31 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		Jdk jdk = project.projectJdk();
 		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
-		if (jdk.majorVersion() > 9) {
-			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
-			if (opens != null) {
-				for (String val : opens.split(" ")) {
-					optionalArgs.add("--add-opens=" + val + "=ALL-UNNAMED");
+		// Handle splash screen - extract image from jar and pass -splash:path
+		String splashImage = project.getManifestAttributes().get(Project.ATTR_SPLASH_SCREEN_IMAGE);
+		if (splashImage != null) {
+			Path jarPath = ctx.getJarFile();
+			if (jarPath != null && Files.exists(jarPath)) {
+				Path splashPath = extractSplashImage(jarPath, splashImage);
+				if (splashPath != null) {
+					optionalArgs.add("-splash:" + splashPath.toAbsolutePath());
 				}
 			}
+		}
 
-			String exports = ctx.getProject().getManifestAttributes().get("Add-Exports");
-			if (exports != null) {
-				for (String val : exports.split(" ")) {
-					optionalArgs.add("--add-exports=" + val + "=ALL-UNNAMED");
-				}
+		if (!isRunAsModule() && jdk.majorVersion() >= 9) {
+			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_OPENS),
+					"--add-opens=");
+			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_EXPORTS),
+					"--add-exports=");
+
+			// Add-Reads: module1=module2 module3=module4 → --add-reads=module1=module2
+			// --add-reads=module3=module4
+			String addReads = project.getManifestAttributes().get(Project.ATTR_ADD_READS);
+			if (addReads != null) {
+				Arrays.stream(addReads.trim().split("\\s+"))
+					.filter(val -> !val.isEmpty())
+					.forEach(val -> optionalArgs.add("--add-reads=" + val));
 			}
 		}
 
@@ -197,7 +214,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
-			if (moduleName != null && project.getModuleName().isPresent()) {
+			if (isRunAsModule()) {
 				optionalArgs.addAll(Arrays.asList("-p", classpath));
 			} else {
 				optionalArgs.addAll(Arrays.asList("-classpath", classpath));
@@ -230,7 +247,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
 		if (main != null && !Glob.isGlob(main)) {
-			if (moduleName != null && project.getModuleName().isPresent()) {
+			if (isRunAsModule()) {
 				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
 				fullArgs.add("-m");
 				fullArgs.add(modName + "/" + main);
@@ -314,6 +331,45 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
 		properties.forEach((k, e) -> result.add(def + k + "=" + e));
+	}
+
+	/**
+	 * Extract splash screen image from jar to cache directory for use with -splash
+	 * flag.
+	 *
+	 * @param jarPath   Path to the jar file
+	 * @param imagePath Path to image inside jar (from manifest SplashScreen-Image
+	 *                  attribute)
+	 * @return Path to extracted image, or null if extraction failed
+	 */
+	private static Path extractSplashImage(Path jarPath, String imagePath) {
+		try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarPath.toFile())) {
+			java.util.jar.JarEntry entry = jar.getJarEntry(imagePath);
+			if (entry == null) {
+				Util.warnMsg("Splash screen image not found in jar: " + imagePath);
+				return null;
+			}
+
+			// Extract to jar's directory with unique name
+			String jarName = jarPath.getFileName().toString();
+			int extIndex = imagePath.lastIndexOf('.');
+			String imageExt = (extIndex > 0) ? imagePath.substring(extIndex) : "";
+			Path targetPath = jarPath.getParent().resolve(jarName + ".splash" + imageExt);
+
+			// Extract if not cached or jar is newer
+			if (!Files.exists(targetPath) ||
+					Files.getLastModifiedTime(jarPath).compareTo(Files.getLastModifiedTime(targetPath)) > 0) {
+				try (InputStream is = jar.getInputStream(entry)) {
+					Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
+				}
+				Util.verboseMsg("Extracted splash screen to: " + targetPath);
+			}
+
+			return targetPath;
+		} catch (IOException e) {
+			Util.warnMsg("Failed to extract splash screen: " + e.getMessage());
+			return null;
+		}
 	}
 
 }
