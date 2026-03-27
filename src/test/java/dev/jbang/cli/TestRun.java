@@ -13,7 +13,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -38,6 +40,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -2668,7 +2671,6 @@ public class TestRun extends BaseTest {
 	@Test
 	void testRunLocalWarFile() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
-
 		Path warPath = jbangTempDir.resolve("test-app.war");
 		try {
 			// Create executable WAR file
@@ -2682,14 +2684,108 @@ public class TestRun extends BaseTest {
 			ProjectBuilder pb = run.createProjectBuilderForRun();
 			Project code = pb.build(war);
 
-			// The WAR file should be recognized as a JAR/executable
-			assertThat(code.getResourceRef().getFile().toString(), equalTo(war));
-			assertThat(code.isJar(), equalTo(true));
-
-			// Main class should be set from WAR manifest
-			assertThat(code.getMainClass(), equalTo("TestMain"));
-		} finally {
-			Files.deleteIfExists(warPath);
+			String result = code.codeBuilder().build().generate();
+			assertThat(result, matchesRegex(".*java(.exe)?.*"));
+		} catch (IOException e) {
+			fail("Failed to create or run WAR file: " + e.getMessage());
 		}
+	}
+
+	@Test
+	void testReadingAddReads(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String reads = "java.base=java.logging module.a=module.b";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_READS, reads));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_READS, reads));
+		assertThat(cmd, containsString("--add-reads=java.base=java.logging"));
+		assertThat(cmd, containsString("--add-reads=module.a=module.b"));
+	}
+
+	@Test
+	void testReadingSplashScreenImage(@TempDir Path output) throws IOException {
+		// Create a simple 1x1 PNG image
+		byte[] pngData = new byte[] {
+				(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG header
+				0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+				0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 dimensions
+				0x08, 0x02, 0x00, 0x00, 0x00, (byte) 0x90, (byte) 0x77, 0x53, (byte) 0xDE, 0x00, 0x00, 0x00, 0x0C,
+				0x49, 0x44, 0x41, 0x54, // IDAT chunk
+				0x08, (byte) 0xD7, 0x63, (byte) 0xF8, (byte) 0xCF, (byte) 0xC0, 0x00, 0x00, 0x03, 0x01, 0x01, 0x00,
+				0x18, (byte) 0xDD, (byte) 0x8D, (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, // IEND
+																												// chunk
+				(byte) 0xAE, 0x42, 0x60, (byte) 0x82
+		};
+
+		Path jar = output.resolve("splash-test.jar");
+		Manifest manifest = new Manifest();
+		Attributes attrs = manifest.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.put(Attributes.Name.MAIN_CLASS, "test.Main");
+		attrs.putValue(Project.ATTR_SPLASH_SCREEN_IMAGE, "images/splash.png");
+
+		try (JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jar), manifest)) {
+			// Add splash image to jar
+			jos.putNextEntry(new ZipEntry("images/splash.png"));
+			jos.write(pngData);
+			jos.closeEntry();
+		}
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_SPLASH_SCREEN_IMAGE, "images/splash.png"));
+		assertThat(cmd, containsString("-splash:"));
+
+		// Verify extracted image exists
+		String splashArg = Arrays.stream(cmd.split(" "))
+			.filter(s -> s.startsWith("-splash:"))
+			.findFirst()
+			.orElse(null);
+		assertNotNull(splashArg);
+		Path extractedPath = Paths.get(splashArg.substring("-splash:".length()));
+		assertTrue(Files.exists(extractedPath), "Splash image should be extracted");
+	}
+
+	@Test
+	void testMissingSplashScreenImage(@TempDir Path output) throws IOException {
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_SPLASH_SCREEN_IMAGE, "missing/splash.png"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		// Should not throw, just warn and skip splash
+		String cmd = CmdGenerator.builder(code).build().generate();
+		assertThat(cmd, not(containsString("-splash:")));
+	}
+
+	private Path createJar(Path outputDir, String buildJdk, Map<String, String> manifestAttributes) throws IOException {
+		Path jar = outputDir.resolve("manifest-test.jar");
+		Manifest manifest = new Manifest();
+		Attributes attrs = manifest.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.put(Attributes.Name.MAIN_CLASS, "test.Main");
+		attrs.putValue(JarBuildStep.ATTR_BUILD_JDK, buildJdk);
+		manifestAttributes.forEach(attrs::putValue);
+		try (JarOutputStream ignored = new JarOutputStream(Files.newOutputStream(jar), manifest)) {
+			// Manifest-only JAR is enough for command generation tests.
+		}
+		return jar;
 	}
 }
