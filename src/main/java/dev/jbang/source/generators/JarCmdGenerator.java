@@ -343,17 +343,36 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 	 * @return Path to extracted image, or null if extraction failed
 	 */
 	private static Path extractSplashImage(Path jarPath, String imagePath) {
+		// Validate image path for security
+		if (imagePath == null || imagePath.trim().isEmpty()) {
+			Util.warnMsg("Splash screen image path is empty");
+			return null;
+		}
+
+		// Normalize and validate path to prevent directory traversal attacks
+		String normalizedPath = imagePath.replace('\\', '/');
+		if (normalizedPath.startsWith("/") || normalizedPath.contains("../") || normalizedPath.contains("..\\")) {
+			Util.warnMsg("Invalid splash screen image path (absolute or contains '..'): " + imagePath);
+			return null;
+		}
+
 		try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarPath.toFile())) {
-			java.util.jar.JarEntry entry = jar.getJarEntry(imagePath);
+			java.util.jar.JarEntry entry = jar.getJarEntry(normalizedPath);
 			if (entry == null) {
 				Util.warnMsg("Splash screen image not found in jar: " + imagePath);
 				return null;
 			}
 
+			// Reject directory entries
+			if (entry.isDirectory()) {
+				Util.warnMsg("Splash screen image path is a directory: " + imagePath);
+				return null;
+			}
+
 			// Extract to jar's directory with unique name
 			String jarName = jarPath.getFileName().toString();
-			int extIndex = imagePath.lastIndexOf('.');
-			String imageExt = (extIndex > 0) ? imagePath.substring(extIndex) : "";
+			int extIndex = normalizedPath.lastIndexOf('.');
+			String imageExt = (extIndex > 0) ? normalizedPath.substring(extIndex) : "";
 			Path targetPath = jarPath.getParent().resolve(jarName + ".splash" + imageExt);
 
 			// Extract if not cached or jar is newer

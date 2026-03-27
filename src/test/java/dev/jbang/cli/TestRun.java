@@ -2775,6 +2775,153 @@ public class TestRun extends BaseTest {
 		assertThat(cmd, not(containsString("-splash:")));
 	}
 
+	@Test
+	void testSplashScreenPathTraversal(@TempDir Path output) throws IOException {
+		// Test path traversal attack prevention
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_SPLASH_SCREEN_IMAGE, "../../../etc/passwd"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		// Should reject the path and not include -splash flag
+		String cmd = CmdGenerator.builder(code).build().generate();
+		assertThat(cmd, not(containsString("-splash:")));
+	}
+
+	@Test
+	void testSplashScreenAbsolutePath(@TempDir Path output) throws IOException {
+		// Test absolute path rejection
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_SPLASH_SCREEN_IMAGE, "/tmp/splash.png"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		// Should reject absolute paths
+		String cmd = CmdGenerator.builder(code).build().generate();
+		assertThat(cmd, not(containsString("-splash:")));
+	}
+
+	@Test
+	void testSplashScreenEmptyPath(@TempDir Path output) throws IOException {
+		// Test empty path handling
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_SPLASH_SCREEN_IMAGE, ""));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		// Should handle empty path gracefully
+		String cmd = CmdGenerator.builder(code).build().generate();
+		assertThat(cmd, not(containsString("-splash:")));
+	}
+
+	@Test
+	void testSplashScreenCaching(@TempDir Path output) throws IOException, InterruptedException {
+		// Create a simple 1x1 PNG image
+		byte[] pngData = new byte[] {
+				(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG header
+				0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+				0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 dimensions
+				0x08, 0x02, 0x00, 0x00, 0x00, (byte) 0x90, (byte) 0x77, 0x53, (byte) 0xDE, 0x00, 0x00, 0x00, 0x0C,
+				0x49, 0x44, 0x41, 0x54, // IDAT chunk
+				0x08, (byte) 0xD7, 0x63, (byte) 0xF8, (byte) 0xCF, (byte) 0xC0, 0x00, 0x00, 0x03, 0x01, 0x01, 0x00,
+				0x18, (byte) 0xDD, (byte) 0x8D, (byte) 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,
+				(byte) 0xAE, 0x42, 0x60, (byte) 0x82
+		};
+
+		Path jar = output.resolve("cache-test.jar");
+		Manifest manifest = new Manifest();
+		Attributes attrs = manifest.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.put(Attributes.Name.MAIN_CLASS, "test.Main");
+		attrs.putValue(Project.ATTR_SPLASH_SCREEN_IMAGE, "splash.png");
+
+		try (JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jar), manifest)) {
+			jos.putNextEntry(new ZipEntry("splash.png"));
+			jos.write(pngData);
+			jos.closeEntry();
+		}
+
+		// First run - extract splash
+		CommandLine.ParseResult pr1 = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run1 = (Run) pr1.subcommand().commandSpec().userObject();
+		ProjectBuilder pb1 = run1.createProjectBuilderForRun();
+		Project code1 = pb1.build(jar.toString());
+		String cmd1 = CmdGenerator.builder(code1).build().generate();
+
+		assertThat(cmd1, containsString("-splash:"));
+		String splashArg1 = Arrays.stream(cmd1.split(" "))
+			.filter(s -> s.startsWith("-splash:"))
+			.findFirst()
+			.orElse(null);
+		assertNotNull(splashArg1);
+		Path extractedPath = Paths.get(splashArg1.substring("-splash:".length()));
+		assertTrue(Files.exists(extractedPath), "Splash image should be extracted");
+
+		// Get the timestamp of the extracted file
+		java.nio.file.attribute.FileTime firstTimestamp = Files.getLastModifiedTime(extractedPath);
+
+		// Wait a bit to ensure different timestamp if re-extracted
+		Thread.sleep(1500);
+
+		// Second run - should use cached splash (no re-extraction)
+		CommandLine.ParseResult pr2 = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run2 = (Run) pr2.subcommand().commandSpec().userObject();
+		ProjectBuilder pb2 = run2.createProjectBuilderForRun();
+		Project code2 = pb2.build(jar.toString());
+		String cmd2 = CmdGenerator.builder(code2).build().generate();
+
+		java.nio.file.attribute.FileTime secondTimestamp = Files.getLastModifiedTime(extractedPath);
+		assertEquals(firstTimestamp, secondTimestamp,
+				"Splash should not be re-extracted if jar hasn't changed");
+
+		// Update jar timestamp to force re-extraction
+		Files.setLastModifiedTime(jar,
+				java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() + 10000));
+
+		// Third run - should re-extract splash
+		CommandLine.ParseResult pr3 = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run3 = (Run) pr3.subcommand().commandSpec().userObject();
+		ProjectBuilder pb3 = run3.createProjectBuilderForRun();
+		Project code3 = pb3.build(jar.toString());
+		String cmd3 = CmdGenerator.builder(code3).build().generate();
+
+		java.nio.file.attribute.FileTime thirdTimestamp = Files.getLastModifiedTime(extractedPath);
+		assertTrue(thirdTimestamp.compareTo(secondTimestamp) > 0,
+				"Splash should be re-extracted when jar is newer");
+	}
+
+	@Test
+	void testAddReadsMalformed(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		// Test with spaces in Add-Reads - should generate multiple flags
+		String reads = "java.base=java.logging   module.a=module.b";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_READS, reads));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should handle extra whitespace gracefully
+		assertThat(cmd, containsString("--add-reads=java.base=java.logging"));
+		assertThat(cmd, containsString("--add-reads=module.a=module.b"));
+	}
+
 	private Path createJar(Path outputDir, String buildJdk, Map<String, String> manifestAttributes) throws IOException {
 		Path jar = outputDir.resolve("manifest-test.jar");
 		Manifest manifest = new Manifest();
