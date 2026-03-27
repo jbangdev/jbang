@@ -35,10 +35,17 @@ class Combobox<T> {
 		this.itemRenderer = (t) -> new AttributedString(t.toString());
 		this.qb = new StringBuilder(initialQuery);
 
-		// Define key bindings
+		// Define key bindings using platform-specific sequences from terminal capabilities
 		keys.setNomatch("nomatch"); // Any printable char
-		handle("up", "\033[A", this::selectionUp); // Arrow up
-		handle("down", "\033[B", this::selectionDown); // Arrow down
+
+		// Use KeyMap.key() to get platform-specific escape sequences for arrow keys
+		// This fixes Windows terminal compatibility (issue #2403, #2348)
+		String keyUp = KeyMap.key(terminal, Capability.key_up);
+		String keyDown = KeyMap.key(terminal, Capability.key_down);
+
+		// Fallback to standard ANSI sequences if terminal doesn't provide capabilities
+		handle("up", keyUp != null ? keyUp : "\033[A", this::selectionUp);
+		handle("down", keyDown != null ? keyDown : "\033[B", this::selectionDown);
 		handle("backspace", "\177", this::delete);
 		handle("enter", "\r", this::select);
 		handle("nomatch", "\u0003", this::update); // Ctrl-C

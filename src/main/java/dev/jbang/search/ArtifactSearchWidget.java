@@ -317,7 +317,11 @@ public class ArtifactSearchWidget {
 			}
 		});
 
-		artifactCombobox.handle("next_phase", "\u001b[C", (g) -> {
+		// Use platform-specific arrow key sequences (fixes Windows compatibility #2403, #2348)
+		String keyRight = org.jline.keymap.KeyMap.key(terminal, Capability.key_right);
+		String keyLeft = org.jline.keymap.KeyMap.key(terminal, Capability.key_left);
+
+		artifactCombobox.handle("next_phase", keyRight != null ? keyRight : "\u001b[C", (g) -> {
 			if (g.matches().size() == 0) {
 				return Collections.<Combobox.ComboboxAction>emptyList();
 			}
@@ -332,7 +336,7 @@ public class ArtifactSearchWidget {
 			return actions;
 		});
 
-		artifactCombobox.handle("previous_phase", "\u001b[D", (g) -> {
+		artifactCombobox.handle("previous_phase", keyLeft != null ? keyLeft : "\u001b[D", (g) -> {
 
 			Fuzz.SearchFuzzedResult<Artifact> selected = g.matches().get(g.selectedIndex());
 
