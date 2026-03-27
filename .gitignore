@@ -25,4 +25,3 @@ allure-results
 .DS_Store
 .env
 assets/
-.worktrees/
