@@ -334,7 +334,7 @@ public class ModularApp {
 
 === //MANIFEST
 
-Let you specify the manifest file key-values in the generated jar file xref:running.adoc#adding-entries-to-manifest-mf[].
+Let you specify the manifest file key-values in the generated jar file. See xref:running.adoc#adding-entries-to-manifest-mf[] for full details.
 
 **Syntax**: `//MANIFEST key=value key2=value2 ...`
 
@@ -347,6 +347,17 @@ Let you specify the manifest file key-values in the generated jar file xref:runn
 // Version information
 //MANIFEST Implementation-Version=1.0.0 Implementation-Vendor=MyCompany
 
+// Module system flags (Java 9+)
+//MANIFEST Add-Opens=java.base/java.lang
+//MANIFEST Add-Exports=java.base/sun.nio.ch
+//MANIFEST Add-Reads=java.base=java.logging
+
+// Native access (Java 22+)
+//MANIFEST Enable-Native-Access=ALL-UNNAMED
+
+// Splash screen for GUI apps
+//MANIFEST SplashScreen-Image=images/splash.png
+
 // Boolean flag (no value = true)
 //MANIFEST Custom-Flag Multi-Release
 ----
@@ -355,6 +366,8 @@ Let you specify the manifest file key-values in the generated jar file xref:runn
 
 - Entries without `=value` default to `true`
 - Useful for application metadata
+- Special attributes like `Add-Opens`, `Add-Exports`, `Add-Reads`, `Enable-Native-Access`, and `SplashScreen-Image` are automatically processed by jbang and converted to appropriate JVM flags
+- Values can contain `=` signs (e.g., `Add-Reads=mod1=mod2`)
 
 == Performance Optimization
 

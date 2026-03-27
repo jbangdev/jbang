@@ -183,6 +183,61 @@ If an item has no equals sign and no value than the value is taken to be the str
 //MANIFEST Built-By=Shadowman Sealed
 ----
 
+=== Standard Manifest Attributes
+
+JBang automatically processes certain standard JAR manifest attributes and translates them into appropriate JVM flags when running your code. This allows jars to work correctly even though jbang runs them using classpath mode instead of `-jar` mode.
+
+==== Module System Attributes (Java 9+)
+
+When your jar requires module system flags, jbang will read these from the manifest and apply them automatically:
+
+[source, java]
+----
+//MANIFEST Add-Opens=java.base/java.lang java.base/java.nio
+//MANIFEST Add-Exports=java.base/sun.nio.ch
+//MANIFEST Add-Reads=java.base=java.logging
+----
+
+These translate to JVM flags:
+- `Add-Opens` → `--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED`
+- `Add-Exports` → `--add-exports=java.base/sun.nio.ch=ALL-UNNAMED`
+- `Add-Reads` → `--add-reads=java.base=java.logging`
+
+NOTE: Module attributes are only applied when running on Java 9 or later and when not running as a module.
+
+==== Native Access (Java 22+)
+
+For code using the Foreign Function & Memory API:
+
+[source, java]
+----
+//MANIFEST Enable-Native-Access=ALL-UNNAMED
+----
+
+This translates to: `--enable-native-access=ALL-UNNAMED`
+
+==== Splash Screen
+
+For GUI applications with splash screens:
+
+[source, java]
+----
+//MANIFEST SplashScreen-Image=images/splash.png
+----
+
+JBang will extract the image from your jar and pass it via the `-splash` flag. The image is cached to avoid re-extraction on subsequent runs.
+
+==== Using in Plain JARs
+
+These manifest attributes also work when running plain jar files with jbang:
+
+[source, bash]
+----
+$ jbang run myapp.jar
+----
+
+If `myapp.jar` contains `Add-Opens` or other supported attributes in its manifest, jbang will automatically apply them.
+
 
 === (Experimental) Application Class Data Sharing
 
