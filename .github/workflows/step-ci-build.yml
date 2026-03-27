@@ -292,7 +292,7 @@ jobs:
 
   test-results-summary:
     if: always() && !inputs.skip_tests
-    needs: [unit-test-jvm, integration-test-jvm, build-test-native-image, merge-test-reports]
+    needs: [merge-test-reports]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -301,44 +301,46 @@ jobs:
       - name: Create test results summary
         run: |
           SHA_PREFIX="${{ steps.shared-build.outputs.github-short-sha }}"
+          REPO="${{ github.repository }}"
+          RUN="${{ github.run_id }}.${{ github.run_attempt}}"
           cat >> $GITHUB_STEP_SUMMARY <<EOF
           # 🧪 Test Results Summary
 
           ## 📊 Combined Reports (All Tests Merged)
 
-          - **[View Merged Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-merged-allurereport-allure-report/build/reports/allure-report/allureReport/index.html)** - All unit and integration tests across all platforms
+          - **Merged Allure Report**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-merged-allurereport-allure-report) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-merged-allurereport-allure-report/index.html) - All unit and integration tests across all platforms
 
           ## 🖥️ Unit Test Reports (by Platform)
 
-          - [Ubuntu Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-unit-test-jvm-allure-report-ubuntu-latest/build/reports/allure-report/allureReport/index.html)
-          - [macOS Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-unit-test-jvm-allure-report-macos-latest/build/reports/allure-report/allureReport/index.html)
-          - [Windows Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-unit-test-jvm-allure-report-windows-latest/build/reports/allure-report/allureReport/index.html)
+          - **Ubuntu Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-ubuntu-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-ubuntu-latest/index.html)
+          - **macOS Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-macos-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-macos-latest/index.html)
+          - **Windows Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-windows-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-unit-test-jvm-allure-report-windows-latest/index.html)
 
           ## 🔧 Integration Test Reports (by Platform)
 
           ### Ubuntu
-          - [Java 8](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-8/build/reports/allure-report/allureReport/index.html)
-          - [Java 11](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-11/build/reports/allure-report/allureReport/index.html)
-          - [Java 17](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-17/build/reports/allure-report/allureReport/index.html)
-          - [Java 21](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-21/build/reports/allure-report/allureReport/index.html)
-          - [Java 25](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-25/build/reports/allure-report/allureReport/index.html)
+          - **Java 8**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-8) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-8/index.html)
+          - **Java 11**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-11) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-11/index.html)
+          - **Java 17**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-17) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-17/index.html)
+          - **Java 21**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-21) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-21/index.html)
+          - **Java 25**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-25) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-ubuntu-latest-25/index.html)
 
           ### macOS
-          - [Java 11](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-11/build/reports/allure-report/allureReport/index.html)
-          - [Java 25](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-25/build/reports/allure-report/allureReport/index.html)
+          - **Java 11**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-11) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-11/index.html)
+          - **Java 25**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-25) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-macos-latest-25/index.html)
 
           ### Windows
-          - [Java 11](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-11/build/reports/allure-report/allureReport/index.html)
-          - [Java 25](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-25/build/reports/allure-report/allureReport/index.html)
+          - **Java 11**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-11) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-11/index.html)
+          - **Java 25**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-25) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-integration-test-jvm-allure-report-windows-latest-25/index.html)
 
           ## 🚀 Native Image Test Reports
 
-          - [Ubuntu Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-test-native-image-allure-report-ubuntu-latest/build/reports/allure-report/allureReport/index.html)
-          - [macOS Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-test-native-image-allure-report-macos-latest/build/reports/allure-report/allureReport/index.html)
-          - [Windows Latest](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/${SHA_PREFIX}-test-native-image-allure-report-windows-latest/build/reports/allure-report/allureReport/index.html)
+          - **Ubuntu Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-ubuntu-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-ubuntu-latest/index.html)
+          - **macOS Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-macos-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-macos-latest/index.html)
+          - **Windows Latest**: [artifact.ci](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-windows-latest) | [direct](https://www.artifact.ci/artifact/view/\${REPO}/run/\${RUN}/${SHA_PREFIX}-test-native-image-allure-report-windows-latest/index.html)
 
           ---
-          *Note: artifact.ci links require viewing once before the direct link becomes available*
+          *Note: Visit the artifact.ci link first, then the direct link will work*
           EOF
 
 
