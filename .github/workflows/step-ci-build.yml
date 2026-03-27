@@ -145,13 +145,13 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
       - name: Write out Unit Test report annotation for forked repo
-        if: always()
+        if: failure()
         uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
       - name: Add artifact.ci links
-        if: always()
+        if: failure()
         run: |
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
@@ -208,13 +208,13 @@ jobs:
           path: build
 
       - name: Write out Unit Test report annotation for forked repo
-        if: always()
+        if: failure()
         uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
       - name: Add artifact.ci links
-        if: always()
+        if: failure()
         run: |
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
