@@ -12,6 +12,25 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+== Running WAR Files
+
+JBang can run executable WAR files that contain a Main-Class manifest entry:
+
+[source, bash]
+----
+$ jbang https://download.structurizr.com/structurizr-2026.03.06.war version
+----
+
+WAR files are treated identically to JAR files and support all the same features:
+
+* Run with arguments: `jbang app.war arg1 arg2`
+* Add dependencies: `jbang --deps com.google.gson:gson:2.8.9 app.war`
+* Use in interactive mode: `jbang --interactive app.war`
+* Create aliases and use in catalogs
+
+The WAR file must contain a Main-Class entry in its META-INF/MANIFEST.MF, just like
+executable JAR files.
+
 == Interactive REPL
 
 `jbang --interactive` enables use of `jshell` to explore and use your script and any dependencies in a REPL editor.

@@ -39,6 +39,9 @@ jbang-run - Builds and runs provided script. (default command)
 
 Builds and runs provided script. (default command)
 
+The script can be a Java source file, JAR file, WAR file, or URL reference.
+WAR files are supported just like JAR files and must contain a Main-Class manifest entry.
+
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
