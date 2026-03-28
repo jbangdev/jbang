@@ -106,15 +106,9 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (jdk.majorVersion() >= 22) {
-			String nativeAccess = project.getManifestAttributes().get(Project.ATTR_ENABLE_NATIVE_ACCESS);
-			if (nativeAccess != null) {
-				if ("ALL-UNNAMED".equals(nativeAccess)) {
-					optionalArgs.add("--enable-native-access=" + nativeAccess);
-				} else {
-					throw new ExitException(1,
-							"Invalid value for manifest attribute Enable-Native-Access: " + nativeAccess);
-				}
-			}
+			addManifestOptions(optionalArgs,
+					project.getManifestAttributes().get(Project.ATTR_ENABLE_NATIVE_ACCESS),
+					"--enable-native-access=");
 		}
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
@@ -323,6 +317,15 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		Arrays.stream(manifestValue.trim().split("\\s+"))
 			.filter(val -> !val.isEmpty())
 			.forEach(val -> result.add(optionPrefix + val + "=ALL-UNNAMED"));
+	}
+
+	private static void addManifestOptions(List<String> result, String manifestValue, String optionPrefix) {
+		if (manifestValue == null) {
+			return;
+		}
+		Arrays.stream(manifestValue.trim().split("\\s+"))
+			.filter(val -> !val.isEmpty())
+			.forEach(val -> result.add(optionPrefix + val));
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

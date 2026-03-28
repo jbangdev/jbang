@@ -2644,20 +2644,92 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testRejectsInvalidEnableNativeAccess(@TempDir Path output) throws IOException {
+	void testPassesThroughEnableNativeAccessModuleName(@TempDir Path output) throws IOException {
 		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
-				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "SOME-MODULE"));
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
 
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
 
-		ExitException ex = assertThrows(ExitException.class, () -> CmdGenerator.builder(code).build().generate());
-		assertThat(ex.getStatus(), equalTo(1));
-		assertThat(ex.getMessage(), containsString("Enable-Native-Access"));
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
+		assertThat(cmd, containsString("--enable-native-access=com.example.module"));
+	}
+
+	@Test
+	void testReadingAddExportsWithHelper(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String exports = "jdk.compiler/com.sun.tools.javac.api jdk.compiler/com.sun.tools.javac.tree";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_EXPORTS, exports));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_EXPORTS, exports));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testEmptyManifestAttributeIgnored(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, "   "));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should not add any --add-opens flags for empty/whitespace-only values
+		assertThat(cmd, not(containsString("--add-opens=")));
+	}
+
+	@Test
+	void testMultipleSpacesBetweenValues(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String opens = "java.base/java.lang    java.base/java.nio";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should handle multiple spaces correctly
+		assertThat(cmd, containsString("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-opens=java.base/java.nio=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testMultipleModulesForEnableNativeAccess(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "module1 module2"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(cmd, containsString("--enable-native-access=module1"));
+		assertThat(cmd, containsString("--enable-native-access=module2"));
 	}
 
 	@Test
