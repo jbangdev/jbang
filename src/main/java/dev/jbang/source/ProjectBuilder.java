@@ -444,11 +444,26 @@ public class ProjectBuilder {
 					// TODO: this does mean we can't separate from user specified options and jar
 					// origined ones, but not sure if needed?
 					// https://openjdk.org/jeps/261#Breaking-encapsulation
-					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_EXPORTS);
-					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_OPENS);
-					copyManifestAttribute(attrs, prj, Project.ATTR_ENABLE_NATIVE_ACCESS);
-					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_READS);
-					copyManifestAttribute(attrs, prj, Project.ATTR_SPLASH_SCREEN_IMAGE);
+					String exports = attrs.getValue(Project.ATTR_ADD_EXPORTS);
+					if (exports != null) {
+						prj.getManifestAttributes().put(Project.ATTR_ADD_EXPORTS, exports);
+					}
+					String opens = attrs.getValue(Project.ATTR_ADD_OPENS);
+					if (opens != null) {
+						prj.getManifestAttributes().put(Project.ATTR_ADD_OPENS, opens);
+					}
+					String enableNativeAccess = attrs.getValue(Project.ATTR_ENABLE_NATIVE_ACCESS);
+					if (enableNativeAccess != null) {
+						prj.getManifestAttributes().put(Project.ATTR_ENABLE_NATIVE_ACCESS, enableNativeAccess);
+					}
+					String addReads = attrs.getValue(Project.ATTR_ADD_READS);
+					if (addReads != null) {
+						prj.getManifestAttributes().put(Project.ATTR_ADD_READS, addReads);
+					}
+					String splashScreenImage = attrs.getValue(Project.ATTR_SPLASH_SCREEN_IMAGE);
+					if (splashScreenImage != null) {
+						prj.getManifestAttributes().put(Project.ATTR_SPLASH_SCREEN_IMAGE, splashScreenImage);
+					}
 
 				}
 

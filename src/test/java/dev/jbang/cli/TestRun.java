@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -2684,7 +2687,7 @@ public class TestRun extends BaseTest {
 			ProjectBuilder pb = run.createProjectBuilderForRun();
 			Project code = pb.build(war);
 
-			String result = code.codeBuilder().build().generate();
+			String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 			assertThat(result, matchesRegex(".*java(.exe)?.*"));
 		} catch (IOException e) {
 			fail("Failed to create or run WAR file: " + e.getMessage());

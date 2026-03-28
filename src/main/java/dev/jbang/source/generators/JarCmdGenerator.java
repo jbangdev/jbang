@@ -117,18 +117,33 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (!isRunAsModule() && jdk.majorVersion() >= 9) {
-			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_OPENS),
-					"--add-opens=");
-			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_EXPORTS),
-					"--add-exports=");
+			String opens = project.getManifestAttributes().get(Project.ATTR_ADD_OPENS);
+			if (opens != null) {
+				for (String val : opens.trim().split("\\s+")) {
+					if (!val.isEmpty()) {
+						optionalArgs.add("--add-opens=" + val + "=ALL-UNNAMED");
+					}
+				}
+			}
+
+			String exports = project.getManifestAttributes().get(Project.ATTR_ADD_EXPORTS);
+			if (exports != null) {
+				for (String val : exports.trim().split("\\s+")) {
+					if (!val.isEmpty()) {
+						optionalArgs.add("--add-exports=" + val + "=ALL-UNNAMED");
+					}
+				}
+			}
 
 			// Add-Reads: module1=module2 module3=module4 → --add-reads=module1=module2
 			// --add-reads=module3=module4
 			String addReads = project.getManifestAttributes().get(Project.ATTR_ADD_READS);
 			if (addReads != null) {
-				Arrays.stream(addReads.trim().split("\\s+"))
-					.filter(val -> !val.isEmpty())
-					.forEach(val -> optionalArgs.add("--add-reads=" + val));
+				for (String val : addReads.trim().split("\\s+")) {
+					if (!val.isEmpty()) {
+						optionalArgs.add("--add-reads=" + val);
+					}
+				}
 			}
 		}
 
@@ -144,7 +159,6 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				}
 			}
 		}
-
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
