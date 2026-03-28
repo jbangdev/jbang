@@ -2656,6 +2656,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar.toString());
 
 		ExitException ex = assertThrows(ExitException.class, () -> CmdGenerator.builder(code).build().generate());
+		assertThat(ex.getStatus(), equalTo(1));
 		assertThat(ex.getMessage(), containsString("Enable-Native-Access"));
 	}
 
@@ -2762,4 +2763,3 @@ public class TestRun extends BaseTest {
 		return jar;
 	}
 }
-

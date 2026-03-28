@@ -98,21 +98,20 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		Jdk jdk = project.projectJdk();
 		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
-		if (!runAsModule && jdk.majorVersion() >= 9) {
+		if (jdk.majorVersion() >= 9) {
 			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_OPENS),
 					"--add-opens=");
 			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_EXPORTS),
 					"--add-exports=");
 		}
 
-		if (!runAsModule && jdk.majorVersion() >= 22) {
+		if (jdk.majorVersion() >= 22) {
 			String nativeAccess = project.getManifestAttributes().get(Project.ATTR_ENABLE_NATIVE_ACCESS);
 			if (nativeAccess != null) {
-				nativeAccess = nativeAccess.trim();
 				if ("ALL-UNNAMED".equals(nativeAccess)) {
 					optionalArgs.add("--enable-native-access=" + nativeAccess);
 				} else {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(1,
 							"Invalid value for manifest attribute Enable-Native-Access: " + nativeAccess);
 				}
 			}
