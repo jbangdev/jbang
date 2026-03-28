@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -129,6 +131,20 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 					.forEach(val -> optionalArgs.add("--add-reads=" + val));
 			}
 		}
+
+		if (!isRunAsModule() && jdk.majorVersion() >= 22) {
+			String nativeAccess = project.getManifestAttributes().get(Project.ATTR_ENABLE_NATIVE_ACCESS);
+			if (nativeAccess != null) {
+				nativeAccess = nativeAccess.trim();
+				if ("ALL-UNNAMED".equals(nativeAccess)) {
+					optionalArgs.add("--enable-native-access=" + nativeAccess);
+				} else {
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+							"Invalid value for manifest attribute Enable-Native-Access: " + nativeAccess);
+				}
+			}
+		}
+
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
@@ -356,8 +372,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			return null;
 		}
 
-		try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarPath.toFile())) {
-			java.util.jar.JarEntry entry = jar.getJarEntry(normalizedPath);
+		try (JarFile jar = new JarFile(jarPath.toFile())) {
+			JarEntry entry = jar.getJarEntry(normalizedPath);
 			if (entry == null) {
 				Util.warnMsg("Splash screen image not found in jar: " + imagePath);
 				return null;
