@@ -6,3 +6,5 @@
 *.jpg binary
 *.jar binary
 *.db  binary
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours
