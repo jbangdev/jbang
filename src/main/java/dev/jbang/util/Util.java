@@ -86,6 +86,8 @@ public class Util {
 	public static final String JBANG_PREFER_GUI = "JBANG_PREFER_GUI";
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
 
+	private static final List<String> EXECUTABLE_EXTENSIONS = Arrays.asList(".jar", ".war");
+
 	public static final Pattern patternMainMethod = Pattern.compile(
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*|void\\s+main\\s*\\(\\)",
 			Pattern.MULTILINE);
@@ -425,12 +427,44 @@ public class Util {
 	}
 
 	/**
+	 * Checks if the given file has an executable archive extension (.jar or .war)
+	 *
+	 * @param backingFile the file to check
+	 * @return true if the file has a .jar or .war extension, false otherwise
+	 */
+	public static boolean hasExecutableExtension(Path backingFile) {
+		if (backingFile == null) {
+			return false;
+		}
+		return hasExecutableExtension(backingFile.toString());
+	}
+
+	/**
+	 * Checks if the given filename has an executable archive extension (.jar or
+	 * .war)
+	 *
+	 * @param filename the filename to check
+	 * @return true if the filename has a .jar or .war extension, false otherwise
+	 */
+	public static boolean hasExecutableExtension(String filename) {
+		if (filename == null) {
+			return false;
+		}
+		String lowerFilename = filename.toLowerCase();
+		return EXECUTABLE_EXTENSIONS.stream().anyMatch(lowerFilename::endsWith);
+	}
+
+	/**
 	 * @param name script name
 	 * @return camel case of kebab string if name does not end with .java or .jsh
 	 */
 	public static String unkebabify(String name) {
 		if (name.endsWith(".sh")) {
 			name = name.substring(0, name.length() - 3);
+		}
+		// Don't rename executable archives
+		if (hasExecutableExtension(name)) {
+			return name;
 		}
 		boolean valid = false;
 		for (String extension : Source.Type.extensions()) {
@@ -657,8 +691,9 @@ public class Util {
 		// to handle if kubectl-style name (i.e. extension less)
 		File f = filePath.toFile();
 		String nonkebabname = f.getName();
-		if (!f.getName().endsWith(".jar") && !f.getName().endsWith(".jsh")) { // avoid directly downloaded jar files
-																				// getting renamed to .java
+		if (!hasExecutableExtension(f.getName()) && !f.getName().endsWith(".jsh")) { // avoid directly downloaded
+																						// executable archives
+			// getting renamed to .java
 			nonkebabname = unkebabify(f.getName());
 		}
 		if (nonkebabname.equals(f.getName())) {

@@ -49,8 +49,8 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
-		if (project.isJar()) {
-			Util.verboseMsg("The resource is a jar, no compilation to be done.");
+		if (project.isExecutableArchive()) {
+			Util.verboseMsg("The resource is an executable archive, no compilation to be done.");
 			buildRequired = false;
 		} else if (fresh) {
 			Util.verboseMsg("Building as fresh build explicitly requested.");
