@@ -440,18 +440,13 @@ public class ProjectBuilder {
 						prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
 					}
 
-					// we pass exports/opens into the project...
+					// we pass exports/opens/native access into the project...
 					// TODO: this does mean we can't separate from user specified options and jar
-					// origined ones, but not sure if needed?
+					// originated ones, but not sure if needed?
 					// https://openjdk.org/jeps/261#Breaking-encapsulation
-					String exports = attrs.getValue("Add-Exports");
-					if (exports != null) {
-						prj.getManifestAttributes().put("Add-Exports", exports);
-					}
-					String opens = attrs.getValue("Add-Opens");
-					if (opens != null) {
-						prj.getManifestAttributes().put("Add-Opens", exports);
-					}
+					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_EXPORTS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_ADD_OPENS);
+					copyManifestAttribute(attrs, prj, Project.ATTR_ENABLE_NATIVE_ACCESS);
 
 				}
 
@@ -480,6 +475,13 @@ public class ProjectBuilder {
 			}
 		}
 		return prj;
+	}
+
+	private static void copyManifestAttribute(Attributes attrs, Project prj, String name) {
+		String value = attrs.getValue(name);
+		if (value != null) {
+			prj.getManifestAttributes().put(name, value);
+		}
 	}
 
 	private Project updateProject(Project prj) {

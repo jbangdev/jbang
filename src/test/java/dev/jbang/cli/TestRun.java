@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -2605,6 +2608,131 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testReadingAddOpens(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String opens = "java.base/java.lang  java.base/java.nio";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_OPENS, opens));
+		assertThat(cmd, containsString("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-opens=java.base/java.nio=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testReadingEnableNativeAccess(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "ALL-UNNAMED"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ENABLE_NATIVE_ACCESS, "ALL-UNNAMED"));
+		assertThat(CmdGenerator.builder(code).build().generate(),
+				containsString("--enable-native-access=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testPassesThroughEnableNativeAccessModuleName(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
+		assertThat(cmd, containsString("--enable-native-access=com.example.module"));
+	}
+
+	@Test
+	void testReadingAddExportsWithHelper(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String exports = "jdk.compiler/com.sun.tools.javac.api jdk.compiler/com.sun.tools.javac.tree";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_EXPORTS, exports));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_EXPORTS, exports));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testEmptyManifestAttributeIgnored(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, "   "));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should not add any --add-opens flags for empty/whitespace-only values
+		assertThat(cmd, not(containsString("--add-opens=")));
+	}
+
+	@Test
+	void testMultipleSpacesBetweenValues(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String opens = "java.base/java.lang    java.base/java.nio";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should handle multiple spaces correctly
+		assertThat(cmd, containsString("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-opens=java.base/java.nio=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testMultipleModulesForEnableNativeAccess(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "module1 module2"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(cmd, containsString("--enable-native-access=module1"));
+		assertThat(cmd, containsString("--enable-native-access=module2"));
+	}
+
+	@Test
 	@Disabled("java 8 is not installing reliably on github action")
 	void testReadingNoAddExportsOnJava8() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
@@ -2691,5 +2819,19 @@ public class TestRun extends BaseTest {
 		} finally {
 			Files.deleteIfExists(warPath);
 		}
+	}
+
+	private Path createJar(Path outputDir, String buildJdk, Map<String, String> manifestAttributes) throws IOException {
+		Path jar = outputDir.resolve("manifest-test.jar");
+		Manifest manifest = new Manifest();
+		Attributes attrs = manifest.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.put(Attributes.Name.MAIN_CLASS, "test.Main");
+		attrs.putValue(JarBuildStep.ATTR_BUILD_JDK, buildJdk);
+		manifestAttributes.forEach(attrs::putValue);
+		try (JarOutputStream ignored = new JarOutputStream(Files.newOutputStream(jar), manifest)) {
+			// Manifest-only JAR is enough for command generation tests.
+		}
+		return jar;
 	}
 }

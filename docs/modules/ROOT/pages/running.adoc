@@ -184,6 +184,39 @@ If an item has no equals sign and no value than the value is taken to be the str
 ----
 
 
+== JAR Manifest Attributes
+
+When running JAR files, JBang honors certain manifest attributes and converts them to equivalent JVM flags.
+This allows JAR files to declare their requirements for module access and native functionality.
+
+=== Java Module System Attributes (Java 9+)
+
+JBang reads `Add-Opens` and `Add-Exports` from the JAR manifest and passes them to the JVM with `=ALL-UNNAMED` appended:
+
+* `Add-Opens: java.base/java.lang java.base/java.nio` → `--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED`
+* `Add-Exports: jdk.compiler/com.sun.tools.javac.api` → `--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED`
+
+These attributes are specified in the https://docs.oracle.com/en/java/javase/25/docs/specs/jar/jar.html[JAR File Specification] and allow JARs to declare which module internals they need access to.
+
+=== Native Access Attribute (Java 22+)
+
+`Enable-Native-Access` is passed through directly to the JVM:
+
+* `Enable-Native-Access: ALL-UNNAMED` → `--enable-native-access=ALL-UNNAMED`
+* `Enable-Native-Access: com.example.module` → `--enable-native-access=com.example.module`
+
+This attribute allows code to use restricted methods from the Foreign Function & Memory API (https://openjdk.org/jeps/472[JEP 472]).
+
+NOTE: For executable JARs run with `java -jar`, the JAR specification restricts `Enable-Native-Access` to only `ALL-UNNAMED` in Java 22 and later. The JVM will reject other values. JBang passes through whatever value is in the manifest, allowing the JVM to perform validation.
+
+=== Other Manifest Attributes
+
+JBang also reads and honors:
+
+* `Main-Class` - The main class to execute
+* `Build-Jdk` - Minimum Java version required (JBang will use this version or higher)
+* `Premain-Class`, `Agent-Class` - For Java agents
+
 === (Experimental) Application Class Data Sharing
 
 If your scripts uses a lot of classes Class Data Sharing might help on your startup. The following requires Java 13+.
