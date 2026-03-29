@@ -86,7 +86,11 @@ public class RefTarget {
 	}
 
 	public static RefTarget create(String ref, Path dest, ResourceResolver siblingResolver) {
-		return new RefTarget(siblingResolver.resolve(ref), dest);
+		ResourceRef resolved = siblingResolver.resolve(ref);
+		if (resolved == null) {
+			resolved = ResourceRef.forUnresolvable(ref, "not resolvable from " + siblingResolver.description());
+		}
+		return new RefTarget(resolved, dest);
 	}
 
 	public static RefTarget create(ResourceRef ref, Path dest) {
