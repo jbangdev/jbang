@@ -627,7 +627,7 @@ public class Util {
 		return OsUtils.isMac();
 	}
 
-	public static String getVendor() {
+	public static String getDistro() {
 		return System.getenv(JBANG_JDK_VENDOR);
 	}
 
