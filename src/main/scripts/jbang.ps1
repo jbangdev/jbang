@@ -203,5 +203,18 @@ if (-not $binaryPath) {
   }
 }
 
+if ($env:JBANG_WIN_UTF8 -ne "false") {
+    $Original_OutputEncoding = $OutputEncoding
+    $Original_ConsoleInputEncoding = [Console]::InputEncoding
+    $Original_ConsoleOutputEncoding = [Console]::OutputEncoding
+    $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+}
+
 # Execute jbang
 Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
+
+if ($env:JBANG_WIN_UTF8 -ne "false") {
+    $OutputEncoding = $Original_OutputEncoding
+    [Console]::InputEncoding = $Original_ConsoleInputEncoding
+    [Console]::OutputEncoding = $Original_ConsoleOutputEncoding
+}

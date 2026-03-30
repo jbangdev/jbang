@@ -1,6 +1,14 @@
 @echo off
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
+rem Set UTF-8 code page unless disabled
+if not "%JBANG_WIN_UTF8%" == "false" (
+    for /f "tokens=2 delims=:" %%G in ('chcp') do (
+        set /a _original_cp=%%G
+    )
+    chcp 65001 > nul
+)
+
 rem The Java version to install when it's not installed on the system yet
 if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
 
@@ -33,7 +41,11 @@ if "!binaryPath!"=="" if "!jarPath!"=="" (
     if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
   )
   call "%JBDIR%\bin\jbang.cmd" %*
-  exit /b %ERRORLEVEL%
+  set ERROR=%ERRORLEVEL%
+  if not "%JBANG_WIN_UTF8%" == "false" (
+    chcp %_original_cp% > nul
+  )
+  exit /b %ERROR%
 )
 
 if not "!binaryPath!"=="" goto :run_with_cli
@@ -129,9 +141,16 @@ if %ERROR% EQU 255 (
 :break
   del /f /q "%tmpfile%"
   %OUTPUT%
-  exit /b %ERRORLEVEL%
+  set ERROR=%ERRORLEVEL%
+  if not "%JBANG_WIN_UTF8%" == "false" (
+      chcp %_original_cp% > nul
+  )
+  exit /b %ERROR%
 ) else (
   type "%tmpfile%"
   del /f /q "%tmpfile%"
+  if not "%JBANG_WIN_UTF8%" == "false" (
+    chcp %_original_cp% > nul
+  )
   exit /b %ERROR%
 )
