@@ -235,6 +235,9 @@
       "type": "dev.jbang.cli.DepsSearch"
     },
     {
+      "type": "dev.jbang.cli.Lock"
+    },
+    {
       "type": "dev.jbang.search.MvnSearchResult",
       "allDeclaredConstructors" : true,
       "allPublicConstructors" : true,
