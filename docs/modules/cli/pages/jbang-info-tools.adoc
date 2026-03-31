@@ -94,7 +94,7 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
   Indicate the name of the field to select and return from the full info result
 
 *-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, scala, or markdown
 
 *--verbose*::
   jbang will be verbose on what it does.

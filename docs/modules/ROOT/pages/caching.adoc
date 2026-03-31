@@ -16,4 +16,18 @@ In previous versions of `jbang`, Java 10+ direct launch of `.java` was used, but
 
 The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
+You can also clear individual cache categories:
+
+[source,bash]
+----
+# Clear compiled jars only
+jbang cache clear --jar
+
+# Clear dependency metadata cache
+jbang cache clear --deps
+
+# Clear downloaded Scala compiler cache
+jbang cache clear --scalac
+----
+
 The default cache location can be overwritten by the environment variable `JBANG_CACHE_DIR`. If `JBANG_DIR` environment variable is set, the `cache` folder will be placed there.
