@@ -20,12 +20,16 @@ import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
@@ -51,6 +55,202 @@ public class Catalog {
 				return null;
 			}
 			return context.serialize(src);
+		}
+	}
+
+	// Custom deserializers to avoid final field mutation warnings in Java 26+
+
+	public static class CatalogRefDeserializer implements JsonDeserializer<CatalogRef> {
+		@Override
+		public CatalogRef deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			JsonObject obj = json.getAsJsonObject();
+
+			String catalogRef = obj.has("catalog-ref") ? obj.get("catalog-ref").getAsString()
+					: obj.has("catalogRef") ? obj.get("catalogRef").getAsString()
+							: null;
+			String description = obj.has("description") ? obj.get("description").getAsString() : null;
+			Boolean importItems = obj.has("import") ? obj.get("import").getAsBoolean() : null;
+
+			// Catalog will be set manually after deserialization (it's transient)
+			return new CatalogRef(catalogRef, description, importItems, null);
+		}
+	}
+
+	public static class TemplateDeserializer implements JsonDeserializer<Template> {
+		@Override
+		public Template deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			JsonObject obj = json.getAsJsonObject();
+
+			Map<String, String> fileRefs = obj.has("file-refs")
+					? context.deserialize(obj.get("file-refs"), new TypeToken<Map<String, String>>() {
+					}.getType())
+					: null;
+			String description = obj.has("description") ? obj.get("description").getAsString() : null;
+
+			Map<String, TemplateProperty> properties = null;
+			if (obj.has("properties")) {
+				properties = new HashMap<>();
+				JsonObject propsObj = obj.getAsJsonObject("properties");
+				for (String key : propsObj.keySet()) {
+					properties.put(key, context.deserialize(propsObj.get(key), TemplateProperty.class));
+				}
+			}
+
+			// Catalog will be set manually after deserialization (it's transient)
+			return new Template(fileRefs, description, properties, null);
+		}
+	}
+
+	public static class JavaAgentDeserializer implements JsonDeserializer<Alias.JavaAgent> {
+		@Override
+		public Alias.JavaAgent deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			JsonObject obj = json.getAsJsonObject();
+
+			String agentRef = obj.has("agent-ref") ? obj.get("agent-ref").getAsString() : null;
+			String options = obj.has("options") ? obj.get("options").getAsString() : "";
+
+			return new Alias.JavaAgent(agentRef, options);
+		}
+	}
+
+	public static class AliasDeserializer implements JsonDeserializer<Alias> {
+		private static final Type STRING_LIST_TYPE = new TypeToken<List<String>>() {
+		}.getType();
+		private static final Type STRING_MAP_TYPE = new TypeToken<Map<String, String>>() {
+		}.getType();
+		private static final Type JAVA_AGENT_LIST_TYPE = new TypeToken<List<Alias.JavaAgent>>() {
+		}.getType();
+
+		@Override
+		public Alias deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			JsonObject obj = json.getAsJsonObject();
+
+			String scriptRef = obj.has("script-ref") ? obj.get("script-ref").getAsString()
+					: obj.has("scriptRef") ? obj.get("scriptRef").getAsString()
+							: null;
+			String description = obj.has("description") ? obj.get("description").getAsString() : null;
+
+			List<String> arguments = obj.has("arguments")
+					? context.deserialize(obj.get("arguments"), STRING_LIST_TYPE)
+					: null;
+
+			List<String> runtimeOptions = obj.has("runtime-options")
+					? context.deserialize(obj.get("runtime-options"), STRING_LIST_TYPE)
+					: obj.has("java-options") ? context.deserialize(obj.get("java-options"), STRING_LIST_TYPE)
+							: null;
+
+			List<String> sources = obj.has("sources") ? context.deserialize(obj.get("sources"), STRING_LIST_TYPE)
+					: null;
+
+			List<String> resources = obj.has("files") ? context.deserialize(obj.get("files"), STRING_LIST_TYPE)
+					: null;
+
+			List<String> dependencies = obj.has("dependencies")
+					? context.deserialize(obj.get("dependencies"), STRING_LIST_TYPE)
+					: null;
+
+			List<String> repositories = obj.has("repositories")
+					? context.deserialize(obj.get("repositories"), STRING_LIST_TYPE)
+					: null;
+
+			List<String> classpaths = obj.has("classpaths")
+					? context.deserialize(obj.get("classpaths"), STRING_LIST_TYPE)
+					: null;
+
+			Map<String, String> properties = obj.has("properties")
+					? context.deserialize(obj.get("properties"), STRING_MAP_TYPE)
+					: null;
+
+			String javaVersion = obj.has("java") ? obj.get("java").getAsString() : null;
+			String mainClass = obj.has("main") ? obj.get("main").getAsString() : null;
+			String moduleName = obj.has("module") ? obj.get("module").getAsString() : null;
+
+			List<String> compileOptions = obj.has("compile-options")
+					? context.deserialize(obj.get("compile-options"), STRING_LIST_TYPE)
+					: null;
+
+			Boolean nativeImage = obj.has("native-image") ? obj.get("native-image").getAsBoolean() : null;
+
+			List<String> nativeOptions = obj.has("native-options")
+					? context.deserialize(obj.get("native-options"), STRING_LIST_TYPE)
+					: null;
+
+			String forceType = obj.has("source-type") ? obj.get("source-type").getAsString() : null;
+			Boolean integrations = obj.has("integrations") ? obj.get("integrations").getAsBoolean() : null;
+			String jfr = obj.has("jfr") ? obj.get("jfr").getAsString() : null;
+
+			Map<String, String> debug = obj.has("debug") ? context.deserialize(obj.get("debug"), STRING_MAP_TYPE)
+					: null;
+
+			Boolean cds = obj.has("cds") ? obj.get("cds").getAsBoolean() : null;
+			Boolean interactive = obj.has("interactive") ? obj.get("interactive").getAsBoolean() : null;
+			Boolean enablePreview = obj.has("enable-preview") ? obj.get("enable-preview").getAsBoolean() : null;
+			Boolean enableAssertions = obj.has("enable-assertions") ? obj.get("enable-assertions").getAsBoolean()
+					: null;
+			Boolean enableSystemAssertions = obj.has("enable-system-assertions")
+					? obj.get("enable-system-assertions").getAsBoolean()
+					: null;
+
+			Map<String, String> manifestOptions = obj.has("manifest-options")
+					? context.deserialize(obj.get("manifest-options"), STRING_MAP_TYPE)
+					: null;
+
+			List<Alias.JavaAgent> javaAgents = obj.has("java-agents")
+					? context.deserialize(obj.get("java-agents"), JAVA_AGENT_LIST_TYPE)
+					: null;
+
+			List<String> docs = obj.has("docs") ? context.deserialize(obj.get("docs"), STRING_LIST_TYPE) : null;
+
+			// Catalog will be set manually after deserialization (it's transient)
+			return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources,
+					dependencies, repositories, classpaths, properties, javaVersion, mainClass,
+					moduleName, compileOptions, nativeImage, nativeOptions, forceType, integrations,
+					jfr, debug, cds, interactive, enablePreview, enableAssertions, enableSystemAssertions,
+					manifestOptions, javaAgents, docs, null);
+		}
+	}
+
+	public static class CatalogDeserializer implements JsonDeserializer<Catalog> {
+		@Override
+		public Catalog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			JsonObject obj = json.getAsJsonObject();
+
+			String baseRef = obj.has("base-ref") ? obj.get("base-ref").getAsString()
+					: obj.has("baseRef") ? obj.get("baseRef").getAsString()
+							: null;
+			String description = obj.has("description") ? obj.get("description").getAsString() : null;
+
+			Map<String, CatalogRef> catalogs = new HashMap<>();
+			if (obj.has("catalogs")) {
+				JsonObject catalogsObj = obj.getAsJsonObject("catalogs");
+				for (String key : catalogsObj.keySet()) {
+					catalogs.put(key, context.deserialize(catalogsObj.get(key), CatalogRef.class));
+				}
+			}
+
+			Map<String, Alias> aliases = new HashMap<>();
+			if (obj.has("aliases")) {
+				JsonObject aliasesObj = obj.getAsJsonObject("aliases");
+				for (String key : aliasesObj.keySet()) {
+					aliases.put(key, context.deserialize(aliasesObj.get(key), Alias.class));
+				}
+			}
+
+			Map<String, Template> templates = new HashMap<>();
+			if (obj.has("templates")) {
+				JsonObject templatesObj = obj.getAsJsonObject("templates");
+				for (String key : templatesObj.keySet()) {
+					templates.put(key, context.deserialize(templatesObj.get(key), Template.class));
+				}
+			}
+
+			// catalogRef is transient and will be set after deserialization
+			return new Catalog(baseRef, description, null, catalogs, aliases, templates);
 		}
 	}
 
@@ -389,7 +589,13 @@ public class Catalog {
 	}
 
 	private static Catalog read(InputStream is) {
-		Gson parser = new Gson();
+		Gson parser = new GsonBuilder()
+			.registerTypeAdapter(Catalog.class, new CatalogDeserializer())
+			.registerTypeAdapter(CatalogRef.class, new CatalogRefDeserializer())
+			.registerTypeAdapter(Alias.class, new AliasDeserializer())
+			.registerTypeAdapter(Alias.JavaAgent.class, new JavaAgentDeserializer())
+			.registerTypeAdapter(Template.class, new TemplateDeserializer())
+			.create();
 		Catalog catalog = parser.fromJson(new InputStreamReader(is), Catalog.class);
 		if (catalog != null) {
 			// Validate the result (Gson can't do this)
