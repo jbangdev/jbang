@@ -116,6 +116,17 @@ jbang eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar
 
 Without `@fatjar` it would resolve dependencies which would be redundant.
 
+== Dependencies with WAR Files
+
+You can add dependencies to WAR files just like JAR files:
+
+[source, bash]
+----
+$ jbang --deps org.postgresql:postgresql:42.3.1 app.war
+----
+
+WAR files support all dependency-related features including `//DEPS` directives, BOM POMs, and custom repositories.
+
 == Managed dependencies ("BOM POM"'s) [Experimental]
 
 When using libraries and frameworks it can get tedious to manage and update multiple versions.

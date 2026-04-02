@@ -5,7 +5,7 @@ inputs:
   add-job-summary:
     description: Add the job summary to the output
     required: false
-    default: 'always'
+    default: 'on-failure'
   java-version:
     description: The Java version to use
     required: false

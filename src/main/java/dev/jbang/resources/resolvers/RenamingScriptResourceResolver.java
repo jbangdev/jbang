@@ -57,7 +57,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 				List<String> knownExtensions = forceType != null ? Collections.singletonList(forceType.extension)
 						: Source.Type.extensions();
 				String ext = Util.extension(probe.getName());
-				if (!ext.equals("jar")
+				if (!ext.equals("jar") && !ext.equals("war")
 						&& !knownExtensions.contains(ext)
 						&& (!Util.isPreview() || !Project.BuildFile.fileNames().contains(probe.getName()))) {
 					if (probe.isDirectory()) {

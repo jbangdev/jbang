@@ -90,6 +90,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		List<String> fullArgs = new ArrayList<>();
 
 		Project project = ctx.getProject();
+		boolean runAsModule = moduleName != null && project.getModuleName().isPresent();
 		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
@@ -97,20 +98,17 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		Jdk jdk = project.projectJdk();
 		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
-		if (jdk.majorVersion() > 9) {
-			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
-			if (opens != null) {
-				for (String val : opens.split(" ")) {
-					optionalArgs.add("--add-opens=" + val + "=ALL-UNNAMED");
-				}
-			}
+		if (jdk.majorVersion() >= 9) {
+			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_OPENS),
+					"--add-opens=");
+			addAllUnnamedManifestOptions(optionalArgs, project.getManifestAttributes().get(Project.ATTR_ADD_EXPORTS),
+					"--add-exports=");
+		}
 
-			String exports = ctx.getProject().getManifestAttributes().get("Add-Exports");
-			if (exports != null) {
-				for (String val : exports.split(" ")) {
-					optionalArgs.add("--add-exports=" + val + "=ALL-UNNAMED");
-				}
-			}
+		if (jdk.majorVersion() >= 22) {
+			addManifestOptions(optionalArgs,
+					project.getManifestAttributes().get(Project.ATTR_ENABLE_NATIVE_ACCESS),
+					"--enable-native-access=");
 		}
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
@@ -197,7 +195,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
-			if (moduleName != null && project.getModuleName().isPresent()) {
+			if (runAsModule) {
 				optionalArgs.addAll(Arrays.asList("-p", classpath));
 			} else {
 				optionalArgs.addAll(Arrays.asList("-classpath", classpath));
@@ -230,7 +228,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
 		if (main != null && !Glob.isGlob(main)) {
-			if (moduleName != null && project.getModuleName().isPresent()) {
+			if (runAsModule) {
 				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
 				fullArgs.add("-m");
 				fullArgs.add(modName + "/" + main);
@@ -310,6 +308,24 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			.shell(shell)
 			.applyWindowsMaxCliLimit()
 			.asCommandLine();
+	}
+
+	private static void addAllUnnamedManifestOptions(List<String> result, String manifestValue, String optionPrefix) {
+		if (manifestValue == null) {
+			return;
+		}
+		Arrays.stream(manifestValue.trim().split("\\s+"))
+			.filter(val -> !val.isEmpty())
+			.forEach(val -> result.add(optionPrefix + val + "=ALL-UNNAMED"));
+	}
+
+	private static void addManifestOptions(List<String> result, String manifestValue, String optionPrefix) {
+		if (manifestValue == null) {
+			return;
+		}
+		Arrays.stream(manifestValue.trim().split("\\s+"))
+			.filter(val -> !val.isEmpty())
+			.forEach(val -> result.add(optionPrefix + val));
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
