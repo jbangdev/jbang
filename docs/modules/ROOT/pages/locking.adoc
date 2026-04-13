@@ -1,0 +1,62 @@
+= Locking & Checksum Verification
+
+JBang supports lightweight integrity and reproducibility checks via digests and lock files.
+
+== Verify a single ref
+
+Use an inline digest suffix:
+
+[source,bash]
+----
+jbang run env@jbangdev#sha256:35a0c5c82720
+----
+
+You can also pass `--verify` explicitly:
+
+[source,bash]
+----
+jbang run --verify sha256:35a0c5c82720 env@jbangdev
+----
+
+NOTE: Digest prefixes are supported (minimum 12 hex chars).
+
+== Generate lock entries
+
+Create/update `.jbang.lock` for a ref:
+
+[source,bash]
+----
+jbang lock env@jbangdev
+jbang lock dev.tamboui:tamboui-toolkit:0.1.0
+----
+
+By default JBang stores:
+
+- `ref=sha256:...` (root digest)
+- `ref.sources=...` (resolved sources, when applicable)
+- `ref.deps=...` (resolved transitive dependency coordinates, when applicable)
+
+== Enforce lock checks
+
+Run in strict locked mode:
+
+[source,bash]
+----
+jbang --locked env@jbangdev
+jbang --locked dev.tamboui:tamboui-toolkit:0.1.0
+----
+
+Locked mode validates:
+
+- root digest
+- source manifest (if present)
+- dependency graph (if present)
+
+If any drift is detected, JBang fails with a clear mismatch error.
+
+== Use another lock file
+
+[source,bash]
+----
+jbang --lock-file /path/to/my.lock --locked env@jbangdev
+----
