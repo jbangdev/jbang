@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasRef;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
 
@@ -562,6 +563,58 @@ public class TestAlias extends BaseTest {
 			assertThat(ex.getMessage(), containsString("seven"));
 		}
 
+	}
+
+	@Test
+	void testParseVersionedAlias() throws IOException {
+		clearSettingsCaches();
+		// Use existing "one" alias from standard catalog
+		AliasRef ref = AliasRef.parse("one:2.0.0");
+		Alias alias = Alias.get(ref.alias);
+
+		assertThat(alias, notNullValue());
+		assertThat(ref.requestedVersion, equalTo("2.0.0"));
+		assertThat(alias.scriptRef, equalTo("http://dummy"));
+	}
+
+	@Test
+	void testParseVersionedAliasFromCatalog() throws IOException {
+		String catalog = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"test\": {\n" +
+				"      \"script-ref\": \"com.example:artifact:1.0.0\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), catalog.getBytes());
+		clearSettingsCaches();
+		Catalog cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
+
+		dev.jbang.catalog.AliasRef ref = dev.jbang.catalog.AliasRef.parse("test:2.0.0");
+		Alias alias = Alias.get(cat, ref.alias);
+
+		assertThat(alias, notNullValue());
+		assertThat(ref.requestedVersion, equalTo("2.0.0"));
+	}
+
+	@Test
+	void testGavNotParsedAsVersionedAlias() {
+		Alias alias = Alias.get("io.quarkus:artifact:1.0.0@jar");
+		assertThat(alias, nullValue());
+	}
+
+	@Test
+	void testEmptyVersionThrowsError() {
+		Exception exception = assertThrows(IllegalArgumentException.class,
+				() -> dev.jbang.catalog.AliasRef.parse("test:@catalog"));
+		assertThat(exception.getMessage(), containsString("Invalid alias syntax"));
+	}
+
+	@Test
+	void testEmptyAliasNameThrowsError() {
+		Exception exception = assertThrows(IllegalArgumentException.class,
+				() -> dev.jbang.catalog.AliasRef.parse(":1.0@catalog"));
+		assertThat(exception.getMessage(), containsString("Invalid alias"));
 	}
 
 }

@@ -98,6 +98,166 @@ The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` or `<alias>
 
 |====
 
+== Version Pinning
+
+Version pinning allows you to specify a version when running an alias, enabling you to use different versions of the same tool without modifying the catalog definition. This is particularly useful for testing, compatibility checks, or using specific versions of tools.
+
+=== Syntax
+
+The version pinning syntax is: `alias:version@catalog`
+
+Examples:
+
+[source,bash]
+----
+jbang mytool:1.5.0@mycatalog      # Pin to version 1.5.0
+jbang tool:v2.0.0@jbangdev        # Pin to v2.0.0 from jbangdev catalog
+jbang app:1.2.3                   # Pin to 1.2.3 from local catalog
+----
+
+=== How It Works
+
+When you specify a version, JBang applies different replacement strategies depending on the alias's script reference:
+
+==== Maven GAV Coordinates
+
+For aliases that reference Maven artifacts, the version replaces the version component in the GAV coordinates:
+
+[source,json]
+----
+{
+  "aliases": {
+    "picocli": {
+      "script-ref": "info.picocli:picocli-codegen:4.6.0"
+    }
+  }
+}
+----
+
+Running `jbang picocli:4.7.0` resolves to `info.picocli:picocli-codegen:4.7.0`
+
+This works with:
+
+[cols="1,1,1",options="header"]
+|===
+|Alias `script-ref`
+|Invocation
+|Resolved `script-ref`
+
+|`group:artifact:version`
+|`jbang alias:newversion`
+|`group:artifact:newversion`
+
+|`group:artifact:version:classifier`
+|`jbang alias:newversion`
+|`group:artifact:newversion:classifier`
+
+|`group:artifact:version:classifier@type`
+|`jbang alias:newversion`
+|`group:artifact:newversion:classifier@type`
+
+|`group:artifact`
+|`jbang alias:newversion`
+|`group:artifact:newversion`
+|===
+
+==== Git URLs
+
+For aliases that reference GitHub, GitLab, or Bitbucket URLs, the version replaces the branch/tag/ref in the URL:
+
+[cols="1,1,1,1",options="header"]
+|===
+|Provider
+|Alias `script-ref`
+|Invocation
+|Resolved `script-ref`
+
+|GitHub
+|`https://github.com/org/repo/blob/main/script.java`
+|`jbang alias:v1.0.0`
+|`https://github.com/org/repo/blob/v1.0.0/script.java`
+
+|GitHub
+|`https://raw.githubusercontent.com/org/repo/main/script.java`
+|`jbang alias:v1.0.0`
+|`https://raw.githubusercontent.com/org/repo/v1.0.0/script.java`
+
+|GitHub
+|`https://github.com/org/repo/releases/download/v0.137.0/checksums_sha256.txt`
+|`jbang alias:v0.138.0`
+|`https://github.com/org/repo/releases/download/v0.138.0/checksums_sha256.txt`
+
+|GitLab
+|`https://gitlab.com/org/repo/-/blob/develop/script.java`
+|`jbang alias:v1.0`
+|`https://gitlab.com/org/repo/-/blob/v1.0/script.java`
+
+|GitLab
+|`https://gitlab.com/org/repo/-/raw/main/script.java`
+|`jbang alias:v1.0`
+|`https://gitlab.com/org/repo/-/raw/v1.0/script.java`
+
+|Bitbucket
+|`https://bitbucket.org/org/repo/src/master/script.java`
+|`jbang alias:1.0`
+|`https://bitbucket.org/org/repo/src/1.0/script.java`
+
+|Bitbucket
+|`https://bitbucket.org/org/repo/raw/master/script.java`
+|`jbang alias:1.0`
+|`https://bitbucket.org/org/repo/raw/1.0/script.java`
+|===
+
+==== Property-Based Versioning
+
+For maximum flexibility, aliases can use property placeholders that get replaced when a version is specified:
+
+[source,json]
+----
+{
+  "aliases": {
+    "quarkus": {
+      "script-ref": "io.quarkus:quarkus-cli:${jbang.app.version:3.0.0}"
+    },
+    "example": {
+      "script-ref": "https://downloads.example.com/tools/mytool-${jbang.app.version:latest}.zip"
+    }
+  }
+}
+----
+
+Running `jbang quarkus:3.5.0` resolves to `io.quarkus:quarkus-cli:3.5.0`
+
+Running `jbang example:1.2.3` resolves to `https://downloads.example.com/tools/mytool-1.2.3.zip`
+
+If no version is specified, the default value (after the colon) is used.
+
+NOTE: Property replacement takes precedence over automatic version replacement. If your alias uses `${jbang.app.version}`, automatic replacement is skipped.
+
+==== Alias Chains
+
+Version pinning does *not* work through alias chains. If an alias references another alias, you must apply the version to the final target alias.
+
+[source,json]
+----
+{
+  "aliases": {
+    "base-tool": {
+      "script-ref": "com.example:tool:1.0.0"
+    },
+    "tool": {
+      "script-ref": "base-tool"
+    }
+  }
+}
+----
+
+Running `jbang tool:2.0.0` fails with an error explaining that version pinning cannot be applied to an alias reference. Use the target alias directly, for example: `base-tool:2.0.0`.
+
+=== Backward Compatibility
+
+Aliases without version pinning work exactly as before. The version syntax is entirely optional and doesn't affect existing usage.
+
 == Local Alias Catalogs
 
 JBang will also look in the current directory for a `jbang-catalog.json` file and if it exists it will look up any aliases
