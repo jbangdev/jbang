@@ -271,7 +271,7 @@ jobs:
 
   merge-test-reports:
     if: always() && !inputs.skip_tests
-    needs: [unit-test-jvm, integration-test-jvm]
+    needs: [unit-test-jvm, integration-test-jvm, build-test-native-image]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
