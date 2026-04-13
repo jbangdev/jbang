@@ -359,8 +359,8 @@ test {
 	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
 	if (testJavaVersion.asInt() >= 9) {
 		jvmArgsList.addAll([
-			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+			"--add-opens=java.base/java.lang=ALL-UNNAMED",
+			"--add-opens=java.base/java.util=ALL-UNNAMED"
 		])
 	}
 	jvmArgs = jvmArgsList
