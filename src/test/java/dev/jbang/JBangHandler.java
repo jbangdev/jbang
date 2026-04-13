@@ -1,6 +1,7 @@
 package dev.jbang;
 
 import java.io.OutputStream;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.StreamHandler;
 
@@ -11,6 +12,7 @@ public class JBangHandler extends StreamHandler {
 
 	public JBangHandler() {
 		super(System.err, new JBangFormatter());
+		setLevel(Level.ALL);
 		currentOut = System.err;
 	}
 

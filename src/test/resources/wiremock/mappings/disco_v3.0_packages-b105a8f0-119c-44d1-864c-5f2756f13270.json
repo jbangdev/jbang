@@ -1,0 +1,76 @@
+{
+  "id" : "b105a8f0-119c-44d1-864c-5f2756f13270",
+  "name" : "disco_v3.0_packages",
+  "request" : {
+    "urlPath" : "/disco/v3.0/packages",
+    "method" : "GET",
+    "queryParameters" : {
+      "distro" : {
+        "hasExactly" : [ {
+          "equalTo" : "temurin,aoj"
+        } ]
+      },
+      "javafx_bundled" : {
+        "hasExactly" : [ {
+          "equalTo" : "false"
+        } ]
+      },
+      "libc_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "c_std_lib"
+        } ]
+      },
+      "directly_downloadable" : {
+        "hasExactly" : [ {
+          "equalTo" : "true"
+        } ]
+      },
+      "archive_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "zip"
+        } ]
+      },
+      "operating_system" : {
+        "hasExactly" : [ {
+          "equalTo" : "windows"
+        } ]
+      },
+      "package_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "jdk"
+        } ]
+      },
+      "version" : {
+        "hasExactly" : [ {
+          "equalTo" : "11"
+        } ]
+      },
+      "release_status" : {
+        "hasExactly" : [ {
+          "equalTo" : "ga"
+        } ]
+      },
+      "architecture" : {
+        "hasExactly" : [ {
+          "equalTo" : "x64"
+        } ]
+      },
+      "latest" : {
+        "hasExactly" : [ {
+          "equalTo" : "available"
+        } ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"result\":[{\"id\":\"de49af87ce3ca069872a7394f6a119ae\",\"archive_type\":\"zip\",\"distribution\":\"temurin\",\"major_version\":11,\"java_version\":\"11.0.30+7\",\"distribution_version\":\"11.0.30\",\"jdk_version\":11,\"latest_build_available\":true,\"release_status\":\"ga\",\"term_of_support\":\"lts\",\"operating_system\":\"windows\",\"lib_c_type\":\"c_std_lib\",\"architecture\":\"x64\",\"fpu\":\"unknown\",\"package_type\":\"jdk\",\"javafx_bundled\":false,\"directly_downloadable\":true,\"filename\":\"OpenJDK11U-jdk_x64_windows_hotspot_11.0.30_7.zip\",\"links\":{\"pkg_info_uri\":\"https://api.foojay.io/disco/v3.0/ids/de49af87ce3ca069872a7394f6a119ae\",\"pkg_download_redirect\":\"https://api.foojay.io/disco/v3.0/ids/de49af87ce3ca069872a7394f6a119ae/redirect\"},\"free_use_in_production\":true,\"tck_tested\":\"unknown\",\"tck_cert_uri\":\"\",\"aqavit_certified\":\"unknown\",\"aqavit_cert_uri\":\"\",\"size\":199408909,\"feature\":[]},{\"id\":\"b9bc8dd988afa9dd5cef5de3ee965dea\",\"archive_type\":\"zip\",\"distribution\":\"aoj\",\"major_version\":11,\"java_version\":\"11.0.11\",\"distribution_version\":\"11.0.11\",\"jdk_version\":11,\"latest_build_available\":true,\"release_status\":\"ga\",\"term_of_support\":\"lts\",\"operating_system\":\"windows\",\"lib_c_type\":\"c_std_lib\",\"architecture\":\"x64\",\"fpu\":\"unknown\",\"package_type\":\"jdk\",\"javafx_bundled\":false,\"directly_downloadable\":true,\"filename\":\"OpenJDK11U-jdk_x64_windows_hotspot_11.0.11_9.zip\",\"links\":{\"pkg_info_uri\":\"https://api.foojay.io/disco/v3.0/ids/b9bc8dd988afa9dd5cef5de3ee965dea\",\"pkg_download_redirect\":\"https://api.foojay.io/disco/v3.0/ids/b9bc8dd988afa9dd5cef5de3ee965dea/redirect\"},\"free_use_in_production\":true,\"tck_tested\":\"unknown\",\"tck_cert_uri\":\"\",\"aqavit_certified\":\"unknown\",\"aqavit_cert_uri\":\"\",\"size\":196371089,\"feature\":[]}],\"message\":\"2 package(s) found\"}",
+    "headers" : {
+      "Date" : "Mon, 13 Apr 2026 15:56:03 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "b105a8f0-119c-44d1-864c-5f2756f13270",
+  "persistent" : true,
+  "insertionIndex" : 60
+}

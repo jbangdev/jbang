@@ -62,6 +62,11 @@ public abstract class BaseTest {
 
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
+		Util.setQuiet(false);
+		Util.setOffline(false);
+		Util.setFresh(false);
+		Util.setPreview(false);
+		Util.setVerbose(true);
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);
