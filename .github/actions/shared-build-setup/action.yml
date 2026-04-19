@@ -9,7 +9,7 @@ inputs:
   java-version:
     description: The Java version to use
     required: false
-    default: '11'
+    default: '25'
 outputs:
   github-short-sha:
     description: The short github.sha
