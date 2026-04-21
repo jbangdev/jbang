@@ -17,7 +17,6 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.devkitman.*;
 import dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller;
-import dev.jbang.devkitman.jdkinstallers.MetadataJdkInstaller;
 import dev.jbang.devkitman.jdkproviders.*;
 import dev.jbang.devkitman.util.RemoteAccessProvider;
 
@@ -158,20 +157,21 @@ public class JavaUtil {
 				if (!distroNames.isEmpty()) {
 					distros = String.join(",", distroNames);
 				}
-				if ("metadata".equals(installerName)) {
-					MetadataJdkInstaller installer = new MetadataJdkInstaller(p)
-						.distros(distros)
-						.remoteAccessProvider(new JBangRemoteAccessProvider());
-					p.installer(installer);
-				} else {
-					if (installerName != null && !"foojay".equals(installerName)) {
-						Util.warnMsg("Unknown JDK installer: " + providerName);
+				JdkInstaller installer = null;
+				if (installerName != null) {
+					JdkInstallers.Discovery.Config icfg = JdkInstallers.config(p, Collections.emptyMap(),
+							Settings.getCacheDir(Cache.CacheClass.jdks));
+					installer = JdkInstallers.instance().parseName(icfg, installerName);
+					if (installer == null) {
+						Util.warnMsg("Unknown JDK installer: " + installerName);
 					}
-					FoojayJdkInstaller installer = new FoojayJdkInstaller(p)
+				}
+				if (installer == null) {
+					installer = new FoojayJdkInstaller(p)
 						.distros(distros)
 						.remoteAccessProvider(new JBangRemoteAccessProvider());
-					p.installer(installer);
 				}
+				p.installer(installer);
 				provider = p;
 				break;
 			default:

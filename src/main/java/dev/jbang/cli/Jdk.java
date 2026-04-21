@@ -115,6 +115,9 @@ class JdkInstall extends BaseJdkCommand {
 		JdkManager jdkMan = getJdkManager();
 		dev.jbang.devkitman.Jdk jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canInstall);
 		if (force || jdk == null) {
+			if (jdk != null) {
+				((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).uninstall();
+			}
 			if (!Util.isNullOrBlankString(path)) {
 				if (isValidInteger(versionOrId)) {
 					throw new IllegalArgumentException(
@@ -127,15 +130,11 @@ class JdkInstall extends BaseJdkCommand {
 				}
 				jdkMan.linkToExistingJdk(jdkPath, versionOrId);
 			} else {
+				jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
 				if (jdk == null) {
-					jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
-					if (jdk == null) {
-						throw new IllegalArgumentException("JDK is not available for installation: " + versionOrId);
-					}
+					throw new IllegalArgumentException("JDK is not available for installation: " + versionOrId);
 				}
-				if (!jdk.isInstalled()) {
-					((dev.jbang.devkitman.Jdk.AvailableJdk) jdk).install();
-				}
+				((dev.jbang.devkitman.Jdk.AvailableJdk) jdk).install();
 			}
 		} else {
 			Util.infoMsg("JDK is already installed: " + jdk);
