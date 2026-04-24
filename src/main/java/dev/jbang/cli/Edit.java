@@ -379,7 +379,17 @@ public class Edit extends BaseCommand {
 	}
 
 	private static List<String> findEditorsOnPath() {
-		return Arrays.stream(knownEditors).filter(e -> Util.searchPath(e) != null).collect(Collectors.toList());
+		return Arrays.stream(knownEditors)
+			.filter(e -> Util.searchPath(e) != null)
+			.map(e -> {
+				Path found = Util.searchPath(e);
+				// On Windows, use the full path with extension so Git Bash can execute it
+				if (Util.isWindows() && found != null) {
+					return found.toString();
+				}
+				return e;
+			})
+			.collect(Collectors.toList());
 	}
 
 	private static void showStartingMsg(String ed, boolean showConfig) {
