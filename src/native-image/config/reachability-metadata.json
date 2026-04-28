@@ -2,9 +2,36 @@
   "reflection": [
     { "type": "java.util.HashMap" },
     { "type": "java.util.Map" },
-    { "type": "java.util.ArrayList" },
+    {
+      "type": "java.util.ArrayList",
+      "methods": [
+        { "name": "<init>", "parameterTypes": [] }
+      ]
+    },
     { "type": "java.lang.Cloneable" },
     { "type": "java.io.Serializable" },
+    { "type": "java.lang.Object" },
+    {
+      "type": "java.lang.Class",
+      "methods": [
+        { "name": "isRecord", "parameterTypes": [] }
+      ]
+    },
+    { "type": "java.lang.reflect.RecordComponent" },
+    {
+      "type": "java.lang.Boolean",
+      "jniAccessible": true,
+      "methods": [
+        { "name": "getBoolean", "parameterTypes": ["java.lang.String"] }
+      ]
+    },
+    { "type": "java.sql.Date" },
+    { "type": "java.security.AlgorithmParametersSpi" },
+    { "type": "java.security.KeyStoreSpi" },
+    { "type": "java.security.interfaces.ECPrivateKey" },
+    { "type": "java.security.interfaces.ECPublicKey" },
+    { "type": "java.security.interfaces.RSAPrivateKey" },
+    { "type": "java.security.interfaces.RSAPublicKey" },
     {
       "type": "ch.qos.logback.classic.Logger"
     },
@@ -12,164 +39,153 @@
       "type": "com.google.gson.internal.LinkedTreeMap"
     },
     {
+      "type": "dev.jbang.cli.Alias$AliasList$AliasOut",
+      "allPublicFields": true
+    },
+    {
+      "type": "dev.jbang.cli.Catalog$CatalogList$CatalogOut",
+      "allPublicFields": true
+    },
+    {
+      "type": "dev.jbang.cli.Template$TemplateList$TemplateOut",
+      "allPublicFields": true
+    },
+    {
+      "type": "dev.jbang.cli.Config$ConfigList$OriginOut",
+      "allPublicFields": true
+    },
+    {
+      "type": "dev.jbang.cli.Jdk$JdkOut",
+      "allPublicFields": true
+    },
+    {
+      "type": "com.sun.crypto.provider.AESCipher$General",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ARCFOURCipher",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESCipher",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESedeCipher",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DHParameters",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA256",
+      "methods": [ { "name": "<init>", "parameterTypes": ["javax.crypto.KDFParameters"] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA384",
+      "methods": [ { "name": "<init>", "parameterTypes": ["javax.crypto.KDFParameters"] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HmacCore$HmacSHA256",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HmacCore$HmacSHA384",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsKeyMaterialGenerator",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsMasterSecretGenerator",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsPrfGenerator$V12",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
       "type": "dev.jbang.spi.IntegrationInput",
-      "allPublicFields" : true,
-      "allDeclaredConstructors" : true
+      "allPublicFields": true,
+      "allDeclaredConstructors": true
     },
     {
       "type": "dev.jbang.spi.IntegrationResult",
-      "allPublicFields" : true,
-      "allDeclaredConstructors" : true,
-      "unsafeAllocated" : true
+      "allPublicFields": true,
+      "allDeclaredConstructors": true,
+      "unsafeAllocated": true
     },
     {
       "type": "dev.jbang.catalog.Alias",
       "fields": [
-        {
-          "name": "arguments"
-        },
-        {
-          "name": "cds"
-        },
-        {
-          "name": "classpaths"
-        },
-        {
-          "name": "compileOptions"
-        },
-        {
-          "name": "debug"
-        },
-        {
-          "name": "dependencies"
-        },
-        {
-          "name": "description"
-        },
-        {
-          "name": "docs"
-        },
-        {
-          "name": "enableAssertions"
-        },
-        {
-          "name": "enablePreview"
-        },
-        {
-          "name": "enableSystemAssertions"
-        },
-        {
-          "name": "forceType"
-        },
-        {
-          "name": "integrations"
-        },
-        {
-          "name": "interactive"
-        },
-        {
-          "name": "javaAgents"
-        },
-        {
-          "name": "javaVersion"
-        },
-        {
-          "name": "jfr"
-        },
-        {
-          "name": "mainClass"
-        },
-        {
-          "name": "manifestOptions"
-        },
-        {
-          "name": "moduleName"
-        },
-        {
-          "name": "nativeImage"
-        },
-        {
-          "name": "nativeOptions"
-        },
-        {
-          "name": "properties"
-        },
-        {
-          "name": "repositories"
-        },
-        {
-          "name": "resources"
-        },
-        {
-          "name": "runtimeOptions"
-        },
-        {
-          "name": "scriptRef"
-        },
-        {
-          "name": "sources"
-        }
+        { "name": "arguments" },
+        { "name": "cds" },
+        { "name": "classpaths" },
+        { "name": "compileOptions" },
+        { "name": "debug" },
+        { "name": "dependencies" },
+        { "name": "description" },
+        { "name": "docs" },
+        { "name": "enableAssertions" },
+        { "name": "enablePreview" },
+        { "name": "enableSystemAssertions" },
+        { "name": "forceType" },
+        { "name": "integrations" },
+        { "name": "interactive" },
+        { "name": "javaAgents" },
+        { "name": "javaVersion" },
+        { "name": "jfr" },
+        { "name": "mainClass" },
+        { "name": "manifestOptions" },
+        { "name": "moduleName" },
+        { "name": "nativeImage" },
+        { "name": "nativeOptions" },
+        { "name": "properties" },
+        { "name": "repositories" },
+        { "name": "resources" },
+        { "name": "runtimeOptions" },
+        { "name": "scriptRef" },
+        { "name": "sources" }
       ],
       "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
+        { "name": "<init>", "parameterTypes": [] }
       ]
     },
     {
       "type": "dev.jbang.catalog.Alias$JavaAgent",
       "allDeclaredConstructors": true,
       "allDeclaredMethods": true,
-      "allDeclaredFields": true,
-      "fields": [
-        {
-          "name": "agentRef"
-        },
-        {
-          "name": "options"
-        }
-      ]
+      "allDeclaredFields": true
     },
     {
       "type": "dev.jbang.catalog.Catalog",
-      "allPublicFields" : true,
+      "allPublicFields": true,
       "unsafeAllocated": true,
       "fields": [
-        {
-          "name": "aliases"
-        },
-        {
-          "name": "baseRef"
-        },
-        {
-          "name": "catalogs"
-        },
-        {
-          "name": "description"
-        },
-        {
-          "name": "templates"
-        }
+        { "name": "aliases" },
+        { "name": "baseRef" },
+        { "name": "catalogs" },
+        { "name": "description" },
+        { "name": "templates" }
       ]
     },
     {
       "type": "dev.jbang.catalog.Catalog$SkipEmptyListSerializer",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "dev.jbang.catalog.Catalog$SkipEmptyMapSerializer",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "dev.jbang.catalog.CatalogItem"
@@ -178,30 +194,18 @@
       "type": "dev.jbang.catalog.CatalogRef",
       "unsafeAllocated": true,
       "fields": [
-        {
-          "name": "catalogRef"
-        },
-        {
-          "name": "description"
-        },
-        {
-          "name": "importItems"
-        }
+        { "name": "catalogRef" },
+        { "name": "description" },
+        { "name": "importItems" }
       ]
     },
     {
       "type": "dev.jbang.catalog.Template",
       "unsafeAllocated": true,
       "fields": [
-        {
-          "name": "description"
-        },
-        {
-          "name": "fileRefs"
-        },
-        {
-          "name": "properties"
-        }
+        { "name": "description" },
+        { "name": "fileRefs" },
+        { "name": "properties" }
       ]
     },
     {
@@ -209,1533 +213,496 @@
       "unsafeAllocated": true
     },
     {
-      "type": "dev.jbang.cli.Alias",
+      "type": "dev.jbang.cli.BaseCommand",
       "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
+        { "name": "fresh" },
+        { "name": "offline" },
+        { "name": "preview" },
+        { "name": "printExceptions" },
+        { "name": "quiet" },
+        { "name": "verbose" }
       ]
     },
+    { "type": "dev.jbang.cli.BaseBuildCommand" },
+    { "type": "dev.jbang.cli.Alias" },
+    { "type": "dev.jbang.cli.Alias$AliasAdd" },
+    { "type": "dev.jbang.cli.Alias$AliasList" },
+    { "type": "dev.jbang.cli.Alias$AliasRemove" },
+    { "type": "dev.jbang.cli.App" },
+    { "type": "dev.jbang.cli.App$AppInstall" },
+    { "type": "dev.jbang.cli.App$AppList" },
+    { "type": "dev.jbang.cli.App$AppSetup" },
+    { "type": "dev.jbang.cli.App$AppUninstall" },
+    { "type": "dev.jbang.cli.Build" },
+    { "type": "dev.jbang.cli.Cache" },
+    { "type": "dev.jbang.cli.Cache$CacheClear" },
+    { "type": "dev.jbang.cli.Catalog" },
+    { "type": "dev.jbang.cli.Catalog$BaseCatalogCommand" },
+    { "type": "dev.jbang.cli.Catalog$CatalogAdd" },
+    { "type": "dev.jbang.cli.Catalog$CatalogList" },
+    { "type": "dev.jbang.cli.Catalog$CatalogRemove" },
+    { "type": "dev.jbang.cli.Catalog$CatalogUpdate" },
     {
-      "type": "dev.jbang.cli.AIOptions"
+      "type": "dev.jbang.cli.Completion",
+      "fields": [ { "name": "shell" } ]
     },
+    { "type": "dev.jbang.cli.Config" },
+    { "type": "dev.jbang.cli.Config$BaseConfigCommand" },
+    { "type": "dev.jbang.cli.Config$ConfigGet" },
+    { "type": "dev.jbang.cli.Config$ConfigList" },
+    { "type": "dev.jbang.cli.Config$ConfigSet" },
+    { "type": "dev.jbang.cli.Config$ConfigUnset" },
+    { "type": "dev.jbang.cli.Deps" },
+    { "type": "dev.jbang.cli.Deps$DepsAdd" },
+    { "type": "dev.jbang.cli.Deps$DepsSearch" },
+    { "type": "dev.jbang.cli.Edit" },
+    { "type": "dev.jbang.cli.Export" },
+    { "type": "dev.jbang.cli.Export$BaseExportCommand" },
+    { "type": "dev.jbang.cli.Export$BaseExportProject" },
+    { "type": "dev.jbang.cli.Export$ExportFatjar" },
+    { "type": "dev.jbang.cli.Export$ExportGradleProject" },
+    { "type": "dev.jbang.cli.Export$ExportJlink" },
+    { "type": "dev.jbang.cli.Export$ExportLocal" },
+    { "type": "dev.jbang.cli.Export$ExportMavenProject" },
+    { "type": "dev.jbang.cli.Export$ExportMavenPublish" },
+    { "type": "dev.jbang.cli.Export$ExportNative" },
+    { "type": "dev.jbang.cli.Export$ExportPortable" },
+    { "type": "dev.jbang.cli.Info" },
+    { "type": "dev.jbang.cli.Info$BaseInfoCommand" },
     {
-      "type": "dev.jbang.cli.Deps"
+      "type": "dev.jbang.cli.Info$BaseInfoCommand$ProjectFile",
+      "fields": [
+        { "name": "backingResource" },
+        { "name": "error" },
+        { "name": "originalResource" },
+        { "name": "target" }
+      ]
     },
+    { "type": "dev.jbang.cli.Info$BaseInfoCommand$Repo" },
     {
-      "type": "dev.jbang.cli.DepsAdd"
+      "type": "dev.jbang.cli.Info$BaseInfoCommand$ScriptInfo",
+      "fields": [
+        { "name": "applicationJar" },
+        { "name": "applicationJsa" },
+        { "name": "availableJdkPath" },
+        { "name": "backingResource" },
+        { "name": "compileOptions" },
+        { "name": "dependencies" },
+        { "name": "description" },
+        { "name": "docs" },
+        { "name": "files" },
+        { "name": "gav" },
+        { "name": "javaVersion" },
+        { "name": "mainClass" },
+        { "name": "module" },
+        { "name": "nativeImage" },
+        { "name": "originalResource" },
+        { "name": "repositories" },
+        { "name": "requestedJavaVersion" },
+        { "name": "resolvedDependencies" },
+        { "name": "runtimeOptions" },
+        { "name": "sources" }
+      ]
     },
+    { "type": "dev.jbang.cli.Info$ClassPath" },
+    { "type": "dev.jbang.cli.Info$Docs" },
+    { "type": "dev.jbang.cli.Info$Jar" },
+    { "type": "dev.jbang.cli.Info$Tools" },
+    { "type": "dev.jbang.cli.Init" },
+    { "type": "dev.jbang.cli.JBang" },
+    { "type": "dev.jbang.cli.Jdk" },
+    { "type": "dev.jbang.cli.Jdk$JdkDefault" },
+    { "type": "dev.jbang.cli.Jdk$JdkExec" },
+    { "type": "dev.jbang.cli.Jdk$JdkHome" },
+    { "type": "dev.jbang.cli.Jdk$JdkInstall" },
+    { "type": "dev.jbang.cli.Jdk$JdkJavaEnv" },
+    { "type": "dev.jbang.cli.Jdk$JdkList" },
+    { "type": "dev.jbang.cli.Jdk$JdkUninstall" },
+    { "type": "dev.jbang.cli.Run" },
+    { "type": "dev.jbang.cli.Template" },
+    { "type": "dev.jbang.cli.Template$BaseTemplateCommand" },
+    { "type": "dev.jbang.cli.Template$TemplateAdd" },
+    { "type": "dev.jbang.cli.Template$TemplateList" },
+    { "type": "dev.jbang.cli.Template$TemplateRemove" },
+    { "type": "dev.jbang.cli.Trust" },
+    { "type": "dev.jbang.cli.Trust$TrustAdd" },
+    { "type": "dev.jbang.cli.Trust$TrustList" },
+    { "type": "dev.jbang.cli.Trust$TrustRemove" },
+    { "type": "dev.jbang.cli.Version" },
+    { "type": "dev.jbang.cli.Wrapper" },
+    { "type": "dev.jbang.cli.Wrapper$WrapperInstall" },
+    { "type": "dev.jbang.cli.Alias_AeshMetadata" },
+    { "type": "dev.jbang.cli.Alias_AliasAdd_AeshMetadata" },
+    { "type": "dev.jbang.cli.Alias_AliasList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Alias_AliasRemove_AeshMetadata" },
+    { "type": "dev.jbang.cli.App_AeshMetadata" },
+    { "type": "dev.jbang.cli.App_AppInstall_AeshMetadata" },
+    { "type": "dev.jbang.cli.App_AppList_AeshMetadata" },
+    { "type": "dev.jbang.cli.App_AppSetup_AeshMetadata" },
+    { "type": "dev.jbang.cli.App_AppUninstall_AeshMetadata" },
+    { "type": "dev.jbang.cli.Build_AeshMetadata" },
+    { "type": "dev.jbang.cli.Cache_AeshMetadata" },
+    { "type": "dev.jbang.cli.Cache_CacheClear_AeshMetadata" },
+    { "type": "dev.jbang.cli.Catalog_AeshMetadata" },
+    { "type": "dev.jbang.cli.Catalog_CatalogAdd_AeshMetadata" },
+    { "type": "dev.jbang.cli.Catalog_CatalogList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Catalog_CatalogRemove_AeshMetadata" },
+    { "type": "dev.jbang.cli.Catalog_CatalogUpdate_AeshMetadata" },
+    { "type": "dev.jbang.cli.Completion_AeshMetadata" },
+    { "type": "dev.jbang.cli.Config_AeshMetadata" },
+    { "type": "dev.jbang.cli.Config_ConfigGet_AeshMetadata" },
+    { "type": "dev.jbang.cli.Config_ConfigList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Config_ConfigSet_AeshMetadata" },
+    { "type": "dev.jbang.cli.Config_ConfigUnset_AeshMetadata" },
+    { "type": "dev.jbang.cli.Deps_AeshMetadata" },
+    { "type": "dev.jbang.cli.Deps_DepsAdd_AeshMetadata" },
+    { "type": "dev.jbang.cli.Deps_DepsSearch_AeshMetadata" },
+    { "type": "dev.jbang.cli.Edit_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportFatjar_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportGradleProject_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportJlink_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportLocal_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportMavenProject_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportMavenPublish_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportNative_AeshMetadata" },
+    { "type": "dev.jbang.cli.Export_ExportPortable_AeshMetadata" },
+    { "type": "dev.jbang.cli.Info_AeshMetadata" },
+    { "type": "dev.jbang.cli.Info_ClassPath_AeshMetadata" },
+    { "type": "dev.jbang.cli.Info_Docs_AeshMetadata" },
+    { "type": "dev.jbang.cli.Info_Jar_AeshMetadata" },
+    { "type": "dev.jbang.cli.Info_Tools_AeshMetadata" },
+    { "type": "dev.jbang.cli.Init_AeshMetadata" },
+    { "type": "dev.jbang.cli.JBang_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkDefault_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkExec_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkHome_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkInstall_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkJavaEnv_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Jdk_JdkUninstall_AeshMetadata" },
+    { "type": "dev.jbang.cli.Run_AeshMetadata" },
+    { "type": "dev.jbang.cli.Template_AeshMetadata" },
+    { "type": "dev.jbang.cli.Template_TemplateAdd_AeshMetadata" },
+    { "type": "dev.jbang.cli.Template_TemplateList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Template_TemplateRemove_AeshMetadata" },
+    { "type": "dev.jbang.cli.Trust_AeshMetadata" },
+    { "type": "dev.jbang.cli.Trust_TrustAdd_AeshMetadata" },
+    { "type": "dev.jbang.cli.Trust_TrustList_AeshMetadata" },
+    { "type": "dev.jbang.cli.Trust_TrustRemove_AeshMetadata" },
+    { "type": "dev.jbang.cli.Version_AeshMetadata" },
+    { "type": "dev.jbang.cli.Wrapper_AeshMetadata" },
+    { "type": "dev.jbang.cli.Wrapper_WrapperInstall_AeshMetadata" },
     {
-      "type": "dev.jbang.cli.DepsSearch"
+      "type": "dev.jbang.ai.AIProvider",
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true
     },
     {
       "type": "dev.jbang.search.MvnSearchResult",
-      "allDeclaredConstructors" : true,
-      "allPublicConstructors" : true,
-      "allPublicFields" : true
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true
     },
     {
       "type": "dev.jbang.search.MsrHeader",
-      "allDeclaredConstructors" : true,
-      "allPublicConstructors" : true,
-      "allPublicFields" : true
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true
     },
     {
       "type": "dev.jbang.search.MsrResponse",
-      "allDeclaredConstructors" : true,
-      "allPublicConstructors" : true,
-      "allPublicFields" : true
-    },
-    {
-      "type": "dev.jbang.ai.AIProvider",
-      "allDeclaredConstructors" : true,
-      "allPublicConstructors" : true,
-      "allPublicFields" : true
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true
     },
     {
       "type": "dev.jbang.search.MsrDoc",
-      "allDeclaredConstructors" : true,
-      "allPublicConstructors" : true,
-      "allPublicFields" : true
-    },
-    {
-      "type": "dev.jbang.cli.AliasAdd",
-      "fields": [
-        {
-          "name": "buildMixin"
-        },
-        {
-          "name": "dependencyInfoMixin"
-        },
-        {
-          "name": "description"
-        },
-        {
-          "name": "docs"
-        },
-        {
-          "name": "enablePreviewRequested"
-        },
-        {
-          "name": "force"
-        },
-        {
-          "name": "name"
-        },
-        {
-          "name": "nativeMixin"
-        },
-        {
-          "name": "runMixin"
-        },
-        {
-          "name": "scriptMixin"
-        },
-        {
-          "name": "userParams"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AliasList",
-      "fields": [
-        {
-          "name": "catalogName"
-        },
-        {
-          "name": "formatMixin"
-        },
-        {
-          "name": "showOrigin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AliasRemove",
-      "fields": [
-        {
-          "name": "name"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.App",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AppInstall",
-      "fields": [
-        {
-          "name": "force"
-        },
-        {
-          "name": "name"
-        },
-        {
-          "name": "noBuild"
-        },
-        {
-          "name": "runMixin"
-        },
-        {
-          "name": "userParams"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AppList",
-      "fields": [
-        {
-          "name": "formatMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AppSetup",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.AppUninstall",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseAliasCommand",
-      "fields": [
-        {
-          "name": "catalogFile"
-        },
-        {
-          "name": "global"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseBuildCommand",
-      "fields": [
-        {
-          "name": "buildDir"
-        },
-        {
-          "name": "buildMixin"
-        },
-        {
-          "name": "dependencyInfoMixin"
-        },
-        {
-          "name": "enablePreviewRequested"
-        },
-        {
-          "name": "nativeMixin"
-        },
-        {
-          "name": "scriptMixin"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseCatalogCommand",
-      "fields": [
-        {
-          "name": "catalogFile"
-        },
-        {
-          "name": "global"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseCommand",
-      "fields": [
-        {
-          "name": "helpMixin"
-        },
-        {
-          "name": "spec"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseConfigCommand",
-      "fields": [
-        {
-          "name": "configFile"
-        },
-        {
-          "name": "global"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseExportCommand",
-      "fields": [
-        {
-          "name": "exportMixin"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseExportProject"
-    },
-    {
-      "type": "dev.jbang.cli.BaseInfoCommand",
-      "fields": [
-        {
-          "name": "buildDir"
-        },
-        {
-          "name": "dependencyInfoMixin"
-        },
-        {
-          "name": "module"
-        },
-        {
-          "name": "scriptMixin"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BaseTemplateCommand",
-      "fields": [
-        {
-          "name": "catalogFile"
-        },
-        {
-          "name": "global"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Build",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.BuildMixin",
-      "fields": [
-        {
-          "name": "compileOptions"
-        },
-        {
-          "name": "integrations"
-        },
-        {
-          "name": "jdkProvidersMixin"
-        },
-        {
-          "name": "main"
-        },
-        {
-          "name": "manifestOptions"
-        },
-        {
-          "name": "module"
-        },
-        {
-          "name": "spec"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "setJavaVersion",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Cache",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "clear",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "java.lang.Boolean",
-            "boolean"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Catalog",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.CatalogAdd",
-      "fields": [
-        {
-          "name": "description"
-        },
-        {
-          "name": "force"
-        },
-        {
-          "name": "importItems"
-        },
-        {
-          "name": "name"
-        },
-        {
-          "name": "urlOrFile"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.CatalogList",
-      "fields": [
-        {
-          "name": "formatMixin"
-        },
-        {
-          "name": "name"
-        },
-        {
-          "name": "showOrigin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.CatalogRemove",
-      "fields": [
-        {
-          "name": "name"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.CatalogUpdate",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ClassPath",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.CommaSeparatedConverter",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Completion",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Config",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ConfigGet",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ConfigList",
-      "fields": [
-        {
-          "name": "formatMixin"
-        },
-        {
-          "name": "showAvailable"
-        },
-        {
-          "name": "showOrigin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ConfigSet",
-      "fields": [
-        {
-          "name": "key"
-        },
-        {
-          "name": "value"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ConfigUnset",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.DependencyInfoMixin",
-      "fields": [
-        {
-          "name": "classpaths"
-        },
-        {
-          "name": "dependencies"
-        },
-        {
-          "name": "properties"
-        },
-        {
-          "name": "repositories"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Docs",
-      "fields": [
-        {
-          "name": "open"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Edit",
-      "fields": [
-        {
-          "name": "additionalFiles"
-        },
-        {
-          "name": "dependencyInfoMixin"
-        },
-        {
-          "name": "editor"
-        },
-        {
-          "name": "live"
-        },
-        {
-          "name": "noOpen"
-        },
-        {
-          "name": "sandbox"
-        },
-        {
-          "name": "scriptMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Export",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportFatjar",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportGradleProject",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportJlink",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportLocal",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportMavenProject",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportMavenPublish",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportMixin",
-      "fields": [
-        {
-          "name": "buildMixin"
-        },
-        {
-          "name": "dependencyInfoMixin"
-        },
-        {
-          "name": "force"
-        },
-        {
-          "name": "nativeImage"
-        },
-        {
-          "name": "outputFile"
-        },
-        {
-          "name": "scriptMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportNative",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ExportPortable",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.FormatMixin",
-      "fields": [
-        {
-          "name": "format"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.HelpMixin",
-      "fields": [
-        {
-          "name": "helpRequested"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Info",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Init",
-      "fields": [
-        {
-          "name": "buildMixin"
-        },
-        {
-          "name": "dependencies"
-        },
-        {
-          "name": "edit"
-        },
-        {
-          "name": "force"
-        },
-        {
-          "name": "initTemplate"
-        },
-        {
-          "name": "params"
-        },
-        {
-          "name": "properties"
-        },
-        {
-          "name": "scriptOrFile"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.JBang",
-      "fields": [
-        {
-          "name": "offlineFreshExclusive"
-        },
-        {
-          "name": "verboseQuietExclusive"
-        },
-        {
-          "name": "versionRequested"
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.JBang$OfflineFreshExclusive",
-      "methods": [
-        {
-          "name": "setFresh",
-          "parameterTypes": [
-            "boolean"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.JBang$VerboseQuietExclusive",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "setVerbose",
-          "parameterTypes": [
-            "boolean"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Jar",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Jdk",
-      "fields": [
-        {
-          "name": "helpMixin"
-        },
-        {
-          "name": "jdkProvidersMixin"
-        },
-        {
-          "name": "spec"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.JdkProvidersMixin",
-      "fields": [
-        {
-          "name": "jdkProviders"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.KeyValueConsumer",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.NativeMixin",
-      "fields": [
-        {
-          "name": "nativeImage"
-        },
-        {
-          "name": "nativeOptions"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Run",
-      "fields": [
-        {
-          "name": "literalScript"
-        },
-        {
-          "name": "runMixin"
-        },
-        {
-          "name": "userParams"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Run$DebugFallbackConsumer",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Run$KeyValueFallbackConsumer",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.RunMixin",
-      "fields": [
-        {
-          "name": "cds"
-        },
-        {
-          "name": "debugString"
-        },
-        {
-          "name": "enableAssertions"
-        },
-        {
-          "name": "enableSystemAssertions"
-        },
-        {
-          "name": "flightRecorderString"
-        },
-        {
-          "name": "interactive"
-        },
-        {
-          "name": "javaAgentSlots"
-        },
-        {
-          "name": "javaRuntimeOptions"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.ScriptMixin",
-      "fields": [
-        {
-          "name": "catalog"
-        },
-        {
-          "name": "forceType"
-        },
-        {
-          "name": "resources"
-        },
-        {
-          "name": "scriptOrFile"
-        },
-        {
-          "name": "sources"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "setForcejsh",
-          "parameterTypes": [
-            "boolean"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.StrictParameterPreprocessor",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Template",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.TemplateAdd",
-      "fields": [
-        {
-          "name": "description"
-        },
-        {
-          "name": "fileRefs"
-        },
-        {
-          "name": "force"
-        },
-        {
-          "name": "name"
-        },
-        {
-          "name": "properties"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.TemplateList",
-      "fields": [
-        {
-          "name": "catalogName"
-        },
-        {
-          "name": "formatMixin"
-        },
-        {
-          "name": "showFiles"
-        },
-        {
-          "name": "showOrigin"
-        },
-        {
-          "name": "showProperties"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.TemplatePropertyConverter",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.TemplateRemove",
-      "fields": [
-        {
-          "name": "name"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Tools",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Trust",
-      "fields": [
-        {
-          "name": "helpMixin"
-        },
-        {
-          "name": "spec"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "add",
-          "parameterTypes": [
-            "java.util.List"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Version",
-      "fields": [
-        {
-          "name": "checkForUpdate"
-        },
-        {
-          "name": "update"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.VersionProvider",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "dev.jbang.cli.Wrapper",
-      "fields": [
-        {
-          "name": "helpMixin"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        },
-        {
-          "name": "install",
-          "parameterTypes": [
-            "java.nio.file.Path",
-            "boolean"
-          ]
-        }
-      ]
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allPublicFields": true
     },
     {
       "type": "dev.jbang.dependencies.ArtifactInfo",
       "methods": [
-        {
-          "name": "getCoordinate",
-          "parameterTypes": []
-        }
+        { "name": "getCoordinate", "parameterTypes": [] }
       ]
     },
     {
       "type": "dev.jbang.dependencies.MavenCoordinate",
       "methods": [
-        {
-          "name": "getArtifactId",
-          "parameterTypes": []
-        },
-        {
-          "name": "getGroupId",
-          "parameterTypes": []
-        },
-        {
-          "name": "getVersion",
-          "parameterTypes": []
-        }
+        { "name": "getArtifactId", "parameterTypes": [] },
+        { "name": "getGroupId", "parameterTypes": [] },
+        { "name": "getVersion", "parameterTypes": [] }
       ]
     },
     {
       "type": "dev.jbang.util.JBangFormatter",
-      "allPublicFields" : true,
-      "allPublicConstructors" : true
+      "allPublicFields": true,
+      "allPublicConstructors": true
     },
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
-      "allPublicFields" : true,
-      "allPublicConstructors" : true
+      "fields": [
+        { "name": "java_version" },
+        { "name": "javafx_bundled" },
+        { "name": "links" },
+        { "name": "major_version" },
+        { "name": "package_type" },
+        { "name": "release_status" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResultLinks",
-      "allPublicFields" : true,
-      "allPublicConstructors" : true
+      "fields": [
+        { "name": "pkg_download_redirect" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
-      "allPublicFields" : true,
-      "allPublicConstructors" : true
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.CurrentJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.DefaultJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.JBangJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.JavaHomeJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.LinkedJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.LinuxJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.MiseJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.MultiHomeJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.PathJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.ScoopJdkProvider$Discovery"
-    },
-    {
-      "type": "dev.jbang.devkitman.jdkproviders.SdkmanJdkProvider$Discovery"
-    },
-    {
-      "type": "env",
       "fields": [
-        {
-          "name": "pattern"
-        }
-      ]
+        { "name": "result" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
+    { "type": "dev.jbang.devkitman.jdkproviders.CurrentJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.DefaultJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.JBangJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.JavaHomeJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.LinkedJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.LinuxJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.MiseJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.MultiHomeJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.PathJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.ScoopJdkProvider$Discovery" },
+    { "type": "dev.jbang.devkitman.jdkproviders.SdkmanJdkProvider$Discovery" },
+    { "type": "eu.maveniverse.maven.mima.runtime.standalonestatic.StandaloneStaticRuntime" },
+    {
+      "type": "org.aesh.command.impl.parser.AeshOptionParser",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    { "type": "org.apache.log4j.LogManager" },
+    { "type": "org.apache.logging.log4j.Logger" },
+    { "type": "org.jboss.logmanager.LogManager" },
     {
       "type": "org.apache.maven.model.Build",
-      "methods": [
-        {
-          "name": "getOutputDirectory",
-          "parameterTypes": []
-        },
-        {
-          "name": "getSourceDirectory",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.apache.maven.model.BuildBase",
-      "methods": [
-        {
-          "name": "getDirectory",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.apache.maven.model.Model",
-      "methods": [
-        {
-          "name": "getArtifactId",
-          "parameterTypes": []
-        },
-        {
-          "name": "getBuild",
-          "parameterTypes": []
-        },
-        {
-          "name": "getDescription",
-          "parameterTypes": []
-        },
-        {
-          "name": "getGroupId",
-          "parameterTypes": []
-        },
-        {
-          "name": "getName",
-          "parameterTypes": []
-        },
-        {
-          "name": "getOrganization",
-          "parameterTypes": []
-        },
-        {
-          "name": "getPackaging",
-          "parameterTypes": []
-        },
-        {
-          "name": "getUrl",
-          "parameterTypes": []
-        },
-        {
-          "name": "getVersion",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.apache.maven.model.ModelBase",
-      "methods": [
-        {
-          "name": "getReporting",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.apache.maven.model.Organization",
-      "methods": [
-        {
-          "name": "getName",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.apache.maven.model.Reporting",
-      "methods": [
-        {
-          "name": "getOutputDirectory",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicMethods": true
     },
     {
       "type": "org.jline.terminal.impl.exec.ExecTerminalProvider",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "org.jline.terminal.impl.jansi.JansiTerminalProvider",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
       "type": "org.jline.terminal.impl.jna.JnaTerminalProvider",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.misc.Unsafe",
+      "fields": [ { "name": "theUnsafe" } ],
       "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
+        { "name": "allocateInstance", "parameterTypes": ["java.lang.Class"] }
       ]
     },
     {
-      "type": "picocli.CommandLine$AutoHelpMixin",
-      "fields": [
-        {
-          "name": "helpRequested"
-        },
-        {
-          "name": "versionRequested"
-        }
-      ]
-    }
+      "type": "sun.security.pkcs12.PKCS12KeyStore",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA224withDSA",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA256withDSA",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$DualFormatJKS",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$JKS",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.MD5",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.NativePRNG",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.security.SecureRandomParameters"] } ]
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA224",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA256",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA384",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA512",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.provider.certpath.PKIXCertPathValidator",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.rsa.PSSParameters",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.rsa.RSAPSSSignature",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA224withRSA",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA256withRSA",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.ssl.KeyManagerFactoryImpl$SunX509",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.ssl.SSLContextImpl$DefaultSSLContext",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityInfoAccessExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.BasicConstraintsExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.CRLDistributionPointsExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.CertificatePoliciesExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.ExtendedKeyUsageExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.KeyUsageExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.NetscapeCertTypeExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.PrivateKeyUsageExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.SubjectAlternativeNameExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    {
+      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
+      "methods": [ { "name": "<init>", "parameterTypes": ["java.lang.Boolean", "java.lang.Object"] } ]
+    },
+    { "type": "sun.text.resources.cldr.FormatData" },
+    { "type": "sun.text.resources.cldr.FormatData_en" },
+    { "type": "sun.text.resources.cldr.FormatData_en_US" },
+    { "type": "sun.util.resources.cldr.CalendarData" },
+    { "type": "sun.util.resources.cldr.TimeZoneNames" },
+    { "type": "sun.util.resources.cldr.TimeZoneNames_en" },
+    { "type": "sun.util.resources.cldr.TimeZoneNames_en_US" }
   ],
   "resources": [
+    { "bundle": "consoleui_messages" },
+    { "bundle": "sun.util.logging.resources.logging" },
+    { "glob": "META-INF/services/**" },
+    { "glob": "META-INF/jbang-integration.list" },
+    { "glob": "META-INF/maven/org.apache.maven/maven-resolver-provider/pom.properties" },
+    { "glob": "eu/maveniverse/maven/mima/runtime/shared/internal/version.properties" },
+    { "glob": "jbang-catalog.json" },
+    { "glob": "jbang.properties" },
+    { "glob": "logging.properties" },
+    { "glob": "mozilla/public-suffix-list.txt" },
+    { "glob": "org/apache/maven/model/pom-4.0.0.xml" },
+    { "glob": "org/slf4j/impl/StaticLoggerBinder.class" },
     {
-      "bundle": "consoleui_messages"
-    },  
-    {
-      "glob": "META-INF/services/**"
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/nfkc.nrm"
     },
     {
-      "glob": ".qute.classpath"
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/uprops.icu"
     },
     {
-      "glob": ".qute.project"
-    },
-    {
-      "glob": "META-INF/jbang-integration.list"
-    },
-    {
-      "glob": "README.qute.md"
-    },
-    {
-      "glob": "build.qute.gradle"
-    },
-    {
-      "glob": "init-hello.java.qute"
-    },
-    {
-      "glob": "jbang-catalog.json"
-    },
-    {
-      "glob": "jbang.properties"
-    },
-    {
-      "glob": "launch.qute.json"
-    },
-    {
-      "glob": "locales/da-DK.yml"
-    },
-    {
-      "glob": "locales/en.yml"
-    },
-    {
-      "glob": "log4j.properties"
-    },
-    {
-      "glob": "log4j.xml"
-    },
-    {
-      "glob": "logging.properties"
-    },
-    {
-      "glob": "main-port-4004.qute.launch"
-    },
-    {
-      "glob": "main.qute.launch"
-    },
-    {
-      "glob": "mozilla/public-suffix-list.txt"
-    },
-    {
-      "glob": "org/apache/maven/model/pom-4.0.0.xml"
-    },
-    {
-      "glob": "org/jline/utils/capabilities.txt"
-    },
-    {
-      "glob": "org/jline/utils/dumb.caps"
-    },
-    {
-      "glob": "org/slf4j/impl/StaticLoggerBinder.class"
-    },
-    {
-      "glob": "pom.qute.xml"
-    },
-    {
-      "glob": "resource.properties"
-    },
-    {
-      "glob": "settings.qute.json"
-    },
-    {
-      "glob": "standard.flf"
-    },
-    {
-      "glob": "trusted-sources.json.qute"
-    },
-    {
-      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+      "module": "java.base",
+      "glob": "sun/net/idn/uidna.spp"
     },
     {
       "module": "java.logging",
       "glob": "sun/util/logging/resources/*.properties"
     }
-
-
   ]
 }

@@ -4,38 +4,49 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionList;
+
 import dev.jbang.source.Source;
 
-import picocli.CommandLine;
-
 public class ScriptMixin {
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
+
+	@OptionList(shortName = 's', name = "sources", valueSeparator = ',', description = "Add additional sources.")
 	List<String> sources;
 
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
+	@OptionList(name = "files", valueSeparator = ',', description = "Add additional files.")
 	List<String> resources;
 
-	@CommandLine.Option(names = { "-T",
-			"--source-type" }, description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
-	Source.Type forceType;
+	@Option(shortName = 'T', name = "source-type", description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
+	String forceTypeStr;
 
-	@CommandLine.Option(names = {
-			"--jsh" }, description = "Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'")
-	void setForcejsh(boolean forceJsh) {
-		forceType = forceJsh ? Source.Type.jshell : null;
-	}
+	@Option(name = "jsh", hasValue = false, description = "Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'")
+	Boolean forceJsh;
 
-	@CommandLine.Option(names = { "--catalog" }, description = "Path to catalog file to be used instead of the default")
+	@Option(name = "catalog", description = "Path to catalog file to be used instead of the default")
 	File catalog;
 
-	@CommandLine.Parameters(index = "0", arity = "0..1", description = "A reference to a source file")
 	String scriptOrFile;
+
+	public Source.Type getForceType() {
+		if (Boolean.TRUE.equals(forceJsh)) {
+			return Source.Type.jshell;
+		}
+		if (forceTypeStr != null) {
+			try {
+				return Source.Type.valueOf(forceTypeStr);
+			} catch (IllegalArgumentException e) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Invalid source type '" + forceTypeStr
+								+ "'. Valid types: java, jshell, groovy, kotlin, markdown");
+			}
+		}
+		return null;
+	}
 
 	public void validate() {
 		if (scriptOrFile == null) {
-			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 
@@ -59,9 +70,9 @@ public class ScriptMixin {
 				opts.add(r);
 			}
 		}
-		if (forceType != null) {
+		if (getForceType() != null) {
 			opts.add("--source-type");
-			opts.add(forceType.toString());
+			opts.add(getForceType().toString());
 		}
 		if (catalog != null) {
 			opts.add("--catalog");

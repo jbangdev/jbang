@@ -155,8 +155,11 @@ dependencies {
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.15.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation 'info.picocli:picocli:4.7.7'
-	annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
+	implementation('org.aesh:aesh:3.7') {
+		exclude group: 'org.aesh', module: 'readline'
+	}
+	implementation 'org.aesh:readline-api:3.7'
+	annotationProcessor 'org.aesh:aesh-processor:3.7'
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.13.2'
@@ -352,7 +355,9 @@ shadowJar {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnitPlatform() {
+		excludeTags 'benchmark'
+	}
 	javaLauncher = testExecutionToolchain
 	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
 	if (testJavaVersion.asInt() >= 9) {
@@ -375,6 +380,25 @@ test {
 	}
 
 	// Allow disabling WireMock via project property -PdisableWiremock=true
+	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
+}
+
+task benchmark(type: Test) {
+	description = 'Run startup benchmark tests'
+	group = 'verification'
+	useJUnitPlatform() {
+		includeTags 'benchmark'
+	}
+	javaLauncher = testExecutionToolchain
+	def jvmArgsList = []
+	if (testJavaVersion.asInt() >= 9) {
+		jvmArgsList.addAll([
+			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+		])
+	}
+	jvmArgs = jvmArgsList
+	testLogging.showStandardStreams = true
 	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
 }
 

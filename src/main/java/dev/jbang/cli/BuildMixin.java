@@ -4,60 +4,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import dev.jbang.devkitman.Jdk;
-import dev.jbang.source.Project;
-
-import picocli.CommandLine;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.ParameterException;
-import picocli.CommandLine.Spec;
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionGroup;
+import org.aesh.command.option.OptionList;
 
 public class BuildMixin {
 
-	@Spec
-	CommandSpec spec; // injected by picocli
-
+	@Option(shortName = 'j', name = "java", description = "JDK version to use for running the script.")
 	public String javaVersion;
 
-	@CommandLine.Mixin
-	JdkProvidersMixin jdkProvidersMixin;
+	@Option(shortName = 'm', name = "main", description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
+	public String main;
 
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the script.")
-	void setJavaVersion(String javaVersion) {
-		if (!javaVersion.matches("\\d+[+]?")) {
-			throw new ParameterException(spec.commandLine(),
-					String.format("Invalid version '%s', should be a number optionally followed by a plus sign",
-							javaVersion));
-		}
-		this.javaVersion = javaVersion;
-	}
+	@Option(name = "module", parser = StrictOptionParser.class, description = "Treat resource as a module. Optionally with the given module name")
+	public String module;
 
-	@CommandLine.Option(names = { "-m",
-			"--main" }, description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
-	String main;
-
-	@CommandLine.Option(names = {
-			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
-	String module;
-
-	@CommandLine.Option(names = { "-C", "--compile-option" }, description = "Options to pass to the compiler")
+	@OptionList(shortName = 'C', name = "compile-option", description = "Options to pass to the compiler")
 	public List<String> compileOptions;
 
-	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
+	@OptionGroup(name = "manifest")
 	public Map<String, String> manifestOptions;
 
-	@Option(names = {
-			"--integrations" }, description = "Enable integration execution (default: true)", negatable = true)
-	public Boolean integrations;
+	@Option(name = "integrations", hasValue = false, negatable = true, description = "Enable or disable integration execution (default: true)")
+	Boolean integrations;
 
-	public Jdk getProjectJdk(Project project) {
-		Jdk jdk = project.projectJdk();
-		if (javaVersion != null) {
-			jdk = jdkProvidersMixin.getJdkManager().getOrInstallJdk(javaVersion);
-		}
-		return jdk;
+	public Boolean getIntegrations() {
+		return integrations;
 	}
 
 	public List<String> opts() {
@@ -74,9 +46,9 @@ public class BuildMixin {
 			opts.add("--module");
 			opts.add(module);
 		}
-		if (Boolean.TRUE.equals(integrations)) {
+		if (Boolean.TRUE.equals(getIntegrations())) {
 			opts.add("--integrations");
-		} else if (Boolean.FALSE.equals(integrations)) {
+		} else if (Boolean.FALSE.equals(getIntegrations())) {
 			opts.add("--no-integrations");
 		}
 		if (compileOptions != null) {
@@ -91,7 +63,6 @@ public class BuildMixin {
 				opts.add(e.getKey() + "=" + e.getValue());
 			}
 		}
-		opts.addAll(jdkProvidersMixin.opts());
 		return opts;
 	}
 }
