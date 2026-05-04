@@ -25,6 +25,12 @@
     "allDeclaredFields": true
   },
   {
+    "name": "dev.jbang.catalog.Alias$AliasOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "dev.jbang.catalog.Alias$JavaAgent",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
