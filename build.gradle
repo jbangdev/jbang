@@ -51,7 +51,7 @@ repositories {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(11)
+		languageVersion = JavaLanguageVersion.of(25)
 		vendor = JvmVendorSpec.ADOPTIUM
 	}
 	withJavadocJar()
@@ -310,26 +310,24 @@ jar {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-compileJava {
+// Common compiler settings for all Java compilation tasks
+tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
+}
+
+compileJava {
 	options.compilerArgs.addAll(['--release', '8'])
 }
 
 compileTestJava {
-	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:deprecation"
-	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 compileJava9Java {
 	sourceCompatibility = 9
 	targetCompatibility = 9
-	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:deprecation"
-	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '9'])
 }
 
@@ -439,6 +437,10 @@ testing {
 
 tasks.named('integrationTest') {
 	dependsOn("installDist") // todo: move to after buildDist
+}
+
+tasks.named('compileIntegrationTestJava') {
+	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 task karateExecute(type: JavaExec) {

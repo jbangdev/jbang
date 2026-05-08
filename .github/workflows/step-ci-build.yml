@@ -118,26 +118,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        java-version: [11]
         os: *os_matrix
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-        with:
-            java-version: 11
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: test
         run: |
-          ./gradlew --no-daemon test
+          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }}
       - name: Arcive test results
         uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
-          suffix: -${{matrix.os}}
+          suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
