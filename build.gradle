@@ -324,6 +324,8 @@ compileTestJava {
 	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
+
+
 compileJava9Java {
 	sourceCompatibility = 9
 	targetCompatibility = 9
@@ -439,6 +441,13 @@ testing {
 
 tasks.named('integrationTest') {
 	dependsOn("installDist") // todo: move to after buildDist
+}
+
+tasks.named('compileIntegrationTestJava') {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << "-Xlint:deprecation"
+	options.compilerArgs << '-parameters' // for allure reporting
+	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 task karateExecute(type: JavaExec) {
