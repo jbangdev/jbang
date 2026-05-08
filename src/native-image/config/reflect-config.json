@@ -84,6 +84,36 @@
     "queryAllPublicMethods": true
   },
   {
+    "name": "dev.jbang.cli.AliasList$AliasOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.cli.CatalogList$CatalogOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.cli.TemplateList$TemplateOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.cli.ConfigList$OriginOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.cli.Jdk$JdkOut",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
     "allDeclaredConstructors": true,
     "queryAllDeclaredMethods": true,
