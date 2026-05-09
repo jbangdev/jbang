@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -380,15 +381,13 @@ public class Edit extends BaseCommand {
 
 	private static List<String> findEditorsOnPath() {
 		return Arrays.stream(knownEditors)
-			.filter(e -> Util.searchPath(e) != null)
 			.map(e -> {
 				Path found = Util.searchPath(e);
-				// On Windows, use the full path with extension so Git Bash can execute it
-				if (Util.isWindows() && found != null) {
-					return found.toString();
-				}
-				return e;
+				if (found == null)
+					return null;
+				return Util.isWindows() ? found.toString() : e;
 			})
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 	}
 
