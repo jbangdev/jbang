@@ -9,6 +9,10 @@
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
+# Number of retry attempts for downloads (curl/wget)
+downloadRetry=${JBANG_DOWNLOAD_RETRY:-5}
+downloadRetryDelay=${JBANG_DOWNLOAD_RETRY_DELAY:-0}
+
 script_dir() {
   script=${BASH_SOURCE[0]}
   while [ -L "$script" ]; do
@@ -22,10 +26,14 @@ script_dir() {
 
 download() {
   if [ -x "$(command -v curl)" ]; then
-    curl -sLf -o "$2" "$1"
+    curl -sLf --retry "$downloadRetry" --retry-delay "$downloadRetryDelay" -o "$2" "$1"
     retval=$?
   elif [ -x "$(command -v wget)" ]; then
-    wget -q -O "$2" "$1"
+    if [ "$downloadRetryDelay" -gt 0 ] 2>/dev/null; then
+      wget -q --tries="$downloadRetry" --waitretry="$downloadRetryDelay" -O "$2" "$1"
+    else
+      wget -q --tries="$downloadRetry" -O "$2" "$1"
+    fi
     retval=$?
   else
     echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
@@ -252,7 +260,9 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
     echo "Downloading JBang $JBANG_DOWNLOAD_VERSION..." 1>&2
     mkdir -p "$TDIR/urls"
-    if [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
+    if [ -n "$JBANG_DOWNLOAD_URL" ]; then
+      jburl="$JBANG_DOWNLOAD_URL";
+    elif [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
       jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
     else
       jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
