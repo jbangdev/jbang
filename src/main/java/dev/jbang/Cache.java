@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyCache;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.util.JavaUtil;
@@ -39,6 +40,10 @@ public class Cache {
 						Util.verboseMsg("Deleting file " + Settings.getCacheDependencyFile());
 						Files.deleteIfExists(Settings.getCacheDependencyFile().toAbsolutePath());
 					}
+					// Also delete the actual dependency cache directory containing JARs
+					Util.deletePath(Settings.getCacheDir(cc), true);
+					// Clear in-memory cache
+					DependencyCache.clear();
 				} catch (IOException io) {
 					throw new ExitException(-1,
 							"Could not delete dependency cache " + Settings.getCacheDependencyFile().toString(), io);
