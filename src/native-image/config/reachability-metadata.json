@@ -510,6 +510,14 @@
       ]
     },
     {
+      "type": "dev.jbang.cli.BaseJdkCommand",
+      "fields": [
+        {
+          "name": "jdkProvidersMixin"
+        }
+      ]
+    },
+    {
       "type": "dev.jbang.cli.BaseTemplateCommand",
       "fields": [
         {
@@ -1093,9 +1101,128 @@
         },
         {
           "name": "jdkProvidersMixin"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkDefault",
+      "fields": [
+        {
+          "name": "versionOrId"
         },
         {
-          "name": "spec"
+          "name": "details"
+        },
+        {
+          "name": "format"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkExec",
+      "fields": [
+        {
+          "name": "versionOrId"
+        },
+        {
+          "name": "args"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkHome",
+      "fields": [
+        {
+          "name": "versionOrId"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkInstall",
+      "fields": [
+        {
+          "name": "force"
+        },
+        {
+          "name": "versionOrId"
+        },
+        {
+          "name": "path"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkJavaEnv",
+      "fields": [
+        {
+          "name": "versionOrId"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkList",
+      "fields": [
+        {
+          "name": "available"
+        },
+        {
+          "name": "listProviders"
+        },
+        {
+          "name": "listDistros"
+        },
+        {
+          "name": "format"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.jbang.cli.JdkUninstall",
+      "fields": [
+        {
+          "name": "versionOrId"
         }
       ],
       "methods": [

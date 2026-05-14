@@ -57,7 +57,7 @@ public class TestProject extends BaseTest {
 		Path jarPath = Files.createTempFile("test", ".jar");
 		try {
 			Project project = new Project(ResourceRef.forFile(jarPath));
-			assertTrue(project.isJar());
+			assertTrue(project.isExecutableArchive());
 		} finally {
 			Files.deleteIfExists(jarPath);
 		}
@@ -69,7 +69,7 @@ public class TestProject extends BaseTest {
 		try {
 			WarTestFixtures.createExecutableWar(warPath, "TestMain");
 			Project project = new Project(ResourceRef.forFile(warPath));
-			assertTrue(project.isJar());
+			assertTrue(project.isExecutableArchive());
 		} finally {
 			Files.deleteIfExists(warPath);
 		}
