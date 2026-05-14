@@ -73,7 +73,7 @@ function Invoke-Download {
             Invoke-WebRequest "$url" -OutFile "$outFile"
             return $true
         } catch {
-            if ($attempt -ge $downloadRetry) {
+            if ($attempt -gt $downloadRetry) {
                 return $false
             }
             if ($downloadRetryDelay -gt 0) {
@@ -82,7 +82,7 @@ function Invoke-Download {
                 # Exponential backoff: 1, 2, 4, 8, ...
                 $sleepSeconds = [Math]::Pow(2, $attempt - 1)
             }
-            [Console]::Error.WriteLine("Download attempt $attempt/$downloadRetry failed, retrying in $sleepSeconds second(s)...")
+            [Console]::Error.WriteLine("Download attempt $attempt/$($downloadRetry + 1) failed, retrying in $sleepSeconds second(s)...")
             Start-Sleep -Seconds $sleepSeconds
         }
     }
