@@ -231,7 +231,9 @@ public class Alias extends BaseCommand {
 				.map(name -> getAliasOut(catalogName, catalog,
 						name))
 				.collect(Collectors.groupingBy(
-						a -> a._catalogRef));
+						a -> a._catalogRef,
+						java.util.LinkedHashMap::new,
+						Collectors.toList()));
 			return groups.entrySet()
 				.stream()
 				.map(e -> new dev.jbang.cli.Catalog.CatalogList.CatalogOut(null, e.getKey(),

@@ -97,8 +97,7 @@ public class RunMixin {
 			}
 		}
 		if (flightRecorderString != null) {
-			opts.add("--jfr");
-			opts.add(flightRecorderString);
+			opts.add(flightRecorderString.isEmpty() ? "--jfr" : "--jfr=" + flightRecorderString);
 		}
 		if (debugString != null) {
 			for (Map.Entry<String, String> e : debugString.entrySet()) {
@@ -115,11 +114,15 @@ public class RunMixin {
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> e : javaAgentSlots.entrySet()) {
 				opts.add("--javaagent");
-				opts.add(e.getKey() + "=" + e.getValue());
+				opts.add(e.getValue() == null || e.getValue().isEmpty()
+						? e.getKey()
+						: e.getKey() + "=" + e.getValue());
 			}
 		}
 		if (Boolean.TRUE.equals(getCds())) {
 			opts.add("--cds");
+		} else if (Boolean.FALSE.equals(getCds())) {
+			opts.add("--no-cds");
 		}
 		if (Boolean.TRUE.equals(interactive)) {
 			opts.add("--interactive");

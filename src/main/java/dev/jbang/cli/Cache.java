@@ -81,7 +81,7 @@ public class Cache extends BaseCommand {
 			toggleCache(jars, dev.jbang.Cache.CacheClass.jars, classes);
 			toggleCache(jdks, dev.jbang.Cache.CacheClass.jdks, classes);
 			toggleCache(kotlincs, dev.jbang.Cache.CacheClass.kotlincs, classes);
-			toggleCache(kotlincs, dev.jbang.Cache.CacheClass.groovycs, classes);
+			toggleCache(groovys, dev.jbang.Cache.CacheClass.groovycs, classes);
 			toggleCache(deps, dev.jbang.Cache.CacheClass.deps, classes);
 			toggleCache(projects, dev.jbang.Cache.CacheClass.projects, classes);
 			toggleCache(scripts, dev.jbang.Cache.CacheClass.scripts, classes);

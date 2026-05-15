@@ -160,7 +160,7 @@ public class Config extends BaseCommand {
 					cfgFile = ConfigUtil.unsetNearestConfigValue(key);
 				}
 				if (cfgFile != null) {
-					Util.infoMsg("Option '" + key + "' removed from in " + cfgFile);
+					Util.infoMsg("Option '" + key + "' removed from " + cfgFile);
 				} else {
 					Util.warnMsg("Cannot remove built-in option '" + key + "'");
 				}
