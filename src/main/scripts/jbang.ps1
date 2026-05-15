@@ -150,8 +150,7 @@ if (-not $binaryPath -and -not $jarPath) {
     $ok = Invoke-Download "$jburl" "$TDIR\urls\jbang.zip"
     if (-not ($ok)) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
-      [Console]::Error.WriteLine($err)
-      break
+      exit 1
     }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
@@ -208,7 +207,7 @@ if (-not $binaryPath) {
         [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
         $jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
         $ok = Invoke-Download "$jdkurl" "$TDIR\bootstrap-jdk.zip"
-        if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
+        if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); exit 1 }
         [Console]::Error.WriteLine("Installing JDK $javaVersion...")
         Remove-Item -LiteralPath "$TDIR\jdks\$javaVersion.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
         try { Expand-Archive -Path "$TDIR\bootstrap-jdk.zip" -DestinationPath "$TDIR\jdks\$javaVersion.tmp"; $ok=$? } catch { $ok=$false }
