@@ -18,3 +18,9 @@
 - Avoid raw collections and unchecked casts; keep method signatures explicit.
 - Error handling: throw `dev.jbang.cli.ExitException` for controlled exits; let picocli report parameter issues.
 - Logging/output: use `dev.jbang.util.Util` helpers (e.g., `infoMsg`, `verboseMsg`).
+- Commits: use conventional/semantic format — `feat:`, `fix:`, `build:`, `docs:`, etc. PR titles follow the same convention.
+- Startup scripts live in `src/main/scripts/`: `jbang` (bash), `jbang.cmd` (CMD), `jbang.ps1` (PowerShell). The CMD script delegates downloads and JDK installs to `jbang.ps1`. Changes affecting downloads or bootstrap must be applied consistently across all three. Behavior (e.g., retry backoff) must be consistent across tools — watch for tool-specific quirks like `curl --retry-delay 0` meaning exponential backoff while `wget --waitretry=0` meaning no delay.
+- Environment variables follow `JBANG_*` naming. New env vars must have defaults in all three scripts, be documented in the reference table in `installation.adoc` ("Startup Script Environment Variables"), and behave identically across platforms.
+- Documentation is AsciiDoc under `docs/modules/ROOT/pages/` (e.g., `installation.adoc`, `troubleshooting.adoc`).
+- Test infrastructure: `BaseTest` includes WireMock for HTTP mocking (records/replays requests). `BaseIT` provides `shell()` helpers for running CLI commands. Use `assumeTrue` for conditionally skipping tests (e.g., `assumeTrue(isCommandAvailable("bash"))` or `assumeTrue(isCommandAvailable("pwsh"))`).
+- Script tests should run the real scripts from `src/main/scripts/` — not synthetic copies or extracted functions. Use env var overrides (e.g., `JBANG_DOWNLOAD_URL`) to point real scripts at WireMock.

@@ -1,0 +1,76 @@
+{
+  "id" : "6c01a620-a8ab-47e7-81cb-7b3d2d3b1751",
+  "name" : "disco_v3.0_packages",
+  "request" : {
+    "urlPath" : "/disco/v3.0/packages",
+    "method" : "GET",
+    "queryParameters" : {
+      "distro" : {
+        "hasExactly" : [ {
+          "equalTo" : "temurin,aoj"
+        } ]
+      },
+      "javafx_bundled" : {
+        "hasExactly" : [ {
+          "equalTo" : "false"
+        } ]
+      },
+      "libc_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "c_std_lib"
+        } ]
+      },
+      "directly_downloadable" : {
+        "hasExactly" : [ {
+          "equalTo" : "true"
+        } ]
+      },
+      "archive_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "zip"
+        } ]
+      },
+      "operating_system" : {
+        "hasExactly" : [ {
+          "equalTo" : "windows"
+        } ]
+      },
+      "package_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "jdk"
+        } ]
+      },
+      "version" : {
+        "hasExactly" : [ {
+          "equalTo" : "17..<999"
+        } ]
+      },
+      "release_status" : {
+        "hasExactly" : [ {
+          "equalTo" : "ga"
+        } ]
+      },
+      "architecture" : {
+        "hasExactly" : [ {
+          "equalTo" : "x64"
+        } ]
+      },
+      "latest" : {
+        "hasExactly" : [ {
+          "equalTo" : "available"
+        } ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "disco_v3.0_packages-6c01a620-a8ab-47e7-81cb-7b3d2d3b1751.json",
+    "headers" : {
+      "Date" : "Thu, 26 Mar 2026 13:45:25 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "6c01a620-a8ab-47e7-81cb-7b3d2d3b1751",
+  "persistent" : true,
+  "insertionIndex" : 56
+}

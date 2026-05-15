@@ -1,0 +1,18 @@
+{
+  "id" : "92cdab1a-0c7f-4aab-944e-f02cd5f7b541",
+  "name" : "disco_v3.0_ids_69a793dd932268c7d1ae9d8b855de8ed_redirect",
+  "request" : {
+    "url" : "/disco/v3.0/ids/69a793dd932268c7d1ae9d8b855de8ed/redirect",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 301,
+    "headers" : {
+      "location" : "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.18%2B8/OpenJDK17U-jdk_x64_windows_hotspot_17.0.18_8.zip",
+      "Date" : "Thu, 26 Mar 2026 13:45:27 GMT"
+    }
+  },
+  "uuid" : "92cdab1a-0c7f-4aab-944e-f02cd5f7b541",
+  "persistent" : true,
+  "insertionIndex" : 55
+}

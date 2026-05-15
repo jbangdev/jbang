@@ -119,11 +119,6 @@ public class JBang extends BaseCommand {
 	}
 
 	public static CommandLine getCommandLine() {
-		Util.setVerbose(false);
-		Util.setQuiet(false);
-		Util.setOffline(false);
-		Util.setFresh(false);
-		Util.setPreview(false);
 		PrintWriter errW = new PrintWriter(err, true);
 		return getCommandLine(errW, errW);
 	}
