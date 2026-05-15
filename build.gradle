@@ -6,7 +6,7 @@ plugins {
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
-	id "io.toolebox.git-versioner" version "1.6.7"
+
 	id 'org.gradle.crypto.checksum' version '1.4.0'
 	id "com.diffplug.spotless" version "7.2.1"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
@@ -243,7 +243,18 @@ spotless {
 	}
 }
 
-versioner.apply()
+// Version is computed by Nisse JGit counting version (replaces git-versioner plugin).
+// Walks commit history matching [major]/[minor]/[patch] in messages.
+// Configuration is in gradle.properties (must be set before plugin applies).
+project.version = nisse['nisse.jgit.countingVersion']
+
+task printVersion {
+	group = "versioning"
+	description = "Print the project version"
+	doLast {
+		println project.version
+	}
+}
 
 task versionTxt() {
 	doLast {
@@ -520,27 +531,17 @@ task copyITests(type: Copy) {
 	into "${buildDir}/itests"
 }
 
-task tag(type: Exec) {
-	doFirst {
-		println 'Tagging with v' + project.version
-		commandLine 'git', 'tag', '-a', 'v' + project.version, '-m', 'v' + project.version
-	}
-}
-
-versioner {
-	startFrom {
-		major = 0
-		minor = 0
-		patch = 1
-	}
-	pattern {
-		pattern = "%M.%m.%p(.%c)"
-	}
-	git {
-		authentication {
-			https {
-				token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-			}
+task tagVersion {
+	group = "versioning"
+	description = "Tag and push the current version in git"
+	doLast {
+		def tagName = 'v' + project.version
+		println 'Tagging with ' + tagName
+		exec {
+			commandLine 'git', 'tag', '-a', tagName, '-m', tagName
+		}
+		exec {
+			commandLine 'git', 'push', 'origin', tagName
 		}
 	}
 }
