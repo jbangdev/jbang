@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: catalog Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-catalog-remove(1)
 
@@ -12,15 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-catalog-remove - Remove existing catalog.
+catalog-remove - Remove existing catalog.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog remove* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                     [*--config*=_<config>_] [*-f*=_<catalogFile>_] _name_
+*catalog remove* [*--config*=_config_] [*-f*=_file_] [*--fresh*] [*-g*] [*-h*=_help_] [*--insecure*] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*] [__]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -34,10 +33,10 @@ Remove existing catalog.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*-f*, *--file*=_<catalogFile>_::
+*-f*, *--file*=_file_::
   Path to the catalog file to use
 
 *--fresh*::
@@ -46,17 +45,23 @@ Remove existing catalog.
 *-g*, *--global*::
   Use the global (user) catalog file
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -66,7 +71,7 @@ Remove existing catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_name_::
+_arg_::
   The name of the catalog
 
 // end::picocli-generated-man-section-arguments[]

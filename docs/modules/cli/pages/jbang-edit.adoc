@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,12 +19,7 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang edit* *-o* [*-bh*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] [*--live*] [*--no-open*]
-           *--quiet* *--verbose* [*--open*[=_<editor>_]] [*--catalog*=_<catalog>_]
-           [*--config*=_<config>_] [*-T*=_<forceType>_] [*--cp*=_<classpaths>_]...
-           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-           [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
-           [*-s*=_<sources>_]... [_<scriptOrFile>_] [_<additionalFiles>_...]
+*jbang edit* [*--catalog*=_catalog_] [*--config*=_config_] [*--cp*=_cp_] [*--deps*=_deps_] [*--files*=_files_] [*--fresh*] [*-h*=_help_] [*--ignore-transitive-repositories*] [*--insecure*] [*--jsh*] [*--live*] [*--no-open*] [*-o*] [*--open*=_open_] [*--preview*] [*-D*=_properties_] [*--quiet*] [*--repos*=_repos_] [*-b*] [*-T*=_source-type_] [*-s*=_sources_] [*-x*] [*--verbose*] [__] [__...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -38,38 +33,32 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-b*, *--sandbox*::
-  Edit in sandbox mode. Useful when the editor/IDE used has no JBang support
-
-*--catalog*=_<catalog>_::
+*--catalog*=_catalog_::
   Path to catalog file to be used instead of the default
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*--cp, --class-path*=_<classpaths>_::
+*--cp*=_cp_::
   Add class path entries.
 
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
+*--deps*=_deps_::
   Add additional dependencies (Use commas to separate them).
 
-*--files*=_<resources>_::
+*--files*=_files_::
   Add additional files.
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
+
+*--ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
-
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
 
 *--jsh*::
   Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -81,22 +70,34 @@ Setup a temporary project to edit script in an IDE.
   Explicitly prevent JBang from opening an editor/IDE
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
 
-*--open*[=_<editor>_]::
+*--open*=_open_::
   Opens editor/IDE on the temporary project.
+
+*--preview*::
+  Enable jbang preview features
+
+*-D*, *--properties*=_properties_::
+  set a system property
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--repos*=_<repositories>_::
+*--repos*=_repos_::
   Add additional repositories.
 
-*-s*, *--sources*=_<sources>_::
+*-b*, *--sandbox*::
+  Edit in sandbox mode. Useful when the editor/IDE used has no JBang support
+
+*-T*, *--source-type*=_source-type_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*-s*, *--sources*=_sources_::
   Add additional sources.
 
-*-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -106,11 +107,11 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_arg_::
+  A file or URL to a Java code file
 
-[_<additionalFiles>_...]::
-  
+_arg_::
+  Additional files
 
 // end::picocli-generated-man-section-arguments[]
 

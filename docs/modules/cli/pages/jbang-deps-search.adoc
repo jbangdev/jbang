@@ -3,56 +3,38 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: info Manual
+:manmanual: deps Manual
 :man-linkstyle: pass:[blue R < >]
-= jbang-info-classpath(1)
+= jbang-deps-search(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-info-classpath - Prints class-path used for this application using operating system specific path separation.
+deps-search - Search for artifacts in local and central Maven repositories.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*info classpath* [*--build-dir*=_build-dir_] [*--catalog*=_catalog_] [*--config*=_config_] [*--cp*=_cp_] [*--deps*=_deps_] [*--deps-only*] [*--files*=_files_] [*--fresh*] [*-h*=_help_] [*--ignore-transitive-repositories*] [*--insecure*] [*--jsh*] [*--module*=_module_] [*-o*] [*--preview*] [*-D*=_properties_] [*--quiet*] [*--repos*=_repos_] [*-T*=_source-type_] [*-s*=_sources_] [*-x*] [*--verbose*] [__]
+*deps search* [*--config*=_config_] [*--fresh*] [*-h*=_help_] [*--insecure*] [*--max*=_max_] [*-o*] [*--preview*] [*-q*=_query_] [*--quiet*] [*-x*] [*--target*=_target_] [*--verbose*] [__...]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Prints class-path used for this application using operating system specific path separation.
+Search for artifacts in local and central Maven repositories.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--build-dir*=_build-dir_::
-  Use given directory for build results
-
-*--catalog*=_catalog_::
-  Path to catalog file to be used instead of the default
-
 *--config*=_config_::
   Path to config file to be used instead of the default
-
-*--cp*=_cp_::
-  Add class path entries.
-
-*--deps*=_deps_::
-  Add additional dependencies (Use commas to separate them).
-
-*--deps-only*::
-  Only include the dependencies in the output, not the application jar itself
-
-*--files*=_files_::
-  Add additional files.
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
@@ -60,17 +42,11 @@ Prints class-path used for this application using operating system specific path
 *-h*, *--help*=_help_::
   Display help (use --help=all for all options)
 
-*--ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
-
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--jsh*::
-  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
-
-*--module*=_module_::
-  Treat resource as a module. Optionally with the given module name
+*--max*=_max_::
+  Maximum number of results to return.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing.
@@ -78,23 +54,17 @@ Prints class-path used for this application using operating system specific path
 *--preview*::
   Enable jbang preview features
 
-*-D*, *--properties*=_properties_::
-  set a system property
+*-q*, *--query*=_query_::
+  Artifact pattern to search for.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--repos*=_repos_::
-  Add additional repositories.
-
-*-T*, *--source-type*=_source-type_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
-
-*-s*, *--sources*=_sources_::
-  Add additional sources.
-
 *-x*, *--stacktrace*::
   Print exceptions stacktraces to stderr (even when quiet).
+
+*--target*=_target_::
+  Target where to add the dependency, i.e. app.java or build.jbang
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -105,7 +75,7 @@ Prints class-path used for this application using operating system specific path
 == Arguments
 
 _arg_::
-  A file or URL to a Java code file
+  [query] [target]
 
 // end::picocli-generated-man-section-arguments[]
 

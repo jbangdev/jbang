@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: catalog Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-catalog-add(1)
 
@@ -12,16 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-catalog-add - Add a catalog.
+catalog-add - Add a catalog.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog add* *-o* [*-gh*] [*--force*] *--fresh* [*--import*] [*--insecure*] *--quiet*
-                  *--verbose* [*--config*=_<config>_] [*-d*=_<description>_]
-                  [*-f*=_<catalogFile>_] [*--name*=_<name>_] _urlOrFile_
+*catalog add* [*--config*=_config_] [*-d*=_description_] [*-f*=_file_] [*--force*] [*--fresh*] [*-g*] [*-h*=_help_] [*--import*=_import_] [*--insecure*] [*--name*=_name_] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*] [__]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,13 +33,13 @@ Add a catalog.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*-d*, *--description*=_<description>_::
+*-d*, *--description*=_description_::
   A description for the catalog
 
-*-f*, *--file*=_<catalogFile>_::
+*-f*, *--file*=_file_::
   Path to the catalog file to use
 
 *--force*::
@@ -53,23 +51,29 @@ Add a catalog.
 *-g*, *--global*::
   Use the global (user) catalog file
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
-*--import*::
+*--import*=_import_::
   Import catalog items into the catalog's scope
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--name*=_<name>_::
+*--name*=_name_::
   A name for the catalog
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -79,7 +83,7 @@ Add a catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_urlOrFile_::
+_arg_::
   A file or URL to a catalog file
 
 // end::picocli-generated-man-section-arguments[]

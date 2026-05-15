@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: config Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-config-unset(1)
 
@@ -12,15 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-config-unset - Remove a configuration value
+config-unset - Remove a configuration value
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang config unset* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                   [*--config*=_<config>_] [*-f*=_<configFile>_] _<key>_
+*config unset* [*--config*=_config_] [*-f*=_file_] [*--fresh*] [*-g*] [*-h*=_help_] [*--insecure*] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*] [__]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -34,10 +33,10 @@ Remove a configuration value
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*-f*, *--file*=_<configFile>_::
+*-f*, *--file*=_file_::
   Path to the config file to use
 
 *--fresh*::
@@ -46,17 +45,23 @@ Remove a configuration value
 *-g*, *--global*::
   Use the global (user) config file
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -66,8 +71,8 @@ Remove a configuration value
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<key>_::
-  The name of the configuration option to set
+_arg_::
+  The name of the configuration option to remove
 
 // end::picocli-generated-man-section-arguments[]
 
