@@ -28,6 +28,7 @@ def devkitmanVersion = '0.3.3'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
 def jlineVersion = '3.30.5'
+def tambouiVersion = '0.4.0-SNAPSHOT'
 def wiremockVersion = '3.13.2'
 
 configurations {
@@ -174,8 +175,8 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
-	implementation "org.jline:jline-console-ui:$jlineVersion"
-	implementation "org.jline:jline-terminal-jni:$jlineVersion"
+	implementation "dev.tamboui:tamboui-toolkit:$tambouiVersion"
+	implementation "dev.tamboui:tamboui-aesh-backend:$tambouiVersion"
 
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
