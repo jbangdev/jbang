@@ -249,6 +249,7 @@ nisseConfig {
 		countingVersion = true
 		countingStartPatch = 1
 		appendSnapshot = false
+		countingPattern = '%M.%m.%p(.%c)'
 	}
 	os {
 		active = true
@@ -257,7 +258,7 @@ nisseConfig {
 
 // Version is computed by Nisse JGit counting version (replaces git-versioner plugin).
 // Walks commit history matching [major]/[minor]/[patch] in messages.
-// Configuration is in gradle.properties (must be set before plugin applies).
+// Must use afterEvaluate because the nisse plugin populates project.nisse in its own afterEvaluate.
 afterEvaluate {
 	version = project.nisse['nisse.jgit.countingVersion']
 }
@@ -329,11 +330,13 @@ jar {
 	manifest {
 		attributes(
 			'Main-Class': 'dev.jbang.Main',
-			'Enable-Final-Field-Mutation': 'ALL-UNNAMED',
-			'JBang-Version': project.version
+			'Enable-Final-Field-Mutation': 'ALL-UNNAMED'
 		)
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	doFirst {
+		manifest.attributes('JBang-Version': project.version)
+	}
 }
 
 // Common compiler settings for all Java compilation tasks
@@ -370,9 +373,11 @@ shadowJar {
 	mergeServiceFiles()
 	manifest {
 		attributes(
-			'Main-Class': 'dev.jbang.Main',
-			'JBang-Version': project.version
+			'Main-Class': 'dev.jbang.Main'
 		)
+	}
+	doFirst {
+		manifest.attributes('JBang-Version': project.version)
 	}
 	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
@@ -496,7 +501,7 @@ task createChecksum(type: Checksum) {
 
 task container(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/container/')
 	include('*')
 	into(buildDir.toString() + '/container')
@@ -512,7 +517,7 @@ task container(type: Copy) {
 
 task spec(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/spec/jbang.spec')
 	into(buildDir.toString() + '/spec')
 	doFirst { t ->
@@ -527,7 +532,7 @@ task spec(type: Copy) {
 
 task chocolatey(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/choco')
 	into(buildDir.toString() + '/choco')
 	doFirst { t ->
