@@ -1,16 +1,17 @@
 pluginManagement {
-  repositories {
-      gradlePluginPortal()
-      mavenLocal()
-  }
+repositories {
+	gradlePluginPortal()
+	mavenCentral() // until nisse-gradle-plugin gets approved
+	mavenLocal() // for testing locally built versions of the plugin
+}
 
-  resolutionStrategy {
-    eachPlugin {
-        if (requested.id.namespace == 'eu.maveniverse.gradle.plugins') {
-            useModule("eu.maveniverse.gradle.plugins:nisse-gradle-plugin:${requested.version}")
-        }
-    }
-  }
+resolutionStrategy {
+	eachPlugin {
+		if (requested.id.namespace == 'eu.maveniverse.gradle.plugins') {
+			useModule("eu.maveniverse.gradle.plugins:nisse-gradle-plugin:${requested.version}")
+		}
+	}
+}
 }
 
 plugins {

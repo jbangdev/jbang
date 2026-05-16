@@ -17,7 +17,7 @@ plugins {
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
 	id 'maven-publish'
-	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.8.5-SNAPSHOT'
+	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.9.0'
 	id 'io.qameta.allure-report' version '2.12.0'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
 }
@@ -175,6 +175,7 @@ dependencies {
 	implementation "org.jline:jline-console-ui:$jlineVersion"
 	implementation "org.jline:jline-terminal-jni:$jlineVersion"
 
+	// used in JBang as well (aside of nisse plugin in the build)
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
@@ -243,10 +244,23 @@ spotless {
 	}
 }
 
+nisseConfig {
+	jgit {
+		countingVersion = true
+		countingStartPatch = 1
+		appendSnapshot = false
+	}
+	os {
+		active = true
+	}
+}
+
 // Version is computed by Nisse JGit counting version (replaces git-versioner plugin).
 // Walks commit history matching [major]/[minor]/[patch] in messages.
 // Configuration is in gradle.properties (must be set before plugin applies).
-project.version = nisse['nisse.jgit.countingVersion']
+afterEvaluate {
+	version = project.nisse['nisse.jgit.countingVersion']
+}
 
 task printVersion {
 	group = "versioning"
