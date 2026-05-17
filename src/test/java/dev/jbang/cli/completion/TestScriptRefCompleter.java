@@ -214,6 +214,60 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, hasItem("test.java"));
 	}
 
+	// --- Catalog alias browsing tests ---
+
+	@Test
+	void testAtSignListsCatalogNames() throws IOException {
+		Path catalogPath = cwdDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Files.writeString(catalogPath, "{\n"
+				+ "  \"catalogs\": {\n"
+				+ "    \"mycat\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" }\n"
+				+ "  }\n"
+				+ "}");
+		dev.jbang.util.TestUtil.clearSettingsCaches();
+
+		List<String> candidates = complete("@");
+
+		assertThat(candidates, hasItem("@mycat"));
+	}
+
+	@Test
+	void testAtCatalogNameListsAliasesInCatalog() throws IOException {
+		Path catalogPath = cwdDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Files.writeString(catalogPath, "{\n"
+				+ "  \"catalogs\": {\n"
+				+ "    \"mycat\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" }\n"
+				+ "  },\n"
+				+ "  \"aliases\": {\n"
+				+ "    \"foo\": { \"script-ref\": \"foo.java\" },\n"
+				+ "    \"bar\": { \"script-ref\": \"bar.java\" }\n"
+				+ "  }\n"
+				+ "}");
+		dev.jbang.util.TestUtil.clearSettingsCaches();
+
+		List<String> candidates = complete("@mycat");
+
+		assertThat(candidates, hasItem("foo@mycat"));
+		assertThat(candidates, hasItem("bar@mycat"));
+	}
+
+	@Test
+	void testAtPrefixMatchesCatalogNames() throws IOException {
+		Path catalogPath = cwdDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Files.writeString(catalogPath, "{\n"
+				+ "  \"catalogs\": {\n"
+				+ "    \"mycat\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" },\n"
+				+ "    \"other\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" }\n"
+				+ "  }\n"
+				+ "}");
+		dev.jbang.util.TestUtil.clearSettingsCaches();
+
+		List<String> candidates = complete("@my");
+
+		assertThat(candidates, hasItem("@mycat"));
+		assertThat(candidates, not(hasItem("@other")));
+	}
+
 	// --- Helpers ---
 
 	private List<String> complete(String partial) {
