@@ -8,6 +8,7 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.aesh.command.option.OptionList;
 
+import dev.jbang.cli.completion.ScriptRefCompleter;
 import dev.jbang.source.Source;
 
 public class ScriptMixin {
@@ -27,7 +28,7 @@ public class ScriptMixin {
 	@Option(name = "catalog", description = "Path to catalog file to be used instead of the default")
 	File catalog;
 
-	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "0..1", description = "A file or URL to a Java code file")
+	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "0..1", description = "A file or URL to a Java code file", completer = ScriptRefCompleter.class)
 	String scriptOrFile;
 
 	public Source.Type getForceType() {
