@@ -52,6 +52,8 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 		if (partial.startsWith("@")) {
 			completeCatalogAliases(candidates, partial);
+		} else if (GitHubCompletionProvider.canComplete(partial)) {
+			GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
 		} else if (looksLikeGav(partial)) {
 			completeGav(candidates, partial);
 		} else {
