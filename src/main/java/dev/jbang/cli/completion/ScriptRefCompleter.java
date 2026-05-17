@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.OptionCompleter;
 
 import dev.jbang.catalog.Catalog;
+import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
@@ -25,6 +28,7 @@ import dev.jbang.util.Util;
  * <li>Alias names from the merged catalog</li>
  * <li>Catalog alias browsing ({@code @catalogName} lists aliases in that
  * catalog, selecting one produces {@code alias@catalogName})</li>
+ * <li>Maven GAV coordinates from the local repository ({@code ~/.m2})</li>
  * </ul>
  */
 public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> {
@@ -48,6 +52,8 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 		if (partial.startsWith("@")) {
 			completeCatalogAliases(candidates, partial);
+		} else if (looksLikeGav(partial)) {
+			completeGav(candidates, partial);
 		} else {
 			completeFiles(candidates, partial);
 			completeAliases(candidates, partial);
@@ -56,8 +62,10 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		inv.addAllCompleterValues(candidates);
 		if (candidates.size() == 1) {
 			String single = candidates.iterator().next();
-			// Don't append a space after a directory — the user will keep navigating
-			if (single.endsWith("/") || single.endsWith("\\")) {
+			// Don't append a space after directory, GAV separator, or
+			// group prefix — the user will keep navigating
+			if (single.endsWith("/") || single.endsWith("\\")
+					|| single.endsWith(":") || single.endsWith(".")) {
 				inv.setAppendSpace(false);
 			}
 		}
@@ -180,6 +188,243 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			}
 		} catch (Exception ex) {
 			// best-effort
+		}
+	}
+
+	// ---- Maven GAV completion -------------------------------------------
+
+	/**
+	 * Heuristic to detect if the partial input looks like a Maven GAV coordinate.
+	 * We trigger GAV completion when the input contains a colon or looks like a
+	 * dotted package prefix (at least two dot-separated segments with no path
+	 * separators).
+	 */
+	static boolean looksLikeGav(String partial) {
+		if (partial.contains(":")) {
+			return true;
+		}
+		// At least two dot-separated segments (e.g. "com.google") with no path
+		// separators — that likely means a groupId prefix, not a filename.
+		if (partial.contains("/") || partial.contains("\\")) {
+			return false;
+		}
+		long dots = partial.chars().filter(c -> c == '.').count();
+		return dots >= 2;
+	}
+
+	/**
+	 * Complete Maven GAV coordinates from the local repository.
+	 * <ul>
+	 * <li>{@code com.goo} → groupId prefixes</li>
+	 * <li>{@code com.google.guava:} → artifactIds in that groupId</li>
+	 * <li>{@code com.google.guava:guava:} → versions</li>
+	 * </ul>
+	 */
+	private void completeGav(Set<String> candidates, String partial) {
+		Path repoDir = getLocalMavenRepo();
+		if (repoDir == null || !Files.isDirectory(repoDir)) {
+			return;
+		}
+
+		String[] parts = partial.split(":", -1);
+		if (parts.length == 1) {
+			// No colon yet — complete groupId
+			completeGroupId(candidates, repoDir, parts[0]);
+		} else if (parts.length == 2) {
+			// groupId:partial — complete artifactId
+			completeArtifactId(candidates, repoDir, parts[0], parts[1]);
+		} else if (parts.length == 3) {
+			// groupId:artifactId:partial — complete version
+			completeVersion(candidates, repoDir, parts[0], parts[1], parts[2]);
+		}
+	}
+
+	private Path getLocalMavenRepo() {
+		try {
+			return ArtifactResolver.getLocalMavenRepo();
+		} catch (Exception e) {
+			// Fallback to default location
+			Path home = Paths.get(System.getProperty("user.home"));
+			return home.resolve(".m2").resolve("repository");
+		}
+	}
+
+	/**
+	 * Complete groupId by walking the repository directory tree. Dots in the
+	 * groupId map to directory separators.
+	 */
+	private void completeGroupId(Set<String> candidates, Path repoDir, String partial) {
+		// Split partial into resolved path + leaf prefix
+		// e.g. "com.google.gu" → dir=com/google, prefix="gu"
+		int lastDot = partial.lastIndexOf('.');
+		String parentGroup;
+		String leafPrefix;
+		Path parentDir;
+		if (lastDot >= 0) {
+			parentGroup = partial.substring(0, lastDot);
+			leafPrefix = partial.substring(lastDot + 1);
+			parentDir = repoDir.resolve(parentGroup.replace('.', '/'));
+		} else {
+			parentGroup = "";
+			leafPrefix = partial;
+			parentDir = repoDir;
+		}
+
+		if (!Files.isDirectory(parentDir)) {
+			return;
+		}
+
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(parentDir)) {
+			for (Path entry : stream) {
+				if (!Files.isDirectory(entry)) {
+					continue;
+				}
+				String name = entry.getFileName().toString();
+				if (name.startsWith(".")) {
+					continue;
+				}
+				if (!name.toLowerCase().startsWith(leafPrefix.toLowerCase())) {
+					continue;
+				}
+				String groupSoFar = parentGroup.isEmpty() ? name : parentGroup + "." + name;
+				if (hasArtifactChildren(entry)) {
+					// This groupId has artifacts — offer it with trailing colon
+					candidates.add(groupSoFar + ":");
+				}
+				if (hasSubGroups(entry)) {
+					// Has deeper groupId segments — offer with trailing dot
+					candidates.add(groupSoFar + ".");
+				}
+			}
+		} catch (IOException e) {
+			// best-effort
+		}
+	}
+
+	/**
+	 * Complete artifactId within a known groupId.
+	 */
+	private void completeArtifactId(Set<String> candidates, Path repoDir,
+			String groupId, String partial) {
+		Path groupDir = repoDir.resolve(groupId.replace('.', '/'));
+		if (!Files.isDirectory(groupDir)) {
+			return;
+		}
+
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(groupDir)) {
+			for (Path entry : stream) {
+				if (!Files.isDirectory(entry)) {
+					continue;
+				}
+				String name = entry.getFileName().toString();
+				if (name.startsWith(".")) {
+					continue;
+				}
+				if (!name.toLowerCase().startsWith(partial.toLowerCase())) {
+					continue;
+				}
+				// Only offer if this looks like an artifactId (has version subdirs)
+				if (isArtifactDir(entry)) {
+					candidates.add(groupId + ":" + name + ":");
+				}
+			}
+		} catch (IOException e) {
+			// best-effort
+		}
+	}
+
+	/**
+	 * Complete version for a known groupId:artifactId.
+	 */
+	private void completeVersion(Set<String> candidates, Path repoDir,
+			String groupId, String artifactId, String partial) {
+		Path artifactDir = repoDir.resolve(groupId.replace('.', '/')).resolve(artifactId);
+		if (!Files.isDirectory(artifactDir)) {
+			return;
+		}
+
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(artifactDir)) {
+			for (Path entry : stream) {
+				if (!Files.isDirectory(entry)) {
+					continue;
+				}
+				String name = entry.getFileName().toString();
+				if (name.startsWith(".")) {
+					continue;
+				}
+				if (!name.startsWith(partial)) {
+					continue;
+				}
+				// Verify it's a real version dir (contains a .pom)
+				if (isVersionDir(entry)) {
+					candidates.add(groupId + ":" + artifactId + ":" + name);
+				}
+			}
+		} catch (IOException e) {
+			// best-effort
+		}
+	}
+
+	/**
+	 * Returns true if the directory contains at least one subdirectory that is an
+	 * artifact directory (i.e. looks like an artifactId, not a deeper groupId
+	 * segment).
+	 */
+	private boolean hasArtifactChildren(Path dir) {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+			for (Path child : stream) {
+				if (Files.isDirectory(child) && isArtifactDir(child)) {
+					return true;
+				}
+			}
+		} catch (IOException e) {
+			// ignore
+		}
+		return false;
+	}
+
+	/**
+	 * Returns true if the directory contains at least one subdirectory that is not
+	 * an artifact directory (i.e. is a deeper groupId segment).
+	 */
+	private boolean hasSubGroups(Path dir) {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+			for (Path child : stream) {
+				if (Files.isDirectory(child) && !isArtifactDir(child)) {
+					return true;
+				}
+			}
+		} catch (IOException e) {
+			// ignore
+		}
+		return false;
+	}
+
+	/**
+	 * An artifact directory contains version subdirectories which in turn contain
+	 * {@code .pom} files.
+	 */
+	private boolean isArtifactDir(Path dir) {
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
+			for (Path child : stream) {
+				if (Files.isDirectory(child) && isVersionDir(child)) {
+					return true;
+				}
+			}
+		} catch (IOException e) {
+			// ignore
+		}
+		return false;
+	}
+
+	/**
+	 * A version directory contains at least one {@code .pom} file.
+	 */
+	private boolean isVersionDir(Path dir) {
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.anyMatch(f -> f.toString().endsWith(".pom"));
+		} catch (IOException e) {
+			return false;
 		}
 	}
 }
