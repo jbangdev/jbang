@@ -23,6 +23,8 @@ import dev.jbang.util.Util;
  * <ul>
  * <li>Local files (directories + JBang-supported extensions)</li>
  * <li>Alias names from the merged catalog</li>
+ * <li>Catalog alias browsing ({@code @catalogName} lists aliases in that
+ * catalog, selecting one produces {@code alias@catalogName})</li>
  * </ul>
  */
 public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> {
@@ -44,8 +46,12 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 		Set<String> candidates = new TreeSet<>(); // sorted for stable output
 
-		completeFiles(candidates, partial);
-		completeAliases(candidates, partial);
+		if (partial.startsWith("@")) {
+			completeCatalogAliases(candidates, partial);
+		} else {
+			completeFiles(candidates, partial);
+			completeAliases(candidates, partial);
+		}
 
 		inv.addAllCompleterValues(candidates);
 		if (candidates.size() == 1) {
@@ -54,6 +60,12 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			if (single.endsWith("/") || single.endsWith("\\")) {
 				inv.setAppendSpace(false);
 			}
+		}
+		// When browsing a catalog (@name), ignore the typed prefix so aesh
+		// replaces the whole token instead of trying to append to it.
+		if (partial.startsWith("@") && !candidates.isEmpty()) {
+			inv.setIgnoreStartsWith(true);
+			inv.setOffset(0);
 		}
 	}
 
@@ -120,6 +132,54 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			}
 		} catch (Exception e) {
 			// best-effort — catalog may be unavailable
+		}
+	}
+
+	// ---- Catalog alias browsing ----------------------------------------
+
+	/**
+	 * When the user types {@code @catalogName}, list all aliases in that catalog.
+	 * Candidates are emitted as {@code alias@catalogName} so that selecting one
+	 * replaces the {@code @catalogName} token with the fully-qualified reference.
+	 */
+	private void completeCatalogAliases(Set<String> candidates, String partial) {
+		String catalogName = partial.substring(1); // strip leading '@'
+		if (catalogName.isEmpty()) {
+			// Just "@" — list available catalog names as "@name"
+			try {
+				Catalog merged = Catalog.getMerged(true, true);
+				for (String name : merged.catalogs.keySet()) {
+					candidates.add("@" + name);
+				}
+			} catch (Exception e) {
+				// best-effort
+			}
+			return;
+		}
+
+		// Try to load the catalog by exact name
+		try {
+			Catalog catalog = Catalog.getByName(catalogName);
+			// List all aliases in this catalog as alias@catalogName
+			for (String alias : catalog.aliases.keySet()) {
+				candidates.add(alias + "@" + catalogName);
+			}
+		} catch (Exception e) {
+			// Not a valid catalog — ignore
+		}
+
+		// Also prefix-match catalog names (handles sub-catalogs like
+		// @jbanghub/h2 when user types @jbanghub, and partial matches
+		// when the exact name doesn't resolve)
+		try {
+			Catalog merged = Catalog.getMerged(true, true);
+			for (String name : merged.catalogs.keySet()) {
+				if (name.startsWith(catalogName) && !name.equals(catalogName)) {
+					candidates.add("@" + name);
+				}
+			}
+		} catch (Exception ex) {
+			// best-effort
 		}
 	}
 }
