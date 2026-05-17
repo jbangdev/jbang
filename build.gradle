@@ -167,9 +167,9 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.42"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.42"
-	implementation "org.apache.maven:maven-model:3.9.14"
+	implementation "eu.maveniverse.maven.mima:context:2.4.43"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.43"
+	implementation "org.apache.maven:maven-model:3.9.15"
 
 	implementation "org.jline:jline-console-ui:$jlineVersion"
 	implementation "org.jline:jline-terminal-jni:$jlineVersion"
