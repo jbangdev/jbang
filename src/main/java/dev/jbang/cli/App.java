@@ -427,11 +427,12 @@ class AppSetup extends BaseCommand {
 						"[EnvironmentVariableTarget]::User)";
 			}
 			if (force || needsSetup()) {
-				// Create the command to change the user's PATH
-				String newPath = binDir + ";";
-				env += " ; [Environment]::SetEnvironmentVariable('Path', '" + newPath + "' + " +
-						"[Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::User), " +
-						"[EnvironmentVariableTarget]::User)";
+				// Only add to PATH if not already present in permanent user PATH
+				env += " ; $userPath = [Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::User)";
+				env += " ; if ($userPath -notlike '*" + binDir + "*') {";
+				env += " [Environment]::SetEnvironmentVariable('Path', '" + binDir
+						+ ";' + $userPath, [EnvironmentVariableTarget]::User)";
+				env += " }";
 			}
 			if (!env.isEmpty()) {
 				if (Util.getShell() == Util.Shell.powershell) {

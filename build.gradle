@@ -24,7 +24,7 @@ plugins {
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
-def devkitmanVersion = '0.3.3'
+def devkitmanVersion = '0.4.6'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
 def jlineVersion = '3.30.5'
@@ -51,7 +51,7 @@ repositories {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(11)
+		languageVersion = JavaLanguageVersion.of(25)
 		vendor = JvmVendorSpec.ADOPTIUM
 	}
 	withJavadocJar()
@@ -302,32 +302,31 @@ jar {
 	manifest {
 		attributes(
 			'Main-Class': 'dev.jbang.Main',
+			'Enable-Final-Field-Mutation': 'ALL-UNNAMED',
 			'JBang-Version': project.version
 		)
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-compileJava {
+// Common compiler settings for all Java compilation tasks
+tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
+}
+
+compileJava {
 	options.compilerArgs.addAll(['--release', '8'])
 }
 
 compileTestJava {
-	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:deprecation"
-	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 compileJava9Java {
 	sourceCompatibility = 9
 	targetCompatibility = 9
-	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:deprecation"
-	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '9'])
 }
 
@@ -437,6 +436,10 @@ testing {
 
 tasks.named('integrationTest') {
 	dependsOn("installDist") // todo: move to after buildDist
+}
+
+tasks.named('compileIntegrationTestJava') {
+	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
 task karateExecute(type: JavaExec) {

@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -12,6 +14,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.util.WarTestFixtures;
 
 import picocli.CommandLine;
 
@@ -197,5 +200,24 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools docs = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		docs.call();
+	}
+
+	@Test
+	void testInfoClasspathForWar() throws IOException {
+		Path warPath = Files.createTempFile("app", ".war");
+		try {
+			WarTestFixtures.createExecutableWar(warPath, "TestMain");
+			String war = warPath.toString();
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", war);
+			Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+			BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+			assertThat(info.originalResource, equalTo(war));
+			assertThat(info.applicationJar, equalTo(war));
+			assertThat(info.backingResource, equalTo(war));
+			assertThat(info.mainClass, equalTo("TestMain"));
+			assertThat(info.resolvedDependencies, empty());
+		} finally {
+			Files.deleteIfExists(warPath);
+		}
 	}
 }
