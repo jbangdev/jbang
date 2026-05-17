@@ -58,7 +58,6 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 			sections.put("External", entries);
 		}
 
-
 		return sections;
 	}
 
