@@ -1,8 +1,7 @@
 pluginManagement {
 repositories {
 	gradlePluginPortal()
-	mavenCentral() // until nisse-gradle-plugin gets approved
-	mavenLocal() // for testing locally built versions of the plugin
+	mavenCentral() // nisse-gradle-plugin is published to Maven Central
 }
 
 resolutionStrategy {
