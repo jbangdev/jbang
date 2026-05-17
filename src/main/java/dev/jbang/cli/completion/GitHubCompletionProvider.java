@@ -33,16 +33,19 @@ import com.google.gson.reflect.TypeToken;
  */
 class GitHubCompletionProvider {
 
+	/** Optional https:// prefix — we accept bare github.com/ too. */
+	private static final String GITHUB_PREFIX = "(?:https?://)?github\\.com";
+
 	/** Matches a GitHub blob/tree URL and captures owner, repo, branch, path. */
 	private static final Pattern GITHUB_URL_PATTERN = Pattern.compile(
-			"^(https?://github\\.com/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+))(/(.*))?$");
+			"^(" + GITHUB_PREFIX + "/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+))(/(.*))?$");
 
 	/**
-	 * Matches a GitHub repo URL without blob/tree/branch — we default to
-	 * {@code blob/main} and list from the root.
+	 * Matches a GitHub repo URL without blob/tree/branch — we default to using HEAD
+	 * ref and list from the root. Trailing slash is optional.
 	 */
 	private static final Pattern GITHUB_REPO_PATTERN = Pattern.compile(
-			"^(https?://github\\.com/([^/]+)/([^/]+))/$");
+			"^(" + GITHUB_PREFIX + "/([^/]+)/([^/]+))/?$");
 
 	/** Connection timeout in milliseconds. */
 	private static final int CONNECT_TIMEOUT_MS = 2000;
@@ -93,7 +96,7 @@ class GitHubCompletionProvider {
 
 		Matcher m = GITHUB_URL_PATTERN.matcher(partial);
 		if (m.find()) {
-			baseUrl = m.group(1); // up to and including branch
+			baseUrl = ensureHttps(m.group(1)); // up to and including branch
 			owner = m.group(2);
 			repo = m.group(3);
 			branch = m.group(4);
@@ -116,7 +119,7 @@ class GitHubCompletionProvider {
 			owner = rm.group(2);
 			repo = rm.group(3);
 			branch = "HEAD";
-			baseUrl = rm.group(1) + "/blob/" + branch;
+			baseUrl = ensureHttps(rm.group(1)) + "/blob/" + branch;
 			path = "";
 		}
 
@@ -223,6 +226,17 @@ class GitHubCompletionProvider {
 			// Timeout or network error — fail silently
 			return null;
 		}
+	}
+
+	/**
+	 * Ensure the URL starts with {@code https://}. Bare {@code github.com/} gets
+	 * the prefix prepended.
+	 */
+	private static String ensureHttps(String url) {
+		if (!url.startsWith("http://") && !url.startsWith("https://")) {
+			return "https://" + url;
+		}
+		return url;
 	}
 
 	static String buildApiUrl(String owner, String repo, String path,

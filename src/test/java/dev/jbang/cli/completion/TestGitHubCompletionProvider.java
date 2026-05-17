@@ -45,10 +45,19 @@ public class TestGitHubCompletionProvider {
 	}
 
 	@Test
-	void testCannotCompleteIncompleteGithubUrl() {
-		// No branch yet
+	void testCanCompleteRepoUrlWithoutBranch() {
 		assertThat(GitHubCompletionProvider.canComplete(
-				"https://github.com/owner/repo"), is(false));
+				"https://github.com/owner/repo"), is(true));
+		assertThat(GitHubCompletionProvider.canComplete(
+				"https://github.com/owner/repo/"), is(true));
+	}
+
+	@Test
+	void testCanCompleteBareGithubUrl() {
+		assertThat(GitHubCompletionProvider.canComplete(
+				"github.com/owner/repo"), is(true));
+		assertThat(GitHubCompletionProvider.canComplete(
+				"github.com/owner/repo/blob/main/"), is(true));
 	}
 
 	@Test
@@ -104,6 +113,15 @@ public class TestGitHubCompletionProvider {
 	void testUrlWithHttpPrefix() {
 		assertThat(GitHubCompletionProvider.canComplete(
 				"http://github.com/owner/repo/blob/main/"), is(true));
+	}
+
+	@Test
+	void testCannotCompleteIncompleteGithubUrl() {
+		// Just the domain, no owner/repo
+		assertThat(GitHubCompletionProvider.canComplete(
+				"https://github.com/"), is(false));
+		assertThat(GitHubCompletionProvider.canComplete(
+				"https://github.com/owner"), is(false));
 	}
 
 	@Test
