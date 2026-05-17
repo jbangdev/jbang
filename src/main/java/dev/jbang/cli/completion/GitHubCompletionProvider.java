@@ -37,6 +37,13 @@ class GitHubCompletionProvider {
 	private static final Pattern GITHUB_URL_PATTERN = Pattern.compile(
 			"^(https?://github\\.com/([^/]+)/([^/]+)/(?:blob|tree)/([^/]+))(/(.*))?$");
 
+	/**
+	 * Matches a GitHub repo URL without blob/tree/branch — we default to
+	 * {@code blob/main} and list from the root.
+	 */
+	private static final Pattern GITHUB_REPO_PATTERN = Pattern.compile(
+			"^(https?://github\\.com/([^/]+)/([^/]+))/$");
+
 	/** Connection timeout in milliseconds. */
 	private static final int CONNECT_TIMEOUT_MS = 2000;
 
@@ -65,7 +72,8 @@ class GitHubCompletionProvider {
 	 * complete.
 	 */
 	static boolean canComplete(String partial) {
-		return GITHUB_URL_PATTERN.matcher(partial).find();
+		return GITHUB_URL_PATTERN.matcher(partial).find()
+				|| GITHUB_REPO_PATTERN.matcher(partial).find();
 	}
 
 	/**
@@ -77,23 +85,38 @@ class GitHubCompletionProvider {
 	 */
 	static void complete(Set<String> candidates, String partial,
 			Set<String> extensions) {
+		String baseUrl;
+		String owner;
+		String repo;
+		String branch;
+		String path;
+
 		Matcher m = GITHUB_URL_PATTERN.matcher(partial);
-		if (!m.find()) {
-			return;
-		}
+		if (m.find()) {
+			baseUrl = m.group(1); // up to and including branch
+			owner = m.group(2);
+			repo = m.group(3);
+			branch = m.group(4);
+			String pathWithSlash = m.group(5); // "/some/path" or null
+			path = m.group(6); // "some/path" or null
 
-		String baseUrl = m.group(1); // up to and including branch
-		String owner = m.group(2);
-		String repo = m.group(3);
-		String branch = m.group(4);
-		String pathWithSlash = m.group(5); // "/some/path" or null
-		String path = m.group(6); // "some/path" or null
-
-		if (pathWithSlash == null) {
-			// User typed up to branch but no slash yet — nothing to complete
-			return;
-		}
-		if (path == null) {
+			if (pathWithSlash == null) {
+				// User typed up to branch but no slash yet
+				return;
+			}
+			if (path == null) {
+				path = "";
+			}
+		} else {
+			// Try the short repo URL pattern (no blob/branch)
+			Matcher rm = GITHUB_REPO_PATTERN.matcher(partial);
+			if (!rm.find()) {
+				return;
+			}
+			owner = rm.group(2);
+			repo = rm.group(3);
+			branch = "HEAD";
+			baseUrl = rm.group(1) + "/blob/" + branch;
 			path = "";
 		}
 
