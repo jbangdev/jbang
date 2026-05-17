@@ -260,7 +260,11 @@ nisseConfig {
 // Walks commit history matching [major]/[minor]/[patch] in messages.
 // Must use afterEvaluate because the nisse plugin populates project.nisse in its own afterEvaluate.
 afterEvaluate {
-	version = project.nisse['nisse.jgit.countingVersion']
+	def resolvedVersion = project.nisse['nisse.jgit.countingVersion']?.toString()
+	if (!resolvedVersion || resolvedVersion.matches('0\\.0\\.1-\\d+')) {
+		throw new GradleException("Invalid computed version '${resolvedVersion}'. Ensure semantic version tags exist (e.g., 'v0.120.0') or check fetch-depth/clone strategy.")
+	}
+	version = resolvedVersion
 }
 
 task printVersion {
@@ -556,6 +560,30 @@ task tagVersion {
 	doLast {
 		def tagName = 'v' + project.version
 		println 'Tagging with ' + tagName
+		def existingTag = new ByteArrayOutputStream()
+		exec {
+			commandLine 'git', 'tag', '-l', tagName
+			standardOutput = existingTag
+		}
+		if (existingTag.toString().trim()) {
+			// Tag exists — verify it points to HEAD
+			def tagSha = new ByteArrayOutputStream()
+			exec {
+				commandLine 'git', 'rev-list', '-n', '1', tagName
+				standardOutput = tagSha
+			}
+			def headSha = new ByteArrayOutputStream()
+			exec {
+				commandLine 'git', 'rev-parse', 'HEAD'
+				standardOutput = headSha
+			}
+			if (tagSha.toString().trim() == headSha.toString().trim()) {
+				println "Tag '${tagName}' already exists at HEAD, skipping"
+				return
+			} else {
+				throw new GradleException("Tag '${tagName}' already exists but points to ${tagSha.toString().trim()}, not HEAD (${headSha.toString().trim()})")
+			}
+		}
 		exec {
 			commandLine 'git', 'tag', '-a', tagName, '-m', tagName
 		}
