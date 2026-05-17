@@ -6,7 +6,7 @@ plugins {
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
-	id "io.toolebox.git-versioner" version "1.6.7"
+
 	id 'org.gradle.crypto.checksum' version '1.4.0'
 	id "com.diffplug.spotless" version "7.2.1"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
@@ -17,6 +17,7 @@ plugins {
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
 	id 'maven-publish'
+	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.9.0'
 	id 'io.qameta.allure-report' version '2.12.0'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
 }
@@ -174,6 +175,7 @@ dependencies {
 	implementation "org.jline:jline-console-ui:$jlineVersion"
 	implementation "org.jline:jline-terminal-jni:$jlineVersion"
 
+	// used in JBang as well (aside of nisse plugin in the build)
 	implementation "eu.maveniverse.maven.nisse:core:0.6.2"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.2"
 
@@ -242,7 +244,36 @@ spotless {
 	}
 }
 
-versioner.apply()
+nisseConfig {
+	jgit {
+		countingVersion = true
+		countingStartPatch = 1
+		appendSnapshot = false
+		countingPattern = '%M.%m.%p(.%c)'
+	}
+	os {
+		active = true
+	}
+}
+
+// Version is computed by Nisse JGit counting version (replaces git-versioner plugin).
+// Walks commit history matching [major]/[minor]/[patch] in messages.
+// Must use afterEvaluate because the nisse plugin populates project.nisse in its own afterEvaluate.
+afterEvaluate {
+	def resolvedVersion = project.nisse['nisse.jgit.countingVersion']?.toString()
+	if (!resolvedVersion || resolvedVersion.matches('0\\.0\\.1-\\d+')) {
+		throw new GradleException("Invalid computed version '${resolvedVersion}'. Ensure semantic version tags exist (e.g., 'v0.120.0') or check fetch-depth/clone strategy.")
+	}
+	version = resolvedVersion
+}
+
+task printVersion {
+	group = "versioning"
+	description = "Print the project version"
+	doLast {
+		println project.version
+	}
+}
 
 task versionTxt() {
 	doLast {
@@ -303,11 +334,13 @@ jar {
 	manifest {
 		attributes(
 			'Main-Class': 'dev.jbang.Main',
-			'Enable-Final-Field-Mutation': 'ALL-UNNAMED',
-			'JBang-Version': project.version
+			'Enable-Final-Field-Mutation': 'ALL-UNNAMED'
 		)
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	doFirst {
+		manifest.attributes('JBang-Version': project.version)
+	}
 }
 
 // Common compiler settings for all Java compilation tasks
@@ -344,9 +377,11 @@ shadowJar {
 	mergeServiceFiles()
 	manifest {
 		attributes(
-			'Main-Class': 'dev.jbang.Main',
-			'JBang-Version': project.version
+			'Main-Class': 'dev.jbang.Main'
 		)
+	}
+	doFirst {
+		manifest.attributes('JBang-Version': project.version)
 	}
 	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
@@ -470,7 +505,7 @@ task createChecksum(type: Checksum) {
 
 task container(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/container/')
 	include('*')
 	into(buildDir.toString() + '/container')
@@ -486,7 +521,7 @@ task container(type: Copy) {
 
 task spec(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/spec/jbang.spec')
 	into(buildDir.toString() + '/spec')
 	doFirst { t ->
@@ -501,7 +536,7 @@ task spec(type: Copy) {
 
 task chocolatey(type: Copy) {
 	dependsOn(createChecksum)
-	inputs.property('version', project.version)
+	inputs.property('version', provider { project.version })
 	from('src/main/scripts/choco')
 	into(buildDir.toString() + '/choco')
 	doFirst { t ->
@@ -519,27 +554,41 @@ task copyITests(type: Copy) {
 	into "${buildDir}/itests"
 }
 
-task tag(type: Exec) {
-	doFirst {
-		println 'Tagging with v' + project.version
-		commandLine 'git', 'tag', '-a', 'v' + project.version, '-m', 'v' + project.version
-	}
-}
-
-versioner {
-	startFrom {
-		major = 0
-		minor = 0
-		patch = 1
-	}
-	pattern {
-		pattern = "%M.%m.%p(.%c)"
-	}
-	git {
-		authentication {
-			https {
-				token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
+task tagVersion {
+	group = "versioning"
+	description = "Tag and push the current version in git"
+	doLast {
+		def tagName = 'v' + project.version
+		println 'Tagging with ' + tagName
+		def existingTag = new ByteArrayOutputStream()
+		exec {
+			commandLine 'git', 'tag', '-l', tagName
+			standardOutput = existingTag
+		}
+		if (existingTag.toString().trim()) {
+			// Tag exists — verify it points to HEAD
+			def tagSha = new ByteArrayOutputStream()
+			exec {
+				commandLine 'git', 'rev-list', '-n', '1', tagName
+				standardOutput = tagSha
 			}
+			def headSha = new ByteArrayOutputStream()
+			exec {
+				commandLine 'git', 'rev-parse', 'HEAD'
+				standardOutput = headSha
+			}
+			if (tagSha.toString().trim() == headSha.toString().trim()) {
+				println "Tag '${tagName}' already exists at HEAD, skipping"
+				return
+			} else {
+				throw new GradleException("Tag '${tagName}' already exists but points to ${tagSha.toString().trim()}, not HEAD (${headSha.toString().trim()})")
+			}
+		}
+		exec {
+			commandLine 'git', 'tag', '-a', tagName, '-m', tagName
+		}
+		exec {
+			commandLine 'git', 'push', 'origin', tagName
 		}
 	}
 }
