@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -82,6 +85,7 @@ import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
+import dev.jbang.util.WarTestFixtures;
 
 import picocli.CommandLine;
 
@@ -115,7 +119,7 @@ public class TestRun extends BaseTest {
 
 		String result = Project.codeBuilder(ctx).build().build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+.helloworld\\.jar.*"));
@@ -146,7 +150,7 @@ public class TestRun extends BaseTest {
 		pb.catalog(cat.toFile());
 		String result = run.updateGeneratorForRun(pb.build("helloworld").codeBuilder().build()).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
@@ -181,7 +185,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString(arg));
 		assertThat(result.split(Pattern.quote(arg), -1).length, equalTo(2));
@@ -208,7 +212,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(result,
 				matchesPattern(
-						"^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
+						"^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
 		assertThat(result, containsString("eclipse-collections-api"));
 	}
 
@@ -227,7 +231,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)?.*$"));
 		assertThat(result, containsString("firstarg"));
 	}
 
@@ -242,7 +246,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -262,7 +266,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -285,7 +289,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
 
 	@Test
@@ -304,7 +308,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("empty.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -326,7 +330,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("hellojsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -351,7 +355,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)?.*"));
 		assertThat(code.getMainClass(), not(nullValue()));
 
 		assertThat(result, containsString("picocli-4.6.3.jar"));
@@ -359,7 +363,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("hellojar.jar"));
 
 		assertThat(code.getResourceRef().getFile().toString(), equalTo(jar));
-		assertThat(code.isJar(), equalTo(true));
+		assertThat(code.isExecutableArchive(), equalTo(true));
 
 		run.doCall();
 	}
@@ -428,10 +432,10 @@ public class TestRun extends BaseTest {
 				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.*"));
 		assertThat(code.getMainClass(), nullValue());
 
-		assertThat(code.isJar(), equalTo(true));
+		assertThat(code.isExecutableArchive(), equalTo(true));
 
 		run.doCall();
 	}
@@ -610,7 +614,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)? .*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -633,7 +637,7 @@ public class TestRun extends BaseTest {
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+				matchesPattern("^.*jshell(.exe(\\^\")?)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, containsString("funcs.jsh"));
 		assertThat(result, containsString("main.jsh"));
 		assertThat(result, containsString("--startup=DEFAULT"));
@@ -653,7 +657,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 //		assertThat(result, containsString(" --source 11 "));
@@ -674,7 +678,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=4004"));
@@ -694,7 +698,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"));
@@ -716,7 +720,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("classpath_example.java"));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -737,7 +741,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)? .*$"));
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -767,7 +771,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, containsString("-Dwonka=panda"));
 		if (Util.isWindows()) {
 			assertThat(result, containsString("^\"-Dquoted=see^ this^\""));
@@ -2297,7 +2301,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
@@ -2343,7 +2347,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\")?)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
@@ -2604,6 +2608,131 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testReadingAddOpens(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String opens = "java.base/java.lang  java.base/java.nio";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_OPENS, opens));
+		assertThat(cmd, containsString("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-opens=java.base/java.nio=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testReadingEnableNativeAccess(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "ALL-UNNAMED"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ENABLE_NATIVE_ACCESS, "ALL-UNNAMED"));
+		assertThat(CmdGenerator.builder(code).build().generate(),
+				containsString("--enable-native-access=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testPassesThroughEnableNativeAccessModuleName(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
+		assertThat(cmd, containsString("--enable-native-access=com.example.module"));
+	}
+
+	@Test
+	void testReadingAddExportsWithHelper(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String exports = "jdk.compiler/com.sun.tools.javac.api jdk.compiler/com.sun.tools.javac.tree";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_EXPORTS, exports));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(code.getManifestAttributes(), hasEntry(Project.ATTR_ADD_EXPORTS, exports));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testEmptyManifestAttributeIgnored(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, "   "));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should not add any --add-opens flags for empty/whitespace-only values
+		assertThat(cmd, not(containsString("--add-opens=")));
+	}
+
+	@Test
+	void testMultipleSpacesBetweenValues(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 9, "requires Java 9+");
+		String opens = "java.base/java.lang    java.base/java.nio";
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		// Should handle multiple spaces correctly
+		assertThat(cmd, containsString("--add-opens=java.base/java.lang=ALL-UNNAMED"));
+		assertThat(cmd, containsString("--add-opens=java.base/java.nio=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testMultipleModulesForEnableNativeAccess(@TempDir Path output) throws IOException {
+		assumeTrue(Runtime.version().feature() >= 22, "requires Java 22+");
+		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
+				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "module1 module2"));
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar.toString());
+		String cmd = CmdGenerator.builder(code).build().generate();
+
+		assertThat(cmd, containsString("--enable-native-access=module1"));
+		assertThat(cmd, containsString("--enable-native-access=module2"));
+	}
+
+	@Test
 	@Disabled("java 8 is not installing reliably on github action")
 	void testReadingNoAddExportsOnJava8() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
@@ -2662,5 +2791,47 @@ public class TestRun extends BaseTest {
 				Files.delete(p);
 			}
 		}
+	}
+
+	@Test
+	void testRunLocalWarFile() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+
+		Path warPath = jbangTempDir.resolve("test-app.war");
+		try {
+			// Create executable WAR file
+			WarTestFixtures.createExecutableWar(warPath, "TestMain");
+			String war = warPath.toAbsolutePath().toString();
+
+			// Verify the WAR file can be run
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", war);
+			Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+			ProjectBuilder pb = run.createProjectBuilderForRun();
+			Project code = pb.build(war);
+
+			// The WAR file should be recognized as a JAR/executable
+			assertThat(code.getResourceRef().getFile().toString(), equalTo(war));
+			assertThat(code.isExecutableArchive(), equalTo(true));
+
+			// Main class should be set from WAR manifest
+			assertThat(code.getMainClass(), equalTo("TestMain"));
+		} finally {
+			Files.deleteIfExists(warPath);
+		}
+	}
+
+	private Path createJar(Path outputDir, String buildJdk, Map<String, String> manifestAttributes) throws IOException {
+		Path jar = outputDir.resolve("manifest-test.jar");
+		Manifest manifest = new Manifest();
+		Attributes attrs = manifest.getMainAttributes();
+		attrs.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		attrs.put(Attributes.Name.MAIN_CLASS, "test.Main");
+		attrs.putValue(JarBuildStep.ATTR_BUILD_JDK, buildJdk);
+		manifestAttributes.forEach(attrs::putValue);
+		try (JarOutputStream ignored = new JarOutputStream(Files.newOutputStream(jar), manifest)) {
+			// Manifest-only JAR is enough for command generation tests.
+		}
+		return jar;
 	}
 }

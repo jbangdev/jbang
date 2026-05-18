@@ -555,7 +555,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		Project prj = ctx.getProject();
-		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
+		if (prj.isExecutableArchive() || prj.getMainSourceSet().getSources().isEmpty()) {
 			Util.errorMsg("You can only export source files");
 			return EXIT_INVALID_INPUT;
 		}
