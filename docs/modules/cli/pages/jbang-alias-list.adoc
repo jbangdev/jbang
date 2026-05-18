@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: alias Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-alias-list(1)
 
@@ -12,16 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-alias-list - Lists locally defined aliases or from the given catalog.
+alias-list - Lists locally defined aliases or from the given catalog.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang alias list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-origin*]
-                 *--verbose* [*--config*=_<config>_] [*-f*=_<catalogFile>_]
-                 [*--format*=_<format>_] [_catalogName_]
+*alias list* [*--config*=_config_] [*-f*=_file_] [*--format*=_format_] [*--fresh*] [*-g*] [*-h*=_help_] [*--insecure*] [*-o*] [*--preview*] [*--quiet*] [*--show-origin*] [*-x*] [*--verbose*] [__]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,13 +33,13 @@ Lists locally defined aliases or from the given catalog.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*-f*, *--file*=_<catalogFile>_::
+*-f*, *--file*=_file_::
   Path to the catalog file to use
 
-*--format*=_<format>_::
+*--format*=_format_::
   Specify output format ('text' or 'json')
 
 *--fresh*::
@@ -50,20 +48,26 @@ Lists locally defined aliases or from the given catalog.
 *-g*, *--global*::
   Use the global (user) catalog file
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
 *--show-origin*::
   Show the origin of the alias
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -73,7 +77,7 @@ Lists locally defined aliases or from the given catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_catalogName_]::
+_arg_::
   The name of a catalog
 
 // end::picocli-generated-man-section-arguments[]

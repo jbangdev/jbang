@@ -1,0 +1,85 @@
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:manmanual: jdk Manual
+:man-linkstyle: pass:[blue R < >]
+= jbang-jdk-exec(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+jdk-exec - Executes the given command using the default (or specified) JDK.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*jdk exec* [*--config*=_config_] [*--fresh*] [*-h*=_help_] [*--insecure*] [*-j*=_java_] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*] [__...]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Executes the given command using the default (or specified) JDK.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--config*=_config_::
+  Path to config file to be used instead of the default
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*-j*, *--java*=_java_::
+  JDK version to use for executing the command.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
+
+*--verbose*::
+  jbang will be verbose on what it does.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_arg_::
+  Command to execute
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

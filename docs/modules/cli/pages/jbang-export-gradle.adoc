@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: export Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-export-gradle(1)
 
@@ -12,23 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-export-gradle - Exports a Gradle project
+export-gradle - Exports a Gradle project
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export gradle* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]*
-             *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
-                    [=_<module>_]] [*-a*=_<artifact>_] [*--catalog*=_<catalog>_]
-                    [*--config*=_<config>_] [*-g*=_<group>_] [*-j*=_<javaVersion>_]
-                    [*-m*=_<main>_] [*-O*=_<outputFile>_] [*-T*=_<forceType>_]
-                    [*-v*=_<version>_] [*-C*=_<compileOptions>_]...
-                    [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                    [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
-                    [*--manifest*=_<String=String>_]... [*--repos*=_<repositories>_]...
-                    [*-s*=_<sources>_]... [_<scriptOrFile>_]
+*export gradle* [*-a*=_artifact_] [*--build-dir*=_build-dir_] [*--catalog*=_catalog_] [*-C*=_compile-option_] [*--config*=_config_] [*--cp*=_cp_] [*--deps*=_deps_] [*--enable-preview*] [*--files*=_files_] [*--force*] [*--fresh*] [*-g*=_group_] [*-h*=_help_] [*--ignore-transitive-repositories*] [*--insecure*] [*--integrations*] [*-j*=_java_] [*--jsh*] [*-m*=_main_] [*--manifest*=_manifest_] [*--module*=_module_] [*-n*] [*-N*=_native-option_] [*-o*] [*-O*=_output_] [*--preview*] [*-D*=_properties_] [*--quiet*] [*--repos*=_repos_] [*-T*=_source-type_] [*-s*=_sources_] [*-x*] [*--verbose*] [*-v*=_version_] [__]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -42,28 +33,31 @@ Exports a Gradle project
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-a*, *--artifact*=_<artifact>_::
+*-a*, *--artifact*=_artifact_::
   The artifact ID to use for the exported project.
 
-*-C*, *--compile-option*=_<compileOptions>_::
-  Options to pass to the compiler
+*--build-dir*=_build-dir_::
+  Use given directory for build results
 
-*--catalog*=_<catalog>_::
+*--catalog*=_catalog_::
   Path to catalog file to be used instead of the default
 
-*--config*=_<config>_::
+*-C*, *--compile-option*=_compile-option_::
+  Options to pass to the compiler
+
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*--cp, --class-path*=_<classpaths>_::
+*--cp*=_cp_::
   Add class path entries.
 
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
+*--deps*=_deps_::
   Add additional dependencies (Use commas to separate them).
 
-*--files*=_<resources>_::
+*--enable-preview*::
+  Activate Java preview features
+
+*--files*=_files_::
   Add additional files.
 
 *--force*::
@@ -72,67 +66,82 @@ Exports a Gradle project
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
-*-g*, *--group*=_<group>_::
+*-g*, *--group*=_group_::
   The group ID to use for the exported project.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
+
+*--ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--[no-]integrations*::
-  Enable integration execution (default: true)
+*--integrations*::
+  Enable or disable integration execution (default: true)
 
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
-
-*-j*, *--java*=_<javaVersion>_::
+*-j*, *--java*=_java_::
   JDK version to use for running the script.
 
 *--jsh*::
   Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
-*-m*, *--main*=_<main>_::
-  Main class to use when running. Used primarily for running jar's.
+*-m*, *--main*=_main_::
+  Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.
 
-*--manifest*=_<String=String>_::
+*--manifest*=_manifest_::
   
 
-*--module*[=_<module>_]::
+*--module*=_module_::
   Treat resource as a module. Optionally with the given module name
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*-n*, *--native*::
+  Build using native-image
 
-*-O*, *--output*=_<outputFile>_::
-  The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.
+*-N*, *--native-option*=_native-option_::
+  Options to pass to the native image tool
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*-O*, *--output*=_output_::
+  The name or path to use for the exported file.
+
+*--preview*::
+  Enable jbang preview features
+
+*-D*, *--properties*=_properties_::
+  set a system property
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--repos*=_<repositories>_::
+*--repos*=_repos_::
   Add additional repositories.
 
-*-s*, *--sources*=_<sources>_::
-  Add additional sources.
-
-*-T*, *--source-type*=_<forceType>_::
+*-T*, *--source-type*=_source-type_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
-*-v*, *--version*=_<version>_::
-  The version to use for the exported project.
+*-s*, *--sources*=_sources_::
+  Add additional sources.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
+
+*-v*, *--version*=_version_::
+  The version to use for the exported project.
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_arg_::
+  A file or URL to a Java code file
 
 // end::picocli-generated-man-section-arguments[]
 

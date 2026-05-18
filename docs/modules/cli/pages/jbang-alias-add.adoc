@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: alias Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-alias-add(1)
 
@@ -12,27 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-alias-add - Add alias for script reference.
+alias-add - Add alias for script reference.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang alias add* *-o* [*-ghin*] [*--[no-]cds*] [*--ea*] [*--enable-preview*] [*--esa*]
-                [*--force*] *--fresh* [*--insecure*] [*--[no-]integrations*] [*--itr*]
-                [*--jsh*] *--quiet* *--verbose* [*--jfr*[=_<flightRecorderString>_]]
-                [*--module*[=_<module>_]] [*-d*[=_<String=String>_]]...
-                [*--catalog*=_<catalog>_] [*--config*=_<config>_]
-                [*--description*=_<description>_] [*-f*=_<catalogFile>_]
-                [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--name*=_<name>_] [*-T*=_<forceType>_]
-                [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
-                [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-                [*--docs*=_<docs>_]... [*--files*=_<resources>_]...
-                [*--javaagent*=_<String=String>_]...
-                [*--manifest*=_<String=String>_]... [*-N*=_<nativeOptions>_]...
-                [*-R*=_<javaRuntimeOptions>_]... [*--repos*=_<repositories>_]...
-                [*-s*=_<sources>_]... [_<scriptOrFile>_] [_params_...]
+*alias add* [*--catalog*=_catalog_] [*--cds*] [*-C*=_compile-option_] [*--config*=_config_] [*--cp*=_cp_] [*-d*=_debug_] [*--deps*=_deps_] [*--description*=_description_] [*--docs*=_docs_] [*--enable-preview*] [*--enableassertions*] [*--enablesystemassertions*] [*-f*=_file_] [*--files*=_files_] [*--force*] [*--fresh*] [*-g*] [*-h*=_help_] [*--ignore-transitive-repositories*] [*--insecure*] [*--integrations*] [*-i*] [*-j*=_java_] [*--javaagent*=_javaagent_] [*--jfr*=_jfr_] [*--jsh*] [*-m*=_main_] [*--manifest*=_manifest_] [*--module*=_module_] [*--name*=_name_] [*-n*] [*-N*=_native-option_] [*-o*] [*--preview*] [*-D*=_properties_] [*--quiet*] [*--repos*=_repos_] [*-R*=_runtime-option_] [*-T*=_source-type_] [*-s*=_sources_] [*-x*] [*--verbose*] [__] [__...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -46,49 +33,46 @@ Add alias for script reference.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-C*, *--compile-option*=_<compileOptions>_::
-  Options to pass to the compiler
-
-*--catalog*=_<catalog>_::
+*--catalog*=_catalog_::
   Path to catalog file to be used instead of the default
 
-*--[no-]cds*::
+*--cds*::
   If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
 
-*--config*=_<config>_::
+*-C*, *--compile-option*=_compile-option_::
+  Options to pass to the compiler
+
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*--cp, --class-path*=_<classpaths>_::
+*--cp*=_cp_::
   Add class path entries.
 
-*-d*, *--debug*[=_<String=String>_]::
-  Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: null) 
+*-d*, *--debug*=_debug_::
+  Launch with java debug enabled.
 
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
+*--deps*=_deps_::
   Add additional dependencies (Use commas to separate them).
 
-*--description*=_<description>_::
+*--description*=_description_::
   A description for the alias
 
-*--docs*=_<docs>_::
+*--docs*=_docs_::
   Documentation reference for the alias
-
-*--ea, --enableassertions*::
-  Enable assertions
 
 *--enable-preview*::
   Activate Java preview features
 
-*--esa, --enablesystemassertions*::
+*--enableassertions*::
+  Enable assertions
+
+*--enablesystemassertions*::
   Enable system assertions
 
-*-f*, *--file*=_<catalogFile>_::
+*-f*, *--file*=_file_::
   Path to the catalog file to use
 
-*--files*=_<resources>_::
+*--files*=_files_::
   Add additional files.
 
 *--force*::
@@ -100,68 +84,77 @@ Add alias for script reference.
 *-g*, *--global*::
   Use the global (user) catalog file
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
-*-i*, *--interactive*::
-  Activate interactive mode
+*--ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--[no-]integrations*::
-  Enable integration execution (default: true)
+*--integrations*::
+  Enable or disable integration execution (default: true)
 
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
+*-i*, *--interactive*::
+  Activate interactive mode
 
-*-j*, *--java*=_<javaVersion>_::
+*-j*, *--java*=_java_::
   JDK version to use for running the script.
 
-*--javaagent*=_<String=String>_::
+*--javaagent*=_javaagent_::
   
 
-*--jfr*[=_<flightRecorderString>_]::
+*--jfr*=_jfr_::
   Launch with Java Flight Recorder enabled.
 
 *--jsh*::
   Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
-*-m*, *--main*=_<main>_::
-  Main class to use when running. Used primarily for running jar's.
+*-m*, *--main*=_main_::
+  Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.
 
-*--manifest*=_<String=String>_::
+*--manifest*=_manifest_::
   
 
-*--module*[=_<module>_]::
+*--module*=_module_::
   Treat resource as a module. Optionally with the given module name
+
+*--name*=_name_::
+  A name for the alias
 
 *-n*, *--native*::
   Build using native-image
 
-*-N*, *--native-option*=_<nativeOptions>_::
+*-N*, *--native-option*=_native-option_::
   Options to pass to the native image tool
 
-*--name*=_<name>_::
-  A name for the alias
-
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
+
+*-D*, *--properties*=_properties_::
+  set a system property
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*-R*, *--java-options, --runtime-option*=_<javaRuntimeOptions>_::
-  Options to pass to the Java runtime
-
-*--repos*=_<repositories>_::
+*--repos*=_repos_::
   Add additional repositories.
 
-*-s*, *--sources*=_<sources>_::
+*-R*, *--runtime-option*=_runtime-option_::
+  Options to pass to the Java runtime
+
+*-T*, *--source-type*=_source-type_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*-s*, *--sources*=_sources_::
   Add additional sources.
 
-*-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -171,11 +164,11 @@ Add alias for script reference.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_arg_::
+  A file or URL to a Java code file
 
-[_params_...]::
-  Parameters to pass on to the script
+_arg_::
+  Parameters for the script
 
 // end::picocli-generated-man-section-arguments[]
 

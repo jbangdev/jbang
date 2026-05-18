@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,47 +19,34 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang* [*-hV*] [*--insecure*] [*--preview*] [*--config*=_<config>_] [*--verbose* | *--quiet*]
-      [*-o* | *--fresh*] [COMMAND]
+*jbang* [*--config*=_config_] [*--fresh*] [*-h*=_help_] [*--insecure*] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*] [*-V*]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-  jbang init hello.java [args...]
-        (to initialize a script)
-  or  jbang edit --open=code --live hello.java
-        (to edit a script in IDE with live updates)
-  or  jbang hello.java [args...]
-        (to run a .java file)
-  or  jbang gavsearch@jbangdev [args...]
-        (to run a alias from a catalog)
-  or  jbang group-id:artifact-id:version [args...]
-        (to run a .jar file found with a GAV id)
-
- note: run is the default command. To get help about run use jbang run --help
-
+jbang is a tool for building and running .java/.jsh scripts and jar packages.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
+*--config*=_config_::
   Path to config file to be used instead of the default
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
 
 *--preview*::
   Enable jbang preview features
@@ -67,11 +54,14 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
+
+*-V*, *--version*::
+  Display version info (use `jbang --verbose version` for more details)
 
 // end::picocli-generated-man-section-options[]
 
@@ -81,58 +71,59 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-run.adoc[*run*]::
-  Builds and runs provided script. (default command)
-
-xref:jbang:cli:jbang-build.adoc[*build*]::
-  Compiles and stores script in the cache.
-
-xref:jbang:cli:jbang-edit.adoc[*edit*]::
-  Setup a temporary project to edit script in an IDE.
-
-xref:jbang:cli:jbang-init.adoc[*init*]::
-  Initialize a script.
-
-xref:jbang:cli:jbang-alias.adoc[*alias*]::
-  Manage aliases for scripts.
-
 xref:jbang:cli:jbang-template.adoc[*template*]::
   Manage templates for scripts.
-
-xref:jbang:cli:jbang-catalog.adoc[*catalog*]::
-  Manage Catalogs of aliases.
 
 xref:jbang:cli:jbang-trust.adoc[*trust*]::
   Manage which domains you trust to run scripts from.
 
+xref:jbang:cli:jbang-app.adoc[*app*]::
+  Manage scripts installed on the user's PATH as commands.
+
+xref:jbang:cli:jbang-init.adoc[*init*]::
+  Initialize a script.
+
+xref:jbang:cli:jbang-completion.adoc[*completion*]::
+  Generate bash/zsh or fish completion script for jbang.
+
 xref:jbang:cli:jbang-cache.adoc[*cache*]::
   Manage compiled scripts in the local cache.
 
-xref:jbang:cli:jbang-completion.adoc[*completion*]::
-  Output auto-completion script for bash/zsh.
-+
-Usage: source <(jbang completion)
+xref:jbang:cli:jbang-edit.adoc[*edit*]::
+  Setup a temporary project to edit script in an IDE.
 
-xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
-  Manage Java Development Kits installed by jbang.
+xref:jbang:cli:jbang-catalog.adoc[*catalog*]::
+  Manage Catalogs of aliases.
 
-xref:jbang:cli:jbang-version.adoc[*version*]::
-  Display version info.
+xref:jbang:cli:jbang-run.adoc[*run*]::
+  Builds and runs provided script. (default command)
 
 xref:jbang:cli:jbang-wrapper.adoc[*wrapper*]::
   Manage jbang wrapper for a folder.
 
-xref:jbang:cli:jbang-info.adoc[*info*]::
-  Provides info about the script for tools (and humans who are tools).
+xref:jbang:cli:jbang-deps.adoc[*deps*]::
+  Manage dependencies in jbang files.
 
-xref:jbang:cli:jbang-app.adoc[*app*]::
-  Manage scripts installed on the user's PATH as commands.
+xref:jbang:cli:jbang-version.adoc[*version*]::
+  Display version info.
+
+xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
+  Manage Java Development Kits installed by jbang.
+
+xref:jbang:cli:jbang-build.adoc[*build*]::
+  Compiles and stores script in the cache.
+
+xref:jbang:cli:jbang-alias.adoc[*alias*]::
+  Manage aliases for scripts.
 
 xref:jbang:cli:jbang-export.adoc[*export*]::
   Export the result of a build or the set of the sources to a project.
 
 xref:jbang:cli:jbang-config.adoc[*config*]::
   Read and write configuration options.
+
+xref:jbang:cli:jbang-info.adoc[*info*]::
+  Provides info about the script for tools (and humans who are tools).
 
 // end::picocli-generated-man-section-commands[]
 

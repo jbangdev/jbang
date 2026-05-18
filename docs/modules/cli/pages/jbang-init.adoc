@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,12 +19,7 @@ jbang-init - Initialize a script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang init* *-o* [*-h*] [*--edit*] [*--force*] *--fresh* [*--insecure*] [*--[no-]*
-    *       integrations*] *--quiet* *--verbose* [*--module*[=_<module>_]]
-           [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
-           [*-t*=_<initTemplate>_] [*-C*=_<compileOptions>_]... [*-D*=_<String=Object>_]...
-           [*--deps*=_<dependencies>_]... [*--manifest*=_<String=String>_]...
-           _scriptOrFile_ [_params_...]
+*jbang init* [*--ai-api-key*=_ai-api-key_] [*--ai-endpoint*=_ai-endpoint_] [*--ai-model*=_ai-model_] [*--ai-provider*=_ai-provider_] [*--config*=_config_] [*--deps*=_deps_] [*--edit*] [*--force*] [*--fresh*] [*-h*=_help_] [*--insecure*] [*-j*=_java_] [*-o*] [*--preview*] [*-D*=_properties_] [*--quiet*] [*-x*] [*-t*=_template_] [*--verbose*] [__] [__...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -38,16 +33,22 @@ Initialize a script.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-C*, *--compile-option*=_<compileOptions>_::
-  Options to pass to the compiler
+*--ai-api-key*=_ai-api-key_::
+  AI API key
 
-*--config*=_<config>_::
+*--ai-endpoint*=_ai-endpoint_::
+  AI endpoint URL
+
+*--ai-model*=_ai-model_::
+  AI model to use
+
+*--ai-provider*=_ai-provider_::
+  AI provider to use
+
+*--config*=_config_::
   Path to config file to be used instead of the default
 
-*-D*, _<String=Object>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
+*--deps*=_deps_::
   Add additional dependencies (Use commas to separate them).
 
 *--edit*::
@@ -59,34 +60,31 @@ Initialize a script.
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--[no-]integrations*::
-  Enable integration execution (default: true)
-
-*-j*, *--java*=_<javaVersion>_::
+*-j*, *--java*=_java_::
   JDK version to use for running the script.
 
-*-m*, *--main*=_<main>_::
-  Main class to use when running. Used primarily for running jar's.
-
-*--manifest*=_<String=String>_::
-  
-
-*--module*[=_<module>_]::
-  Treat resource as a module. Optionally with the given module name
-
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
+
+*-D*, *--properties*=_properties_::
+  set a system property
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*-t*, *--template*=_<initTemplate>_::
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
+
+*-t*, *--template*=_template_::
   Init script with a java class useful for scripting
 
 *--verbose*::
@@ -97,11 +95,11 @@ Initialize a script.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_scriptOrFile_::
+_arg_::
   A file or URL to a Java code file
 
-[_params_...]::
-  Parameters to pass on to the generation
+_arg_::
+  Parameters
 
 // end::picocli-generated-man-section-arguments[]
 

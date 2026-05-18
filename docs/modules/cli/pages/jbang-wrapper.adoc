@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,7 +19,7 @@ jbang-wrapper - Manage jbang wrapper for a folder.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang wrapper* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
+*jbang wrapper* [*--config*=_config_] [*--fresh*] [*-h*=_help_] [*--insecure*] [*-o*] [*--preview*] [*--quiet*] [*-x*] [*--verbose*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,17 +33,29 @@ Manage jbang wrapper for a folder.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_config_::
+  Path to config file to be used instead of the default
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*-h*, *--help*=_help_::
+  Display help (use --help=all for all options)
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+  Work offline. Fail-fast if dependencies are missing.
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -57,7 +69,7 @@ Manage jbang wrapper for a folder.
 == Commands
 
 xref:jbang:cli:jbang-wrapper-install.adoc[*install*]::
-  Install/Setup jbang as a `wrapper` script in a folder
+  Install/Setup jbang as a wrapper script in a folder
 
 // end::picocli-generated-man-section-commands[]
 
