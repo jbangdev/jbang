@@ -171,7 +171,7 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.43"
 	implementation "eu.maveniverse.maven.nisse:core:0.8.4"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.8.4"
-	implementation "org.apache.maven:maven-model:3.9.15"
+	implementation "org.apache.maven:maven-model:3.9.16"
 
 	implementation "org.jline:jline-console-ui:$jlineVersion"
 	implementation "org.jline:jline-terminal-jni:$jlineVersion"
