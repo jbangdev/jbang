@@ -92,6 +92,19 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
           if-no-files-found: error
+
+      - name: build-native-bundles
+        run: |
+          ./gradlew --no-daemon nativeDistZip nativeDistTar
+
+      - name: upload-native-bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
+          path: |
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.zip
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.tar
+          if-no-files-found: error
       
       - name: create install with jbang.bin
         if: ${{ !inputs.skip_tests }}

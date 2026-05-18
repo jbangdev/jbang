@@ -1,6 +1,8 @@
 package dev.jbang.util;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -16,7 +18,8 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 
 public class VersionChecker {
-	private static final String jbangVersionUrl = "https://www.jbang.dev/releases/latest/download/version.txt";
+	private static final String DEFAULT_JBANG_RELEASES_URL = "https://www.jbang.dev/releases";
+	private static final String jbangVersionUrl = buildVersionUrl();
 
 	private static final long DELAY_DAYS = 1;
 	private static final int CONNECT_TIMEOUT = 3000;
@@ -177,14 +180,34 @@ public class VersionChecker {
 		return versionCheckResult;
 	}
 
+	private static String buildVersionUrl() {
+		String baseUrl = System.getenv("JBANG_DOWNLOAD_BASEURL");
+		if (baseUrl == null || baseUrl.trim().isEmpty()) {
+			baseUrl = DEFAULT_JBANG_RELEASES_URL;
+		}
+		baseUrl = baseUrl.replaceAll("/+$", "");
+		return baseUrl + "/latest/download/version.txt";
+	}
+
+	public static String getVersionUrl() {
+		try {
+			new URL(jbangVersionUrl);
+			return jbangVersionUrl;
+		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException("Invalid JBANG_DOWNLOAD_BASEURL-derived version URL: " + jbangVersionUrl,
+					e);
+		}
+	}
+
 	// Determines and returns the latest JBang version from GitHub
 	private static String retrieveLatestVersion() throws IOException {
-		Path versionFile = NetUtil.downloadFile(jbangVersionUrl, Settings.getCacheDir(), CONNECT_TIMEOUT);
+		Path versionFile = NetUtil.downloadFile(getVersionUrl(), Settings.getCacheDir(), CONNECT_TIMEOUT);
 		List<String> lines = Files.readAllLines(versionFile);
 		if (!lines.isEmpty()) {
 			return lines.get(0);
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	private static int compareVersions(String v1, String v2) {

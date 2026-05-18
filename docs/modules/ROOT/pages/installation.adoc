@@ -30,6 +30,41 @@ Once you have jbang installed, it is recommended you run `jbang app setup`. This
 [NOTE]
 ====
 By default `jbang` uses `~/.jbang` for configurations and build cache. This can be changed using the environment variable `JBANG_DIR`.
+
+**Startup Script Environment Variables:**
+
+[cols="2,3,3"]
+|===
+|Variable |Default |Description
+
+|`JBANG_DIR`
+|`~/.jbang`
+|JBang configuration and cache directory
+
+|`JBANG_CACHE_DIR`
+|`$JBANG_DIR/cache`
+|Build cache directory
+
+|`JBANG_USE_NATIVE`
+|`false`
+|If `true`, prefer native binary (`jbang.bin`) over JAR execution
+
+|`JBANG_DOWNLOAD_BASEURL`
+|`https://github.com/jbangdev/jbang/releases`
+|Base URL for downloading JBang releases (used for testing and offline mirrors)
+
+|`JBANG_DOWNLOAD_VERSION`
+|_(unset, uses latest)_
+|Specific JBang version to download during wrapper bootstrap (e.g., `0.138.0`)
+
+|`JBANG_DEFAULT_JAVA_VERSION`
+|`17`
+|Default Java version to install if none is found
+
+|`JBANG_NO_VERSION_CHECK`
+|_(unset)_
+|If set, disables automatic version update checks
+|===
 ====
 
 == Installation Methods

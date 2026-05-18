@@ -8,6 +8,9 @@
 
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
+# Optional base URL override for testing bundle/version downloads locally.
+# Defaults to the public GitHub release location.
+# Example: JBANG_DOWNLOAD_BASEURL=http://localhost:18080 or file:///tmp/releases
 
 # Number of retry attempts for downloads (curl/wget)
 downloadRetry=${JBANG_DOWNLOAD_RETRY:-5}
@@ -38,6 +41,131 @@ download() {
   else
     echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
     exit 1
+  fi
+}
+
+native_exec_name() {
+  if [[ "$os" == "windows" ]]; then
+    echo "jbang.bin.exe"
+  else
+    echo "jbang.bin"
+  fi
+}
+
+# Keep in sync with src/main/java/dev/jbang/cli/App.java:getNativeBundleArch()
+# and src/main/scripts/jbang.ps1:Get-NativeBundleArch
+native_bundle_arch() {
+  case "$arch" in
+    x86_64|amd64)
+      echo "x64"
+      ;;
+    aarch64|arm64)
+      echo "aarch64"
+      ;;
+    *)
+      echo "$arch"
+      ;;
+  esac
+}
+
+resolve_download_url() {
+  local release_version="$1"
+  local bundle_name="$2"
+
+  # JBANG_DOWNLOAD_URL is a full URL override (takes precedence over JBANG_DOWNLOAD_BASEURL)
+  if [ -n "$JBANG_DOWNLOAD_URL" ]; then
+    echo "$JBANG_DOWNLOAD_URL"
+    return
+  fi
+
+  local base_url="${JBANG_DOWNLOAD_BASEURL:-https://github.com/jbangdev/jbang/releases}"
+
+  base_url="${base_url%/}"
+  if [[ "$base_url" == file://* || "$base_url" == http://* || "$base_url" == https://* ]]; then
+    if [ -z "$release_version" ]; then
+      echo "${base_url}/latest/download/${bundle_name}"
+    else
+      echo "${base_url}/download/v$release_version/${bundle_name}"
+    fi
+  else
+    if [ -z "$release_version" ]; then
+      echo "${base_url}/latest/download/${bundle_name}"
+    else
+      echo "${base_url}/v$release_version/${bundle_name}"
+    fi
+  fi
+}
+
+native_bundle_url() {
+  local release_version="$1"
+  local bundle_name="jbang"
+  local bundle_arch
+
+  bundle_arch=$(native_bundle_arch)
+  bundle_name+="-${os}-${bundle_arch}"
+
+  if [[ "$os" == "windows" ]]; then
+    bundle_name+=".zip"
+  else
+    bundle_name+=".tar"
+  fi
+
+  resolve_download_url "$release_version" "$bundle_name"
+}
+
+fallback_bundle_url() {
+  local release_version="$1"
+  local bundle_name
+
+  if [[ "$os" == "windows" ]]; then
+    bundle_name="jbang.zip"
+  else
+    bundle_name="jbang.tar"
+  fi
+
+  resolve_download_url "$release_version" "$bundle_name"
+}
+
+install_jbang_bundle() {
+  local release_version="$1"
+  local native_requested="$2"
+  local jburl
+  local fallback_url
+  local bundle_file
+  local native_name
+
+  mkdir -p "$TDIR/urls"
+  bundle_file="$TDIR/urls/jbang-bundle"
+  native_name=$(native_exec_name)
+
+  if [[ "$native_requested" == "true" ]]; then
+    jburl=$(native_bundle_url "$release_version")
+    echo "Downloading JBang ${release_version:-latest} native bundle..." 1>&2
+    download "$jburl" "$bundle_file"
+    if [ $retval -ne 0 ]; then
+      echo "WARNING: Native JBang bundle not available from $jburl, falling back to generic bundle" 1>&2
+      fallback_url=$(fallback_bundle_url "$release_version")
+      download "$fallback_url" "$bundle_file"
+      if [ $retval -ne 0 ]; then echo "Error downloading JBang from $fallback_url" 1>&2; exit $retval; fi
+    fi
+  else
+    jburl=$(fallback_bundle_url "$release_version")
+    echo "Downloading JBang ${release_version:-latest}..." 1>&2
+    download "$jburl" "$bundle_file"
+    if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
+  fi
+
+  echo "Installing JBang..." 1>&2
+  rm -rf "$TDIR/urls/jbang"
+  tar xf "$bundle_file" -C "$TDIR/urls"
+  if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
+
+  mkdir -p "$JBDIR/bin"
+  rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
+  cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
+
+  if [[ "$native_requested" == "true" && ! -f "$JBDIR/bin/$native_name" ]]; then
+    echo "WARNING: Downloaded JBang bundle does not include native binary for this platform, falling back to jbang.jar" 1>&2
   fi
 }
 
@@ -257,25 +385,19 @@ if [[ -z "$binaryPath" ]]; then
   fi
 fi
 if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
+  native_name=$(native_exec_name)
+  needs_install="false"
+
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
-    echo "Downloading JBang $JBANG_DOWNLOAD_VERSION..." 1>&2
-    mkdir -p "$TDIR/urls"
-    if [ -n "$JBANG_DOWNLOAD_URL" ]; then
-      jburl="$JBANG_DOWNLOAD_URL";
-    elif [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
-      jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
-    else
-      jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
-    fi
-    download "$jburl" "$TDIR/urls/jbang.tar"
-    if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
-    echo "Installing JBang..." 1>&2
-    rm -rf "$TDIR/urls/jbang"
-    tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
-    if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
-    mkdir -p "$JBDIR/bin"
-    rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
-    cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
+    needs_install="true"
+  fi
+
+  if [[ "$JBANG_USE_NATIVE" == "true" && ! -f "$JBDIR/bin/$native_name" ]]; then
+    needs_install="true"
+  fi
+
+  if [[ "$needs_install" == "true" ]]; then
+    install_jbang_bundle "$JBANG_DOWNLOAD_VERSION" "$JBANG_USE_NATIVE"
   fi
   "$JBDIR"/bin/jbang "$@"
   exit $?
@@ -284,6 +406,14 @@ fi
 if [ -f "$jarPath.new" ]; then
   # a new jbang version was found, we replace the old one with it
   mv "$jarPath.new" "$jarPath"
+fi
+
+if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
+  native_name=$(native_exec_name)
+  if [ -f "$abs_jbang_dir/${native_name}.new" ]; then
+    mv "$abs_jbang_dir/${native_name}.new" "$abs_jbang_dir/${native_name}"
+    chmod +x "$abs_jbang_dir/${native_name}" 2>/dev/null || true
+  fi
 fi
 
 # Only setup Java if we're running the JAR version

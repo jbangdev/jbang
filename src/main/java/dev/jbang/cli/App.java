@@ -58,7 +58,7 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseBuildCommand {
-	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
+	private static final String DEFAULT_JBANG_RELEASES_URL = "https://www.jbang.dev/releases";
 
 	@CommandLine.Option(names = { "--force" }, description = "Force re-installation")
 	boolean force;
@@ -211,6 +211,72 @@ class AppInstall extends BaseBuildCommand {
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
+	private static String getDownloadBaseUrl() {
+		String baseUrl = System.getenv("JBANG_DOWNLOAD_BASEURL");
+		if (baseUrl == null || baseUrl.trim().isEmpty()) {
+			baseUrl = DEFAULT_JBANG_RELEASES_URL;
+		}
+		return baseUrl.replaceAll("/+$", "");
+	}
+
+	private static boolean isNativeRequested() {
+		String value = System.getenv("JBANG_USE_NATIVE");
+		return value != null && value.equalsIgnoreCase("true");
+	}
+
+	private static boolean isWindowsOs() {
+		return System.getProperty("os.name").toLowerCase().contains("windows");
+	}
+
+	private static String getBundleExtension() {
+		return isWindowsOs() ? "zip" : "tar";
+	}
+
+	// Keep in sync with src/main/scripts/jbang:native_bundle_arch()
+	// and src/main/scripts/jbang.ps1:Get-NativeBundleArch
+	private static String getNativeBundleArch() {
+		String arch = System.getProperty("os.arch").toLowerCase();
+		if ("x86_64".equals(arch) || "amd64".equals(arch)) {
+			return "x64";
+		}
+		if ("aarch64".equals(arch) || "arm64".equals(arch)) {
+			return "aarch64";
+		}
+		return arch.replaceAll("[^a-z0-9_]+", "-");
+	}
+
+	// Keep in sync with src/main/scripts/jbang:native_bundle_url()
+	// and src/main/scripts/jbang.ps1:Get-NativeBundleUrl
+	private static String getNativeBundleOs() {
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("mac") || os.contains("darwin")) {
+			return "mac";
+		}
+		if (os.contains("windows")) {
+			return "windows";
+		}
+		return "linux";
+	}
+
+	private static String getGenericBundleUrl(String version) {
+		String baseUrl = getDownloadBaseUrl();
+		if (version == null || version.trim().isEmpty()) {
+			return baseUrl + "/latest/download/jbang." + getBundleExtension();
+		} else {
+			return baseUrl + "/download/v" + version + "/jbang." + getBundleExtension();
+		}
+	}
+
+	private static String getNativeBundleUrl(String version) {
+		String baseUrl = getDownloadBaseUrl();
+		String bundleName = "jbang-" + getNativeBundleOs() + "-" + getNativeBundleArch() + "." + getBundleExtension();
+		if (version == null || version.trim().isEmpty()) {
+			return baseUrl + "/latest/download/" + bundleName;
+		} else {
+			return baseUrl + "/download/v" + version + "/" + bundleName;
+		}
+	}
+
 	public static boolean installJBang(boolean force) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
@@ -223,12 +289,24 @@ class AppInstall extends BaseBuildCommand {
 		if (force || !managedJBang) {
 			if (!Util.isOffline()) {
 				Util.withCacheEvict(() -> {
-					// Download JBang and unzip to ~/.jbang/bin/
+					// Download JBang and unzip/untar to ~/.jbang/bin/
 					Util.infoMsg("Downloading and installing jbang...");
-					Path zipFile = NetUtil.downloadAndCacheFile(jbangUrl);
+					String version = System.getenv("JBANG_DOWNLOAD_VERSION");
+					Path bundleFile;
+					if (isNativeRequested()) {
+						try {
+							bundleFile = NetUtil.downloadAndCacheFile(getNativeBundleUrl(version));
+						} catch (IOException e) {
+							Util.warnMsg("Native JBang bundle not available, falling back to generic bundle.");
+							Util.verboseMsg("Native bundle download failed: " + e.getMessage());
+							bundleFile = NetUtil.downloadAndCacheFile(getGenericBundleUrl(version));
+						}
+					} else {
+						bundleFile = NetUtil.downloadAndCacheFile(getGenericBundleUrl(version));
+					}
 					Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 					Util.deletePath(urlsDir.resolve("jbang"), true);
-					UnpackUtil.unpack(zipFile, urlsDir);
+					UnpackUtil.unpack(bundleFile, urlsDir);
 					App.deleteCommandFiles("jbang");
 					Path fromDir = urlsDir.resolve("jbang").resolve("bin");
 					copyJBangFiles(fromDir, binDir);
@@ -254,26 +332,33 @@ class AppInstall extends BaseBuildCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-			.map(Paths::get)
-			.forEach(f -> {
-				try {
-					Path fromp = from.resolve(f);
-					Path top = to.resolve(f);
-					if (f.endsWith("jbang.jar")) {
-						if (!Files.isReadable(fromp)) {
-							fromp = from.resolve(".jbang/jbang.jar");
-						}
-						if (Util.isWindows() && Files.isRegularFile(top)) {
-							top = to.resolve("jbang.jar.new");
-						}
+		for (String name : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar", "jbang.bin",
+				"jbang.bin.exe")) {
+			try {
+				Path f = Paths.get(name);
+				Path fromp = from.resolve(f);
+				Path top = to.resolve(f);
+				if ("jbang.jar".equals(name)) {
+					if (!Files.isReadable(fromp)) {
+						fromp = from.resolve(".jbang/jbang.jar");
 					}
-					Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-							StandardCopyOption.COPY_ATTRIBUTES);
-				} catch (IOException e) {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+					if (Util.isWindows() && Files.isRegularFile(top)) {
+						top = to.resolve("jbang.jar.new");
+					}
+				} else if ("jbang.bin".equals(name) || "jbang.bin.exe".equals(name)) {
+					if (!Files.isReadable(fromp)) {
+						continue;
+					}
+					if (Files.isRegularFile(top)) {
+						top = to.resolve(name + ".new");
+					}
 				}
-			});
+				Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+						StandardCopyOption.COPY_ATTRIBUTES);
+			} catch (IOException e) {
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + name, e);
+			}
+		}
 	}
 }
 
