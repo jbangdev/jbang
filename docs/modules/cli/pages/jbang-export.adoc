@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,7 +19,7 @@ jbang-export - Export the result of a build or the set of the sources to a proje
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
+*jbang export* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,20 +33,32 @@ Export the result of a build or the set of the sources to a project.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
@@ -56,29 +68,29 @@ Export the result of a build or the set of the sources to a project.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-export-portable.adoc[*portable*]::
-  Exports jar together with dependencies in way that makes it portable
-
-xref:jbang:cli:jbang-export-local.adoc[*local*]::
-  Exports jar with classpath referring to local machine dependent locations
-
-xref:jbang:cli:jbang-export-mavenrepo.adoc[*mavenrepo*]::
-  Exports directory that can be used to publish as a maven repository
+xref:jbang:cli:jbang-export-gradle.adoc[*gradle*]::
+  Exports a Gradle project
 
 xref:jbang:cli:jbang-export-native.adoc[*native*]::
   Exports native executable
 
+xref:jbang:cli:jbang-export-maven.adoc[*maven*]::
+  Exports a Maven project
+
 xref:jbang:cli:jbang-export-fatjar.adoc[*fatjar*]::
   Exports an executable jar with all necessary dependencies included inside
+
+xref:jbang:cli:jbang-export-portable.adoc[*portable*]::
+  Exports jar together with dependencies in way that makes it portable
+
+xref:jbang:cli:jbang-export-mavenrepo.adoc[*mavenrepo*]::
+  Exports directory that can be used to publish as a maven repository
 
 xref:jbang:cli:jbang-export-jlink.adoc[*jlink*]::
   Exports a minimized JDK distribution
 
-xref:jbang:cli:jbang-export-gradle.adoc[*gradle*]::
-  Exports a Gradle project
-
-xref:jbang:cli:jbang-export-maven.adoc[*maven*]::
-  Exports a Maven project
+xref:jbang:cli:jbang-export-local.adoc[*local*]::
+  Exports jar with classpath referring to local machine dependent locations
 
 // end::picocli-generated-man-section-commands[]
 

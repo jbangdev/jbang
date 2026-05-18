@@ -1,0 +1,91 @@
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:manmanual: deps Manual
+:man-linkstyle: pass:[blue R < >]
+= jbang-deps-search(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+deps-search - Search for artifacts in local and central Maven repositories.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*deps search* [*-h*=_<help>_] [*--max*=_<max>_] [*-q*=_<query>_] [*--target*=_<target>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_...]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Search for artifacts in local and central Maven repositories.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
+
+*--max*=_<max>_::
+  Maximum number of results to return.
+
+*-q*, *--query*=_<query>_::
+  Artifact pattern to search for.
+
+*--target*=_<target>_::
+  Target where to add the dependency, i.e. app.java or build.jbang
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+  jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<arg>_::
+  [query] [target]
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

@@ -15,6 +15,11 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.aesh.command.CommandDefinition;
+import org.aesh.command.option.Arguments;
+import org.aesh.command.option.Mixin;
+import org.aesh.command.option.Option;
+
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyUtil;
@@ -29,35 +34,50 @@ import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
-import picocli.CommandLine;
 
-@CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
+@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class, helpGroup = "Editing")
 public class Edit extends BaseCommand {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
 
-	@CommandLine.Mixin
+	@Mixin
 	ScriptMixin scriptMixin;
 
-	@CommandLine.Mixin
+	@Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	@CommandLine.Parameters(index = "1", arity = "0..N")
-	List<String> additionalFiles = new ArrayList<>();
+	@Arguments(index = "1..*", arity = "0..*", description = "Additional files")
+	List<String> additionalFiles;
 
-	@CommandLine.Option(names = {
-			"--live" }, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
+	@Override
+	public void afterParse() {
+		super.afterParse();
+		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
+		applyEditorDefaults();
+	}
+
+	private void applyEditorDefaults() {
+		String envEditor = System.getenv("JBANG_EDITOR");
+		if (envEditor != null && !envEditor.isEmpty()) {
+			editor = envEditor;
+		} else if (editor != null && editor.isEmpty()) {
+			String cfgEditor = dev.jbang.Configuration.instance().get("edit.open");
+			if (cfgEditor != null) {
+				editor = cfgEditor;
+			}
+		}
+	}
+
+	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
-	@CommandLine.Option(names = {
-			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${default.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${default.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
-	public Optional<String> editor;
+	@Option(name = "open", parser = StrictOptionParser.class, description = "Opens editor/IDE on the temporary project.")
+	public String editor;
 
-	@CommandLine.Option(names = { "--no-open" }, description = "Explicitly prevent JBang from opening an editor/IDE")
+	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")
 	public boolean noOpen;
 
-	@CommandLine.Option(names = { "-b",
-			"--sandbox" }, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
+	@Option(shortName = 'b', name = "sandbox", hasValue = false, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
 	boolean sandbox;
 
 	/**
@@ -133,9 +153,12 @@ public class Edit extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-
 		// force download sources when editing
 		Util.setDownloadSources(true);
+
+		if (additionalFiles == null) {
+			additionalFiles = new ArrayList<>();
+		}
 
 		if (!sandbox) {
 			File location;
@@ -173,14 +196,13 @@ public class Edit extends BaseCommand {
 
 			Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 			String projectPathString = pathToString(project.toAbsolutePath());
-			// err.println(project.getAbsolutePath());
 
 			if (!noOpen) {
 				openEditor(projectPathString, additionalFiles);
 			}
 
 			if (!live) {
-				out.println(projectPathString); // quit(project.getAbsolutePath());
+				out.println(projectPathString);
 			} else {
 				Path orginalFile = prj.getResourceRef().getFile();
 				if (!Files.exists(orginalFile)) {
@@ -243,20 +265,21 @@ public class Edit extends BaseCommand {
 	// try open editor if possible and install if needed, returns true if editor
 	// started, false if not possible (i.e. editor not available)
 	private boolean openEditor(String projectPathString, List<String> additionalFiles) throws IOException {
-		if (!editor.isPresent() || editor.get().isEmpty()) {
-			editor = askEditor();
-			if (!editor.isPresent()) {
+		if (editor == null || editor.isEmpty()) {
+			Optional<String> ed = askEditor();
+			if (!ed.isPresent()) {
 				return false;
 			}
+			editor = ed.get();
 		} else {
-			showStartingMsg(editor.get(), !editor.get().equals(spec.findOption("open").defaultValue()));
+			showStartingMsg(editor, true);
 		}
-		if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+		if ("gitpod".equals(editor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 			info("Open this url to edit the project in your gitpod session:\n\n"
 					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + projectPathString + "\n\n");
 		} else {
 			List<String> optionList = new ArrayList<>();
-			optionList.add(editor.get());
+			optionList.add(editor);
 			optionList.add(projectPathString);
 			optionList.addAll(additionalFiles);
 
@@ -283,7 +306,7 @@ public class Edit extends BaseCommand {
 			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
 			.additionalSources(scriptMixin.sources)
 			.additionalResources(scriptMixin.resources)
-			.forceType(scriptMixin.forceType);
+			.forceType(scriptMixin.getForceType());
 	}
 
 	private static Optional<String> askEditor() throws IOException {
@@ -530,21 +553,6 @@ public class Edit extends BaseCommand {
 					destination);
 		}
 
-		// setup intellij - disabled for now as idea was not picking these up directly
-		/*
-		 * templateName = "idea-port-4004.qute.xml"; destination = new
-		 * File(tmpProjectDir, ".idea/runConfigurations/" + baseName +
-		 * "-port-4004.xml").toPath(); destination.toFile().getParentFile().mkdirs();
-		 * renderTemplate(engine, collectDependencies, baseName, resolvedDependencies,
-		 * templateName, script.getArguments(), destination);
-		 *
-		 * templateName = "idea.qute.xml"; destination = new File(tmpProjectDir,
-		 * ".idea/runConfigurations/" + baseName + ".xml").toPath();
-		 * destination.toFile().getParentFile().mkdirs(); renderTemplate(engine,
-		 * collectDependencies, baseName, resolvedDependencies, templateName,
-		 * script.getArguments(), destination);
-		 */
-
 		return tmpProjectDir;
 	}
 
@@ -596,5 +604,4 @@ public class Edit extends BaseCommand {
 			return fileName;
 		}
 	}
-
 }

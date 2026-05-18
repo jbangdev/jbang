@@ -1,25 +1,44 @@
 package dev.jbang.util;
 
-import picocli.CommandLine;
-
 public class ConsoleOutput {
+
+	private static final boolean ANSI_ENABLED = isAnsiEnabled();
+
+	private static boolean isAnsiEnabled() {
+		String term = System.getenv("TERM");
+		if (System.console() == null) {
+			return false;
+		}
+		if ("dumb".equals(term)) {
+			return false;
+		}
+		return true;
+	}
+
+	private static String ansi(String code, String text) {
+		if (ANSI_ENABLED) {
+			return "\033[" + code + "m" + text + "\033[0m";
+		}
+		return text;
+	}
+
 	public static String yellow(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(yellow) " + text + "|@").toString();
+		return ansi("33", text);
 	}
 
 	public static String cyan(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(cyan) " + text + "|@").toString();
+		return ansi("36", text);
 	}
 
 	public static String magenta(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(magenta) " + text + "|@").toString();
+		return ansi("35", text);
 	}
 
 	public static String faint(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|faint " + text + "|@").toString();
+		return ansi("2", text);
 	}
 
 	public static String bold(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|bold " + text + "|@").toString();
+		return ansi("1", text);
 	}
 }

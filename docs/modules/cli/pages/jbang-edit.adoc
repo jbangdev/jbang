@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,12 +19,7 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang edit* *-o* [*-bh*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] [*--live*] [*--no-open*]
-           *--quiet* *--verbose* [*--open*[=_<editor>_]] [*--catalog*=_<catalog>_]
-           [*--config*=_<config>_] [*-T*=_<forceType>_] [*--cp*=_<classpaths>_]...
-           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-           [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
-           [*-s*=_<sources>_]... [_<scriptOrFile>_] [_<additionalFiles>_...]
+*jbang edit* [*-h*=_<help>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*--live*] [*--open*=_<open>_] [*--no-open*] [*-b*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_] [_<>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -38,79 +33,85 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-b*, *--sandbox*::
-  Edit in sandbox mode. Useful when the editor/IDE used has no JBang support
-
-*--catalog*=_<catalog>_::
-  Path to catalog file to be used instead of the default
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--cp, --class-path*=_<classpaths>_::
-  Add class path entries.
-
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
-  Add additional dependencies (Use commas to separate them).
-
-*--files*=_<resources>_::
-  Add additional files.
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
-
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
-
-*--jsh*::
-  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
-
-*--live*::
-  Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.
-
-*--no-open*::
-  Explicitly prevent JBang from opening an editor/IDE
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--open*[=_<editor>_]::
-  Opens editor/IDE on the temporary project.
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
-
-*--repos*=_<repositories>_::
-  Add additional repositories.
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
 
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*-T*, *--source-type*=_<forceType>_::
+*--files*=_<files>_::
+  Add additional files.
+
+*-T*, *--source-type*=_<source-type>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*--jsh*::
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
+*-D*, *--properties*=_<properties>_::
+  set a system property
+
+*--deps*=_<deps>_::
+  Add additional dependencies (Use commas to separate them).
+
+*--repos*=_<repos>_::
+  Add additional repositories.
+
+*--cp*=_<cp>_::
+  Add class path entries.
+
+*--ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
+*--live*::
+  Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.
+
+*--open*=_<open>_::
+  Opens editor/IDE on the temporary project.
+
+*--no-open*::
+  Explicitly prevent JBang from opening an editor/IDE
+
+*-b*, *--sandbox*::
+  Edit in sandbox mode. Useful when the editor/IDE used has no JBang support
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *--verbose*::
   jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_<arg>_::
+  A file or URL to a Java code file
 
-[_<additionalFiles>_...]::
-  
+_<arg>_::
+  Additional files
 
 // end::picocli-generated-man-section-arguments[]
 

@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,8 +19,7 @@ jbang-version - Display version info.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang version* *-o* [*-h*] [*--check*] *--fresh* [*--insecure*] *--quiet* [*--update*]
-              *--verbose* [*--config*=_<config>_]
+*jbang version* [*-h*=_<help>_] [*--check*] [*--update*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -34,32 +33,38 @@ Display version info.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
+
 *--check*::
   Check if a new version of jbang is available
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
-
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
 
 *--update*::
   Update jbang to the latest version
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *--verbose*::
   jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 

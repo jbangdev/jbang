@@ -20,7 +20,6 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -45,8 +44,6 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
 import dev.jbang.dependencies.DependencyCache;
 import dev.jbang.util.Util;
-
-import picocli.CommandLine;
 
 public abstract class BaseTest {
 	public Path jbangTempDir;
@@ -133,26 +130,17 @@ public abstract class BaseTest {
 		Util.deletePath(jdksTempDir, true);
 	}
 
-	protected <T> CaptureResult<Integer> checkedRun(Function<T, Integer> commandRunner, String... args)
-			throws Exception {
-		CommandLine cli = JBang.getCommandLine();
-		args = Main.handleDefaultRun(cli.getCommandSpec(), args);
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs(args);
-		while (pr.subcommand() != null) {
-			pr = pr.subcommand();
-		}
-		@SuppressWarnings("unchecked")
-		T usrobj = (T) pr.commandSpec().userObject();
-
+	protected CaptureResult<Integer> checkedRun(String... args) throws Exception {
 		return captureOutput(() -> {
-			if (commandRunner != null) {
-				return commandRunner.apply(usrobj);
-			} else if (usrobj instanceof BaseCommand) {
-				BaseCommand cmd = ((BaseCommand) usrobj);
-				cmd.realOut = System.out; // Reset the output stream to the original, just for testing
+			try {
+				BaseCommand cmd = JBang.parseCommand(args);
+				cmd.realOut = System.out;
 				return cmd.doCall();
-			} else {
-				throw new IllegalStateException("usrobj is of unsupported type");
+			} catch (RuntimeException e) {
+				if (e.getCause() instanceof org.aesh.command.parser.CommandLineParserException) {
+					return JBang.execute(args);
+				}
+				throw e;
 			}
 		});
 	}

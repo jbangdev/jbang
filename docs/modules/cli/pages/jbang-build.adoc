@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,15 +19,7 @@ jbang-build - Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang build* *-o* [*-hn*] [*--enable-preview*] *--fresh* [*--insecure*] [*--[no-]*
-     *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
-            [=_<module>_]] [*--build-dir*=_<buildDir>_] [*--catalog*=_<catalog>_]
-            [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*-T*=_<forceType>_]
-            [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
-            [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-            [*--files*=_<resources>_]... [*--manifest*=_<String=String>_]...
-            [*-N*=_<nativeOptions>_]... [*--repos*=_<repositories>_]...
-            [*-s*=_<sources>_]... [_<scriptOrFile>_]
+*jbang build* [*-h*=_<help>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*--build-dir*=_<build-dir>_] [*--enable-preview*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -41,94 +33,100 @@ Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--build-dir*=_<buildDir>_::
-  Use given directory for build results
-
-*-C*, *--compile-option*=_<compileOptions>_::
-  Options to pass to the compiler
-
-*--catalog*=_<catalog>_::
-  Path to catalog file to be used instead of the default
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--cp, --class-path*=_<classpaths>_::
-  Add class path entries.
-
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
-  Add additional dependencies (Use commas to separate them).
-
-*--enable-preview*::
-  Activate Java preview features
-
-*--files*=_<resources>_::
-  Add additional files.
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
-
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*--[no-]integrations*::
-  Enable integration execution (default: true)
-
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
-
-*-j*, *--java*=_<javaVersion>_::
-  JDK version to use for running the script.
-
-*--jsh*::
-  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
-
-*-m*, *--main*=_<main>_::
-  Main class to use when running. Used primarily for running jar's.
-
-*--manifest*=_<String=String>_::
-  
-
-*--module*[=_<module>_]::
-  Treat resource as a module. Optionally with the given module name
-
-*-n*, *--native*::
-  Build using native-image
-
-*-N*, *--native-option*=_<nativeOptions>_::
-  Options to pass to the native image tool
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
-
-*--repos*=_<repositories>_::
-  Add additional repositories.
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
 
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*-T*, *--source-type*=_<forceType>_::
+*--files*=_<files>_::
+  Add additional files.
+
+*-T*, *--source-type*=_<source-type>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*--jsh*::
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
+*-j*, *--java*=_<java>_::
+  JDK version to use for running the script.
+
+*-m*, *--main*=_<main>_::
+  Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.
+
+*--module*=_<module>_::
+  Treat resource as a module. Optionally with the given module name
+
+*-C*, *--compile-option*=_<compile-option>_::
+  Options to pass to the compiler
+
+*--manifest*=_<manifest>_::
+  
+
+*--integrations*::
+  Enable or disable integration execution (default: true)
+
+*-D*, *--properties*=_<properties>_::
+  set a system property
+
+*--deps*=_<deps>_::
+  Add additional dependencies (Use commas to separate them).
+
+*--repos*=_<repos>_::
+  Add additional repositories.
+
+*--cp*=_<cp>_::
+  Add class path entries.
+
+*--ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
+*-n*, *--native*::
+  Build using native-image
+
+*-N*, *--native-option*=_<native-option>_::
+  Options to pass to the native image tool
+
+*--build-dir*=_<build-dir>_::
+  Use given directory for build results
+
+*--enable-preview*::
+  Activate Java preview features
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *--verbose*::
   jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_<arg>_::
+  A file or URL to a Java code file
 
 // end::picocli-generated-man-section-arguments[]
 

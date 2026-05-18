@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: cache Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-cache-clear(1)
 
@@ -12,70 +12,83 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-cache-clear - Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches. To clear other caches list them explicitly i.e. '--project' for temporary projects.
+cache-clear - Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang cache clear* *-o* [*--all*] [*--[no-]deps*] *--fresh* [*--[no-]groovyc*] [*--[no-]*
-           *       jar*] [*--[no-]jdk*] [*--[no-]kotlinc*] [*--[no-]project*] *--quiet*
-                  [*--[no-]script*] [*--[no-]stdin*] [*--[no-]url*] *--verbose*
+*cache clear* [*-h*=_<help>_] [*--url*] [*--jar*] [*--deps*] [*--jdk*] [*--kotlinc*] [*--groovyc*] [*--project*] [*--script*] [*--stdin*] [*--all*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches. To clear other caches list them explicitly i.e. '--project' for temporary projects.
+Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
+
+*--url*::
+  clear URL cache only
+
+*--jar*::
+  clear JAR cache only
+
+*--deps*::
+  clear dependency cache only
+
+*--jdk*::
+  clear JDK cache only
+
+*--kotlinc*::
+  clear kotlinc cache only
+
+*--groovyc*::
+  clear groovyc cache only
+
+*--project*::
+  clear temporary projects cache only
+
+*--script*::
+  clear script cache only
+
+*--stdin*::
+  clear stdin cache only
+
 *--all*::
   clear all caches
 
-*--[no-]deps*::
-  clear dependency cache only
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
-*--[no-]groovyc*::
-  clear groovyc cache only
-
-*--[no-]jar*::
-  clear JAR cache only
-
-*--[no-]jdk*::
-  clear JDK cache only
-
-*--[no-]kotlinc*::
-  clear kotlinc cache only
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--[no-]project*::
-  clear temporary projects cache only
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--[no-]script*::
-  clear script cache only
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
 
-*--[no-]stdin*::
-  clear stdin cache only
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
 
-*--[no-]url*::
-  clear URL cache only
+*--preview*::
+  Enable jbang preview features
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 

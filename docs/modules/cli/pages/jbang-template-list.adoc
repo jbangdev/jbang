@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: template Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-template-list(1)
 
@@ -12,17 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-template-list - Lists locally defined templates or from the given catalog.
+template-list - Lists locally defined templates or from the given catalog.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang template list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-files*]
-                    [*--show-origin*] [*--show-properties*] *--verbose*
-                    [*--config*=_<config>_] [*-f*=_<catalogFile>_] [*--format*=_<format>_]
-                    [_catalogName_]
+*template list* [*-h*=_<help>_] [*--show-origin*] [*--show-files*] [*--show-properties*] [*--format*=_<format>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -36,51 +33,57 @@ Lists locally defined templates or from the given catalog.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*-f*, *--file*=_<catalogFile>_::
-  Path to the catalog file to use
-
-*--format*=_<format>_::
-  Specify output format ('text' or 'json')
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-g*, *--global*::
-  Use the global (user) catalog file
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
-
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
-
-*--show-files*::
-  Show list of files for each template
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
 
 *--show-origin*::
   Show the origin of the template
 
+*--show-files*::
+  Show list of files for each template
+
 *--show-properties*::
   Show list of properties for each template
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
+*-g*, *--global*::
+  Use the global (user) catalog file
+
+*-f*, *--file*=_<file>_::
+  Path to the catalog file to use
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *--verbose*::
   jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_catalogName_]::
+_<arg>_::
   The name of a catalog
 
 // end::picocli-generated-man-section-arguments[]

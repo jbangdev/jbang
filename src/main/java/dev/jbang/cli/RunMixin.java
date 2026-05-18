@@ -1,43 +1,92 @@
 package dev.jbang.cli;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import picocli.CommandLine;
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionList;
+
+import dev.jbang.Configuration;
 
 public class RunMixin {
 
-	@CommandLine.Option(names = { "-R", "--runtime-option",
-			"--java-options" }, description = "Options to pass to the Java runtime")
+	@OptionList(shortName = 'R', name = "runtime-option", aliases = {
+			"java-options" }, description = "Options to pass to the Java runtime")
 	public List<String> javaRuntimeOptions;
 
-	@CommandLine.Option(names = {
-			"--jfr" }, fallbackValue = "${default.run.jfr}", parameterConsumer = Run.KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
+	@Option(name = "jfr", parser = StrictOptionParser.class, description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
-	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "${default.run.debug}", parameterConsumer = Run.DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${FALLBACK-VALUE}) ")
+	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
+	public String debugRaw;
+
 	public Map<String, String> debugString;
 
-	// should take arguments for package/classes when picocli fixes its flag
-	// handling bug in release 4.6.
-	// https://docs.oracle.com/cd/E19683-01/806-7930/assert-4/index.html
-	@CommandLine.Option(names = { "--enableassertions", "--ea" }, description = "Enable assertions")
+	@Option(name = "enableassertions", aliases = { "ea" }, hasValue = false, description = "Enable assertions")
 	public Boolean enableAssertions;
 
-	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
+	@Option(name = "enablesystemassertions", aliases = {
+			"esa" }, hasValue = false, description = "Enable system assertions")
 	public Boolean enableSystemAssertions;
 
-	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyValueConsumer.class)
+	@OptionList(name = "javaagent")
+	List<String> javaAgentRaw;
+
 	public Map<String, String> javaAgentSlots;
 
-	@CommandLine.Option(names = {
-			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
+	@Option(name = "cds", hasValue = false, negatable = true, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)")
 	Boolean cds;
 
-	@CommandLine.Option(names = { "-i", "--interactive" }, description = "Activate interactive mode")
+	@Option(shortName = 'i', name = "interactive", hasValue = false, description = "Activate interactive mode")
 	public Boolean interactive;
+
+	public void resolveAfterParse() {
+		Configuration cfg = Configuration.instance();
+		if ("".equals(debugRaw)) {
+			String cfgDebug = cfg.get("run.debug");
+			debugRaw = cfgDebug != null ? cfgDebug : "4004";
+		}
+		if ("".equals(flightRecorderString)) {
+			String cfgJfr = cfg.get("run.jfr");
+			flightRecorderString = cfgJfr != null ? cfgJfr : "";
+		}
+		resolveDebugArgs();
+		resolveJavaAgentSlots();
+	}
+
+	public void resolveDebugArgs() {
+		if (debugRaw != null && !debugRaw.isEmpty()) {
+			debugString = new LinkedHashMap<>();
+			for (String part : debugRaw.split(",")) {
+				if (part.contains("=")) {
+					String[] kv = part.split("=", 2);
+					debugString.put(kv[0], kv[1]);
+				} else {
+					debugString.put("address", part);
+				}
+			}
+		}
+	}
+
+	void resolveJavaAgentSlots() {
+		if (javaAgentRaw != null && !javaAgentRaw.isEmpty()) {
+			javaAgentSlots = new LinkedHashMap<>();
+			for (String raw : javaAgentRaw) {
+				int eq = raw.indexOf('=');
+				if (eq >= 0) {
+					javaAgentSlots.put(raw.substring(0, eq), raw.substring(eq + 1));
+				} else {
+					javaAgentSlots.put(raw, null);
+				}
+			}
+		}
+	}
+
+	public Boolean getCds() {
+		return cds;
+	}
 
 	public List<String> opts() {
 		List<String> opts = new ArrayList<>();
@@ -48,12 +97,9 @@ public class RunMixin {
 			}
 		}
 		if (flightRecorderString != null) {
-			opts.add("--jfr");
-			opts.add(flightRecorderString);
+			opts.add(flightRecorderString.isEmpty() ? "--jfr" : "--jfr=" + flightRecorderString);
 		}
 		if (debugString != null) {
-			// TODO: this is not handling case of special characters in the values
-			// i.e. --debug=address=5000? or --debug=address=*:3333
 			for (Map.Entry<String, String> e : debugString.entrySet()) {
 				opts.add("-d");
 				opts.add(e.getKey() + "=" + e.getValue());
@@ -68,11 +114,15 @@ public class RunMixin {
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> e : javaAgentSlots.entrySet()) {
 				opts.add("--javaagent");
-				opts.add(e.getKey() + "=" + e.getValue());
+				opts.add(e.getValue() == null || e.getValue().isEmpty()
+						? e.getKey()
+						: e.getKey() + "=" + e.getValue());
 			}
 		}
-		if (Boolean.TRUE.equals(cds)) {
+		if (Boolean.TRUE.equals(getCds())) {
 			opts.add("--cds");
+		} else if (Boolean.FALSE.equals(getCds())) {
+			opts.add("--no-cds");
 		}
 		if (Boolean.TRUE.equals(interactive)) {
 			opts.add("--interactive");

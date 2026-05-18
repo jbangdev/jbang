@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -12,50 +12,56 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-completion - Output auto-completion script for bash/zsh.
-Usage: source <(jbang completion)
+jbang-completion - Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang completion* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                 [*--config*=_<config>_]
+*jbang completion* [*-h*=_<help>_] [*-s*=_<shell>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Output auto-completion script for bash/zsh.
-Usage: source <(jbang completion)
+Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-h*, *--help*=_<help>_::
+  Display help (use --help=all for all options)
+
+*-s*, *--shell*=_<shell>_::
+  The shell to generate the completion script for. Supported shells: bash, zsh, and fish
+
 *--config*=_<config>_::
   Path to config file to be used instead of the default
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
