@@ -36,31 +36,31 @@ Clear the various caches used by jbang. By default this will clear the JAR, scri
 *-h*, *--help*=_<help>_::
   Display help (use --help=all for all options)
 
-*--url*::
+*--[no-]url*::
   clear URL cache only
 
-*--jar*::
+*--[no-]jar*::
   clear JAR cache only
 
-*--deps*::
+*--[no-]deps*::
   clear dependency cache only
 
-*--jdk*::
+*--[no-]jdk*::
   clear JDK cache only
 
-*--kotlinc*::
+*--[no-]kotlinc*::
   clear kotlinc cache only
 
-*--groovyc*::
+*--[no-]groovyc*::
   clear groovyc cache only
 
-*--project*::
+*--[no-]project*::
   clear temporary projects cache only
 
-*--script*::
+*--[no-]script*::
   clear script cache only
 
-*--stdin*::
+*--[no-]stdin*::
   clear stdin cache only
 
 *--all*::

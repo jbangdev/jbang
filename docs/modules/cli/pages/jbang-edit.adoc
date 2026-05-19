@@ -60,10 +60,10 @@ Setup a temporary project to edit script in an IDE.
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *--live*::

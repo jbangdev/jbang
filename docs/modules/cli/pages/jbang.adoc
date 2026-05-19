@@ -71,50 +71,50 @@ jbang is a tool for building and running .java/.jsh scripts and jar packages.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-template.adoc[*template*]::
-  Manage templates for scripts.
-
-xref:jbang:cli:jbang-trust.adoc[*trust*]::
-  Manage which domains you trust to run scripts from.
-
-xref:jbang:cli:jbang-app.adoc[*app*]::
-  Manage scripts installed on the user's PATH as commands.
-
-xref:jbang:cli:jbang-init.adoc[*init*]::
-  Initialize a script.
-
-xref:jbang:cli:jbang-completion.adoc[*completion*]::
-  Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
-
-xref:jbang:cli:jbang-cache.adoc[*cache*]::
-  Manage compiled scripts in the local cache.
-
-xref:jbang:cli:jbang-edit.adoc[*edit*]::
-  Setup a temporary project to edit script in an IDE.
-
-xref:jbang:cli:jbang-catalog.adoc[*catalog*]::
-  Manage Catalogs of aliases.
-
 xref:jbang:cli:jbang-run.adoc[*run*]::
   Builds and runs provided script. (default command)
-
-xref:jbang:cli:jbang-wrapper.adoc[*wrapper*]::
-  Manage jbang wrapper for a folder.
-
-xref:jbang:cli:jbang-deps.adoc[*deps*]::
-  Manage dependencies in jbang files.
-
-xref:jbang:cli:jbang-version.adoc[*version*]::
-  Display version info.
-
-xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
-  Manage Java Development Kits installed by jbang.
 
 xref:jbang:cli:jbang-build.adoc[*build*]::
   Compiles and stores script in the cache.
 
+xref:jbang:cli:jbang-edit.adoc[*edit*]::
+  Setup a temporary project to edit script in an IDE.
+
+xref:jbang:cli:jbang-init.adoc[*init*]::
+  Initialize a script.
+
 xref:jbang:cli:jbang-alias.adoc[*alias*]::
   Manage aliases for scripts.
+
+xref:jbang:cli:jbang-template.adoc[*template*]::
+  Manage templates for scripts.
+
+xref:jbang:cli:jbang-catalog.adoc[*catalog*]::
+  Manage Catalogs of aliases.
+
+xref:jbang:cli:jbang-trust.adoc[*trust*]::
+  Manage which domains you trust to run scripts from.
+
+xref:jbang:cli:jbang-cache.adoc[*cache*]::
+  Manage compiled scripts in the local cache.
+
+xref:jbang:cli:jbang-completion.adoc[*completion*]::
+  Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
+
+xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
+  Manage Java Development Kits installed by jbang.
+
+xref:jbang:cli:jbang-version.adoc[*version*]::
+  Display version info.
+
+xref:jbang:cli:jbang-wrapper.adoc[*wrapper*]::
+  Manage jbang wrapper for a folder.
+
+xref:jbang:cli:jbang-info.adoc[*info*]::
+  Provides info about the script for tools (and humans who are tools).
+
+xref:jbang:cli:jbang-app.adoc[*app*]::
+  Manage scripts installed on the user's PATH as commands.
 
 xref:jbang:cli:jbang-export.adoc[*export*]::
   Export the result of a build or the set of the sources to a project.
@@ -122,8 +122,8 @@ xref:jbang:cli:jbang-export.adoc[*export*]::
 xref:jbang:cli:jbang-config.adoc[*config*]::
   Read and write configuration options.
 
-xref:jbang:cli:jbang-info.adoc[*info*]::
-  Provides info about the script for tools (and humans who are tools).
+xref:jbang:cli:jbang-deps.adoc[*deps*]::
+  Manage dependencies in jbang files.
 
 // end::picocli-generated-man-section-commands[]
 

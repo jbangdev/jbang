@@ -36,7 +36,7 @@ Install a script as a command.
 *-h*, *--help*=_<help>_::
   Display help (use --help=all for all options)
 
-*-R*, *--runtime-option*=_<runtime-option>_::
+*-R*, *--runtime-option*, *--java-options*=_<runtime-option>_::
   Options to pass to the Java runtime
 
 *--jfr*=_<jfr>_::
@@ -45,16 +45,16 @@ Install a script as a command.
 *-d*, *--debug*=_<debug>_::
   Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})
 
-*--enableassertions*::
+*--enableassertions*, *--ea*::
   Enable assertions
 
-*--enablesystemassertions*::
+*--enablesystemassertions*, *--esa*::
   Enable system assertions
 
 *--javaagent*=_<javaagent>_::
   
 
-*--cds*::
+*--[no-]cds*::
   If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
 
 *-i*, *--interactive*::
@@ -99,7 +99,7 @@ Install a script as a command.
 *--manifest*=_<manifest>_::
   
 
-*--integrations*::
+*--[no-]integrations*::
   Enable or disable integration execution (default: true)
 
 *-D*, *--properties*=_<properties>_::
@@ -111,10 +111,10 @@ Install a script as a command.
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *-n*, *--native*::

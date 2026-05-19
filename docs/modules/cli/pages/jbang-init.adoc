@@ -40,16 +40,16 @@ Initialize a script.
   JDK version to use for running the script.
 
 *--ai-provider*=_<ai-provider>_::
-  AI provider to use
+  Provider to use (openai, openrouter, etc.) when using init with a prompt
 
 *--ai-api-key*=_<ai-api-key>_::
-  AI API key
+  API Key/token to use for the AI Provider
 
 *--ai-endpoint*=_<ai-endpoint>_::
-  AI endpoint URL
+  OpenAI compatible Endpoint to use for the AI Provider when using init with a prompt
 
 *--ai-model*=_<ai-model>_::
-  AI model to use
+  Model string to use for init prompting
 
 *-t*, *--template*=_<template>_::
   Init script with a java class useful for scripting

@@ -36,7 +36,7 @@ Open the documentation file in the default browser.
 *-h*, *--help*=_<help>_::
   Display help (use --help=all for all options)
 
-*--open*::
+*--[no-]open*::
   Open the (first) documentation file/link in the default browser
 
 *-s*, *--sources*=_<sources>_::
@@ -63,10 +63,10 @@ Open the documentation file in the default browser.
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *--build-dir*=_<build-dir>_::

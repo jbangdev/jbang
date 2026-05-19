@@ -39,7 +39,7 @@ Lists installed JDKs.
 *-a*, *--available*::
   Shows versions available for installation
 
-*-d*, *--show-details*::
+*-d*, *--show-details*, *--details*::
   Shows detailed information for each JDK (only when format=text)
 
 *--format*=_<format>_::

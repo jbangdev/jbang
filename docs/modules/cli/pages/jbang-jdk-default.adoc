@@ -39,7 +39,7 @@ Sets the default JDK to be used by JBang.
 *-v*, *--for-version*::
   Sets the default for the specified major version
 
-*-d*, *--show-details*::
+*-d*, *--show-details*, *--details*::
   Shows detailed information for each JDK (only when format=text)
 
 *--format*=_<format>_::

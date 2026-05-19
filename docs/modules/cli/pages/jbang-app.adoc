@@ -68,17 +68,17 @@ Manage scripts installed on the user's PATH as commands.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-app-uninstall.adoc[*uninstall*]::
-  Removes a previously installed command.
-
 xref:jbang:cli:jbang-app-install.adoc[*install*]::
   Install a script as a command.
 
-xref:jbang:cli:jbang-app-setup.adoc[*setup*]::
-  Make jbang commands available for the user.
-
 xref:jbang:cli:jbang-app-list.adoc[*list*]::
   Lists installed commands.
+
+xref:jbang:cli:jbang-app-uninstall.adoc[*uninstall*]::
+  Removes a previously installed command.
+
+xref:jbang:cli:jbang-app-setup.adoc[*setup*]::
+  Make jbang commands available for the user.
 
 // end::picocli-generated-man-section-commands[]
 

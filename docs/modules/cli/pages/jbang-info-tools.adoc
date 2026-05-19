@@ -63,10 +63,10 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *--build-dir*=_<build-dir>_::

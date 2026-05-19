@@ -68,26 +68,26 @@ Manage Java Development Kits installed by jbang.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-jdk-default.adoc[*default*]::
-  Sets the default JDK to be used by JBang.
-
-xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*]::
-  Prints out the environment variables needed to use the given JDK.
-
-xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*]::
-  Uninstalls an existing JDK.
-
 xref:jbang:cli:jbang-jdk-install.adoc[*install*]::
   Installs a JDK.
 
 xref:jbang:cli:jbang-jdk-list.adoc[*list*]::
   Lists installed JDKs.
 
-xref:jbang:cli:jbang-jdk-exec.adoc[*exec*]::
-  Executes the given command using the default (or specified) JDK.
+xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*]::
+  Uninstalls an existing JDK.
 
 xref:jbang:cli:jbang-jdk-home.adoc[*home*]::
   Prints the folder where the given JDK is installed.
+
+xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*]::
+  Prints out the environment variables needed to use the given JDK.
+
+xref:jbang:cli:jbang-jdk-exec.adoc[*exec*]::
+  Executes the given command using the default (or specified) JDK.
+
+xref:jbang:cli:jbang-jdk-default.adoc[*default*]::
+  Sets the default JDK to be used by JBang.
 
 // end::picocli-generated-man-section-commands[]
 

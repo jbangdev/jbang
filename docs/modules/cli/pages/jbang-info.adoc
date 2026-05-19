@@ -68,8 +68,8 @@ Provides info about the script for tools (and humans who are tools).
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-info-docs.adoc[*docs*]::
-  Open the documentation file in the default browser.
+xref:jbang:cli:jbang-info-tools.adoc[*tools*]::
+  Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.
 
 xref:jbang:cli:jbang-info-classpath.adoc[*classpath*]::
   Prints class-path used for this application using operating system specific path separation.
@@ -77,8 +77,8 @@ xref:jbang:cli:jbang-info-classpath.adoc[*classpath*]::
 xref:jbang:cli:jbang-info-jar.adoc[*jar*]::
   Prints the path to this application's JAR file.
 
-xref:jbang:cli:jbang-info-tools.adoc[*tools*]::
-  Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.
+xref:jbang:cli:jbang-info-docs.adoc[*docs*]::
+  Open the documentation file in the default browser.
 
 // end::picocli-generated-man-section-commands[]
 

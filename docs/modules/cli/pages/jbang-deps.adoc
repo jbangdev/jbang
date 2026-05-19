@@ -68,11 +68,11 @@ Manage dependencies in jbang files.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang:cli:jbang-deps-add.adoc[*add*]::
-  Add dependencies to a jbang file.
-
 xref:jbang:cli:jbang-deps-search.adoc[*search*]::
   Search for artifacts in local and central Maven repositories.
+
+xref:jbang:cli:jbang-deps-add.adoc[*add*]::
+  Add dependencies to a jbang file.
 
 // end::picocli-generated-man-section-commands[]
 

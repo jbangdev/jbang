@@ -36,7 +36,7 @@ Make jbang commands available for the user.
 *-h*, *--help*=_<help>_::
   Display help (use --help=all for all options)
 
-*--java*=_<java>_::
+*--[no-]java*=_<java>_::
   Add JBang's Java to the user's environment as well
 
 *--force*::

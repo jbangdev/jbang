@@ -72,7 +72,7 @@ Exports an executable jar with all necessary dependencies included inside
 *--manifest*=_<manifest>_::
   
 
-*--integrations*::
+*--[no-]integrations*::
   Enable or disable integration execution (default: true)
 
 *-D*, *--properties*=_<properties>_::
@@ -84,10 +84,10 @@ Exports an executable jar with all necessary dependencies included inside
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *-n*, *--native*::

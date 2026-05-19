@@ -66,7 +66,7 @@ Add alias for script reference.
 *--manifest*=_<manifest>_::
   
 
-*--integrations*::
+*--[no-]integrations*::
   Enable or disable integration execution (default: true)
 
 *-D*, *--properties*=_<properties>_::
@@ -78,10 +78,10 @@ Add alias for script reference.
 *--repos*=_<repos>_::
   Add additional repositories.
 
-*--cp*=_<cp>_::
+*--cp*, *--class-path*=_<cp>_::
   Add class path entries.
 
-*--ignore-transitive-repositories*::
+*--ignore-transitive-repositories*, *--itr*::
   Ignore remote repositories found in transitive dependencies
 
 *-n*, *--native*::
@@ -90,7 +90,7 @@ Add alias for script reference.
 *-N*, *--native-option*=_<native-option>_::
   Options to pass to the native image tool
 
-*-R*, *--runtime-option*=_<runtime-option>_::
+*-R*, *--runtime-option*, *--java-options*=_<runtime-option>_::
   Options to pass to the Java runtime
 
 *--jfr*=_<jfr>_::
@@ -99,16 +99,16 @@ Add alias for script reference.
 *-d*, *--debug*=_<debug>_::
   Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})
 
-*--enableassertions*::
+*--enableassertions*, *--ea*::
   Enable assertions
 
-*--enablesystemassertions*::
+*--enablesystemassertions*, *--esa*::
   Enable system assertions
 
 *--javaagent*=_<javaagent>_::
   
 
-*--cds*::
+*--[no-]cds*::
   If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
 
 *-i*, *--interactive*::

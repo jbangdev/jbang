@@ -277,7 +277,19 @@ public class genadoc {
                 names.append(format(", *--%s*", opt.name()));
             }
         } else if (opt.name() != null && !opt.name().isEmpty()) {
-            names.append(format("*--%s*", opt.name()));
+            if (opt.isNegatable()) {
+                names.append(format("*--[no-]%s*", opt.name()));
+            } else {
+                names.append(format("*--%s*", opt.name()));
+            }
+        }
+
+        // Show aliases (e.g. --ea for --enableassertions)
+        List<String> aliases = opt.getAliases();
+        if (aliases != null) {
+            for (String alias : aliases) {
+                names.append(format(", *--%s*", alias));
+            }
         }
 
         if (opt.hasValue()) {
