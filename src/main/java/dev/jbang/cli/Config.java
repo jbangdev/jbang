@@ -209,66 +209,47 @@ public class Config extends BaseCommand {
 			return EXIT_OK;
 		}
 
+		@SuppressWarnings("unchecked")
 		private void gatherKeys(Class<?> cmdClass, Set<AvailableOption> keys) {
-			GroupCommandDefinition gcd = cmdClass.getAnnotation(GroupCommandDefinition.class);
-			if (gcd != null) {
-				gatherOptionsFromClass(cmdClass, gcd.name(), keys);
-				for (Class<?> child : gcd.groupCommands()) {
-					gatherKeys(child, keys);
+			try {
+				org.aesh.command.registry.CommandRegistry<org.aesh.command.invocation.CommandInvocation> registry = org.aesh.command.impl.registry.AeshCommandRegistryBuilder
+					.<org.aesh.command.invocation.CommandInvocation> builder()
+					.command((Class<org.aesh.command.Command<org.aesh.command.invocation.CommandInvocation>>) cmdClass)
+					.create();
+				for (String name : registry.getAllCommandNames()) {
+					org.aesh.command.container.CommandContainer<org.aesh.command.invocation.CommandInvocation> container = registry
+						.getCommand(name, "");
+					gatherFromParser(container.getParser(), Collections.emptyList(), keys);
 				}
-			}
-			CommandDefinition cd = cmdClass.getAnnotation(CommandDefinition.class);
-			if (cd != null) {
-				gatherOptionsFromClass(cmdClass, cd.name(), keys);
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to gather config keys", e);
 			}
 		}
 
-		private void gatherOptionsFromClass(Class<?> clazz, String commandName, Set<AvailableOption> keys) {
-			String path = JBangDefaultValueProvider.getCommandPathForClass(clazz);
-			if (path == null) {
-				path = commandName;
+		private void gatherFromParser(
+				org.aesh.command.impl.parser.CommandLineParser<?> parser,
+				List<String> parentPath, Set<AvailableOption> keys) {
+			org.aesh.command.impl.internal.ProcessedCommand<?, ?> cmd = parser.getProcessedCommand();
+			String cmdName = cmd.name();
+			List<String> currentPath = new ArrayList<>(parentPath);
+			if (!"jbang".equals(cmdName)) {
+				currentPath.add(cmdName);
 			}
-			for (Class<?> c = clazz; c != null && c != Object.class; c = c.getSuperclass()) {
-				for (java.lang.reflect.Field field : c.getDeclaredFields()) {
-					addOptionKey(field, path, keys);
-					if (field.getAnnotation(org.aesh.command.option.Mixin.class) != null) {
-						gatherOptionsFromMixin(field.getType(), path, keys);
+			String path = currentPath.isEmpty() ? cmdName : String.join(".", currentPath);
+			for (org.aesh.command.impl.internal.ProcessedOption opt : cmd.getOptions()) {
+				if (opt.name() != null && !opt.name().isEmpty()) {
+					String key = path + "." + opt.name().replace("-", "");
+					keys.add(new AvailableOption(key, opt.description()));
+				}
+			}
+			if (parser.isGroupCommand()) {
+				parser.getAllNames();
+				org.aesh.command.impl.parser.AeshCommandLineParser<?> aeshParser = (org.aesh.command.impl.parser.AeshCommandLineParser<?>) parser;
+				if (aeshParser.getChildParsers() != null) {
+					for (org.aesh.command.impl.parser.CommandLineParser<?> child : aeshParser.getChildParsers()) {
+						gatherFromParser(child, currentPath, keys);
 					}
 				}
-			}
-		}
-
-		private void gatherOptionsFromMixin(Class<?> mixinClass, String path, Set<AvailableOption> keys) {
-			for (Class<?> c = mixinClass; c != null && c != Object.class; c = c.getSuperclass()) {
-				for (java.lang.reflect.Field field : c.getDeclaredFields()) {
-					addOptionKey(field, path, keys);
-					if (field.getAnnotation(org.aesh.command.option.Mixin.class) != null) {
-						gatherOptionsFromMixin(field.getType(), path, keys);
-					}
-				}
-			}
-		}
-
-		private void addOptionKey(java.lang.reflect.Field field, String path, Set<AvailableOption> keys) {
-			Option opt = field.getAnnotation(Option.class);
-			if (opt != null) {
-				String optName = opt.name().isEmpty() ? field.getName() : opt.name();
-				String key = path + "." + optName.replace("-", "");
-				keys.add(new AvailableOption(key, opt.description()));
-			}
-			org.aesh.command.option.OptionList ol = field
-				.getAnnotation(org.aesh.command.option.OptionList.class);
-			if (ol != null) {
-				String optName = ol.name().isEmpty() ? field.getName() : ol.name();
-				String key = path + "." + optName.replace("-", "");
-				keys.add(new AvailableOption(key, ol.description()));
-			}
-			org.aesh.command.option.OptionGroup og = field
-				.getAnnotation(org.aesh.command.option.OptionGroup.class);
-			if (og != null) {
-				String optName = og.name().isEmpty() ? field.getName() : og.name();
-				String key = path + "." + optName.replace("-", "");
-				keys.add(new AvailableOption(key, og.description()));
 			}
 		}
 

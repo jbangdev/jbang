@@ -150,22 +150,8 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	}
 
 	protected Integer missingSubcommand() {
-		org.aesh.command.GroupCommandDefinition gcd = getClass()
-			.getAnnotation(org.aesh.command.GroupCommandDefinition.class);
-		if (gcd != null) {
-			System.err.println("Missing required subcommand for '" + gcd.name() + "'");
-			System.err.println("Available subcommands:");
-			for (Class<?> child : gcd.groupCommands()) {
-				org.aesh.command.CommandDefinition cd = child
-					.getAnnotation(org.aesh.command.CommandDefinition.class);
-				org.aesh.command.GroupCommandDefinition gc = child
-					.getAnnotation(org.aesh.command.GroupCommandDefinition.class);
-				String name = cd != null ? cd.name() : (gc != null ? gc.name() : null);
-				String desc = cd != null ? cd.description() : (gc != null ? gc.description() : "");
-				if (name != null) {
-					System.err.printf("  %-12s %s%n", name, desc);
-				}
-			}
+		if (commandInvocation != null) {
+			System.err.println(commandInvocation.getHelpInfo());
 		}
 		return EXIT_INVALID_INPUT;
 	}

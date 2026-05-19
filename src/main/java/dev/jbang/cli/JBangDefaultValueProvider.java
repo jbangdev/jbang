@@ -2,10 +2,14 @@ package dev.jbang.cli;
 
 import java.util.*;
 
-import org.aesh.command.CommandDefinition;
+import org.aesh.command.Command;
 import org.aesh.command.DefaultValueProvider;
-import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.impl.internal.ProcessedOption;
+import org.aesh.command.impl.parser.AeshCommandLineParser;
+import org.aesh.command.impl.parser.CommandLineParser;
+import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
+import org.aesh.command.invocation.CommandInvocation;
+import org.aesh.command.registry.CommandRegistry;
 
 import dev.jbang.Configuration;
 
@@ -71,23 +75,41 @@ public class JBangDefaultValueProvider implements DefaultValueProvider {
 		return classToPath;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static void buildPaths(Class<?> cmdClass, List<String> parentNames, Map<Class<?>, String> paths) {
-		GroupCommandDefinition gcd = cmdClass.getAnnotation(GroupCommandDefinition.class);
-		if (gcd != null) {
-			List<String> currentPath = new ArrayList<>(parentNames);
-			if (!"jbang".equals(gcd.name())) {
-				currentPath.add(gcd.name());
+		try {
+			CommandRegistry<CommandInvocation> registry = AeshCommandRegistryBuilder
+				.<CommandInvocation> builder()
+				.command((Class<Command<CommandInvocation>>) cmdClass)
+				.create();
+			for (String name : registry.getAllCommandNames()) {
+				CommandLineParser<?> parser = registry.getCommand(name, "").getParser();
+				buildPathsFromParser(parser, parentNames, paths);
 			}
-			paths.put(cmdClass, currentPath.isEmpty() ? gcd.name() : String.join(".", currentPath));
-			for (Class<?> child : gcd.groupCommands()) {
-				buildPaths(child, currentPath, paths);
-			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to build command paths", e);
 		}
-		CommandDefinition cd = cmdClass.getAnnotation(CommandDefinition.class);
-		if (cd != null) {
-			List<String> currentPath = new ArrayList<>(parentNames);
-			currentPath.add(cd.name());
-			paths.put(cmdClass, String.join(".", currentPath));
+	}
+
+	private static void buildPathsFromParser(CommandLineParser<?> parser, List<String> parentNames,
+			Map<Class<?>, String> paths) {
+		String cmdName = parser.getProcessedCommand().name();
+		List<String> currentPath = new ArrayList<>(parentNames);
+		if (!"jbang".equals(cmdName)) {
+			currentPath.add(cmdName);
+		}
+		Object cmd = parser.getProcessedCommand().getCommand();
+		if (cmd != null) {
+			paths.put(cmd.getClass(), currentPath.isEmpty() ? cmdName : String.join(".", currentPath));
+		}
+		if (parser.isGroupCommand()) {
+			parser.getAllNames();
+			AeshCommandLineParser<?> aeshParser = (AeshCommandLineParser<?>) parser;
+			if (aeshParser.getChildParsers() != null) {
+				for (CommandLineParser<?> child : aeshParser.getChildParsers()) {
+					buildPathsFromParser(child, currentPath, paths);
+				}
+			}
 		}
 	}
 
