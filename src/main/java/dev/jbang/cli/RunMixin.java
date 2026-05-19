@@ -100,10 +100,14 @@ public class RunMixin {
 			opts.add(flightRecorderString.isEmpty() ? "--jfr" : "--jfr=" + flightRecorderString);
 		}
 		if (debugString != null) {
+			StringBuilder sb = new StringBuilder();
 			for (Map.Entry<String, String> e : debugString.entrySet()) {
-				opts.add("-d");
-				opts.add(e.getKey() + "=" + e.getValue());
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				sb.append(e.getKey()).append("=").append(e.getValue());
 			}
+			opts.add("--debug=" + sb);
 		}
 		if (Boolean.TRUE.equals(enableAssertions)) {
 			opts.add("--enableassertions");

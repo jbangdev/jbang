@@ -14,6 +14,7 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Arguments;
 import org.aesh.command.option.Mixin;
 import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionList;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -76,7 +77,7 @@ public class Alias extends BaseCommand {
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 		List<String> userParams;
 
-		@Option(name = "docs", description = "Documentation reference for the alias")
+		@OptionList(name = "docs", description = "Documentation reference for the alias")
 		List<String> docs;
 
 		@Override

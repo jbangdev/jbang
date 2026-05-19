@@ -156,14 +156,7 @@ public class Info extends BaseCommand {
 			}
 
 			private void init(Project prj) {
-				if (prj.getMainSource() == null) {
-					if (!prj.getRepositories().isEmpty()) {
-						repositories = prj.getRepositories()
-							.stream()
-							.map(Repo::new)
-							.collect(Collectors.toList());
-					}
-				} else {
+				if (prj.getMainSource() != null) {
 					init(prj.getMainSourceSet());
 				}
 				if (!prj.getRepositories().isEmpty()) {
@@ -343,12 +336,14 @@ public class Info extends BaseCommand {
 		public Integer doCall() throws IOException {
 
 			ScriptInfo info = getInfo(false);
-			List<String> cp = new ArrayList<>(info.resolvedDependencies.size() + 1);
+			List<String> deps = info.resolvedDependencies != null ? info.resolvedDependencies
+					: Collections.emptyList();
+			List<String> cp = new ArrayList<>(deps.size() + 1);
 			if (!dependenciesOnly && info.applicationJar != null
-					&& !info.resolvedDependencies.contains(info.applicationJar)) {
+					&& !deps.contains(info.applicationJar)) {
 				cp.add(info.applicationJar);
 			}
-			cp.addAll(info.resolvedDependencies);
+			cp.addAll(deps);
 			out.println(String.join(CP_SEPARATOR, cp));
 
 			return EXIT_OK;

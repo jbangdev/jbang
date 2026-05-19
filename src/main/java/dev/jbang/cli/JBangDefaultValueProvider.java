@@ -79,7 +79,7 @@ public class JBangDefaultValueProvider implements DefaultValueProvider {
 	private static void buildPaths(Class<?> cmdClass, List<String> parentNames, Map<Class<?>, String> paths) {
 		try {
 			CommandRegistry<CommandInvocation> registry = AeshCommandRegistryBuilder
-				.<CommandInvocation> builder()
+				.<CommandInvocation>builder()
 				.command((Class<Command<CommandInvocation>>) cmdClass)
 				.create();
 			for (String name : registry.getAllCommandNames()) {

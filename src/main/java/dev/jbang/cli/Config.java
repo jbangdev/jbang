@@ -212,8 +212,7 @@ public class Config extends BaseCommand {
 		@SuppressWarnings("unchecked")
 		private void gatherKeys(Class<?> cmdClass, Set<AvailableOption> keys) {
 			try {
-				org.aesh.command.registry.CommandRegistry<org.aesh.command.invocation.CommandInvocation> registry = org.aesh.command.impl.registry.AeshCommandRegistryBuilder
-					.<org.aesh.command.invocation.CommandInvocation> builder()
+				org.aesh.command.registry.CommandRegistry<org.aesh.command.invocation.CommandInvocation> registry = org.aesh.command.impl.registry.AeshCommandRegistryBuilder.<org.aesh.command.invocation.CommandInvocation>builder()
 					.command((Class<org.aesh.command.Command<org.aesh.command.invocation.CommandInvocation>>) cmdClass)
 					.create();
 				for (String name : registry.getAllCommandNames()) {
