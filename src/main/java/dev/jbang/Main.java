@@ -10,9 +10,7 @@ import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import org.aesh.AeshRuntimeRunner;
-import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandResult;
-import org.aesh.command.GroupCommandDefinition;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
@@ -73,20 +71,24 @@ public class Main {
 	static Set<String> getSubcommandNames() {
 		if (subcommandNames == null) {
 			Set<String> names = new LinkedHashSet<>();
-			GroupCommandDefinition gcd = JBang.class.getAnnotation(GroupCommandDefinition.class);
-			if (gcd != null) {
-				for (Class<?> cmd : gcd.groupCommands()) {
-					CommandDefinition cd = cmd.getAnnotation(CommandDefinition.class);
-					if (cd != null) {
-						names.add(cd.name());
-					} else {
-						GroupCommandDefinition gc = cmd.getAnnotation(GroupCommandDefinition.class);
-						if (gc != null) {
-							names.add(gc.name());
-						}
-					}
-				}
-			}
+			names.add("run");
+			names.add("build");
+			names.add("edit");
+			names.add("init");
+			names.add("alias");
+			names.add("template");
+			names.add("catalog");
+			names.add("trust");
+			names.add("cache");
+			names.add("completion");
+			names.add("jdk");
+			names.add("version");
+			names.add("wrapper");
+			names.add("info");
+			names.add("app");
+			names.add("export");
+			names.add("config");
+			names.add("deps");
 			subcommandNames = names;
 		}
 		return subcommandNames;
