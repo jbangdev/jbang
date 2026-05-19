@@ -12,23 +12,23 @@ import org.aesh.parser.ParsedLineIterator;
  */
 public class StrictOptionParser implements OptionParser {
 
+	/**
+	 * Returns the full prefix for the given option, e.g. "--name" or "-n".
+	 */
+	static String fullPrefix(ProcessedOption option) {
+		if (option.isLongNameUsed()) {
+			return "--" + option.name();
+		}
+		return "-" + option.shortName();
+	}
+
 	@Override
 	public void parse(ParsedLineIterator iter, ProcessedOption option) throws OptionParserException {
 		String word = iter.peekWord();
+		String fp = fullPrefix(option);
 
-		String prefix, optName;
-		if (option.isLongNameUsed()) {
-			prefix = "--";
-			optName = option.name();
-		} else {
-			prefix = "-";
-			optName = option.shortName();
-		}
-
-		String fullPrefix = prefix + optName;
-
-		if (word.startsWith(fullPrefix + "=")) {
-			String value = word.substring(fullPrefix.length() + 1);
+		if (word.startsWith(fp + "=")) {
+			String value = word.substring(fp.length() + 1);
 			option.addValue(value);
 		} else {
 			option.addValue("");

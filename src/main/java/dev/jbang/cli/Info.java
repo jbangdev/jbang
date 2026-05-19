@@ -47,7 +47,7 @@ import dev.jbang.util.Util;
 
 @GroupCommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
-		Info.Docs.class }, generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+		Info.Docs.class }, generateHelp = true, helpGroup = "Essentials", defaultValueProvider = JBangDefaultValueProvider.class)
 public class Info extends BaseCommand {
 
 	@Override
@@ -66,7 +66,7 @@ public class Info extends BaseCommand {
 		@Option(name = "build-dir", description = "Use given directory for build results")
 		String buildDir;
 
-		@Option(name = "module", description = "Treat resource as a module. Optionally with the given module name")
+		@Option(name = "module", parser = StrictOptionParser.class, description = "Treat resource as a module. Optionally with the given module name")
 		String module;
 
 		@Override

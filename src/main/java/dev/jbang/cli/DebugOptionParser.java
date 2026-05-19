@@ -20,20 +20,10 @@ public class DebugOptionParser implements OptionParser {
 	@Override
 	public void parse(ParsedLineIterator iter, ProcessedOption option) throws OptionParserException {
 		String word = iter.peekWord();
+		String fp = StrictOptionParser.fullPrefix(option);
 
-		String prefix, optName;
-		if (option.isLongNameUsed()) {
-			prefix = "--";
-			optName = option.name();
-		} else {
-			prefix = "-";
-			optName = option.shortName();
-		}
-
-		String fullPrefix = prefix + optName;
-
-		if (word.startsWith(fullPrefix + "=")) {
-			String value = word.substring(fullPrefix.length() + 1);
+		if (word.startsWith(fp + "=")) {
+			String value = word.substring(fp.length() + 1);
 			addOptionValue(option, value);
 			iter.pollParsedWord();
 			return;

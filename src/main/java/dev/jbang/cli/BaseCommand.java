@@ -146,6 +146,9 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		} catch (IOException e) {
 			Util.errorMsg(null, e);
 			return CommandResult.valueOf(EXIT_GENERIC_ERROR);
+		} catch (Exception e) {
+			Util.errorMsg(null, e);
+			return CommandResult.valueOf(EXIT_INTERNAL_ERROR);
 		}
 	}
 
