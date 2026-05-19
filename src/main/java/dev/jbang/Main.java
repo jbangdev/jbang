@@ -68,7 +68,7 @@ public class Main {
 
 	private static Set<String> subcommandNames;
 
-	static Set<String> getSubcommandNames() {
+	public static Set<String> getSubcommandNames() {
 		if (subcommandNames == null) {
 			Set<String> names = new LinkedHashSet<>();
 			names.add("run");

@@ -6,11 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.aesh.command.CommandDefinition;
+import org.aesh.command.GroupCommandDefinition;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
+import dev.jbang.Main;
 import dev.jbang.util.Util;
 
 class TestAeshParsing extends BaseTest {
@@ -216,5 +221,28 @@ class TestAeshParsing extends BaseTest {
 		assertThat(output, containsString("--quiet"));
 		assertThat(output, containsString("--offline"));
 		assertThat(output, containsString("--fresh"));
+	}
+
+	// --- Subcommand list consistency ---
+
+	@Test
+	void testSubcommandNamesMatchAnnotation() {
+		// Extract command names from @GroupCommandDefinition on JBang
+		GroupCommandDefinition gcd = JBang.class.getAnnotation(GroupCommandDefinition.class);
+		assertThat("JBang must have @GroupCommandDefinition", gcd, is(notNullValue()));
+
+		Set<String> annotationNames = new HashSet<>();
+		for (Class<?> cls : gcd.groupCommands()) {
+			CommandDefinition cd = cls.getAnnotation(CommandDefinition.class);
+			GroupCommandDefinition gd = cls.getAnnotation(GroupCommandDefinition.class);
+			String name = cd != null ? cd.name() : gd != null ? gd.name() : null;
+			assertThat(
+					"Command class " + cls.getSimpleName() + " must have @CommandDefinition or @GroupCommandDefinition",
+					name, is(notNullValue()));
+			annotationNames.add(name);
+		}
+
+		assertThat("Main.getSubcommandNames() must match JBang @GroupCommandDefinition.groupCommands",
+				Main.getSubcommandNames(), equalTo(annotationNames));
 	}
 }
