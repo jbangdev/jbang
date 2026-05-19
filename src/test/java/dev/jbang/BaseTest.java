@@ -134,10 +134,14 @@ public abstract class BaseTest {
 		return captureOutput(() -> {
 			try {
 				BaseCommand cmd = JBang.parseCommand(args);
-				cmd.realOut = System.out;
+				if (cmd instanceof dev.jbang.cli.Run) {
+					((dev.jbang.cli.Run) cmd).realOut = System.out;
+				}
 				return cmd.doCall();
 			} catch (RuntimeException e) {
 				if (e.getCause() instanceof org.aesh.command.parser.CommandLineParserException) {
+					Util.verboseMsg("checkedRun: parseCommand failed with "
+							+ e.getCause().getMessage() + ", falling back to JBang.execute()");
 					return JBang.execute(args);
 				}
 				throw e;

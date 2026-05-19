@@ -1,6 +1,9 @@
 package dev.jbang.cli;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +23,13 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials", defaultValueProvider = JBangDefaultValueProvider.class)
 public class Run extends BaseBuildCommand {
+
+	/**
+	 * A PrintStream that always writes to the real stdout, bypassing any
+	 * System.setOut() redirection. Used to output the command line for the parent
+	 * process to execute.
+	 */
+	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	@Mixin
 	public RunMixin runMixin;

@@ -160,7 +160,7 @@ public class Main {
 					String cmdLine = String.join(" ", result);
 					Util.verboseMsg("run plugin: " + cmdLine);
 					System.out.println(cmdLine);
-					System.exit(BaseCommand.EXIT_EXECUTE);
+					throw new ExitException(BaseCommand.EXIT_EXECUTE, cmdLine);
 				}
 				// In all other cases assume it's an implicit "run"
 				List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);

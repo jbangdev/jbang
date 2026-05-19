@@ -1,9 +1,6 @@
 package dev.jbang.cli;
 
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,8 +62,6 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 
 	@Option(shortName = 'x', name = "stacktrace", hasValue = false, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
 	boolean printExceptions;
-
-	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	protected CommandInvocation commandInvocation;
 
