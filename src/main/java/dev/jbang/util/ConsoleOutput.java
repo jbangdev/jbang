@@ -1,5 +1,7 @@
 package dev.jbang.util;
 
+import org.aesh.terminal.utils.ANSI;
+
 public class ConsoleOutput {
 
 	private static final boolean ANSI_ENABLED = isAnsiEnabled();
@@ -15,30 +17,31 @@ public class ConsoleOutput {
 		return true;
 	}
 
-	private static String ansi(String code, String text) {
+	private static String wrap(String prefix, String text) {
 		if (ANSI_ENABLED) {
-			return "\033[" + code + "m" + text + "\033[0m";
+			return prefix + text + ANSI.RESET;
 		}
 		return text;
 	}
 
 	public static String yellow(String text) {
-		return ansi("33", text);
+		return wrap(ANSI.YELLOW_TEXT, text);
 	}
 
 	public static String cyan(String text) {
-		return ansi("36", text);
+		return wrap(ANSI.CYAN_TEXT, text);
 	}
 
 	public static String magenta(String text) {
-		return ansi("35", text);
+		return wrap(ANSI.MAGENTA_TEXT, text);
 	}
 
+	// ANSI.FAINT not available until terminal-api 3.8
 	public static String faint(String text) {
-		return ansi("2", text);
+		return wrap(ANSI.START + "2m", text);
 	}
 
 	public static String bold(String text) {
-		return ansi("1", text);
+		return wrap(ANSI.BOLD, text);
 	}
 }
