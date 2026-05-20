@@ -7,7 +7,7 @@ import org.aesh.command.option.Option;
 import org.aesh.util.completer.ShellCompletionGenerator;
 import org.aesh.util.completer.ShellCompletionGenerator.ShellType;
 
-@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.", generateHelp = true)
 public class Completion extends BaseCommand {
 
 	@Override

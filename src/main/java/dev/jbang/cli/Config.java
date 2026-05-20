@@ -24,7 +24,7 @@ import dev.jbang.util.Util;
 @GroupCommandDefinition(name = "config", description = "Read and write configuration options.", groupCommands = {
 		Config.ConfigGet.class, Config.ConfigSet.class,
 		Config.ConfigUnset.class,
-		Config.ConfigList.class }, generateHelp = true, helpGroup = "Configuration", defaultValueProvider = JBangDefaultValueProvider.class)
+		Config.ConfigList.class }, generateHelp = true, helpGroup = "Configuration")
 public class Config extends BaseCommand {
 
 	// IMPORTANT: These options have to be maintained manually! Make sure to add
@@ -84,7 +84,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "get", description = "Get a configuration value", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "get", description = "Get a configuration value", generateHelp = true)
 	public static class ConfigGet extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to get", required = true)
 		String key;
@@ -103,7 +103,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "set", description = "Set a configuration value", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "set", description = "Set a configuration value", generateHelp = true)
 	public static class ConfigSet extends BaseConfigCommand {
 		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true)
 		String keyOrKeyValue;
@@ -139,7 +139,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "unset", description = "Remove a configuration value", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "unset", description = "Remove a configuration value", generateHelp = true)
 	public static class ConfigUnset extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to remove", required = true)
 		String key;
@@ -167,7 +167,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "List active configuration values", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "list", description = "List active configuration values", generateHelp = true)
 	public static class ConfigList extends BaseConfigCommand {
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the configuration")
 		boolean showOrigin;

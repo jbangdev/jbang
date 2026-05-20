@@ -30,7 +30,7 @@ import dev.jbang.util.Util;
 
 @GroupCommandDefinition(name = "alias", description = "Manage aliases for scripts.", groupCommands = {
 		Alias.AliasAdd.class, Alias.AliasList.class,
-		Alias.AliasRemove.class }, generateHelp = true, helpGroup = "Configuration", defaultValueProvider = JBangDefaultValueProvider.class)
+		Alias.AliasRemove.class }, generateHelp = true, helpGroup = "Configuration")
 public class Alias extends BaseCommand {
 
 	@Override
@@ -38,7 +38,7 @@ public class Alias extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add alias for script reference.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "add", description = "Add alias for script reference.", generateHelp = true)
 	public static class AliasAdd extends BaseCommand {
 
 		@Mixin
@@ -163,7 +163,7 @@ public class Alias extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.", generateHelp = true)
 	public static class AliasList extends BaseCommand {
 
 		@Mixin
@@ -327,7 +327,7 @@ public class Alias extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove existing alias.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "remove", description = "Remove existing alias.", generateHelp = true)
 	public static class AliasRemove extends BaseCommand {
 
 		@Mixin

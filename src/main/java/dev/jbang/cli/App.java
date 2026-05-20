@@ -43,7 +43,7 @@ import dev.jbang.util.Util;
 
 @GroupCommandDefinition(name = "app", description = "Manage scripts installed on the user's PATH as commands.", groupCommands = {
 		App.AppInstall.class, App.AppList.class, App.AppUninstall.class,
-		App.AppSetup.class }, generateHelp = true, helpGroup = "Configuration", defaultValueProvider = JBangDefaultValueProvider.class)
+		App.AppSetup.class }, generateHelp = true, helpGroup = "Configuration")
 public class App extends BaseCommand {
 
 	@Override
@@ -61,7 +61,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "install", description = "Install a script as a command.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "install", description = "Install a script as a command.", generateHelp = true)
 	public static class AppInstall extends BaseBuildCommand {
 		private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
@@ -286,7 +286,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists installed commands.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "list", description = "Lists installed commands.", generateHelp = true)
 	public static class AppList extends BaseCommand {
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
@@ -334,7 +334,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "uninstall", description = "Removes a previously installed command.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "uninstall", description = "Removes a previously installed command.", generateHelp = true)
 	public static class AppUninstall extends BaseCommand {
 
 		@Argument(paramLabel = "name", index = "0", arity = "1", description = "The name of the command", required = true)
@@ -362,7 +362,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", generateHelp = true)
 	public static class AppSetup extends BaseCommand {
 
 		@Option(name = "java", negatable = true, description = "Add JBang's Java to the user's environment as well")

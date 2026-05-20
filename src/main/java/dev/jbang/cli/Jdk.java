@@ -32,7 +32,7 @@ import dev.jbang.util.Util;
 @GroupCommandDefinition(name = "jdk", description = "Manage Java Development Kits installed by jbang.", groupCommands = {
 		Jdk.JdkInstall.class, Jdk.JdkList.class, Jdk.JdkUninstall.class,
 		Jdk.JdkHome.class, Jdk.JdkJavaEnv.class, Jdk.JdkExec.class,
-		Jdk.JdkDefault.class }, generateHelp = true, helpGroup = "Caching", defaultValueProvider = JBangDefaultValueProvider.class)
+		Jdk.JdkDefault.class }, generateHelp = true, helpGroup = "Caching")
 public class Jdk extends BaseCommand {
 
 	@Override
@@ -95,7 +95,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "install", aliases = {
-			"i" }, description = "Installs a JDK.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+			"i" }, description = "Installs a JDK.", generateHelp = true)
 	public static class JdkInstall extends BaseCommand {
 
 		@Mixin
@@ -154,7 +154,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "list", aliases = {
-			"l" }, description = "Lists installed JDKs.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+			"l" }, description = "Lists installed JDKs.", generateHelp = true)
 	public static class JdkList extends BaseCommand {
 
 		@Mixin
@@ -232,7 +232,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "uninstall", aliases = {
-			"u" }, description = "Uninstalls an existing JDK.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+			"u" }, description = "Uninstalls an existing JDK.", generateHelp = true)
 	public static class JdkUninstall extends BaseCommand {
 
 		@Mixin
@@ -255,7 +255,7 @@ public class Jdk extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "home", description = "Prints the folder where the given JDK is installed.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "home", description = "Prints the folder where the given JDK is installed.", generateHelp = true)
 	public static class JdkHome extends BaseCommand {
 
 		@Mixin
@@ -278,7 +278,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "java-env", aliases = {
-			"env" }, description = "Prints out the environment variables needed to use the given JDK.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+			"env" }, description = "Prints out the environment variables needed to use the given JDK.", generateHelp = true)
 	public static class JdkJavaEnv extends BaseCommand {
 
 		@Mixin
@@ -338,7 +338,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "exec", aliases = {
-			"x" }, description = "Executes the given command using the default (or specified) JDK.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+			"x" }, description = "Executes the given command using the default (or specified) JDK.", generateHelp = true)
 	public static class JdkExec extends BaseCommand {
 
 		@Mixin
@@ -382,7 +382,7 @@ public class Jdk extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.", generateHelp = true)
 	public static class JdkDefault extends BaseCommand {
 
 		@Mixin

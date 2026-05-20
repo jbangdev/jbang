@@ -11,7 +11,7 @@ import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.option.Option;
 
 @GroupCommandDefinition(name = "cache", description = "Manage compiled scripts in the local cache.", groupCommands = {
-		Cache.CacheClear.class }, generateHelp = true, helpGroup = "Caching", defaultValueProvider = JBangDefaultValueProvider.class)
+		Cache.CacheClear.class }, generateHelp = true, helpGroup = "Caching")
 public class Cache extends BaseCommand {
 
 	@Override
@@ -19,7 +19,7 @@ public class Cache extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.", generateHelp = true)
 	public static class CacheClear extends BaseCommand {
 
 		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")

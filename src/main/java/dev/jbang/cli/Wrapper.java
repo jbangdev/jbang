@@ -18,7 +18,7 @@ import org.aesh.command.option.Option;
 import dev.jbang.util.Util;
 
 @GroupCommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {
-		Wrapper.WrapperInstall.class }, generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+		Wrapper.WrapperInstall.class }, generateHelp = true)
 public class Wrapper extends BaseCommand {
 	public static final String DIR_NAME = ".jbang";
 	public static final String JAR_NAME = "jbang.jar";
@@ -29,7 +29,7 @@ public class Wrapper extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder", generateHelp = true)
 	public static class WrapperInstall extends BaseCommand {
 
 		@Option(shortName = 'd', name = "dir", description = "The folder to install the wrapper into.")

@@ -47,7 +47,7 @@ import dev.jbang.util.Util;
 
 @GroupCommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
-		Info.Docs.class }, generateHelp = true, helpGroup = "Essentials", defaultValueProvider = JBangDefaultValueProvider.class)
+		Info.Docs.class }, generateHelp = true, helpGroup = "Essentials")
 public class Info extends BaseCommand {
 
 	@Override
@@ -66,7 +66,7 @@ public class Info extends BaseCommand {
 		@Option(name = "build-dir", description = "Use given directory for build results")
 		String buildDir;
 
-		@Option(name = "module", parser = StrictOptionParser.class, description = "Treat resource as a module. Optionally with the given module name")
+		@Option(name = "module", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name")
 		String module;
 
 		@Override
@@ -287,7 +287,7 @@ public class Info extends BaseCommand {
 
 	}
 
-	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.", generateHelp = true)
 	public static class Tools extends BaseInfoCommand {
 
 		@Option(name = "select", description = "Indicate the name of the field to select and return from the full info result")
@@ -326,7 +326,7 @@ public class Info extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.", generateHelp = true)
 	public static class ClassPath extends BaseInfoCommand {
 
 		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
@@ -350,7 +350,7 @@ public class Info extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "jar", description = "Prints the path to this application's JAR file.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "jar", description = "Prints the path to this application's JAR file.", generateHelp = true)
 	public static class Jar extends BaseInfoCommand {
 
 		@Override
@@ -361,7 +361,7 @@ public class Info extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.", generateHelp = true)
 	public static class Docs extends BaseInfoCommand {
 
 		@Option(name = "open", hasValue = false, negatable = true, description = "Open the (first) documentation file/link in the default browser")

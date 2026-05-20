@@ -42,7 +42,7 @@ import io.quarkus.qute.Template;
 		Export.ExportPortable.class, Export.ExportLocal.class, Export.ExportMavenPublish.class,
 		Export.ExportNative.class, Export.ExportFatjar.class, Export.ExportJlink.class,
 		Export.ExportGradleProject.class,
-		Export.ExportMavenProject.class }, generateHelp = true, helpGroup = "Caching", defaultValueProvider = JBangDefaultValueProvider.class)
+		Export.ExportMavenProject.class }, generateHelp = true, helpGroup = "Caching")
 public class Export extends BaseCommand {
 
 	@Override
@@ -112,7 +112,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations", generateHelp = true)
 	public static class ExportLocal extends BaseExportCommand {
 
 		@Override
@@ -147,7 +147,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable", generateHelp = true)
 	public static class ExportPortable extends BaseExportCommand {
 
 		public static final String LIB = "lib";
@@ -195,7 +195,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", generateHelp = true)
 	public static class ExportMavenPublish extends BaseExportCommand {
 
 		@Option(shortName = 'g', name = "group", description = "The group ID to use for the generated POM.")
@@ -303,7 +303,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "native", description = "Exports native executable", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "native", description = "Exports native executable", generateHelp = true)
 	public static class ExportNative extends BaseExportCommand {
 
 		@Override
@@ -344,7 +344,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside", generateHelp = true)
 	public static class ExportFatjar extends BaseExportCommand {
 
 		@Override
@@ -436,7 +436,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution", generateHelp = true)
 	public static class ExportJlink extends BaseExportCommand {
 
 		@Arguments(paramLabel = "jlinkParams", index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
@@ -665,7 +665,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "gradle", description = "Exports a Gradle project", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "gradle", description = "Exports a Gradle project", generateHelp = true)
 	public static class ExportGradleProject extends BaseExportProject {
 
 		@Override
@@ -759,7 +759,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "maven", description = "Exports a Maven project", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "maven", description = "Exports a Maven project", generateHelp = true)
 	public static class ExportMavenProject extends BaseExportProject {
 
 		@Override

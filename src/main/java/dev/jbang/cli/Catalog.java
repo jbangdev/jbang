@@ -26,7 +26,7 @@ import dev.jbang.util.Util;
 @GroupCommandDefinition(name = "catalog", description = "Manage Catalogs of aliases.", groupCommands = {
 		Catalog.CatalogAdd.class, Catalog.CatalogUpdate.class,
 		Catalog.CatalogList.class,
-		Catalog.CatalogRemove.class }, generateHelp = true, helpGroup = "Configuration", defaultValueProvider = JBangDefaultValueProvider.class)
+		Catalog.CatalogRemove.class }, generateHelp = true, helpGroup = "Configuration")
 public class Catalog extends BaseCommand {
 
 	@Override
@@ -40,7 +40,7 @@ public class Catalog extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add a catalog.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "add", description = "Add a catalog.", generateHelp = true)
 	public static class CatalogAdd extends BaseCatalogCommand {
 
 		@Option(shortName = 'd', name = "description", description = "A description for the catalog")
@@ -80,7 +80,7 @@ public class Catalog extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "update", description = "Retrieve the latest contents of the catalogs.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "update", description = "Retrieve the latest contents of the catalogs.", generateHelp = true)
 	public static class CatalogUpdate extends BaseCatalogCommand {
 
 		@Override
@@ -106,7 +106,7 @@ public class Catalog extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Show currently defined catalogs.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "list", description = "Show currently defined catalogs.", generateHelp = true)
 	public static class CatalogList extends BaseCatalogCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the catalog")
@@ -312,7 +312,7 @@ public class Catalog extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove existing catalog.", generateHelp = true, defaultValueProvider = JBangDefaultValueProvider.class)
+	@CommandDefinition(name = "remove", description = "Remove existing catalog.", generateHelp = true)
 	public static class CatalogRemove extends BaseCatalogCommand {
 
 		@Argument(paramLabel = "name", description = "The name of the catalog", required = true)

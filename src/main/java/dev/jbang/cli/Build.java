@@ -8,7 +8,7 @@ import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 
-@CommandDefinition(name = "build", description = "Compiles and stores script in the cache.", generateHelp = true, helpGroup = "Essentials", defaultValueProvider = JBangDefaultValueProvider.class)
+@CommandDefinition(name = "build", description = "Compiles and stores script in the cache.", generateHelp = true, helpGroup = "Essentials")
 public class Build extends BaseBuildCommand {
 
 	@Override

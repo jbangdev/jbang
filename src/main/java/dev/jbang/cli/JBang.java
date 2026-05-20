@@ -20,7 +20,7 @@ import dev.jbang.util.Util;
 		Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
 		Cache.class, Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class,
 		Export.class, Config.class,
-		Deps.class }, generateHelp = true, helpSectionProvider = ExternalCommandsProvider.class, defaultValueProvider = JBangDefaultValueProvider.class)
+		Deps.class }, generateHelp = true, helpSectionProvider = ExternalCommandsProvider.class)
 public class JBang extends BaseCommand {
 
 	@Option(shortName = 'V', name = "version", hasValue = false, description = "Display version info (use `jbang --verbose version` for more details)")
@@ -53,6 +53,7 @@ public class JBang extends BaseCommand {
 			CommandResult result = AeshRuntimeRunner.builder()
 				.command(JBang.class)
 				.args(newArgs)
+				.defaultValueProvider(new JBangDefaultValueProvider())
 				.execute();
 			return result != null ? result.getResultValue() : BaseCommand.EXIT_OK;
 		} catch (ExitException e) {
@@ -81,6 +82,7 @@ public class JBang extends BaseCommand {
 			CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
 			org.aesh.command.CommandRuntime runtime = AeshCommandRuntimeBuilder.builder()
 				.commandRegistry(registry)
+				.defaultValueProvider(new JBangDefaultValueProvider())
 				.build();
 			String commandName = (String) registry.getAllCommandNames().iterator().next();
 			Executor<?> executor = runtime.buildExecutor(commandName, newArgs);

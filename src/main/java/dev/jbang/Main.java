@@ -42,6 +42,7 @@ public class Main {
 			CommandResult result = AeshRuntimeRunner.builder()
 				.command(JBang.class)
 				.args(newArgs)
+				.defaultValueProvider(new dev.jbang.cli.JBangDefaultValueProvider())
 				.execute();
 			if (result != null) {
 				exitCode = result.getResultValue();

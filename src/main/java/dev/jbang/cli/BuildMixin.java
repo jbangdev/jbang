@@ -16,7 +16,7 @@ public class BuildMixin {
 	@Option(shortName = 'm', name = "main", description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
 	public String main;
 
-	@Option(name = "module", parser = StrictOptionParser.class, description = "Treat resource as a module. Optionally with the given module name")
+	@Option(name = "module", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name")
 	public String module;
 
 	@OptionList(shortName = 'C', name = "compile-option", description = "Options to pass to the compiler")
