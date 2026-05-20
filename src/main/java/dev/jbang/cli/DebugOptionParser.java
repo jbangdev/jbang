@@ -17,10 +17,17 @@ public class DebugOptionParser implements OptionParser {
 	private static final Pattern DEBUG_VALUE_PATTERN = Pattern
 		.compile("(?:(.*?:)?(\\d+\\??))|(?:\\S*=\\S+\\??)");
 
+	private static String fullPrefix(ProcessedOption option) {
+		if (option.isLongNameUsed()) {
+			return "--" + option.name();
+		}
+		return "-" + option.shortName();
+	}
+
 	@Override
 	public void parse(ParsedLineIterator iter, ProcessedOption option) throws OptionParserException {
 		String word = iter.peekWord();
-		String fp = StrictOptionParser.fullPrefix(option);
+		String fp = fullPrefix(option);
 
 		if (word.startsWith(fp + "=")) {
 			String value = word.substring(fp.length() + 1);

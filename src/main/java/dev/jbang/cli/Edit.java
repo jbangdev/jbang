@@ -71,7 +71,7 @@ public class Edit extends BaseCommand {
 	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
-	@Option(name = "open", parser = StrictOptionParser.class, description = "Opens editor/IDE on the temporary project.")
+	@Option(name = "open", fallbackValue = "", description = "Opens editor/IDE on the temporary project.")
 	public String editor;
 
 	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")

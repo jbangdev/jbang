@@ -34,7 +34,7 @@ public class Run extends BaseBuildCommand {
 	@Mixin
 	public RunMixin runMixin;
 
-	@Option(shortName = 'c', name = "code", parser = StrictOptionParser.class, description = "Run the given string as code")
+	@Option(shortName = 'c', name = "code", fallbackValue = "", description = "Run the given string as code")
 	public String literalScript;
 
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")

@@ -16,7 +16,7 @@ public class RunMixin {
 			"java-options" }, description = "Options to pass to the Java runtime")
 	public List<String> javaRuntimeOptions;
 
-	@Option(name = "jfr", parser = StrictOptionParser.class, description = "Launch with Java Flight Recorder enabled.")
+	@Option(name = "jfr", fallbackValue = "", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
 	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
