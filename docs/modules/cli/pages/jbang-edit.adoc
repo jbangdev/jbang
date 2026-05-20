@@ -19,7 +19,7 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang edit* [*-h*=_<help>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*--live*] [*--open*=_<open>_] [*--no-open*] [*-b*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<arg>_...]
+*jbang edit* [*-h*] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*--live*] [*--open*=_<open>_] [*--no-open*] [*-b*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<arg>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-s*, *--sources*=_<sources>_::

@@ -19,7 +19,7 @@ trust-list - Show defined trust domains.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*trust list* [*-h*=_<help>_] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*trust list* [*-h*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Show defined trust domains.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--format*=_<format>_::

@@ -19,7 +19,7 @@ template-remove - Remove existing template.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*template remove* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
+*template remove* [*-h*] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Remove existing template.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-g*, *--global*::

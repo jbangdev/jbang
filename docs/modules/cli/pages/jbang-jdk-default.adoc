@@ -19,7 +19,7 @@ jdk-default - Sets the default JDK to be used by JBang.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk default* [*-h*=_<help>_] [*-v*] [*-d*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<versionOrId>_]
+*jdk default* [*-h*] [*-v*] [*-d*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<versionOrId>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Sets the default JDK to be used by JBang.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-v*, *--for-version*::

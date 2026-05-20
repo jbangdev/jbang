@@ -19,7 +19,7 @@ wrapper-install - Install/Setup jbang as a wrapper script in a folder
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*wrapper install* [*-h*=_<help>_] [*-d*=_<dir>_] [*-f*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*wrapper install* [*-h*] [*-d*=_<dir>_] [*-f*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Install/Setup jbang as a wrapper script in a folder
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-d*, *--dir*=_<dir>_::

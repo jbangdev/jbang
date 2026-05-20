@@ -19,7 +19,7 @@ template-add - Add template for script reference.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*template add* [*-h*=_<help>_] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*-P*=_<property>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<files>_...]
+*template add* [*-h*] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*-P*=_<property>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<files>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Add template for script reference.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-d*, *--description*=_<description>_::

@@ -19,7 +19,7 @@ app-list - Lists installed commands.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*app list* [*-h*=_<help>_] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*app list* [*-h*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Lists installed commands.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--format*=_<format>_::

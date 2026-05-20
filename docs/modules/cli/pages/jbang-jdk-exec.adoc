@@ -19,7 +19,7 @@ jdk-exec - Executes the given command using the default (or specified) JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk exec* [*-h*=_<help>_] [*-j*=_<java>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<command>_...]
+*jdk exec* [*-h*] [*-j*=_<java>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<command>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Executes the given command using the default (or specified) JDK.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-j*, *--java*=_<java>_::

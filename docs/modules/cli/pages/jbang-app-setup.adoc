@@ -19,7 +19,7 @@ app-setup - Make jbang commands available for the user.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*app setup* [*-h*=_<help>_] [*--java*=_<java>_] [*--force*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*app setup* [*-h*] [*--java*] [*--force*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,10 +33,10 @@ Make jbang commands available for the user.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
-*--[no-]java*=_<java>_::
+*--[no-]java*::
   Add JBang's Java to the user's environment as well
 
 *--force*::

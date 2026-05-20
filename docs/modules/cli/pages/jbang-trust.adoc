@@ -19,7 +19,7 @@ jbang-trust - Manage which domains you trust to run scripts from.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang trust* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*jbang trust* [*-h*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Manage which domains you trust to run scripts from.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--config*=_<config>_::

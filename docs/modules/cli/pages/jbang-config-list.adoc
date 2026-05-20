@@ -19,7 +19,7 @@ config-list - List active configuration values
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*config list* [*-h*=_<help>_] [*--show-origin*] [*--show-available*] [*--format*=_<format>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*config list* [*-h*] [*--show-origin*] [*--show-available*] [*--format*=_<format>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ List active configuration values
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--show-origin*::

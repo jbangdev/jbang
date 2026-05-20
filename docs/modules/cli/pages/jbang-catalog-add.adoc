@@ -19,7 +19,7 @@ catalog-add - Add a catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*catalog add* [*-h*=_<help>_] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*--import*=_<import>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<fileOrURL>_]
+*catalog add* [*-h*] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*--import*] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<fileOrURL>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Add a catalog.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-d*, *--description*=_<description>_::
@@ -45,7 +45,7 @@ Add a catalog.
 *--force*::
   Force overwriting of existing catalog
 
-*--import*=_<import>_::
+*--import*::
   Import catalog items into the catalog's scope
 
 *-g*, *--global*::

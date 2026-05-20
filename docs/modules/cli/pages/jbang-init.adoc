@@ -19,7 +19,7 @@ jbang-init - Initialize a script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang init* [*-h*=_<help>_] [*-j*=_<java>_] [*--ai-provider*=_<ai-provider>_] [*--ai-api-key*=_<ai-api-key>_] [*--ai-endpoint*=_<ai-endpoint>_] [*--ai-model*=_<ai-model>_] [*-t*=_<template>_] [*--force*] [*--edit*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<params>_...]
+*jbang init* [*-h*] [*-j*=_<java>_] [*--ai-provider*=_<ai-provider>_] [*--ai-api-key*=_<ai-api-key>_] [*--ai-endpoint*=_<ai-endpoint>_] [*--ai-model*=_<ai-model>_] [*-t*=_<template>_] [*--force*] [*--edit*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<params>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Initialize a script.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-j*, *--java*=_<java>_::

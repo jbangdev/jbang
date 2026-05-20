@@ -19,7 +19,7 @@ jbang-export - Export the result of a build or the set of the sources to a proje
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*jbang export* [*-h*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Export the result of a build or the set of the sources to a project.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--config*=_<config>_::

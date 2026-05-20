@@ -19,7 +19,7 @@ jdk-list - Lists installed JDKs.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk list* [*-h*=_<help>_] [*-a*] [*-d*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*jdk list* [*-h*] [*-a*] [*-d*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Lists installed JDKs.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-a*, *--available*::

@@ -19,7 +19,7 @@ cache-clear - Clear the various caches used by jbang. By default this will clear
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*cache clear* [*-h*=_<help>_] [*--url*] [*--jar*] [*--deps*] [*--jdk*] [*--kotlinc*] [*--groovyc*] [*--project*] [*--script*] [*--stdin*] [*--all*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*cache clear* [*-h*] [*--url*] [*--jar*] [*--deps*] [*--jdk*] [*--kotlinc*] [*--groovyc*] [*--project*] [*--script*] [*--stdin*] [*--all*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Clear the various caches used by jbang. By default this will clear the JAR, scri
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--[no-]url*::

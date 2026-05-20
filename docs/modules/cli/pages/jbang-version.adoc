@@ -19,7 +19,7 @@ jbang-version - Display version info.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang version* [*-h*=_<help>_] [*--check*] [*--update*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*jbang version* [*-h*] [*--check*] [*--update*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Display version info.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *--check*::

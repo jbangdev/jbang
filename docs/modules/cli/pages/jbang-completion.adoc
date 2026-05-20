@@ -19,7 +19,7 @@ jbang-completion - Generate bash/zsh or fish completion script for ${ROOT-COMMAN
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang completion* [*-h*=_<help>_] [*-s*=_<shell>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
+*jbang completion* [*-h*] [*-s*=_<shell>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-h*, *--help*=_<help>_::
+*-h*, *--help*::
   Display help (use --help=all for all options)
 
 *-s*, *--shell*=_<shell>_::

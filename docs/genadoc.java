@@ -248,7 +248,7 @@ public class genadoc {
                 } else {
                     sb.append(format("*--%s*", opt.name()));
                 }
-                if (opt.hasValue()) {
+                if (opt.hasValue() && !isBooleanFlag(opt)) {
                     sb.append(format("=_<%s>_", opt.getArgument() != null ? opt.getArgument() : opt.name()));
                 }
                 if (!opt.isRequired()) sb.append("]");
@@ -291,7 +291,7 @@ public class genadoc {
             }
         }
 
-        if (opt.hasValue()) {
+        if (opt.hasValue() && !isBooleanFlag(opt)) {
             names.append(format("=_<%s>_", opt.getArgument() != null ? opt.getArgument() : opt.name()));
         }
 
@@ -317,6 +317,14 @@ public class genadoc {
             return arg.name();
         }
         return "arg";
+    }
+
+    static boolean isBooleanFlag(ProcessedOption opt) {
+        if ("help".equals(opt.name())) {
+            return true;
+        }
+        Class<?> t = opt.type();
+        return t.equals(Boolean.class) || t.equals(boolean.class);
     }
 
     static boolean isHidden(ProcessedOption opt) {
