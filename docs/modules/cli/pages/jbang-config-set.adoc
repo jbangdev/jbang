@@ -19,7 +19,7 @@ config-set - Set a configuration value
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*config set* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*config set* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<key>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -71,7 +71,7 @@ Set a configuration value
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<key>_::
   The name of the configuration option to set
 
 // end::picocli-generated-man-section-arguments[]

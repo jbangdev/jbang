@@ -19,7 +19,7 @@ jbang-run - Builds and runs provided script. (default command)
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang run* [*-h*=_<help>_] [*-R*=_<runtime-option>_] [*--jfr*=_<jfr>_] [*-d*=_<debug>_] [*--enableassertions*] [*--enablesystemassertions*] [*--javaagent*=_<javaagent>_] [*--cds*] [*-i*] [*-c*=_<code>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*--build-dir*=_<build-dir>_] [*--enable-preview*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_] [_<>_...]
+*jbang run* [*-h*=_<help>_] [*-R*=_<runtime-option>_] [*--jfr*=_<jfr>_] [*-d*=_<debug>_] [*--enableassertions*] [*--enablesystemassertions*] [*--javaagent*=_<javaagent>_] [*--cds*] [*-i*] [*-c*=_<code>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*--build-dir*=_<build-dir>_] [*--enable-preview*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<userParams>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -152,10 +152,10 @@ Builds and runs provided script. (default command)
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<scriptOrFile>_::
   A file or URL to a Java code file
 
-_<arg>_::
+_<userParams>_::
   Parameters for the script
 
 // end::picocli-generated-man-section-arguments[]

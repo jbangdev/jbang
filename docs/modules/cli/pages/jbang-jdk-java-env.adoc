@@ -19,7 +19,7 @@ jdk-java-env - Prints out the environment variables needed to use the given JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk java-env* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*jdk java-env* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<versionOrId>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -65,7 +65,7 @@ Prints out the environment variables needed to use the given JDK.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<versionOrId>_::
   The version of the JDK to select
 
 // end::picocli-generated-man-section-arguments[]

@@ -19,7 +19,7 @@ trust-add - Add trust domains.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*trust add* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_...]
+*trust add* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<rules>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -65,7 +65,7 @@ Add trust domains.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<rules>_::
   Rules for trusted sources
 
 // end::picocli-generated-man-section-arguments[]

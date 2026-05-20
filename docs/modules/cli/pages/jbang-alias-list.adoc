@@ -19,7 +19,7 @@ alias-list - Lists locally defined aliases or from the given catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*alias list* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--show-origin*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*alias list* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--show-origin*] [*--format*=_<format>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<catalogName>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -77,7 +77,7 @@ Lists locally defined aliases or from the given catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<catalogName>_::
   The name of a catalog
 
 // end::picocli-generated-man-section-arguments[]

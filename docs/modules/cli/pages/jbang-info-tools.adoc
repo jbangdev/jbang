@@ -19,7 +19,7 @@ info-tools - Prints a json description usable for tools/IDE's to get classpath a
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*info tools* [*-h*=_<help>_] [*--select*=_<select>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*--build-dir*=_<build-dir>_] [*--module*=_<module>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*info tools* [*-h*=_<help>_] [*--select*=_<select>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*--build-dir*=_<build-dir>_] [*--module*=_<module>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -104,7 +104,7 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<scriptOrFile>_::
   A file or URL to a Java code file
 
 // end::picocli-generated-man-section-arguments[]

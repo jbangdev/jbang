@@ -257,12 +257,11 @@ public class genadoc {
 
         ProcessedOption argument = cmd.getArgument();
         if (argument != null) {
-            sb.append(format(" [_<%s>_]", argument.description() != null && !argument.description().isEmpty()
-                    ? argument.name() : argument.name()));
+            sb.append(format(" [_<%s>_]", argumentLabel(argument)));
         }
         ProcessedOption arguments = cmd.getArguments();
         if (arguments != null) {
-            sb.append(format(" [_<%s>_...]", arguments.name() != null ? arguments.name() : "args"));
+            sb.append(format(" [_<%s>_...]", argumentLabel(arguments)));
         }
 
         sb.append("\n");
@@ -303,11 +302,21 @@ public class genadoc {
     }
 
     static void writeArgument(PrintWriter pw, ProcessedOption arg) {
-        String label = arg.name() != null && !arg.name().isEmpty() ? arg.name() : "arg";
+        String label = argumentLabel(arg);
         pw.println(format("_<%s>_::", label));
         String desc = arg.description() != null ? arg.description() : "";
         pw.println(format("  %s", desc));
         pw.println();
+    }
+
+    static String argumentLabel(ProcessedOption arg) {
+        if (arg.getParamLabel() != null && !arg.getParamLabel().isEmpty()) {
+            return arg.getParamLabel();
+        }
+        if (arg.name() != null && !arg.name().isEmpty()) {
+            return arg.name();
+        }
+        return "arg";
     }
 
     static boolean isHidden(ProcessedOption opt) {

@@ -19,7 +19,7 @@ alias-add - Add alias for script reference.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*alias add* [*-h*=_<help>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*-R*=_<runtime-option>_] [*--jfr*=_<jfr>_] [*-d*=_<debug>_] [*--enableassertions*] [*--enablesystemassertions*] [*--javaagent*=_<javaagent>_] [*--cds*] [*-i*] [*-g*] [*-f*=_<file>_] [*--description*=_<description>_] [*--name*=_<name>_] [*--force*] [*--enable-preview*] [*--docs*=_<docs>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_] [_<>_...]
+*alias add* [*-h*=_<help>_] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*-R*=_<runtime-option>_] [*--jfr*=_<jfr>_] [*-d*=_<debug>_] [*--enableassertions*] [*--enablesystemassertions*] [*--javaagent*=_<javaagent>_] [*--cds*] [*-i*] [*-g*] [*-f*=_<file>_] [*--description*=_<description>_] [*--name*=_<name>_] [*--force*] [*--enable-preview*] [*--docs*=_<docs>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_] [_<params>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -164,10 +164,10 @@ Add alias for script reference.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<scriptOrFile>_::
   A file or URL to a Java code file
 
-_<arg>_::
+_<params>_::
   Parameters to pass on to the script
 
 // end::picocli-generated-man-section-arguments[]

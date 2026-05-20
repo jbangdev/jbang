@@ -19,7 +19,7 @@ jdk-uninstall - Uninstalls an existing JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk uninstall* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*jdk uninstall* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<versionOrId>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -65,7 +65,7 @@ Uninstalls an existing JDK.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<versionOrId>_::
   The version to uninstall
 
 // end::picocli-generated-man-section-arguments[]

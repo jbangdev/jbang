@@ -19,7 +19,7 @@ catalog-add - Add a catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*catalog add* [*-h*=_<help>_] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*--import*=_<import>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*catalog add* [*-h*=_<help>_] [*-d*=_<description>_] [*--name*=_<name>_] [*--force*] [*--import*=_<import>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<fileOrURL>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -83,7 +83,7 @@ Add a catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<fileOrURL>_::
   A file or URL to a catalog file
 
 // end::picocli-generated-man-section-arguments[]

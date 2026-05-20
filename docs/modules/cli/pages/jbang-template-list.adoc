@@ -19,7 +19,7 @@ template-list - Lists locally defined templates or from the given catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*template list* [*-h*=_<help>_] [*--show-origin*] [*--show-files*] [*--show-properties*] [*--format*=_<format>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*template list* [*-h*=_<help>_] [*--show-origin*] [*--show-files*] [*--show-properties*] [*--format*=_<format>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -83,7 +83,7 @@ Lists locally defined templates or from the given catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<name>_::
   The name of a catalog
 
 // end::picocli-generated-man-section-arguments[]

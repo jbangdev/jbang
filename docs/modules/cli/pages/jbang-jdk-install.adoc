@@ -19,7 +19,7 @@ jdk-install - Installs a JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jdk install* [*-h*=_<help>_] [*-f*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*jdk install* [*-h*=_<help>_] [*-f*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<versionOrId>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -68,7 +68,7 @@ Installs a JDK.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<versionOrId>_::
   The version or id to install
 
 // end::picocli-generated-man-section-arguments[]

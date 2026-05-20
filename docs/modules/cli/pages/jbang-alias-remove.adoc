@@ -19,7 +19,7 @@ alias-remove - Remove existing alias.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*alias remove* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*alias remove* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -71,7 +71,7 @@ Remove existing alias.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<name>_::
   The name of the alias
 
 // end::picocli-generated-man-section-arguments[]

@@ -19,7 +19,7 @@ deps-add - Add dependencies to a jbang file.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*deps add* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_...]
+*deps add* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<deps target>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -65,7 +65,7 @@ Add dependencies to a jbang file.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<deps target>_::
   Dependencies to add (groupId:artifactId:version) and target file (.java or build.jbang)
 
 // end::picocli-generated-man-section-arguments[]

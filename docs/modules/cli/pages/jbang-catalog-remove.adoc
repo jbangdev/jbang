@@ -19,7 +19,7 @@ catalog-remove - Remove existing catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*catalog remove* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*catalog remove* [*-h*=_<help>_] [*-g*] [*-f*=_<file>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -71,7 +71,7 @@ Remove existing catalog.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<name>_::
   The name of the catalog
 
 // end::picocli-generated-man-section-arguments[]

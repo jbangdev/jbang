@@ -19,7 +19,7 @@ deps-search - Search for artifacts in local and central Maven repositories.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*deps search* [*-h*=_<help>_] [*--max*=_<max>_] [*-q*=_<query>_] [*--target*=_<target>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_...]
+*deps search* [*-h*=_<help>_] [*--max*=_<max>_] [*-q*=_<query>_] [*--target*=_<target>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<arg>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 

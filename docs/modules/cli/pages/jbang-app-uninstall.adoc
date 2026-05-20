@@ -19,7 +19,7 @@ app-uninstall - Removes a previously installed command.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*app uninstall* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<>_]
+*app uninstall* [*-h*=_<help>_] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<name>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -65,7 +65,7 @@ Removes a previously installed command.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<arg>_::
+_<name>_::
   The name of the command
 
 // end::picocli-generated-man-section-arguments[]
