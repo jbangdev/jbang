@@ -23,31 +23,31 @@ public class Cache extends BaseCommand {
 	public static class CacheClear extends BaseCommand {
 
 		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")
-		Boolean urls;
+		Boolean url;
 
 		@Option(name = "jar", hasValue = false, negatable = true, description = "clear JAR cache only")
-		Boolean jars;
+		Boolean jar;
 
 		@Option(name = "deps", hasValue = false, negatable = true, description = "clear dependency cache only")
 		Boolean deps;
 
 		@Option(name = "jdk", hasValue = false, negatable = true, description = "clear JDK cache only")
-		Boolean jdks;
+		Boolean jdk;
 
 		@Option(name = "kotlinc", hasValue = false, negatable = true, description = "clear kotlinc cache only")
-		Boolean kotlincs;
+		Boolean kotlinc;
 
 		@Option(name = "groovyc", hasValue = false, negatable = true, description = "clear groovyc cache only")
-		Boolean groovys;
+		Boolean groovyc;
 
 		@Option(name = "project", hasValue = false, negatable = true, description = "clear temporary projects cache only")
-		Boolean projects;
+		Boolean project;
 
 		@Option(name = "script", hasValue = false, negatable = true, description = "clear script cache only")
-		Boolean scripts;
+		Boolean script;
 
 		@Option(name = "stdin", hasValue = false, negatable = true, description = "clear stdin cache only")
-		Boolean stdins;
+		Boolean stdin;
 
 		@Option(name = "all", hasValue = false, description = "clear all caches")
 		boolean all;
@@ -59,14 +59,14 @@ public class Cache extends BaseCommand {
 			// if all we add everything
 			if (all) {
 				classes.addAll(Arrays.asList(dev.jbang.Cache.CacheClass.values()));
-			} else if (urls == null
-					&& jars == null
-					&& jdks == null
-					&& kotlincs == null
-					&& groovys == null
-					&& projects == null
-					&& scripts == null
-					&& stdins == null
+			} else if (url == null
+					&& jar == null
+					&& jdk == null
+					&& kotlinc == null
+					&& groovyc == null
+					&& project == null
+					&& script == null
+					&& stdin == null
 					&& deps == null) {
 				// add the default (safe) set
 				classes.add(dev.jbang.Cache.CacheClass.urls);
@@ -77,15 +77,15 @@ public class Cache extends BaseCommand {
 			}
 
 			// we only toggle on or off those that are actually present
-			toggleCache(urls, dev.jbang.Cache.CacheClass.urls, classes);
-			toggleCache(jars, dev.jbang.Cache.CacheClass.jars, classes);
-			toggleCache(jdks, dev.jbang.Cache.CacheClass.jdks, classes);
-			toggleCache(kotlincs, dev.jbang.Cache.CacheClass.kotlincs, classes);
-			toggleCache(groovys, dev.jbang.Cache.CacheClass.groovycs, classes);
+			toggleCache(url, dev.jbang.Cache.CacheClass.urls, classes);
+			toggleCache(jar, dev.jbang.Cache.CacheClass.jars, classes);
+			toggleCache(jdk, dev.jbang.Cache.CacheClass.jdks, classes);
+			toggleCache(kotlinc, dev.jbang.Cache.CacheClass.kotlincs, classes);
+			toggleCache(groovyc, dev.jbang.Cache.CacheClass.groovycs, classes);
 			toggleCache(deps, dev.jbang.Cache.CacheClass.deps, classes);
-			toggleCache(projects, dev.jbang.Cache.CacheClass.projects, classes);
-			toggleCache(scripts, dev.jbang.Cache.CacheClass.scripts, classes);
-			toggleCache(stdins, dev.jbang.Cache.CacheClass.stdins, classes);
+			toggleCache(project, dev.jbang.Cache.CacheClass.projects, classes);
+			toggleCache(script, dev.jbang.Cache.CacheClass.scripts, classes);
+			toggleCache(stdin, dev.jbang.Cache.CacheClass.stdins, classes);
 
 			dev.jbang.Cache.CacheClass[] ccs = classes.toArray(new dev.jbang.Cache.CacheClass[0]);
 			dev.jbang.Cache.clearCache(ccs);

@@ -98,13 +98,23 @@ public class Main {
 		if (args == null) {
 			return args;
 		}
-		List<String> filtered = new ArrayList<>();
+		// Filter out null entries that can appear when tests pass null in varargs
+		boolean hasNulls = false;
 		for (String a : args) {
-			if (a != null) {
-				filtered.add(a);
+			if (a == null) {
+				hasNulls = true;
+				break;
 			}
 		}
-		args = filtered.toArray(new String[0]);
+		if (hasNulls) {
+			List<String> filtered = new ArrayList<>();
+			for (String a : args) {
+				if (a != null) {
+					filtered.add(a);
+				}
+			}
+			args = filtered.toArray(new String[0]);
+		}
 		List<String> leadingOpts = new ArrayList<>();
 		List<String> remainingArgs = new ArrayList<>();
 		boolean foundParam = false;

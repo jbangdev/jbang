@@ -15,6 +15,10 @@ import dev.jbang.Configuration;
 
 public class JBangDefaultValueProvider implements DefaultValueProvider {
 
+	// Options that use StrictOptionParser/DebugOptionParser with "" (empty string)
+	// as a sentinel for "used without value". The provider must not supply defaults
+	// for these because the sentinel triggers config-file lookup in
+	// RunMixin.resolveAfterParse() instead.
 	private static final Set<String> FALLBACK_OPTIONS = new HashSet<>(Arrays.asList("debug", "jfr"));
 
 	private static volatile Map<Class<?>, String> classToPath;
