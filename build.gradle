@@ -704,7 +704,7 @@ String getNativeBundleArch() {
 	} else if (arch == 'aarch64' || arch == 'arm64') {
 		return 'aarch64'
 	} else {
-		return ''
+		return arch.replaceAll('[^a-z0-9_]+', '-')
 	}
 }
 
