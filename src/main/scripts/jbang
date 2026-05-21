@@ -63,7 +63,7 @@ native_bundle_arch() {
       echo "aarch64"
       ;;
     *)
-      echo "$arch"
+      echo ""
       ;;
   esac
 }
@@ -138,17 +138,22 @@ install_jbang_bundle() {
   bundle_file="$TDIR/urls/jbang-bundle"
   native_name=$(native_exec_name)
 
-  if [[ "$native_requested" == "true" ]]; then
+  local bundle_arch
+  bundle_arch=$(native_bundle_arch)
+  if [[ "$native_requested" == "true" && -n "$bundle_arch" ]]; then
     jburl=$(native_bundle_url "$release_version")
     echo "Downloading JBang ${release_version:-latest} native bundle..." 1>&2
     download "$jburl" "$bundle_file"
     if [ $retval -ne 0 ]; then
       echo "WARNING: Native JBang bundle not available from $jburl, falling back to generic bundle" 1>&2
-      fallback_url=$(fallback_bundle_url "$release_version")
-      download "$fallback_url" "$bundle_file"
-      if [ $retval -ne 0 ]; then echo "Error downloading JBang from $fallback_url" 1>&2; exit $retval; fi
+      jburl=$(fallback_bundle_url "$release_version")
+      download "$jburl" "$bundle_file"
+      if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
     fi
   else
+    if [[ "$native_requested" == "true" && -z "$bundle_arch" ]]; then
+      echo "WARNING: Native binaries not available for architecture '$arch', using generic bundle" 1>&2
+    fi
     jburl=$(fallback_bundle_url "$release_version")
     echo "Downloading JBang ${release_version:-latest}..." 1>&2
     download "$jburl" "$bundle_file"
@@ -158,6 +163,7 @@ install_jbang_bundle() {
   echo "Installing JBang..." 1>&2
   rm -rf "$TDIR/urls/jbang"
   tar xf "$bundle_file" -C "$TDIR/urls"
+  retval=$?
   if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
 
   mkdir -p "$JBDIR/bin"
