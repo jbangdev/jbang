@@ -58,7 +58,6 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseBuildCommand {
-	private static final String DEFAULT_JBANG_RELEASES_URL = "https://www.jbang.dev/releases";
 
 	@CommandLine.Option(names = { "--force" }, description = "Force re-installation")
 	boolean force;
@@ -212,11 +211,7 @@ class AppInstall extends BaseBuildCommand {
 	}
 
 	private static String getDownloadBaseUrl() {
-		String baseUrl = System.getenv("JBANG_DOWNLOAD_BASEURL");
-		if (baseUrl == null || baseUrl.trim().isEmpty()) {
-			baseUrl = DEFAULT_JBANG_RELEASES_URL;
-		}
-		return baseUrl.replaceAll("/+$", "");
+		return Settings.getDownloadBaseUrl();
 	}
 
 	private static boolean isNativeRequested() {

@@ -25,6 +25,9 @@ public class Settings {
 
 	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
 	public static final String ENV_NO_VERSION_CHECK = "JBANG_NO_VERSION_CHECK";
+	public static final String ENV_DOWNLOAD_BASEURL = "JBANG_DOWNLOAD_BASEURL";
+
+	public static final String DEFAULT_RELEASES_URL = "https://www.jbang.dev/releases";
 
 	public static final int DEFAULT_JAVA_VERSION = 17;
 	public static final int DEFAULT_ALPINE_JAVA_VERSION = 16;
@@ -36,6 +39,18 @@ public class Settings {
 
 	final public static String CONFIG_CACHE_EVICT = "cache-evict";
 	final public static String DEFAULT_CACHE_EVICT = "PT12H";
+
+	/**
+	 * Returns the base URL for downloading JBang releases, respecting the
+	 * JBANG_DOWNLOAD_BASEURL environment variable. Trailing slashes are stripped.
+	 */
+	public static String getDownloadBaseUrl() {
+		String baseUrl = System.getenv(ENV_DOWNLOAD_BASEURL);
+		if (baseUrl == null || baseUrl.trim().isEmpty()) {
+			baseUrl = DEFAULT_RELEASES_URL;
+		}
+		return baseUrl.replaceAll("/+$", "");
+	}
 
 	public static Path getJBangLocalMavenRepoOverride() {
 		String jbangRepo = System.getenv().get(JBANG_REPO);

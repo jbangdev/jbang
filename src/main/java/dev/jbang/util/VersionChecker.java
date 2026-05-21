@@ -18,7 +18,6 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 
 public class VersionChecker {
-	private static final String DEFAULT_JBANG_RELEASES_URL = "https://www.jbang.dev/releases";
 	private static final String jbangVersionUrl = buildVersionUrl();
 
 	private static final long DELAY_DAYS = 1;
@@ -181,12 +180,7 @@ public class VersionChecker {
 	}
 
 	private static String buildVersionUrl() {
-		String baseUrl = System.getenv("JBANG_DOWNLOAD_BASEURL");
-		if (baseUrl == null || baseUrl.trim().isEmpty()) {
-			baseUrl = DEFAULT_JBANG_RELEASES_URL;
-		}
-		baseUrl = baseUrl.replaceAll("/+$", "");
-		return baseUrl + "/latest/download/version.txt";
+		return Settings.getDownloadBaseUrl() + "/latest/download/version.txt";
 	}
 
 	public static String getVersionUrl() {
