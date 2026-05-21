@@ -130,7 +130,6 @@ install_jbang_bundle() {
   local release_version="$1"
   local native_requested="$2"
   local jburl
-  local fallback_url
   local bundle_file
   local native_name
 
