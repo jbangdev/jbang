@@ -332,14 +332,14 @@ latestDistTar {
 tasks.register('nativeDistZip', Zip) {
 	dependsOn('nativeImage')
 	with commonSpec
-	archiveFileName = "${getNativeBundleBaseName()}.zip"
+	archiveFileName.set(provider { "${getNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('nativeDistTar', Tar) {
 	dependsOn('nativeImage')
 	with commonSpec
 	compression = Compression.NONE
-	archiveFileName = "${getNativeBundleBaseName()}.tar"
+	archiveFileName.set(provider { "${getNativeBundleBaseName()}.tar" })
 }
 
 jar {
