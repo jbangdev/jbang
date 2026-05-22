@@ -297,7 +297,7 @@ jobs:
 
   jreleaser-dry-run:
     needs: [build-shared, build-test-native-image]
-    if: always() && needs.build-shared.result == 'success'
+    if: needs.build-shared.result == 'success' && needs.build-test-native-image.result == 'success'
     runs-on: ubuntu-latest
     env:
       JRELEASER_VERSION: 1.19.0
@@ -330,6 +330,11 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
           JRELEASER_GITHUB_TOKEN: unused-dry-run
+          JRELEASER_GPG_PASSPHRASE: unused-dry-run
+          JRELEASER_GPG_PUBLIC_KEY: unused-dry-run
+          JRELEASER_GPG_SECRET_KEY: unused-dry-run
+          JRELEASER_MAVENCENTRAL_JBANG_USERNAME: unused-dry-run
+          JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: unused-dry-run
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: release --dry-run
