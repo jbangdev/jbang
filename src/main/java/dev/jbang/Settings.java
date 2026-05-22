@@ -49,7 +49,7 @@ public class Settings {
 		if (baseUrl == null || baseUrl.trim().isEmpty()) {
 			baseUrl = DEFAULT_RELEASES_URL;
 		}
-		return baseUrl.replaceAll("/+$", "");
+		return baseUrl.trim().replaceAll("/+$", "");
 	}
 
 	public static Path getJBangLocalMavenRepoOverride() {
