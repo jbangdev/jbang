@@ -173,7 +173,11 @@ install_jbang_bundle() {
 
   echo "Installing JBang..." 1>&2
   rm -rf "$TDIR/urls/jbang"
-  tar xf "$bundle_file" -C "$TDIR/urls"
+  if [[ "$jburl" == *.zip ]]; then
+    unzip -qq -o "$bundle_file" -d "$TDIR/urls"
+  else
+    tar xf "$bundle_file" -C "$TDIR/urls"
+  fi
   retval=$?
   if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
 
