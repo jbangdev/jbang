@@ -185,7 +185,7 @@ function Install-JBangBundle {
 
     if ($NativeRequested -eq "true") {
         $jburl = Get-NativeBundleUrl $ReleaseVersion
-        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest') native bundle...")
+        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest') native bundle from $jburl...")
         $ok = Invoke-Download "$jburl" $bundlePath
         if (-not $ok) {
           [Console]::Error.WriteLine("WARNING: Native JBang bundle not available from $jburl, falling back to generic bundle")
@@ -194,13 +194,12 @@ function Install-JBangBundle {
         }
     } else {
         $jburl = Get-FallbackBundleUrl $ReleaseVersion
-        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest')...")
+        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest') from $jburl...")
         $ok = Invoke-Download "$jburl" $bundlePath
     }
     if (-not ($ok)) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $bundlePath")
-      [Console]::Error.WriteLine($err)
-      break
+      exit 1
     }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
