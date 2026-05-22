@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
@@ -35,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: build-with-no-tests
@@ -61,6 +65,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: setup-graalvm
@@ -122,6 +128,8 @@ jobs:
         os: *os_matrix
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -183,6 +191,8 @@ jobs:
     name: integration-tests
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -233,6 +243,8 @@ jobs:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
         with:
@@ -276,6 +288,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -297,6 +311,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: Create test results summary

@@ -75,7 +75,7 @@ jobs:
           echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
       - name: jreleaser publish
         continue-on-error: true
-        uses: jreleaser/release-action@v2
+        uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
@@ -98,7 +98,7 @@ jobs:
         run: ./misc/updatespec.sh
       - name: jreleaser announce
         continue-on-error: true
-        uses: jreleaser/release-action@v2
+        uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
