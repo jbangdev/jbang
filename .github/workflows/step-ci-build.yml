@@ -344,7 +344,7 @@ jobs:
           JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: unused-dry-run
         with:
           version: ${{ env.JRELEASER_VERSION }}
-          arguments: release --dry-run
+          arguments: release --dry-run -Dsigning.active=NEVER
           setup-java: false
       - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
