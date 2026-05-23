@@ -146,7 +146,8 @@ if (-not $binaryPath -and -not $jarPath) {
     } else {
         $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
     }
-    [Console]::Error.WriteLine("Downloading JBang $env:JBANG_DOWNLOAD_VERSION...")
+    $dlVersion = if ($env:JBANG_DOWNLOAD_VERSION) { $env:JBANG_DOWNLOAD_VERSION } else { 'latest' }
+    [Console]::Error.WriteLine("Downloading JBang $dlVersion from $jburl...")
     $ok = Invoke-Download "$jburl" "$TDIR\urls\jbang.zip"
     if (-not ($ok)) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
