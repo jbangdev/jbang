@@ -130,7 +130,7 @@ if ($env:JBANG_USE_NATIVE -eq "true") {
   } elseif (Test-Path "$PSScriptRoot\jbang.bin.exe") {
     $binaryPath="$PSScriptRoot\jbang.bin.exe"
   } else {
-    [Console]::Error.WriteLine("WARNING: JBang native binary not found in $PSScriptRoot")
+    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang-windows-${jbang_arch}.bin.exe or jbang.bin.exe) not found in $PSScriptRoot")
   }
 }
 if (-not $binaryPath) {
