@@ -298,8 +298,8 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
-	// Include native image binary renamed to platform-specific name
-	// Scripts can also look for a generic 'jbang.bin' dropped in manually by users
+	// Include native image binary renamed to platform-specific name (e.g. jbang-linux-x64.bin)
+	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
 	from(project.buildDir.toPath().resolve('native-image')) {

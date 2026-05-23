@@ -8,15 +8,21 @@ if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
 if "%JBANG_USE_NATIVE%"=="" (set JBANG_USE_NATIVE=false)
 
-rem resolve jbang.bin binary or jar path from script location
+rem detect architecture for platform-specific binary lookup
+set "jbang_arch=x64"
+if "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "jbang_arch=aarch64"
+
+rem resolve native binary or jar path from script location
 set binaryPath=
 set jarPath=
 if "%JBANG_USE_NATIVE%"=="true" (
-  rem Look for native binary first if enabled
-  if exist "%~dp0jbang.bin.exe" (
+  rem Look for platform-specific native binary first, then fall back to jbang.bin.exe
+  if exist "%~dp0jbang-windows-%jbang_arch%.bin.exe" (
+    set binaryPath=%~dp0jbang-windows-%jbang_arch%.bin.exe
+  ) else if exist "%~dp0jbang.bin.exe" (
     set binaryPath=%~dp0jbang.bin.exe
   ) else (
-    echo WARNING: JBang native binary (jbang.bin.exe^) not found in %~dp0 1>&2
+    echo WARNING: JBang native binary not found in %~dp0 1>&2
   )
 )
 if "!binaryPath!"=="" (

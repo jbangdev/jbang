@@ -103,7 +103,7 @@ jobs:
           ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
 
       - name: upload-native-bundles
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -111,9 +111,10 @@ jobs:
             build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.tar
           if-no-files-found: error
       
-      - name: create install with jbang.bin
+      - name: create install with native binary
         if: ${{ !inputs.skip_tests }}
         run: |
+          rm -rf build/install/jbang
           ./gradlew --no-daemon installDist
       - name: integration-test-native-image
         if: ${{ !inputs.skip_tests }}
@@ -314,12 +315,12 @@ jobs:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions
@@ -347,7 +348,7 @@ jobs:
           arguments: release --dry-run
           setup-java: false
       - name: Upload release artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts
