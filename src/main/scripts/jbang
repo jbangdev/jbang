@@ -187,7 +187,7 @@ case "$(uname -m)" in
     arch=x32;;
   x86_64|amd64)
     arch=x64;;
-  aarch64)
+  aarch64|arm64)
     arch=aarch64;;
   armv7l)
     arch=arm;;
@@ -195,8 +195,6 @@ case "$(uname -m)" in
     arch=ppc64le;;
   s390x)
     arch=s390x;;
-  arm64)
-    arch=arm64;;
   riscv64)
     arch=riscv64
     ;;
