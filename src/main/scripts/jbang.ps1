@@ -87,10 +87,10 @@ function Invoke-Download {
                 # Exponential backoff: 1, 2, 4, 8, ...
                 $sleepSeconds = [Math]::Pow(2, $attempt - 1)
             }
-            if ($attempt -eq 1) {
-                [Console]::Error.WriteLine("Download failed. Retrying... (JBANG_DOWNLOAD_RETRY=0 to disable)")
-            }
             [Console]::Error.WriteLine("Download $attempt/$($downloadRetry + 1) failed. Retry in $sleepSeconds second(s)...")
+            if ($attempt -eq 1) {
+                [Console]::Error.WriteLine("(Set JBANG_DOWNLOAD_RETRY=0 to disable retries)")
+            }
             Start-Sleep -Seconds $sleepSeconds
         }
     }

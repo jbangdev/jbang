@@ -53,10 +53,10 @@ download() {
       # Exponential backoff: 1, 2, 4, 8, ...
       sleepSeconds=$((1 << (attempt - 1)))
     fi
-    if [ $attempt -eq 1 ]; then
-      echo "Download failed. Retrying... (JBANG_DOWNLOAD_RETRY=0 to disable)" 1>&2
-    fi
     echo "Download $attempt/$maxAttempts failed. Retry in $sleepSeconds second(s)..." 1>&2
+    if [ $attempt -eq 1 ]; then
+      echo "(Set JBANG_DOWNLOAD_RETRY=0 to disable retries)" 1>&2
+    fi
     sleep $sleepSeconds
   done
 }
