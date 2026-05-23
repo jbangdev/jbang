@@ -114,8 +114,7 @@ jobs:
       - name: create install with native binary
         if: ${{ !inputs.skip_tests }}
         run: |
-          rm -rf build/install/jbang
-          ./gradlew --no-daemon installDist
+          ./gradlew --no-daemon cleanInstallDist installDist
       - name: integration-test-native-image
         if: ${{ !inputs.skip_tests }}
         env:
