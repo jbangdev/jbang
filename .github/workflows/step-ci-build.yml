@@ -44,13 +44,13 @@ jobs:
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
@@ -70,13 +70,13 @@ jobs:
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@eec48106e0bf45f2976c2ff0c3e22395cced8243 # v1
+        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
             github-token: ${{ secrets.GITHUB_TOKEN }}
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -87,7 +87,7 @@ jobs:
         run: |
             chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
@@ -110,7 +110,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
@@ -132,7 +132,7 @@ jobs:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -146,14 +146,14 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -195,7 +195,7 @@ jobs:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -211,7 +211,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -219,7 +219,7 @@ jobs:
 
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -249,7 +249,7 @@ jobs:
         uses: ./.github/actions/shared-build-setup
         with:
           add-job-summary: 'never'
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -292,7 +292,7 @@ jobs:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
           path: build/allure-results
