@@ -22,10 +22,111 @@ jobs:
             echo "debug_enabled=false" >> $GITHUB_OUTPUT
           fi
 
-  build:
-    needs: check-debug
+  validate-release:
     runs-on: ubuntu-latest
-    name: build-and-testing
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - name: Verify commit is on main
+        run: |
+          if ! git merge-base --is-ancestor ${{ github.sha }} origin/main; then
+            echo "::error::Tagged commit is not on the main branch. Aborting release."
+            exit 1
+          fi
+      - name: Verify CI passed for this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATUS=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/status --jq '.state')
+          echo "Commit CI status: $STATUS"
+          if [ "$STATUS" != "success" ]; then
+            echo "::error::CI has not passed for this commit (status: $STATUS). Aborting release."
+            exit 1
+          fi
+
+  build-shared:
+    needs: validate-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - name: build
+        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
+      - name: Upload build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+
+  build-native-image:
+    needs: build-shared
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - name: setup-graalvm
+        uses: graalvm/setup-graalvm@eec48106e0bf45f2976c2ff0c3e22395cced8243 # v1
+        with:
+            java-version: '25'
+            distribution: 'graalvm-community'
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            set-java-home: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: build-native-image
+        run: ./gradlew --no-daemon nativeImage
+      - name: ensure native image is executable
+        run: chmod -v +x build/native-image/jbang.bin*
+      - name: build-native-bundles
+        run: ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
+      - name: upload-native-bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
+          path: |
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.zip
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.tar
+          if-no-files-found: error
+
+  smoke-test:
+    needs: build-shared
+    runs-on: ubuntu-latest
+    env:
+      _JBANG_: ./build/install/jbang/bin/jbang
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: smoke-test
+        run: |
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=cli helloworld.java
+          $_JBANG_ --verbose helloworld.java
+          rm helloworld.java
+
+  release:
+    needs: [check-debug, build-shared, build-native-image, smoke-test]
+    runs-on: ubuntu-latest
+    name: release
     env:
       JRELEASER_SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
       JRELEASER_SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
@@ -40,7 +141,7 @@ jobs:
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
       JRELEASER_MAVENCENTRAL_JBANG_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      JRELEASER_VERSION: 1.19.0
+      JRELEASER_VERSION: 1.24.0
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -49,35 +150,29 @@ jobs:
         uses: ./.github/actions/shared-build-setup
         with:
           java-version: 11
-      - name: build-gradle
-        run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
-      - name: integration-test
-        env:
-          _JBANG_TEST_JAVA_VERSION: 11
-        run: |
-          ./gradlew integrationTest
-      - name: Arcive test results
-        uses: ./.github/actions/shared-test-archiving
-        if: always()
+      - name: Download build artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-
-          suffix: -jvm
-      - name: integration-test-bash
-        run: |
-          export PATH=`pwd`/build/install/jbang/bin:$PATH
-          pastdir=`pwd`
-          cd itests
-          ./test_suite.sh
-          cd $pastdir
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: Download native bundles
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
+          path: build/distributions
+          merge-multiple: true
+          if-no-files-found: error
       - name: version extract
         id: version
         run: |
           RELEASE_VERSION=`cat build/tmp/version.txt`
-          echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release version: $RELEASE_VERSION"
+          ls -la build/distributions
       - name: Run JReleaser
         uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
-        env: 
-          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: release
@@ -90,7 +185,7 @@ jobs:
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
-    
+
       - name: Start tmate session
         if: always() && needs.check-debug.outputs.debug_enabled == 'true'
         uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3

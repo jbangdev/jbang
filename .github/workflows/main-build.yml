@@ -1,8 +1,7 @@
 name: main-build
 
-## Intent is to run the ci-build workflow and download the artifacts
-## and perform as much of jreleaser flow as possible and publish
-## as an ever moving earlyaccess release.
+## Runs full CI on every push to main and publishes an earlyaccess
+## pre-release with the latest artifacts (including native bundles).
 
 on:
   push:
@@ -17,33 +16,51 @@ concurrency:
 jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml
-    with:
-        skip_tests: true # temporary until we have jreleaser parts working
-    
-  jreleaser:
+
+  earlyaccess:
     needs: ci-build
     runs-on: ubuntu-latest
+    env:
+      JRELEASER_VERSION: 1.24.0
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-        with:
-          java-version: 11
-      - name: Download jbang distribution
+      - name: Download build artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
-          path: build/install/jbang
-     
-      - name: Download native image'
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: Download native bundles
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-*
-          path: build/native-image
-    
-      - name: Show workspace tree
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
+          path: build/distributions
+          merge-multiple: true
+          if-no-files-found: warn
+      - name: version extract
+        id: version
         run: |
-          echo "Workspace: $GITHUB_WORKSPACE"
-          tree -a build
+          RELEASE_VERSION=`cat build/tmp/version.txt`
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release version: $RELEASE_VERSION"
+          ls -la build/distributions
+      - name: Run JReleaser (earlyaccess)
+        uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: ${{ env.JRELEASER_VERSION }}
+          arguments: full-release
+          setup-java: false
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: jreleaser-earlyaccess
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
