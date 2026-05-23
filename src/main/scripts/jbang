@@ -25,20 +25,32 @@ script_dir() {
 }
 
 download() {
-  if [ -x "$(command -v curl)" ]; then
-    curl -sLf --retry "$downloadRetry" --retry-delay "$downloadRetryDelay" -o "$2" "$1"
-    retval=$?
-  elif [ -x "$(command -v wget)" ]; then
-    if [ "$downloadRetryDelay" -gt 0 ] 2>/dev/null; then
-      wget -q --tries="$downloadRetry" --waitretry="$downloadRetryDelay" -O "$2" "$1"
+  local attempt=0
+  local maxAttempts=$((downloadRetry + 1))
+  while true; do
+    attempt=$((attempt + 1))
+    if [ -x "$(command -v curl)" ]; then
+      curl -sLf -o "$2" "$1"
+      retval=$?
+    elif [ -x "$(command -v wget)" ]; then
+      wget -q -O "$2" "$1"
+      retval=$?
     else
-      wget -q --tries="$downloadRetry" -O "$2" "$1"
+      echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
+      exit 1
     fi
-    retval=$?
-  else
-    echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
-    exit 1
-  fi
+    if [ $retval -eq 0 ] || [ $attempt -ge $maxAttempts ]; then
+      break
+    fi
+    if [ "$downloadRetryDelay" -gt 0 ] 2>/dev/null; then
+      sleepSeconds=$downloadRetryDelay
+    else
+      # Exponential backoff: 1, 2, 4, 8, ...
+      sleepSeconds=$((1 << (attempt - 1)))
+    fi
+    echo "Download attempt $attempt/$maxAttempts failed, retrying in $sleepSeconds second(s)..." 1>&2
+    sleep $sleepSeconds
+  done
 }
 
 unpack() {
