@@ -9,6 +9,11 @@
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
+# Base URL for downloading JBang releases.
+# Override for testing or corporate mirrors.
+# Example: JBANG_DOWNLOAD_BASEURL=http://localhost:18080
+jbangDownloadBaseUrl=${JBANG_DOWNLOAD_BASEURL:-https://github.com/jbangdev/jbang/releases}
+
 # Number of retry attempts for downloads (curl/wget)
 downloadRetry=${JBANG_DOWNLOAD_RETRY:-5}
 downloadRetryDelay=${JBANG_DOWNLOAD_RETRY_DELAY:-0}
@@ -48,7 +53,10 @@ download() {
       # Exponential backoff: 1, 2, 4, 8, ...
       sleepSeconds=$((1 << (attempt - 1)))
     fi
-    echo "Download attempt $attempt/$maxAttempts failed, retrying in $sleepSeconds second(s)..." 1>&2
+    if [ $attempt -eq 1 ]; then
+      echo "Download failed. Retrying... (JBANG_DOWNLOAD_RETRY=0 to disable)" 1>&2
+    fi
+    echo "Download $attempt/$maxAttempts failed. Retry in $sleepSeconds second(s)..." 1>&2
     sleep $sleepSeconds
   done
 }
@@ -274,9 +282,9 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     if [ -n "$JBANG_DOWNLOAD_URL" ]; then
       jburl="$JBANG_DOWNLOAD_URL";
     elif [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
-      jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
+      jburl="${jbangDownloadBaseUrl}/latest/download/jbang.tar";
     else
-      jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
+      jburl="${jbangDownloadBaseUrl}/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
     fi
     echo "Downloading JBang ${JBANG_DOWNLOAD_VERSION:-latest} from $jburl..." 1>&2
     download "$jburl" "$TDIR/urls/jbang.tar"

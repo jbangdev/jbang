@@ -60,6 +60,11 @@ if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { 
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
 if (-not (Test-Path env:JBANG_USE_NATIVE)) { $env:JBANG_USE_NATIVE="false" }
 
+# Base URL for downloading JBang releases.
+# Override for testing or corporate mirrors.
+# Example: $env:JBANG_DOWNLOAD_BASEURL='http://localhost:18080'
+if (-not (Test-Path env:JBANG_DOWNLOAD_BASEURL)) { $jbangDownloadBaseUrl='https://github.com/jbangdev/jbang/releases' } else { $jbangDownloadBaseUrl=$env:JBANG_DOWNLOAD_BASEURL }
+
 # Number of retry attempts for downloads
 if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY)) { $downloadRetry=5 } else { $downloadRetry=[int]$env:JBANG_DOWNLOAD_RETRY }
 if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY_DELAY)) { $downloadRetryDelay=0 } else { $downloadRetryDelay=[int]$env:JBANG_DOWNLOAD_RETRY_DELAY }
@@ -82,7 +87,10 @@ function Invoke-Download {
                 # Exponential backoff: 1, 2, 4, 8, ...
                 $sleepSeconds = [Math]::Pow(2, $attempt - 1)
             }
-            [Console]::Error.WriteLine("Download attempt $attempt/$($downloadRetry + 1) failed, retrying in $sleepSeconds second(s)...")
+            if ($attempt -eq 1) {
+                [Console]::Error.WriteLine("Download failed. Retrying... (JBANG_DOWNLOAD_RETRY=0 to disable)")
+            }
+            [Console]::Error.WriteLine("Download $attempt/$($downloadRetry + 1) failed. Retry in $sleepSeconds second(s)...")
             Start-Sleep -Seconds $sleepSeconds
         }
     }
@@ -142,9 +150,9 @@ if (-not $binaryPath -and -not $jarPath) {
     if (Test-Path env:JBANG_DOWNLOAD_URL) {
         $jburl=$env:JBANG_DOWNLOAD_URL
     } elseif (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
-        $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+        $jburl="$jbangDownloadBaseUrl/latest/download/jbang.zip"
     } else {
-        $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
+        $jburl="$jbangDownloadBaseUrl/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
     }
     $dlVersion = if ($env:JBANG_DOWNLOAD_VERSION) { $env:JBANG_DOWNLOAD_VERSION } else { 'latest' }
     [Console]::Error.WriteLine("Downloading JBang $dlVersion from $jburl...")
