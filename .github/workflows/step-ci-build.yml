@@ -159,6 +159,7 @@ jobs:
           annotate_only: true # forked repo cannot write to checks so just do annotations
       - name: Add artifact.ci links
         if: failure()
+        shell: bash
         run: |
           BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}"
           echo "View [Allure Report](${BASE}/allure-report-${{ matrix.os }}) [direct link (available after first view)](${BASE}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
@@ -225,6 +226,7 @@ jobs:
           annotate_only: true # forked repo cannot write to checks so just do annotations
       - name: Add artifact.ci links
         if: failure()
+        shell: bash
         run: |
           BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}"
           echo "View [Allure Report](${BASE}/allure-report-${{ matrix.os }}) [direct link (available after first view)](${BASE}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
