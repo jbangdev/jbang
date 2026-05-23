@@ -20,7 +20,7 @@ public class VersionIT extends BaseIT {
 	public void shouldVersion() {
 		assertThat(shell("jbang version")).succeeded()
 			.outMatches(Pattern.compile(
-					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?" + lineSeparator()))
+					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?(-SNAPSHOT)?" + lineSeparator()))
 			.errEquals("");
 	}
 
@@ -33,7 +33,7 @@ public class VersionIT extends BaseIT {
 	public void shouldVerboseVersion() {
 		assertThat(shell("jbang --verbose version")).succeeded()
 			.outMatches(Pattern.compile(
-					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?" + lineSeparator()))
+					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?(-SNAPSHOT)?" + lineSeparator()))
 			.errContains("Repository");
 	}
 
