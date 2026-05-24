@@ -69,11 +69,19 @@ jobs:
           cd itests
           ./test_suite.sh
           cd $pastdir
+      - name: Download native bundles
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
+          path: build/distributions
+          merge-multiple: true
+          if-no-files-found: error
       - name: version extract
         id: version
         run: |
           RELEASE_VERSION=`cat build/tmp/version.txt`
-          echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          ls -la build/distributions
       - name: Run JReleaser
         uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
         env: 

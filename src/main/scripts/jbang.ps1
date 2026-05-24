@@ -64,6 +64,10 @@ if (-not (Test-Path env:JBANG_USE_NATIVE)) { $env:JBANG_USE_NATIVE="false" }
 if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY)) { $downloadRetry=5 } else { $downloadRetry=[int]$env:JBANG_DOWNLOAD_RETRY }
 if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY_DELAY)) { $downloadRetryDelay=0 } else { $downloadRetryDelay=[int]$env:JBANG_DOWNLOAD_RETRY_DELAY }
 
+# Optional base URL override for testing bundle/version downloads locally.
+# Defaults to the public GitHub release location.
+# Example: $env:JBANG_DOWNLOAD_BASEURL='http://localhost:18080'
+
 function Invoke-Download {
     param([string]$url, [string]$outFile)
     $attempt=0
@@ -117,6 +121,108 @@ function Invoke-JBang {
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
 }
 
+function Get-NativeExecName {
+    return "jbang.bin.exe"
+}
+
+# Keep in sync with src/main/java/dev/jbang/cli/App.java:getNativeBundleArch()
+# and src/main/scripts/jbang:native_bundle_arch()
+function Get-NativeBundleArch {
+    switch ($arch) {
+        "x86_64" { return "x64" }
+        "amd64" { return "x64" }
+        "aarch64" { return "aarch64" }
+        "arm64" { return "aarch64" }
+        default { return $arch }
+    }
+}
+
+function Resolve-DownloadUrl {
+    param([string]$ReleaseVersion, [string]$BundleName)
+
+    # JBANG_DOWNLOAD_URL is a full URL override (takes precedence over JBANG_DOWNLOAD_BASEURL)
+    if (Test-Path env:JBANG_DOWNLOAD_URL) {
+        return $env:JBANG_DOWNLOAD_URL
+    }
+
+    $baseUrl = $env:JBANG_DOWNLOAD_BASEURL
+    if (-not $baseUrl) {
+        $baseUrl = "https://github.com/jbangdev/jbang/releases"
+    }
+    $baseUrl = $baseUrl.TrimEnd('/')
+
+    if ($baseUrl.StartsWith("file://") -or $baseUrl.StartsWith("http://") -or $baseUrl.StartsWith("https://")) {
+        if (-not $ReleaseVersion) {
+            return "$baseUrl/latest/download/$BundleName"
+        }
+        return "$baseUrl/download/v$ReleaseVersion/$BundleName"
+    }
+
+    if (-not $ReleaseVersion) {
+        return "$baseUrl/latest/download/$BundleName"
+    }
+    return "$baseUrl/v$ReleaseVersion/$BundleName"
+}
+
+function Get-NativeBundleUrl {
+    param([string]$ReleaseVersion)
+
+    $bundleName = "jbang-$os-$(Get-NativeBundleArch).zip"
+    return Resolve-DownloadUrl $ReleaseVersion $bundleName
+}
+
+function Get-FallbackBundleUrl {
+    param([string]$ReleaseVersion)
+
+    return Resolve-DownloadUrl $ReleaseVersion "jbang.zip"
+}
+
+function Install-JBangBundle {
+    param([string]$ReleaseVersion, [string]$NativeRequested)
+
+    $bundlePath = "$TDIR\urls\jbang.zip"
+    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
+
+    if ($NativeRequested -eq "true") {
+        $jburl = Get-NativeBundleUrl $ReleaseVersion
+        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest') native bundle from $jburl...")
+        $ok = Invoke-Download "$jburl" $bundlePath
+        if (-not $ok) {
+          [Console]::Error.WriteLine("WARNING: Native JBang bundle not available from $jburl, falling back to generic bundle")
+          $jburl = Get-FallbackBundleUrl $ReleaseVersion
+          $ok = Invoke-Download "$jburl" $bundlePath
+        }
+    } else {
+        $jburl = Get-FallbackBundleUrl $ReleaseVersion
+        [Console]::Error.WriteLine("Downloading JBang $($ReleaseVersion ? $ReleaseVersion : 'latest') from $jburl...")
+        $ok = Invoke-Download "$jburl" $bundlePath
+    }
+    if (-not ($ok)) {
+      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $bundlePath")
+      exit 1
+    }
+    [Console]::Error.WriteLine("Installing JBang...")
+    Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    try { Expand-Archive -Path $bundlePath -DestinationPath "$TDIR\urls"; $ok=$? } catch {
+      $ok=$false
+      $err=$_
+    }
+    if (-not ($ok)) {
+      [Console]::Error.WriteLine("Error unzipping JBang from $bundlePath to $TDIR\urls")
+      [Console]::Error.WriteLine($err)
+      break
+    }
+    New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
+    Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
+    Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
+    Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
+
+    $nativeName = Get-NativeExecName
+    if ($NativeRequested -eq "true" -and -not (Test-Path "$JBDIR\bin\$nativeName")) {
+      [Console]::Error.WriteLine("WARNING: Downloaded JBang bundle does not include native binary for this platform, falling back to jbang.jar")
+    }
+}
+
 # resolve jbang.bin binary or jar path from script location
 $binaryPath=""
 $jarPath=""
@@ -137,36 +243,12 @@ if (-not $binaryPath) {
   }
 }
 if (-not $binaryPath -and -not $jarPath) {
-  if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
-    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
-    if (Test-Path env:JBANG_DOWNLOAD_URL) {
-        $jburl=$env:JBANG_DOWNLOAD_URL
-    } elseif (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
-        $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-    } else {
-        $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
-    }
-    [Console]::Error.WriteLine("Downloading JBang $env:JBANG_DOWNLOAD_VERSION...")
-    $ok = Invoke-Download "$jburl" "$TDIR\urls\jbang.zip"
-    if (-not ($ok)) {
-      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
-      exit 1
-    }
-    [Console]::Error.WriteLine("Installing JBang...")
-    Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
-      $ok=$false
-      $err=$_
-    }
-    if (-not ($ok)) {
-      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\urls\jbang.zip to $TDIR\urls")
-      [Console]::Error.WriteLine($err)
-      break
-    }
-    New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
-    Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
-    Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
-    Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
+  $needsInstall = -not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")
+  if ($env:JBANG_USE_NATIVE -eq "true" -and -not (Test-Path "$JBDIR\bin\$(Get-NativeExecName)")) {
+    $needsInstall = $true
+  }
+  if ($needsInstall) {
+    Install-JBangBundle $env:JBANG_DOWNLOAD_VERSION $env:JBANG_USE_NATIVE
   }
   . "$JBDIR\bin\jbang.ps1" @args
   break
@@ -174,6 +256,9 @@ if (-not $binaryPath -and -not $jarPath) {
 if (Test-Path "$jarPath.new") {
   # a new jbang version was found, we replace the old one with it
   Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
+}
+if ($env:JBANG_USE_NATIVE -eq "true" -and (Test-Path "$PSScriptRoot\jbang.bin.exe.new")) {
+  Move-Item -Path "$PSScriptRoot\jbang.bin.exe.new" -Destination "$PSScriptRoot\jbang.bin.exe" -Force
 }
 
 # Find/get a JDK (only needed for JAR execution)

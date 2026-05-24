@@ -92,6 +92,19 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
           if-no-files-found: error
+
+      - name: build-native-bundles
+        run: |
+          ./gradlew --no-daemon nativeDistZip nativeDistTar
+
+      - name: upload-native-bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
+          path: |
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.zip
+            build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.tar
+          if-no-files-found: error
       
       - name: create install with jbang.bin
         if: ${{ !inputs.skip_tests }}
@@ -283,6 +296,57 @@ jobs:
           cd build/itests
           chmod +x ./test_suite.sh
           ./test_suite.sh
+
+  jreleaser-dry-run:
+    needs: [build-shared, build-test-native-image]
+    if: needs.build-shared.result == 'success' && needs.build-test-native-image.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      JRELEASER_VERSION: 1.24.0
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
+          path: build
+      - name: Download native bundles
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
+          path: build/distributions
+          merge-multiple: true
+          if-no-files-found: warn
+      - name: version extract
+        id: version
+        run: |
+          RELEASE_VERSION=`cat build/tmp/version.txt`
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release version: $RELEASE_VERSION"
+          ls -la build/distributions
+      - name: Run JReleaser (dry-run)
+        uses: jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff # v2
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
+          JRELEASER_GITHUB_TOKEN: unused-dry-run
+          JRELEASER_GPG_PASSPHRASE: unused-dry-run
+          JRELEASER_GPG_PUBLIC_KEY: unused-dry-run
+          JRELEASER_GPG_SECRET_KEY: unused-dry-run
+          JRELEASER_MAVENCENTRAL_JBANG_USERNAME: unused-dry-run
+          JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: unused-dry-run
+        with:
+          version: ${{ env.JRELEASER_VERSION }}
+          arguments: release --dry-run
+          setup-java: false
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts
+          path: out/jreleaser/
 
   merge-test-reports:
     if: always() && !inputs.skip_tests

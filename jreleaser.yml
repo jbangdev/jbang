@@ -92,6 +92,36 @@ files:
     - path: build/tmp/version.txt
     - path: build/distributions/jbang.zip
     - path: build/distributions/jbang.tar
+    - path: build/distributions/jbang-{{projectVersion}}-mac-aarch64.zip
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
+    - path: build/distributions/jbang-{{projectVersion}}-mac-aarch64.tar
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
+    - path: build/distributions/jbang-{{projectVersion}}-linux-x64.zip
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
+    - path: build/distributions/jbang-{{projectVersion}}-linux-x64.tar
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
+    - path: build/distributions/jbang-{{projectVersion}}-windows-x64.zip
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
+    - path: build/distributions/jbang-{{projectVersion}}-windows-x64.tar
+      active: RELEASE
+      transform: NOOP
+      extraProperties:
+        skipArtifact: '{{missing}}'
 
 distributions:
   jbang:

@@ -58,7 +58,6 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseBuildCommand {
-	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = { "--force" }, description = "Force re-installation")
 	boolean force;
@@ -211,6 +210,67 @@ class AppInstall extends BaseBuildCommand {
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
+	private static String getDownloadBaseUrl() {
+		return Settings.getDownloadBaseUrl();
+	}
+
+	private static boolean isNativeRequested() {
+		String value = System.getenv("JBANG_USE_NATIVE");
+		return value != null && value.equalsIgnoreCase("true");
+	}
+
+	private static boolean isWindowsOs() {
+		return System.getProperty("os.name").toLowerCase().contains("windows");
+	}
+
+	private static String getBundleExtension() {
+		return isWindowsOs() ? "zip" : "tar";
+	}
+
+	// Keep in sync with src/main/scripts/jbang:native_bundle_arch()
+	// and src/main/scripts/jbang.ps1:Get-NativeBundleArch
+	private static String getNativeBundleArch() {
+		String arch = System.getProperty("os.arch").toLowerCase();
+		if ("x86_64".equals(arch) || "amd64".equals(arch)) {
+			return "x64";
+		}
+		if ("aarch64".equals(arch) || "arm64".equals(arch)) {
+			return "aarch64";
+		}
+		return null;
+	}
+
+	// Keep in sync with src/main/scripts/jbang:native_bundle_url()
+	// and src/main/scripts/jbang.ps1:Get-NativeBundleUrl
+	private static String getNativeBundleOs() {
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("mac") || os.contains("darwin")) {
+			return "mac";
+		}
+		if (os.contains("windows")) {
+			return "windows";
+		}
+		return "linux";
+	}
+
+	private static String resolveDownloadUrl(String version, String bundleName) {
+		String baseUrl = getDownloadBaseUrl();
+		if (version == null || version.trim().isEmpty()) {
+			return baseUrl + "/latest/download/" + bundleName;
+		} else {
+			return baseUrl + "/download/v" + version + "/" + bundleName;
+		}
+	}
+
+	private static String getGenericBundleUrl(String version) {
+		return resolveDownloadUrl(version, "jbang." + getBundleExtension());
+	}
+
+	private static String getNativeBundleUrl(String version) {
+		String bundleName = "jbang-" + getNativeBundleOs() + "-" + getNativeBundleArch() + "." + getBundleExtension();
+		return resolveDownloadUrl(version, bundleName);
+	}
+
 	public static boolean installJBang(boolean force) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
@@ -223,12 +283,28 @@ class AppInstall extends BaseBuildCommand {
 		if (force || !managedJBang) {
 			if (!Util.isOffline()) {
 				Util.withCacheEvict(() -> {
-					// Download JBang and unzip to ~/.jbang/bin/
+					// Download JBang and unzip/untar to ~/.jbang/bin/
 					Util.infoMsg("Downloading and installing jbang...");
-					Path zipFile = NetUtil.downloadAndCacheFile(jbangUrl);
+					String version = System.getenv("JBANG_DOWNLOAD_VERSION");
+					Path bundleFile;
+					if (isNativeRequested() && getNativeBundleArch() != null) {
+						try {
+							bundleFile = NetUtil.downloadAndCacheFile(getNativeBundleUrl(version));
+						} catch (IOException e) {
+							Util.warnMsg("Native JBang bundle not available, falling back to generic bundle.");
+							Util.verboseMsg("Native bundle download failed: " + e.getMessage());
+							bundleFile = NetUtil.downloadAndCacheFile(getGenericBundleUrl(version));
+						}
+					} else {
+						if (isNativeRequested()) {
+							Util.warnMsg("Native binaries not available for architecture '"
+									+ System.getProperty("os.arch") + "', using generic bundle.");
+						}
+						bundleFile = NetUtil.downloadAndCacheFile(getGenericBundleUrl(version));
+					}
 					Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 					Util.deletePath(urlsDir.resolve("jbang"), true);
-					UnpackUtil.unpack(zipFile, urlsDir);
+					UnpackUtil.unpack(bundleFile, urlsDir);
 					App.deleteCommandFiles("jbang");
 					Path fromDir = urlsDir.resolve("jbang").resolve("bin");
 					copyJBangFiles(fromDir, binDir);
@@ -254,26 +330,49 @@ class AppInstall extends BaseBuildCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-			.map(Paths::get)
-			.forEach(f -> {
-				try {
-					Path fromp = from.resolve(f);
-					Path top = to.resolve(f);
-					if (f.endsWith("jbang.jar")) {
+		// Scripts can be overwritten in place
+		copyFiles(from, to, false, "jbang", "jbang.cmd", "jbang.ps1");
+		// JAR uses ".new" only on Windows (locked-file issue)
+		copyFiles(from, to, Util.isWindows(), "jbang.jar");
+		// Native binaries always use ".new" promotion to avoid replacing a running
+		// binary
+		copyFiles(from, to, true, "jbang.bin", "jbang.bin.exe");
+	}
+
+	/**
+	 * Copies files from one directory to another. Missing source files are silently
+	 * skipped (except jbang.jar which also checks .jbang/jbang.jar).
+	 * 
+	 * @param from      source directory
+	 * @param to        destination directory
+	 * @param useDotNew if true and the target file already exists, copy to name +
+	 *                  ".new" instead (for safe atomic updates)
+	 * @param names     file names to copy
+	 */
+	private static void copyFiles(Path from, Path to, boolean useDotNew, String... names) throws IOException {
+		for (String name : names) {
+			try {
+				Path fromp = from.resolve(name);
+				if (!Files.isReadable(fromp)) {
+					if ("jbang.jar".equals(name)) {
+						fromp = from.resolve(".jbang/jbang.jar");
 						if (!Files.isReadable(fromp)) {
-							fromp = from.resolve(".jbang/jbang.jar");
+							continue;
 						}
-						if (Util.isWindows() && Files.isRegularFile(top)) {
-							top = to.resolve("jbang.jar.new");
-						}
+					} else {
+						continue;
 					}
-					Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-							StandardCopyOption.COPY_ATTRIBUTES);
-				} catch (IOException e) {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 				}
-			});
+				Path top = to.resolve(name);
+				if (useDotNew && Files.isRegularFile(top)) {
+					top = to.resolve(name + ".new");
+				}
+				Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+						StandardCopyOption.COPY_ATTRIBUTES);
+			} catch (IOException e) {
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + name, e);
+			}
+		}
 	}
 }
 
