@@ -408,6 +408,42 @@ import jbang
 jbang.exec('properties@jbangdev')
 ----
 
+== Download Retries
+
+When JBang downloads a JDK or JBang itself during first-time setup, it will automatically retry on failure.
+By default, downloads are retried up to 5 times. This is especially useful in CI environments where transient network errors can cause spurious failures.
+
+You can control the number of retries by setting the `JBANG_DOWNLOAD_RETRY` environment variable:
+
+[source,bash]
+----
+# Increase retries for flaky CI networks
+export JBANG_DOWNLOAD_RETRY=10
+
+# Disable retries
+export JBANG_DOWNLOAD_RETRY=0
+----
+
+This setting works consistently across all platforms:
+
+- **Linux/macOS (bash)**: Applies to both `curl` (`--retry`) and `wget` (`--tries`)
+- **Windows (PowerShell)**: Applies to `Invoke-WebRequest` via a retry loop
+- **Windows (CMD)**: Delegates to PowerShell, so the same retry logic applies
+
+You can also control the delay between retries with `JBANG_DOWNLOAD_RETRY_DELAY`.
+The default is `0`, which uses progressive backoff — the delay increases between each retry attempt (e.g., 1s, 2s, 4s, 8s, ...).
+This avoids overwhelming a server that is already struggling and is the recommended setting for CI.
+Set to a positive number of seconds for a fixed delay between every retry instead.
+
+=== Custom Download URL
+
+By default JBang downloads itself from GitHub. You can override the download URL by setting `JBANG_DOWNLOAD_URL`, for example to use a corporate mirror:
+
+[source,bash]
+----
+export JBANG_DOWNLOAD_URL=https://internal-mirror.example.com/jbang/jbang.tar
+----
+
 == Version Check
 
 `jbang` will check once a day if a new version is available. If a new version is available a message will be printed with information on how to install.
@@ -427,3 +463,76 @@ jbang test.java ## if more than 24hrs last check version will be checked
 export JBANG_NO_VERSION_CHECK
 jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
 ----
+
+== Startup Script Environment Variables
+
+The JBang startup scripts (`jbang`, `jbang.cmd`, `jbang.ps1`) use the following environment variables.
+These are read by the scripts themselves before Java or JBang's Java code is invoked.
+
+[cols="2,1,4", options="header"]
+|===
+| Variable | Default | Description
+
+| `JBANG_DIR`
+| `~/.jbang`
+| Root directory for JBang configuration, installed apps, and (unless overridden) the cache.
+
+| `JBANG_CACHE_DIR`
+| `$JBANG_DIR/cache`
+| Directory for cached JDKs, compiled scripts, and downloaded content.
+
+| `JBANG_DEFAULT_JAVA_VERSION`
+| `17`
+| Java version to install when no JDK is found on the system.
+
+| `JBANG_JDK_VENDOR`
+| `temurin` (for 8, 11, 17+) +
+  `aoj` (others)
+| JDK distribution to download. Passed as the `distro` parameter to the https://foojay.io[Foojay Disco API].
+
+| `JBANG_DOWNLOAD_RETRY`
+| `5`
+| Number of retry attempts for downloading JDK or JBang archives. Set to `0` to disable retries.
+
+| `JBANG_DOWNLOAD_RETRY_DELAY`
+| `0`
+| Delay in seconds between download retry attempts. `0` (default) uses progressive backoff (1s, 2s, 4s, 8s, ...). A positive value uses a fixed delay between every retry.
+
+| `JBANG_DOWNLOAD_URL`
+| _(GitHub releases)_
+| Override the URL used to download JBang itself. Useful for corporate mirrors or air-gapped environments.
+
+| `JBANG_DOWNLOAD_VERSION`
+| _(latest)_
+| Specific JBang version to download (e.g., `0.120.0`). When unset, the latest release is used.
+
+| `JBANG_JAVA_OPTIONS`
+| _(empty)_
+| Additional JVM options passed when running JBang's Java code (e.g., `-Xmx512m`).
+
+| `JBANG_USE_NATIVE`
+| `false`
+| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR.
+
+| `JBANG_NO_VERSION_CHECK`
+| _(unset)_
+| When set (to any value), disables the automatic check for new JBang versions.
+
+|===
+
+The following variables are set *by* the scripts for use by JBang's Java code and are not intended to be set by users:
+
+[cols="2,4", options="header"]
+|===
+| Variable | Description
+
+| `JBANG_RUNTIME_SHELL`
+| The shell running the script (`bash`, `cmd`, or `powershell`).
+
+| `JBANG_STDIN_NOTTY`
+| `true` if stdin is not a terminal, `false` otherwise.
+
+| `JBANG_LAUNCH_CMD`
+| Path to the script that was invoked.
+
+|===
