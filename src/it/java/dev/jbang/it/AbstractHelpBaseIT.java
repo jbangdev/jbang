@@ -17,7 +17,7 @@ public abstract class AbstractHelpBaseIT extends BaseIT {
 	public void shouldPrintHelp() {
 		assertThat(shell("jbang " + commandName() + " --help"))
 			.succeeded()
-			.errContains("Use 'jbang <command> -h' for detailed");
+			.outContains("--help");
 	}
 
 	// Scenario: check help command is printed when -h is requested

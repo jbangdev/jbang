@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: wrapper Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-wrapper-install(1)
 
@@ -12,44 +12,59 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-wrapper-install - Install/Setup jbang as a `wrapper` script in a folder
+wrapper-install - Install/Setup jbang as a wrapper script in a folder
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang wrapper install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* [*-d*=_<dest>_]
+*wrapper install* [*-h*] [*-d*=_<dir>_] [*-f*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Install/Setup jbang as a `wrapper` script in a folder
+Install/Setup jbang as a wrapper script in a folder
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-d*, *--dir*=_<dest>_::
+*-h*, *--help*::
+  Display help (use --help=all for all options)
+
+*-d*, *--dir*=_<dir>_::
   The folder to install the wrapper into.
 
 *-f*, *--force*::
   Force installation of wrapper even if files already exist
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 

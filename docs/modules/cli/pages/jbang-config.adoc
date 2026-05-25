@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,7 +19,7 @@ jbang-config - Read and write configuration options.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang config* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
+*jbang config* [*-h*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,20 +33,32 @@ Read and write configuration options.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+  Display help (use --help=all for all options)
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 

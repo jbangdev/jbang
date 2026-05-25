@@ -22,7 +22,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add a dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependency was added
@@ -46,11 +46,10 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add multiple dependencies
-		int result = JBang.getCommandLine()
-			.execute("deps", "add",
-					"info.picocli:picocli:4.6.3",
-					"com.fasterxml.jackson.core:jackson-core:2.15.2",
-					testFile.toString());
+		int result = JBang.execute("deps", "add",
+				"info.picocli:picocli:4.6.3",
+				"com.fasterxml.jackson.core:jackson-core:2.15.2",
+				testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependencies were added
@@ -67,7 +66,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add a dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
+		int result = JBang.execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependency was added
@@ -84,11 +83,10 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add multiple dependencies
-		int result = JBang.getCommandLine()
-			.execute("deps", "add",
-					"org.slf4j:slf4j-api:1.7.36",
-					"org.slf4j:slf4j-simple:1.7.36",
-					testFile.toString());
+		int result = JBang.execute("deps", "add",
+				"org.slf4j:slf4j-api:1.7.36",
+				"org.slf4j:slf4j-simple:1.7.36",
+				testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependencies were added
@@ -105,7 +103,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Try to add the same dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependency was not duplicated
@@ -122,7 +120,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Try to add the same dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
+		int result = JBang.execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		String fileContent = Util.readString(testFile);
@@ -138,7 +136,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add the same dependency with different version
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		String fileContent = Util.readString(testFile);
@@ -155,7 +153,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add new dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
+		int result = JBang.execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the new dependency was added
@@ -173,7 +171,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add new dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
+		int result = JBang.execute("deps", "add", "org.slf4j:slf4j-api:1.7.36", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the new dependency was added
@@ -196,7 +194,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Add a dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isEqualTo(0);
 
 		// Verify the dependency was added at the beginning
@@ -213,7 +211,7 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Try to add an invalid dependency
-		int result = JBang.getCommandLine().execute("deps", "add", "invalid-dependency", testFile.toString());
+		int result = JBang.execute("deps", "add", "invalid-dependency", testFile.toString());
 		assertThat(result).isNotEqualTo(0);
 	}
 
@@ -221,7 +219,7 @@ public class TestDeps extends BaseTest {
 	void testDepsAddToNonExistentFile(@TempDir Path outputDir) throws IOException {
 		// Try to add dependency to non-existent file
 		Path testFile = outputDir.resolve("nonexistent.java");
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isNotEqualTo(0);
 	}
 
@@ -233,21 +231,21 @@ public class TestDeps extends BaseTest {
 		Files.write(testFile, content.getBytes());
 
 		// Try to add dependency to unsupported file
-		int result = JBang.getCommandLine().execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
+		int result = JBang.execute("deps", "add", "info.picocli:picocli:4.6.3", testFile.toString());
 		assertThat(result).isNotEqualTo(0);
 	}
 
 	@Test
 	void testDepsAddMissingParameters() {
 		// Test with missing parameters
-		int result = JBang.getCommandLine().execute("deps", "add");
+		int result = JBang.execute("deps", "add");
 		assertThat(result).isNotEqualTo(0);
 	}
 
 	@Test
 	void testDepsAddOnlyTargetFile() {
 		// Test with only target file (no dependencies)
-		int result = JBang.getCommandLine().execute("deps", "add", "test.java");
+		int result = JBang.execute("deps", "add", "test.java");
 		assertThat(result).isNotEqualTo(0);
 	}
 }

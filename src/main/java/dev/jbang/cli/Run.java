@@ -1,10 +1,16 @@
 package dev.jbang.cli;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.aesh.command.CommandDefinition;
+import org.aesh.command.option.Arguments;
+import org.aesh.command.option.Mixin;
+import org.aesh.command.option.Option;
 
 import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
@@ -15,34 +21,52 @@ import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
-import picocli.CommandLine;
-
-@CommandLine.Command(name = "run", description = "Builds and runs provided script. (default command)")
+@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials")
 public class Run extends BaseBuildCommand {
 
-	@CommandLine.Mixin
+	/**
+	 * A PrintStream that always writes to the real stdout, bypassing any
+	 * System.setOut() redirection. Used to output the command line for the parent
+	 * process to execute.
+	 */
+	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
+
+	@Mixin
 	public RunMixin runMixin;
 
-	@CommandLine.Option(names = { "-c",
-			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
-	public Optional<String> literalScript;
+	@Option(shortName = 'c', name = "code", fallbackValue = "", description = "Run the given string as code")
+	public String literalScript;
 
-	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-	public List<String> userParams = new ArrayList<>();
+	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
+	public List<String> userParams;
+
+	@Override
+	public void afterParse() {
+		super.afterParse();
+		runMixin.resolveAfterParse();
+		if (userParams == null) {
+			userParams = new ArrayList<>();
+		}
+	}
 
 	protected void requireScriptArgument() {
-		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && !literalScript.isPresent())
-				|| (literalScript.isPresent() && literalScript.get().isEmpty()))) {
-			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && literalScript == null)
+				|| (literalScript != null && literalScript.isEmpty()))) {
+			if (commandInvocation != null) {
+				System.err.println(commandInvocation.getHelpInfo());
+			}
+			throw new ExitException(EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 
 	private void rewriteScriptArguments() {
-		if (literalScript.isPresent() && !literalScript.get().isEmpty()
+		if (literalScript != null && !literalScript.isEmpty()
 				&& scriptMixin.scriptOrFile != null) {
 			List<String> args = new ArrayList<>();
 			args.add(scriptMixin.scriptOrFile);
-			args.addAll(userParams);
+			if (userParams != null) {
+				args.addAll(userParams);
+			}
 			userParams = args;
 		}
 	}
@@ -51,40 +75,39 @@ public class Run extends BaseBuildCommand {
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
 		rewriteScriptArguments();
-
 		userParams = handleRemoteFiles(userParams);
-		String scriptOrFile = scriptMixin.scriptOrFile;
+		String script = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilderForRun();
 
 		Project prj;
-		if (literalScript.isPresent()) {
-			String script;
-			if (!literalScript.get().isEmpty()) {
-				script = literalScript.get();
+		if (literalScript != null) {
+			String code;
+			if (!literalScript.isEmpty()) {
+				code = literalScript;
 			} else {
-				script = scriptOrFile;
+				code = script;
 			}
-			Util.verboseMsg("Literal Script to execute: '" + script + "'");
-			prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, script, scriptMixin.forceType));
+			Util.verboseMsg("Literal Script to execute: '" + code + "'");
+			prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, code, scriptMixin.getForceType()));
 		} else {
-			if (scriptOrFile != null) {
-				prj = pb.build(scriptOrFile);
+			if (script != null) {
+				prj = pb.build(script);
 			} else {
 				// HACK it's a crappy way to work around the fact that in the case of
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
-				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", scriptMixin.forceType));
+				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", scriptMixin.getForceType()));
 			}
 		}
 
 		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
-				&& (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
+				&& (scriptMixin.getForceType() == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			prj.setNativeImage(false);
 		}
 
-		BuildContext ctx = BuildContext.forProject(prj, buildDir);
+		BuildContext ctx = BuildContext.forProject(prj, getBuildDir());
 		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
 		buildAgents(ctx);
@@ -146,7 +169,7 @@ public class Run extends BaseBuildCommand {
 			.enableSystemAssertions(runMixin.enableSystemAssertions)
 			.flightRecorderString(runMixin.flightRecorderString)
 			.debugString(runMixin.debugString)
-			.classDataSharing(runMixin.cds);
+			.classDataSharing(runMixin.getCds());
 
 		return gb;
 	}
@@ -159,87 +182,5 @@ public class Run extends BaseBuildCommand {
 		Map<String, String> result = new HashMap<>();
 		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
 		return result;
-	}
-
-	/**
-	 * Helper class to peek ahead at `--debug` to pickup --debug=5000, --debug 5000,
-	 * --debug *:5000 as debug parameters but not --debug somefile.java
-	 */
-	static class DebugFallbackConsumer implements CommandLine.IParameterConsumer {
-
-		final private static Pattern p = Pattern
-			.compile("(?<address>(.*?:)?(\\d+\\??))|(?<key>\\S*)=(?<value>\\S+\\??)");
-
-		@Override
-		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
-				CommandLine.Model.CommandSpec commandSpec) {
-			String arg = args.peek();
-			Matcher m = p.matcher(arg);
-
-			if (!m.matches()) {
-				m = p.matcher(((CommandLine.Model.OptionSpec) argSpec).fallbackValue());
-			} else {
-				args.pop();
-			}
-
-			if (m.matches()) {
-				Map<String, String> kv = argSpec.getValue();
-
-				if (kv == null) {
-					kv = new LinkedHashMap<>();
-				}
-
-				String address = m.group("address");
-				if (address != null) {
-					kv.put("address", address);
-				} else {
-					kv.put(m.group("key"), m.group("value"));
-				}
-				argSpec.setValue(kv);
-			}
-		}
-	}
-
-	/**
-	 * Helper class to peek ahead at `--jfr` to pickup x=y,t=y but not --jfr
-	 * somefile.java
-	 */
-	static class KeyValueFallbackConsumer extends PatternFallbackConsumer {
-		private static final Pattern p = Pattern.compile("(\\S*?)=(\\S+)");
-
-		@Override
-		protected Pattern getValuePattern() {
-			return p;
-		}
-
-	}
-
-	static abstract class PatternFallbackConsumer implements CommandLine.IParameterConsumer {
-
-		protected abstract Pattern getValuePattern();
-
-		@Override
-		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
-				CommandLine.Model.CommandSpec commandSpec) {
-			Matcher m = getValuePattern().matcher(args.peek());
-			if (m.matches()) {
-				argSpec.setValue(args.pop());
-			} else {
-				String val, name;
-				if (argSpec.isOption()) {
-					CommandLine.Model.OptionSpec opt = (CommandLine.Model.OptionSpec) argSpec;
-					name = opt.longestName();
-					val = opt.fallbackValue();
-				} else {
-					name = argSpec.paramLabel();
-					val = null;
-				}
-				try {
-					argSpec.setValue(val);
-				} catch (Exception badValue) {
-					throw new CommandLine.InitializationException("Value for " + name + " must be an string", badValue);
-				}
-			}
-		}
 	}
 }

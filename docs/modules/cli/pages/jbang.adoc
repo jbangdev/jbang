@@ -1,5 +1,5 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
@@ -19,59 +19,49 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang* [*-hV*] [*--insecure*] [*--preview*] [*--config*=_<config>_] [*--verbose* | *--quiet*]
-      [*-o* | *--fresh*] [COMMAND]
+*jbang* [*-h*] [*-V*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-  jbang init hello.java [args...]
-        (to initialize a script)
-  or  jbang edit --open=code --live hello.java
-        (to edit a script in IDE with live updates)
-  or  jbang hello.java [args...]
-        (to run a .java file)
-  or  jbang gavsearch@jbangdev [args...]
-        (to run a alias from a catalog)
-  or  jbang group-id:artifact-id:version [args...]
-        (to run a .jar file found with a GAV id)
-
- note: run is the default command. To get help about run use jbang run --help
-
+jbang is a tool for building and running .java/.jsh scripts and jar packages.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
-
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--preview*::
-  Enable jbang preview features
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+  Display help (use --help=all for all options)
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *--verbose*::
   jbang will be verbose on what it does.
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*--preview*::
+  Enable jbang preview features
+
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
@@ -109,9 +99,7 @@ xref:jbang:cli:jbang-cache.adoc[*cache*]::
   Manage compiled scripts in the local cache.
 
 xref:jbang:cli:jbang-completion.adoc[*completion*]::
-  Output auto-completion script for bash/zsh.
-+
-Usage: source <(jbang completion)
+  Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.
 
 xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
   Manage Java Development Kits installed by jbang.
@@ -133,6 +121,9 @@ xref:jbang:cli:jbang-export.adoc[*export*]::
 
 xref:jbang:cli:jbang-config.adoc[*config*]::
   Read and write configuration options.
+
+xref:jbang:cli:jbang-deps.adoc[*deps*]::
+  Manage dependencies in jbang files.
 
 // end::picocli-generated-man-section-commands[]
 

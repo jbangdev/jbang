@@ -1,9 +1,9 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
+// This is a generated documentation file based on aesh
+// To change it update the aesh code or the generator
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:manmanual: jbang Manual
+:manmanual: export Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-export-fatjar(1)
 
@@ -12,22 +12,14 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-export-fatjar - Exports an executable jar with all necessary dependencies included inside
+export-fatjar - Exports an executable jar with all necessary dependencies included inside
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export fatjar* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]*
-             *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
-                    [=_<module>_]] [*--catalog*=_<catalog>_] [*--config*=_<config>_]
-                    [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*-O*=_<outputFile>_]
-                    [*-T*=_<forceType>_] [*-C*=_<compileOptions>_]...
-                    [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                    [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
-                    [*--manifest*=_<String=String>_]... [*--repos*=_<repositories>_]...
-                    [*-s*=_<sources>_]... [_<scriptOrFile>_]
+*export fatjar* [*-h*] [*-O*=_<output>_] [*--force*] [*-s*=_<sources>_] [*--files*=_<files>_] [*-T*=_<source-type>_] [*--jsh*] [*--catalog*=_<catalog>_] [*-j*=_<java>_] [*-m*=_<main>_] [*--module*=_<module>_] [*-C*=_<compile-option>_] [*--manifest*=_<manifest>_] [*--integrations*] [*-D*=_<properties>_] [*--deps*=_<deps>_] [*--repos*=_<repos>_] [*--cp*=_<cp>_] [*--ignore-transitive-repositories*] [*-n*] [*-N*=_<native-option>_] [*--build-dir*=_<build-dir>_] [*--enable-preview*] [*--config*=_<config>_] [*--insecure*] [*--verbose*] [*--quiet*] [*-o*] [*--fresh*] [*--preview*] [*-x*] [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -41,88 +33,106 @@ Exports an executable jar with all necessary dependencies included inside
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*-C*, *--compile-option*=_<compileOptions>_::
-  Options to pass to the compiler
+*-h*, *--help*::
+  Display help (use --help=all for all options)
 
-*--catalog*=_<catalog>_::
-  Path to catalog file to be used instead of the default
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--cp, --class-path*=_<classpaths>_::
-  Add class path entries.
-
-*-D*, _<String=String>_::
-  set a system property
-
-*--deps*=_<dependencies>_::
-  Add additional dependencies (Use commas to separate them).
-
-*--files*=_<resources>_::
-  Add additional files.
+*-O*, *--output*=_<output>_::
+  The name or path to use for the exported file.
 
 *--force*::
   Force export, i.e. overwrite exported file if already exists
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
 
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+*--files*=_<files>_::
+  Add additional files.
 
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*--[no-]integrations*::
-  Enable integration execution (default: true)
-
-*--itr, --ignore-transitive-repositories*::
-  Ignore remote repositories found in transitive dependencies
-
-*-j*, *--java*=_<javaVersion>_::
-  JDK version to use for running the script.
+*-T*, *--source-type*=_<source-type>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--jsh*::
   Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
+*-j*, *--java*=_<java>_::
+  JDK version to use for running the script.
+
 *-m*, *--main*=_<main>_::
-  Main class to use when running. Used primarily for running jar's.
+  Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.
 
-*--manifest*=_<String=String>_::
-  
-
-*--module*[=_<module>_]::
+*--module*=_<module>_::
   Treat resource as a module. Optionally with the given module name
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*-C*, *--compile-option*=_<compile-option>_::
+  Options to pass to the compiler
 
-*-O*, *--output*=_<outputFile>_::
-  The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.
+*--manifest*=_<manifest>_::
+  
+
+*--[no-]integrations*::
+  Enable or disable integration execution (default: true)
+
+*-D*, *--properties*=_<properties>_::
+  set a system property
+
+*--deps*=_<deps>_::
+  Add additional dependencies (Use commas to separate them).
+
+*--repos*=_<repos>_::
+  Add additional repositories.
+
+*--cp*, *--class-path*=_<cp>_::
+  Add class path entries.
+
+*--ignore-transitive-repositories*, *--itr*::
+  Ignore remote repositories found in transitive dependencies
+
+*-n*, *--native*::
+  Build using native-image
+
+*-N*, *--native-option*=_<native-option>_::
+  Options to pass to the native image tool
+
+*--build-dir*=_<build-dir>_::
+  Use given directory for build results
+
+*--enable-preview*::
+  Activate Java preview features
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+  jbang will be verbose on what it does.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--repos*=_<repositories>_::
-  Add additional repositories.
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing.
 
-*-s*, *--sources*=_<sources>_::
-  Add additional sources.
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
 
-*-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+*--preview*::
+  Enable jbang preview features
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-x*, *--stacktrace*::
+  Print exceptions stacktraces to stderr (even when quiet).
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_<scriptOrFile>_]::
-  A reference to a source file
+_<scriptOrFile>_::
+  A file or URL to a Java code file
 
 // end::picocli-generated-man-section-arguments[]
 

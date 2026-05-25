@@ -17,8 +17,6 @@ import dev.jbang.cli.Run;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
-import picocli.CommandLine;
-
 public class TestConfiguration extends BaseTest {
 
 	static final String config = "foo = baz\n" +
@@ -121,55 +119,48 @@ public class TestConfiguration extends BaseTest {
 
 	@Test
 	public void testCommandDefaults() {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("init", "dummy");
-		Init init = (Init) pr.subcommand().commandSpec().userObject();
+		Init init = JBang.parseCommand("init", "dummy");
 		assertThat(init.initTemplate, equalTo("bye"));
 	}
 
 	@Test
 	public void testCommandEditOpenDefault() {
 		environmentVariables.clear("JBANG_EDITOR");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "dummy");
-		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.cfg"));
+		Edit edit = JBang.parseCommand("edit", "dummy");
+		assertThat(edit.editor, equalTo("someeditor.cfg"));
 	}
 
 	@Test
 	public void testCommandEditOpenDefaultEnv() {
 		environmentVariables.set("JBANG_EDITOR", "someeditor.env");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "dummy");
-		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.env"));
+		Edit edit = JBang.parseCommand("edit", "dummy");
+		assertThat(edit.editor, equalTo("someeditor.env"));
 	}
 
 	@Test
 	public void testCommandEditOpenFallback() {
 		environmentVariables.clear("JBANG_EDITOR");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--open", "dummy");
-		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.cfg"));
+		Edit edit = JBang.parseCommand("edit", "--open", "dummy");
+		assertThat(edit.editor, equalTo("someeditor.cfg"));
 	}
 
 	@Test
 	public void testCommandEditOpenFallbackEnv() {
 		environmentVariables.set("JBANG_EDITOR", "someeditor.env");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--open", "dummy");
-		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.env"));
+		Edit edit = JBang.parseCommand("edit", "--open", "dummy");
+		assertThat(edit.editor, equalTo("someeditor.env"));
 	}
 
 	@Test
 	public void testCommandFallbacks() {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "dummy");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "dummy");
 		assertThat(run.runMixin.debugString, is(nullValue()));
 		assertThat(run.runMixin.flightRecorderString, emptyOrNullString());
 	}
 
 	@Test
 	public void testCommandFallbacks2() {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jfr", "--debug", "dummy");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--jfr", "--debug", "dummy");
 		assertThat(run.runMixin.debugString, allOf(hasEntry("address", "4004"), is(aMapWithSize(1))));
 		assertThat(run.runMixin.flightRecorderString, equalTo("dummyjfr.cfg"));
 	}
