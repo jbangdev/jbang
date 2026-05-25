@@ -307,7 +307,7 @@ jobs:
     if: always() && needs.build-shared.result == 'success' && !inputs.skip_jreleaser_dry_run
     runs-on: ubuntu-latest
     env:
-      JRELEASER_VERSION: 1.24.0
+      JRELEASER_VERSION: early-access
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
