@@ -92,6 +92,9 @@ files:
     - path: build/tmp/version.txt
     - path: build/distributions/jbang.zip
     - path: build/distributions/jbang.tar
+  globs:
+    - pattern: build/distributions/jbang-*-*.zip
+    - pattern: build/distributions/jbang-*-*.tar
 
 distributions:
   jbang:

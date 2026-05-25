@@ -125,15 +125,20 @@ function Invoke-JBang {
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
 }
 
-# resolve jbang.bin binary or jar path from script location
+# detect architecture for platform-specific binary lookup
+$jbang_arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "aarch64" } else { "x64" }
+
+# resolve native binary or jar path from script location
 $binaryPath=""
 $jarPath=""
 if ($env:JBANG_USE_NATIVE -eq "true") {
-  # Look for native binary first if enabled
-  if (Test-Path "$PSScriptRoot\jbang.bin.exe") {
+  # Look for platform-specific native binary first, then fall back to jbang.bin.exe
+  if (Test-Path "$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe") {
+    $binaryPath="$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe"
+  } elseif (Test-Path "$PSScriptRoot\jbang.bin.exe") {
     $binaryPath="$PSScriptRoot\jbang.bin.exe"
   } else {
-    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang.bin.exe) not found in $PSScriptRoot")
+    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang-windows-${jbang_arch}.bin.exe or jbang.bin.exe) not found in $PSScriptRoot")
   }
 }
 if (-not $binaryPath) {

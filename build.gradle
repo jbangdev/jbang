@@ -248,7 +248,7 @@ nisseConfig {
 	jgit {
 		countingVersion = true
 		countingStartPatch = 1
-		appendSnapshot = false
+		appendSnapshot = true
 		countingPattern = '%M.%m.%p(.%c)'
 	}
 	os {
@@ -298,13 +298,14 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
-	// Conditionally include native image binary if it exists
+	// Include native image binary renamed to platform-specific name (e.g. jbang-linux-x64.bin)
+	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
-	if (project.file("${project.buildDir}/native-image/${nativeExecName}").exists()) {
-		from(project.buildDir.toPath().resolve('native-image')) {
-			include nativeExecName
-			into 'bin'
-		}
+	def platformNativeExecName = getPlatformNativeExecutableName()
+	from(project.buildDir.toPath().resolve('native-image')) {
+		include nativeExecName
+		rename nativeExecName, platformNativeExecName
+		into 'bin'
 	}
 }
 
@@ -325,9 +326,34 @@ latestDistZip {
 	archiveFileName = "${project.name}.zip"
 }
 
-
 latestDistTar {
 	archiveFileName = "${project.name}.tar"
+}
+
+tasks.register('nativeDistZip', Zip) {
+	dependsOn('nativeImage')
+	with commonSpec
+	archiveFileName.set(provider { "${getNativeBundleBaseName()}.zip" })
+}
+
+tasks.register('nativeDistTar', Tar) {
+	dependsOn('nativeImage')
+	with commonSpec
+	compression = Compression.NONE
+	archiveFileName.set(provider { "${getNativeBundleBaseName()}.tar" })
+}
+
+tasks.register('latestNativeDistZip', Zip) {
+	dependsOn('nativeImage')
+	with commonSpec
+	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.zip" })
+}
+
+tasks.register('latestNativeDistTar', Tar) {
+	dependsOn('nativeImage')
+	with commonSpec
+	compression = Compression.NONE
+	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.tar" })
 }
 
 jar {
@@ -664,14 +690,56 @@ def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolch
 	return parts.join('-')
 }
 
-// Function to get the correct native executable name based on OS
-def getNativeExecutableName() {
+// Functions to derive native bundle metadata based on the current platform
+// Base native executable name as produced by the nativeImage task
+String getNativeExecutableName() {
 	def osName = System.getProperty('os.name').toLowerCase()
 	if (osName.contains('windows')) {
 		return 'jbang.bin.exe'
 	} else {
 		return 'jbang.bin'
 	}
+}
+
+// Platform-specific native binary name for distribution bundles
+String getPlatformNativeExecutableName() {
+	def os = getNativeBundleOs()
+	def arch = getNativeBundleArch()
+	if (os == 'windows') {
+		return "jbang-${os}-${arch}.bin.exe"
+	} else {
+		return "jbang-${os}-${arch}.bin"
+	}
+}
+
+String getNativeBundleOs() {
+	def osName = System.getProperty('os.name').toLowerCase()
+	if (osName.contains('mac') || osName.contains('darwin')) {
+		return 'mac'
+	} else if (osName.contains('windows')) {
+		return 'windows'
+	} else {
+		return 'linux'
+	}
+}
+
+String getNativeBundleArch() {
+	def arch = System.getProperty('os.arch').toLowerCase()
+	if (arch == 'x86_64' || arch == 'amd64') {
+		return 'x64'
+	} else if (arch == 'aarch64' || arch == 'arm64') {
+		return 'aarch64'
+	} else {
+		return arch.replaceAll('[^a-z0-9_]+', '-')
+	}
+}
+
+String getNativeBundleBaseName() {
+	return "${project.name}-${project.version}-${getNativeBundleOs()}-${getNativeBundleArch()}"
+}
+
+String getLatestNativeBundleBaseName() {
+	return "${project.name}-${getNativeBundleOs()}-${getNativeBundleArch()}"
 }
 
 // Configure resource processing for test and integrationTest

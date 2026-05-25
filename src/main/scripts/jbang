@@ -207,7 +207,7 @@ case "$(uname -m)" in
     arch=x32;;
   x86_64|amd64)
     arch=x64;;
-  aarch64)
+  aarch64|arm64)
     arch=aarch64;;
   armv7l)
     arch=arm;;
@@ -215,8 +215,6 @@ case "$(uname -m)" in
     arch=ppc64le;;
   s390x)
     arch=s390x;;
-  arm64)
-    arch=arm64;;
   riscv64)
     arch=riscv64
     ;;
@@ -249,22 +247,27 @@ if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 if [[ -z "$JBANG_USE_NATIVE" ]]; then JBANG_USE_NATIVE="false"; fi
 
-## resolve jbang.bin binary or jar path from script location
+## resolve native binary or jar path from script location
 binaryPath=""
 jarPath=""
 if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
-  # Look for native binary first if enabled
+  # Look for platform-specific native binary first (e.g. jbang-linux-x64.bin),
+  # then fall back to generic jbang.bin for manually placed binaries
   if [[ "$os" == "windows" ]]; then
-    if [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
+    if [ -f "$abs_jbang_dir/jbang-${os}-${arch}.bin.exe" ] && [ -x "$abs_jbang_dir/jbang-${os}-${arch}.bin.exe" ]; then
+      binaryPath="$abs_jbang_dir/jbang-${os}-${arch}.bin.exe"
+    elif [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin.exe"
     else
-      echo "WARNING: JBang native binary (jbang.bin.exe) not found in $abs_jbang_dir" 1>&2
+      echo "WARNING: JBang native binary (jbang-${os}-${arch}.bin.exe or jbang.bin.exe) not found in $abs_jbang_dir" 1>&2
     fi
   else
-    if [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
+    if [ -f "$abs_jbang_dir/jbang-${os}-${arch}.bin" ] && [ -x "$abs_jbang_dir/jbang-${os}-${arch}.bin" ]; then
+      binaryPath="$abs_jbang_dir/jbang-${os}-${arch}.bin"
+    elif [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin"
     else
-      echo "WARNING: JBang native binary (jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
+      echo "WARNING: JBang native binary (jbang-${os}-${arch}.bin or jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
     fi
   fi
 fi

@@ -237,7 +237,8 @@ class AppInstall extends BaseBuildCommand {
 			} else {
 				Path jar = Util.getJarLocation();
 				// TODO: this is duplicated in Wrapper.java - should be more shared.
-				if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith("jbang.bin")) {
+				if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith(".bin")
+						&& !jar.toString().endsWith(".bin.exe")) {
 					throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location from " + jar);
 				}
 				Path fromDir = jar.getParent();
