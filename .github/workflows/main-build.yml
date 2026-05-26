@@ -54,7 +54,7 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: ${{ env.JRELEASER_VERSION }}
-          arguments: full-release
+          arguments: full-release --yolo
           setup-java: false
       - name: JReleaser output
         if: always()
