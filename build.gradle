@@ -264,6 +264,9 @@ afterEvaluate {
 	if (!resolvedVersion || resolvedVersion.matches('0\\.0\\.1-\\d+')) {
 		throw new GradleException("Invalid computed version '${resolvedVersion}'. Ensure semantic version tags exist (e.g., 'v0.120.0') or check fetch-depth/clone strategy.")
 	}
+	if (project.hasProperty('forceSnapshot') && !resolvedVersion.endsWith('-SNAPSHOT')) {
+		resolvedVersion = "${resolvedVersion}-SNAPSHOT"
+	}
 	version = resolvedVersion
 }
 
