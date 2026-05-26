@@ -22,11 +22,6 @@ on:
         required: false
         type: boolean
         default: false
-      force_snapshot:
-        description: 'Append -SNAPSHOT to version (for earlyaccess builds)'
-        required: false
-        type: boolean
-        default: false
   workflow_call:
     inputs: *inputs
 
@@ -52,7 +47,7 @@ jobs:
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: build-with-no-tests
-        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s ${{ inputs.force_snapshot && '-PforceSnapshot' || '' }}
+        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
       - name: Upload jbang.zip
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()

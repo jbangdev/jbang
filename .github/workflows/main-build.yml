@@ -16,8 +16,6 @@ concurrency:
 jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml
-    with:
-      force_snapshot: true
 
   earlyaccess:
     needs: ci-build
