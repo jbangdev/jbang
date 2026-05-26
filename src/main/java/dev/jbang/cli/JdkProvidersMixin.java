@@ -3,27 +3,31 @@ package dev.jbang.cli;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionList;
+import org.aesh.command.option.OptionVisibility;
+
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.util.JavaUtil;
 
-import picocli.CommandLine;
-
 public class JdkProvidersMixin {
-	@CommandLine.Option(names = {
-			"--jdk-providers" }, description = "Use the given providers to manage JDKs", split = ",", scope = CommandLine.ScopeType.INHERIT)
+
+	@OptionList(name = "jdk-providers", valueSeparator = ',', visibility = OptionVisibility.HIDDEN, description = "Use the given providers to check for installed JDKs")
 	List<String> jdkProviders;
 
-	@CommandLine.Option(names = {
-			"--jdk-distros" }, description = "Use the given distributions to install new JDKs", split = ",", scope = CommandLine.ScopeType.INHERIT)
+	@OptionList(name = "jdk-distros", valueSeparator = ',', visibility = OptionVisibility.HIDDEN, description = "Use the given distributions to install new JDKs")
 	List<String> jdkDistros;
 
-	@CommandLine.Option(names = {
-			"--jdk-installer" }, description = "Use the given installer to install new JDKs", hidden = true, scope = CommandLine.ScopeType.INHERIT)
+	@Option(name = "jdk-installer", visibility = OptionVisibility.HIDDEN, description = "Use the given installer to install new JDKs")
 	String jdkInstaller;
 
-	protected JdkManager jdkMan;
+	private JdkManager jdkMan;
 
-	protected JdkManager getJdkManager() {
+	public List<String> getJdkProviders() {
+		return jdkProviders;
+	}
+
+	public JdkManager getJdkManager() {
 		if (jdkMan == null) {
 			jdkMan = JavaUtil.defaultJdkManager(jdkProviders, jdkDistros, jdkInstaller);
 		}
@@ -33,16 +37,12 @@ public class JdkProvidersMixin {
 	public List<String> opts() {
 		List<String> opts = new ArrayList<>();
 		if (jdkProviders != null) {
-			for (String p : jdkProviders) {
-				opts.add("--jdk-providers");
-				opts.add(p);
-			}
+			opts.add("--jdk-providers");
+			opts.add(String.join(",", jdkProviders));
 		}
 		if (jdkDistros != null) {
-			for (String d : jdkDistros) {
-				opts.add("--jdk-distros");
-				opts.add(d);
-			}
+			opts.add("--jdk-distros");
+			opts.add(String.join(",", jdkDistros));
 		}
 		if (jdkInstaller != null) {
 			opts.add("--jdk-installer");
