@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       JRELEASER_VERSION: early-access
+      JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+      JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
