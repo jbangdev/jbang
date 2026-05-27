@@ -369,6 +369,13 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testJarWithSourcesWarning() throws Exception {
+		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
+		CaptureResult<Integer> result = checkedRun(null, "run", "--sources", "SomeFile.java", jar);
+		assertThat(result.err, containsString("--sources option is not supported for executable archives"));
+	}
+
+	@Test
 	void testJarViaHttps(@TempDir Path tdir) throws IOException {
 
 		String jar = "https://repo1.maven.org/maven2/io/joshworks/runnable-jar/0.2/runnable-jar-0.2.jar";
