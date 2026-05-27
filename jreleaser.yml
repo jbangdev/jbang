@@ -36,6 +36,9 @@ project:
     version: 8
   inceptionYear: 2020
   stereotype: CLI
+  snapshot:
+    pattern: '^\d+\.\d+\.\d+\.\d+(?:-SNAPSHOT)?$'
+    label: early-access
 
 release:
   github:
