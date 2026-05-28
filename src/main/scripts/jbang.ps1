@@ -157,7 +157,14 @@ if (-not $binaryPath -and -not $jarPath) {
     } elseif (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
         $jburl="$jbangDownloadBaseUrl/latest/download/jbang.zip"
     } else {
-        $jburl="$jbangDownloadBaseUrl/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
+        # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
+        # release tags (e.g. 'early-access') are used as-is.
+        if ($env:JBANG_DOWNLOAD_VERSION -match '^[0-9]') {
+            $jbtag = "v$env:JBANG_DOWNLOAD_VERSION"
+        } else {
+            $jbtag = $env:JBANG_DOWNLOAD_VERSION
+        }
+        $jburl="$jbangDownloadBaseUrl/download/$jbtag/jbang.zip";
     }
     $dlVersion = if ($env:JBANG_DOWNLOAD_VERSION) { $env:JBANG_DOWNLOAD_VERSION } else { 'latest' }
     [Console]::Error.WriteLine("Downloading JBang $dlVersion from $jburl...")
