@@ -200,6 +200,24 @@ class TestScriptDownloadVersion {
 			assertTrue(!result.stderr.contains("Error downloading JBang"),
 					"download should have succeeded, stderr: " + result.stderr);
 		}
+
+		@Test
+		void prereleaseTagIsUsedAsIs() throws Exception {
+			byte[] tar = createJbangTar();
+			wm.stubFor(WireMock.get(WireMock.urlEqualTo("/download/1.0.0-rc1/jbang.tar"))
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(tar)));
+
+			List<String> cmd = new ArrayList<>();
+			cmd.add("bash");
+			cmd.add(BASH_SCRIPT.toString());
+			cmd.add("version");
+
+			RunResult result = runProcess(cmd, bashEnv("1.0.0-rc1"));
+
+			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/download/1.0.0-rc1/jbang.tar")));
+			assertTrue(!result.stderr.contains("Error downloading JBang"),
+					"download should have succeeded, stderr: " + result.stderr);
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -294,6 +312,28 @@ class TestScriptDownloadVersion {
 			RunResult result = runProcess(cmd, psEnv("early-access"));
 
 			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/download/early-access/jbang.zip")));
+			assertTrue(!result.stderr.contains("Error downloading JBang"),
+					"download should have succeeded, stderr: " + result.stderr);
+		}
+
+		@Test
+		void prereleaseTagIsUsedAsIs() throws Exception {
+			byte[] zip = createJbangZip();
+			wm.stubFor(WireMock.get(WireMock.urlEqualTo("/download/1.0.0-rc1/jbang.zip"))
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(zip)));
+
+			List<String> cmd = new ArrayList<>();
+			cmd.add(psCommand);
+			cmd.add("-NoProfile");
+			cmd.add("-ExecutionPolicy");
+			cmd.add("Bypass");
+			cmd.add("-File");
+			cmd.add(PS1_SCRIPT.toString());
+			cmd.add("version");
+
+			RunResult result = runProcess(cmd, psEnv("1.0.0-rc1"));
+
+			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/download/1.0.0-rc1/jbang.zip")));
 			assertTrue(!result.stderr.contains("Error downloading JBang"),
 					"download should have succeeded, stderr: " + result.stderr);
 		}

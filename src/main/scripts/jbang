@@ -288,10 +288,10 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
       jburl="${jbangDownloadBaseUrl}/latest/download/jbang.tar";
     else
       # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
-      # release tags (e.g. 'early-access') are used as-is.
+      # release tags (e.g. 'early-access', '1.0.0-rc1') are used as-is.
       case "$JBANG_DOWNLOAD_VERSION" in
-        [0-9]*) jbtag="v$JBANG_DOWNLOAD_VERSION" ;;
-        *)      jbtag="$JBANG_DOWNLOAD_VERSION" ;;
+        *[!0-9.]*) jbtag="$JBANG_DOWNLOAD_VERSION" ;;
+        *)         jbtag="v$JBANG_DOWNLOAD_VERSION" ;;
       esac
       jburl="${jbangDownloadBaseUrl}/download/$jbtag/jbang.tar";
     fi
