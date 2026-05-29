@@ -1,5 +1,5 @@
 {
-  "enabled": false,
+  "enabled": true,
   extends: [
     'config:best-practices',
     'group:monorepos',
