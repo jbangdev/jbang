@@ -255,6 +255,9 @@ class JdkList extends BaseJdkCommand {
 						if (jdk.javaHomeDir != null) {
 							out.print(", " + jdk.javaHomeDir);
 						}
+						if (jdk.linkedId != null) {
+							out.print(", link to " + jdk.linkedId);
+						}
 						if (!jdk.tags.isEmpty()) {
 							out.print(", " + jdk.tags);
 						}
@@ -297,7 +300,9 @@ class JdkUninstall extends BaseJdkCommand {
 			}
 		}
 		jdk.uninstall();
-		Util.infoMsg("Uninstalled JDK:\n  " + jdk.id());
+		if (!jdk.isInstalled()) {
+			Util.infoMsg("Uninstalled JDK:\n  " + jdk.id());
+		}
 		return EXIT_OK;
 	}
 }
