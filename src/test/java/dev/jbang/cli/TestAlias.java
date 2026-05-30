@@ -564,4 +564,44 @@ public class TestAlias extends BaseTest {
 
 	}
 
+	@Test
+	void testGetAliasFromLocalCatalog() throws IOException {
+		Path aliasesFile = jbangTempDir.resolve("aliases.json");
+		Files.write(aliasesFile, aliases.getBytes());
+
+		String cat = "{\n" +
+				"  \"catalogs\": {\n" +
+				"    \"local\": {\n" +
+				"      \"catalog-ref\": \"" + aliasesFile + "\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Path catFile = jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Files.write(catFile, cat.getBytes());
+
+		assertThat(Alias.get("one@local"), notNullValue());
+		assertThat(Alias.get("one"), notNullValue());
+	}
+
+	@Test
+	void testGetAliasFromImplicitCatalog() throws IOException {
+		Path catFile = jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Util.deletePath(catFile, true);
+		Path aliasesFile = jbangTempDir.resolve("aliases.json");
+		Files.write(aliasesFile, aliases.getBytes());
+
+		String cat = "{\n" +
+				"  \"catalogs\": {\n" +
+				"    \"local\": {\n" +
+				"      \"catalog-ref\": \"" + aliasesFile + "\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Path implicitCatFile = Settings.getUserImplicitCatalogFile();
+		Files.write(implicitCatFile, cat.getBytes());
+
+		assertThat(Alias.get("one@local"), notNullValue());
+		assertThat(Alias.get("one"), nullValue());
+	}
+
 }
