@@ -118,7 +118,7 @@ Exports a Maven project
   Add additional sources.
 
 *-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, scala, or markdown
 
 *-v*, *--version*=_<version>_::
   The version to use for the exported project.

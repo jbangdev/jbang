@@ -27,6 +27,8 @@ public class Cache {
 			@CommandLine.Option(names = {
 					"--kotlinc" }, description = "clear kotlinc cache only", negatable = true) Boolean kotlincs,
 			@CommandLine.Option(names = {
+					"--scalac" }, description = "clear scalac cache only", negatable = true) Boolean scalacs,
+			@CommandLine.Option(names = {
 					"--groovyc" }, description = "clear groovyc cache only", negatable = true) Boolean groovys,
 			@CommandLine.Option(names = {
 					"--project" }, description = "clear temporary projects cache only", negatable = true) Boolean projects,
@@ -44,6 +46,7 @@ public class Cache {
 				&& jars == null
 				&& jdks == null
 				&& kotlincs == null
+				&& scalacs == null
 				&& groovys == null
 				&& projects == null
 				&& scripts == null
@@ -62,7 +65,8 @@ public class Cache {
 		toggleCache(jars, dev.jbang.Cache.CacheClass.jars, classes);
 		toggleCache(jdks, dev.jbang.Cache.CacheClass.jdks, classes);
 		toggleCache(kotlincs, dev.jbang.Cache.CacheClass.kotlincs, classes);
-		toggleCache(kotlincs, dev.jbang.Cache.CacheClass.groovycs, classes);
+		toggleCache(scalacs, dev.jbang.Cache.CacheClass.scalacs, classes);
+		toggleCache(groovys, dev.jbang.Cache.CacheClass.groovycs, classes);
 		toggleCache(deps, dev.jbang.Cache.CacheClass.deps, classes);
 		toggleCache(projects, dev.jbang.Cache.CacheClass.projects, classes);
 		toggleCache(scripts, dev.jbang.Cache.CacheClass.scripts, classes);

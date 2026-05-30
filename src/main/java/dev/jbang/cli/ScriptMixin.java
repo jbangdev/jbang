@@ -18,7 +18,7 @@ public class ScriptMixin {
 	List<String> resources;
 
 	@CommandLine.Option(names = { "-T",
-			"--source-type" }, description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
+			"--source-type" }, description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, scala, or markdown")
 	Source.Type forceType;
 
 	@CommandLine.Option(names = {
