@@ -15,6 +15,7 @@
 
 * Running & Execution
 ** xref:jbang:ROOT:execution-options.adoc[Execution Options]
+** xref:jbang:ROOT:locking.adoc[Locking & Checksums]
 ** xref:jbang:ROOT:remote-execution.adoc[Remote Execution]
 ** xref:jbang:ROOT:native-images.adoc[Native Images]
 ** xref:jbang:ROOT:self-contained-executables.adoc[Self-Contained Executables]

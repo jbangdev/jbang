@@ -1,6 +1,12 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +19,7 @@ import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
+import dev.jbang.util.LockFileUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -20,12 +27,20 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "run", description = "Builds and runs provided script. (default command)")
 public class Run extends BaseBuildCommand {
 
+	private static final int MIN_DIGEST_PREFIX_LENGTH = 12;
+
 	@CommandLine.Mixin
 	public RunMixin runMixin;
 
 	@CommandLine.Option(names = { "-c",
 			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
 	public Optional<String> literalScript;
+
+	@CommandLine.Option(names = { "--locked" }, description = "Lock behavior: none, lenient, strict")
+	LockMode lockMode = LockMode.lenient;
+
+	@CommandLine.Option(names = { "--lock-file" }, description = "Path to lock file (default: .jbang.lock)")
+	Path lockFile;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
@@ -54,8 +69,21 @@ public class Run extends BaseBuildCommand {
 
 		userParams = handleRemoteFiles(userParams);
 		String scriptOrFile = scriptMixin.scriptOrFile;
+		RefWithChecksum refWithChecksum = scriptOrFile != null ? splitRefAndChecksum(scriptOrFile) : null;
+		if (refWithChecksum != null) {
+			scriptOrFile = refWithChecksum.ref;
+		}
+
+		Path effectiveLockFile = resolveLockFile(scriptOrFile);
+		List<String> preLockSources = Collections.emptyList();
+		if (lockMode != LockMode.none && scriptOrFile != null && Files.exists(effectiveLockFile)) {
+			preLockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
+		}
 
 		ProjectBuilder pb = createProjectBuilderForRun();
+		if (!preLockSources.isEmpty()) {
+			pb.lockedSourcesOverride(preLockSources);
+		}
 
 		Project prj;
 		if (literalScript.isPresent()) {
@@ -76,6 +104,106 @@ public class Run extends BaseBuildCommand {
 				// expects one to exist
 				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", scriptMixin.forceType));
 			}
+		}
+
+		if (!literalScript.isPresent() && scriptOrFile != null) {
+			String resolvedLocation = prj.getResourceRef().getFile().toAbsolutePath().toString();
+			String actualDigest = digestResource(prj, "sha256");
+			String lockDigest = null;
+			List<String> lockSources = Collections.emptyList();
+			List<String> lockDeps = Collections.emptyList();
+			Map<String, String> lockDepDigests = Collections.emptyMap();
+			boolean hasLockFile = Files.exists(effectiveLockFile);
+			if (lockMode != LockMode.none && hasLockFile) {
+				lockDigest = LockFileUtil.readDigest(effectiveLockFile, scriptOrFile);
+				lockSources = LockFileUtil.readSources(effectiveLockFile, scriptOrFile);
+				lockDeps = LockFileUtil.readDeps(effectiveLockFile, scriptOrFile);
+				lockDepDigests = LockFileUtil.readDepDigests(effectiveLockFile, scriptOrFile);
+			}
+
+			if (refWithChecksum != null && refWithChecksum.checksum != null) {
+				verifyDigestSpec(actualDigest, refWithChecksum.checksum,
+						"reference checksum for " + scriptOrFile + " (resolved " + resolvedLocation + ")");
+			}
+			if (lockMode != LockMode.none && hasLockFile) {
+				if (lockMode == LockMode.strict && lockDigest == null) {
+					throw new ExitException(EXIT_INVALID_INPUT,
+							"Lock verification failed for " + scriptOrFile + " (missing lock entry in "
+									+ effectiveLockFile
+									+ ").\nPossible security issue: expected lock data is absent.\n"
+									+ "What to do: inspect the lock file path, regenerate with `jbang lock "
+									+ scriptOrFile
+									+ "` only if trusted, or stop and review changes.",
+							null);
+				}
+				if (lockDigest != null) {
+					verifyDigestSpec(actualDigest, lockDigest,
+							"lockfile for " + scriptOrFile + " (resolved " + resolvedLocation + ")",
+							lockMode != LockMode.strict);
+				}
+				if (!lockSources.isEmpty()) {
+					Set<String> expected = new LinkedHashSet<>(lockSources);
+					Set<String> actual = prj.getMainSourceSet()
+						.getSources()
+						.stream()
+						.map(s -> s.getOriginalResource() == null ? "" : s.getOriginalResource())
+						.collect(Collectors.toCollection(LinkedHashSet::new));
+					verifyLockedSet("sources", scriptOrFile, expected, actual);
+				}
+				if (!lockDeps.isEmpty()) {
+					Set<String> expectedDeps = new LinkedHashSet<>(lockDeps);
+					BuildContext depCtx = BuildContext.forProject(prj);
+					Set<String> actualDeps = depCtx
+						.resolveClassPath()
+						.getArtifacts()
+						.stream()
+						.map(a -> a.getCoordinate() == null ? "" : a.getCoordinate().toCanonicalForm())
+						.filter(s -> !s.isEmpty())
+						.collect(Collectors.toCollection(LinkedHashSet::new));
+					verifyLockedSet("dependency graph", scriptOrFile, expectedDeps, actualDeps);
+
+					if (lockMode == LockMode.strict && !expectedDeps.isEmpty()
+							&& lockDepDigests.size() < expectedDeps.size()) {
+						Set<String> missing = new LinkedHashSet<>(expectedDeps);
+						missing.removeAll(lockDepDigests.keySet());
+						throw new ExitException(EXIT_INVALID_INPUT,
+								"Lock verification failed for " + scriptOrFile
+										+ " (strict mode requires dependency digests for all locked dependencies).\n"
+										+ "Possible security issue: lock file is incomplete or modified.\n"
+										+ "Missing digest entries for: " + missing + "\n"
+										+ "What to do: regenerate with `jbang lock " + scriptOrFile
+										+ "` only if trusted, otherwise review lock/source history.",
+								null);
+					}
+
+					if (!lockDepDigests.isEmpty()) {
+						Map<String, String> actualDepDigests = depCtx.resolveClassPath()
+							.getArtifacts()
+							.stream()
+							.filter(a -> a.getCoordinate() != null)
+							.collect(Collectors.toMap(a -> a.getCoordinate().toCanonicalForm(),
+									a -> digestPath(a.getFile(), "sha256"), (a, b) -> a, LinkedHashMap::new));
+						for (Map.Entry<String, String> e : lockDepDigests.entrySet()) {
+							String coord = e.getKey();
+							String expected = e.getValue();
+							String actual = actualDepDigests.get(coord);
+							if (actual == null) {
+								throw new ExitException(EXIT_INVALID_INPUT,
+										"Lock verification failed for " + scriptOrFile
+												+ " (dependency artifact missing for locked digest).\n"
+												+ "Dependency: " + coord + "\n"
+												+ "Possible security/integrity issue: resolved dependency set differs from lock.\n"
+												+ "What to do: inspect dependency changes; regenerate lock only if trusted.",
+										null);
+							}
+							verifyDigestSpec(actual, expected,
+									"lock dependency digest for " + coord + " in " + scriptOrFile,
+									lockMode != LockMode.strict);
+						}
+					}
+				}
+			}
+
 		}
 
 		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
@@ -159,6 +287,140 @@ public class Run extends BaseBuildCommand {
 		Map<String, String> result = new HashMap<>();
 		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
 		return result;
+	}
+
+	enum LockMode {
+		none, lenient, strict
+	}
+
+	private Path resolveLockFile(String scriptOrFile) {
+		if (lockFile != null) {
+			return lockFile;
+		}
+		if (scriptOrFile != null) {
+			Path p = Paths.get(scriptOrFile);
+			Path candidate = p.isAbsolute() ? p : Util.getCwd().resolve(p);
+			if (Files.exists(candidate) && Files.isRegularFile(candidate)) {
+				return Paths.get(scriptOrFile + ".lock");
+			}
+		}
+		return Util.getCwd().resolve(".jbang.lock");
+	}
+
+	static final class RefWithChecksum {
+		final String ref;
+		final String checksum;
+
+		RefWithChecksum(String ref, String checksum) {
+			this.ref = ref;
+			this.checksum = checksum;
+		}
+	}
+
+	static RefWithChecksum splitRefAndChecksum(String ref) {
+		int idx = ref.lastIndexOf('#');
+		if (idx < 0 || idx == ref.length() - 1) {
+			return new RefWithChecksum(ref, null);
+		}
+		String suffix = ref.substring(idx + 1);
+		String digest = suffix.contains(":") ? suffix : "sha256:" + suffix;
+		return new RefWithChecksum(ref.substring(0, idx), digest);
+	}
+
+	private static String digestPath(Path path, String algorithm) {
+		try {
+			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
+			try (InputStream in = Files.newInputStream(path)) {
+				byte[] buffer = new byte[8192];
+				int read;
+				while ((read = in.read(buffer)) >= 0) {
+					md.update(buffer, 0, read);
+				}
+			}
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
+		} catch (IOException | NoSuchAlgorithmException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unable to digest dependency artifact: " + path, e);
+		}
+	}
+
+	private static String digestResource(Project prj, String algorithm) throws IOException {
+		try {
+			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
+			try (InputStream in = prj.getResourceRef().getInputStream()) {
+				byte[] buffer = new byte[8192];
+				int read;
+				while ((read = in.read(buffer)) >= 0) {
+					md.update(buffer, 0, read);
+				}
+			}
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
+		} catch (NoSuchAlgorithmException e) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported digest algorithm: " + algorithm, e);
+		}
+	}
+
+	private static String toHex(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length * 2);
+		for (byte b : bytes) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
+	}
+
+	static void verifyLockedSet(String kind, String ref, Set<String> expected, Set<String> actual) {
+		if (!actual.equals(expected)) {
+			Set<String> missing = new LinkedHashSet<>(expected);
+			missing.removeAll(actual);
+			Set<String> extra = new LinkedHashSet<>(actual);
+			extra.removeAll(expected);
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed for " + ref + " (" + kind + " mismatch).\n"
+							+ "Possible security issue: lock file and resolved content differ.\n"
+							+ "Missing from resolved: " + missing + "\n"
+							+ "Unexpected in resolved: " + extra + "\n"
+							+ "What to do: inspect lock/source changes; regenerate with `jbang lock " + ref
+							+ "` only if trusted.",
+					null);
+		}
+	}
+
+	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source) {
+		verifyDigestSpec(actualDigest, expectedDigest, source, true);
+	}
+
+	static void verifyDigestSpec(String actualDigest, String expectedDigest, String source, boolean allowPrefix) {
+		String[] actualParts = actualDigest.split(":", 2);
+		String[] expectedParts = expectedDigest.split(":", 2);
+		if (expectedParts.length != 2) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed: invalid digest format from " + source + ": " + expectedDigest + "\n"
+							+ "What to do: use `sha256:<digest>` (or valid algorithm prefix).",
+					null);
+		}
+		if (!actualParts[0].equalsIgnoreCase(expectedParts[0])) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed: digest algorithm mismatch in " + source + ": expected "
+							+ expectedParts[0] + ", got " + actualParts[0] + "\n"
+							+ "What to do: regenerate lock or use matching digest algorithm if trusted.",
+					null);
+		}
+		String expectedHex = expectedParts[1].toLowerCase(Locale.ROOT);
+		String actualHex = actualParts[1].toLowerCase(Locale.ROOT);
+		if (allowPrefix && expectedHex.length() < MIN_DIGEST_PREFIX_LENGTH) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed: digest prefix too short in " + source + ". Use at least "
+							+ MIN_DIGEST_PREFIX_LENGTH + " hex characters.\n"
+							+ "What to do: provide a longer checksum prefix or full digest.",
+					null);
+		}
+		if (allowPrefix ? !actualHex.startsWith(expectedHex) : !actualHex.equals(expectedHex)) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Lock verification failed: digest mismatch in " + source + ": expected " + expectedDigest
+							+ ", got " + actualDigest + "\n"
+							+ "Possible security issue: content differs from lock/checksum.\n"
+							+ "What to do: inspect changes; regenerate lock only if trusted.",
+					null);
+		}
 	}
 
 	/**
