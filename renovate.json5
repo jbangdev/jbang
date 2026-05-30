@@ -1,5 +1,7 @@
 {
   "enabled": true,
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 1,
   extends: [
     'config:best-practices',
     'group:monorepos',
