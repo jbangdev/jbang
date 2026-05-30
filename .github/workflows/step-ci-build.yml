@@ -361,10 +361,9 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
-          path: build/allure-results
-          merge-multiple: true
+          path: build/allure-inputs
       - id: generate-report
-        run: ./gradlew --no-daemon allureReport --clean
+        run: ./gradlew --no-daemon allureReport --clean -PallureMergeDirs="$(find build/allure-inputs -mindepth 1 -maxdepth 1 -type d | tr '\n' ',' | sed 's/,$//')"
       - name: Arcive test results
         uses: ./.github/actions/shared-test-archiving
         with:
