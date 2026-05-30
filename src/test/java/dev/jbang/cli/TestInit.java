@@ -354,4 +354,25 @@ public class TestInit extends BaseTest {
 
 	}
 
+	@Test
+	void testInitWithMissingTemplateFile() throws IOException {
+		Path cwd = Util.getCwd();
+		Path out = cwd.resolve("result.java");
+
+		// Create template with reference to non-existent file
+		int addResult = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=bad-template",
+					"{basename}/{basename}App.java=tpl/NonExistentFile.java");
+		assertThat(addResult, is(0));
+
+		// Attempting to init with this template should fail gracefully with clear error
+		int result = JBang.getCommandLine()
+			.execute("init", "--template=bad-template", "test");
+
+		// Should fail with non-zero exit code
+		assertThat(result, not(0));
+		// Output file should not be created
+		assertThat(out.toFile().exists(), is(false));
+	}
+
 }
