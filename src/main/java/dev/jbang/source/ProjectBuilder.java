@@ -489,9 +489,21 @@ public class ProjectBuilder {
 		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
 		ss.addDependencies(replaceAllProps(additionalDeps));
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
-		updateAllSources(prj, replaceAllProps(additionalSources));
-		ss.addResources(
-				allToFileRef(allToKV(replaceAllProps(additionalResources)), null, ResourceResolver.forResources()));
+		if (prj.isExecutableArchive()) {
+			if (additionalSources != null && !additionalSources.isEmpty()) {
+				Util.warnMsg(
+						"--sources option is not supported for executable archives (jar/war) and will be ignored.");
+			}
+			if (additionalResources != null && !additionalResources.isEmpty()) {
+				Util.warnMsg(
+						"--files option is not supported for executable archives (jar/war) and will be ignored.");
+			}
+		} else {
+			updateAllSources(prj, replaceAllProps(additionalSources));
+			ss.addResources(
+					allToFileRef(allToKV(replaceAllProps(additionalResources)), null,
+							ResourceResolver.forResources()));
+		}
 		ss.addCompileOptions(compileOptions);
 		ss.addNativeOptions(nativeOptions);
 		prj.putProperties(properties);
