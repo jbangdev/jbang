@@ -207,6 +207,11 @@ public class TestInit extends BaseTest {
 		testFailMultipleFiles("{filename}", "edit.md", "edit.java", true, 2);
 	}
 
+	@Test
+	void testInitMultipleFilesWrongName2() throws IOException {
+		testFailMultipleFiles("{basename}.java", "edit.md", "edit.java", true, 2);
+	}
+
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
@@ -354,4 +359,55 @@ public class TestInit extends BaseTest {
 
 	}
 
+	@Test
+	void testInitUsingTemplateWithFilenameAndBasename() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello World".getBytes());
+		Path tfFileQute = Files.write(cwd.resolve("file2.tf.qute"), "Hello World from .tf file".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outTf = cwd.resolve("prefixed-result.tf");
+
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
+						"{filename}" + "=" + javaFileQute.toAbsolutePath().toString(),
+						"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath().toString());
+
+		assertThat(outJava.toFile().exists(), not(true));
+
+		int result = JBang	.getCommandLine()
+							.execute("init", "--verbose", "--template=template-with-more-files",
+									outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outTf.toFile().exists(), is(true));
+
+		String javaContent = Util.readString(outJava);
+		String tfContent = Util.readString(outTf);
+
+		assertThat(javaContent, containsString("Hello World"));
+		assertThat(tfContent, containsString("Hello World from .tf file"));
+
+	}
+
+	@Test
+	void testResolveBaseNameShouldResolveFilenameOrBasename() {
+		// Use case when the {filename} should be resolved to the input name -
+		// result.java
+		String scriptName = "result.java";
+		Path path = Init.resolveBaseName("{filename}", "template-for-script.java", scriptName);
+		assertThat(path.toString(), containsString("result.java"));
+
+		// Use case when the {filename} can not be resolved because the input is
+		// result.java but the reference source has .tf extension not .java
+		ExitException exitException = assertThrows(ExitException.class,
+				() -> Init.resolveBaseName("{filename}", "template-for-script.tf", scriptName));
+		String exceptionMessage = "Template expects tf extension, not java";
+		assertThat(exitException.getMessage(), containsString(exceptionMessage));
+
+		// Use case when the {basename} is being used with prefix and with not .java
+		// extension, and the reference soure also has the .tf extension
+		path = Init.resolveBaseName("template-for-{basename}.tf", "template-for-script.tf", scriptName);
+		assertThat(path.toString(), containsString("template-for-result.tf"));
+	}
 }
