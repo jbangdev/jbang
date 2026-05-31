@@ -1,5 +1,15 @@
 import org.gradle.crypto.checksum.Checksum
 
+buildscript {
+	dependencies {
+		// Force commons-io 2.22.0+ on the buildscript classpath.
+		// Gradle ships commons-io 2.15.1 which lacks the Supplier overload
+		// of IOUtils.skip() required by commons-compress 1.28.0 (used by
+		// the Allure Gradle plugin's Node.js download task).
+		classpath 'commons-io:commons-io:2.22.0'
+	}
+}
+
 plugins {
 	id "distribution"
 	id "com.gradleup.shadow" version "8.3.9"
@@ -18,25 +28,16 @@ plugins {
 	id 'jacoco'
 	id 'maven-publish'
 	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.9.2'
-	id 'io.qameta.allure-report' version '2.12.0'
-	id "io.qameta.allure-adapter-base" version "2.12.0"
+	id "io.qameta.allure" version "4.0.2"
 }
 
-def allureVersion = '2.29.1'
-def aspectJVersion = '1.9.25'
+def allureVersion = '2.35.2'
 def assertjVersion = '3.27.7'
 def devkitmanVersion = '0.4.6'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
 def jlineVersion = '3.30.5'
 def wiremockVersion = '3.13.2'
-
-configurations {
-	agent {
-		canBeResolved = true
-		canBeConsumed = true
-	}
-}
 
 javadoc {
 	options.encoding = 'UTF-8'
@@ -78,19 +79,17 @@ def testExecutionToolchain = project.javaToolchains.launcherFor {
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
 reporting {
-	baseDir = "$buildDir/reports"
+	baseDirectory = layout.buildDirectory.dir("reports")
 }
 
 allure {
-	version.set("2.33.0")
+	version.set("3.9.0")
+	adapter {
+		allureJavaVersion.set("2.35.2")
+		aspectjWeaver.set(true)
+	}
 	report {
-
-		// There might be several tasks producing the report, so the property
-		// configures a base directory for all the reports
-		// Each task creates its own subfolder there
 		reportDir.set(project.reporting.baseDirectory.dir("allure-report"))
-
-		// Enable single file generation to open without serving.
 		singleFile = true
 	}
 }
@@ -189,8 +188,6 @@ dependencies {
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
-	agent "org.aspectj:aspectjweaver:$aspectJVersion"
-
 	if (project.hasProperty('allureMergeDirs')) {
 		project.property('allureMergeDirs').toString().split(',').each { dir ->
 			allureRawResultElements(files(dir.trim()))
@@ -421,7 +418,7 @@ shadowJar {
 test {
 	useJUnitPlatform()
 	javaLauncher = testExecutionToolchain
-	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
+	def jvmArgsList = []
 	if (testJavaVersion.asInt() >= 9) {
 		jvmArgsList.addAll([
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
