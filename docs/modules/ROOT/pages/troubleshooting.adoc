@@ -338,8 +338,9 @@ This applies to JDK and JBang bootstrap downloads on all platforms (curl, wget, 
 jbang cache clear
 
 # Clear specific cache types
-jbang cache clear jars
-jbang cache clear deps
+jbang cache clear --jar
+jbang cache clear --deps
+jbang cache clear --scalac
 
 # Check cache location
 jbang cache list
@@ -463,6 +464,7 @@ Yes! JBang supports:
 
 - **Kotlin** (`.kt` files)
 - **Groovy** (`.groovy` files)  
+- **Scala** (`.scala` files)
 - **JShell** (`.jsh` files)
 - **Markdown** (`.md` files with code blocks)
 

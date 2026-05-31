@@ -154,7 +154,7 @@ Install a script as a command.
   Add additional sources.
 
 *-T*, *--source-type*=_<forceType>_::
-  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, scala, or markdown
 
 *--verbose*::
   jbang will be verbose on what it does.

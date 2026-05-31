@@ -383,6 +383,9 @@ public class ProjectBuilder {
 				if (resourceRef.resolve("src/main/groovy") != null) {
 					sources.add("src/main/groovy/**.groovy");
 				}
+				if (resourceRef.resolve("src/main/scala") != null) {
+					sources.add("src/main/scala/**.scala");
+				}
 			}
 		}
 		List<Source> includedSources = allToSource(sources, resourceRef, sibRes2);

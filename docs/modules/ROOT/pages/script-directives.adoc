@@ -448,6 +448,26 @@ def name = args.length > 0 ? args[0] : "World"
 println "Hello from Groovy $name"
 ----
 
+=== //SCALA
+
+Specifies Scala compiler version.
+
+**Syntax**: `//SCALA version`
+
+**Example**:
+[source,scala]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//SCALA 3.8.1
+//DEPS org.scala-lang:scala3-library_3:3.8.1
+
+object hello {
+  def main(args: Array[String]): Unit = {
+    println("Hello from Scala " + args.headOption.getOrElse("World"))
+  }
+}
+----
+
 == File and Resource Management
 
 === //SOURCES
@@ -620,9 +640,10 @@ The `--docs` CLI argument can accept a list of comma separated references to ove
 [source,java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//SOURCES kotlin/Utils.kt groovy/Scripts.groovy
+//SOURCES kotlin/Utils.kt groovy/Scripts.groovy scala/Utils.scala
 //DEPS org.jetbrains.kotlin:kotlin-stdlib:2.0.21
 //DEPS org.codehaus.groovy:groovy:3.0.19
+//DEPS org.scala-lang:scala3-library_3:3.8.1
 //FILES config/ templates/
 
 // Mixed-language application
@@ -697,6 +718,7 @@ Some directives can be conditionally applied:
 |`//JAVAAGENT` |Java agent |`//JAVAAGENT agent.jar`
 |`//KOTLIN` |Kotlin version |`//KOTLIN 2.0.21`
 |`//GROOVY` |Groovy version |`//GROOVY 3.0.19`
+|`//SCALA` |Scala version |`//SCALA 3.8.1`
 |`//SOURCES` |Additional sources |`//SOURCES util/Helper.java`
 |`//FILES` |Include files |`//FILES config.properties`
 |`//DESCRIPTION` |Script description |`//DESCRIPTION My utility`
