@@ -8,7 +8,7 @@
 // group results by OS so the Allure 3 Environments view shows a side-by-side
 // comparison across platforms.
 //
-// Reference: https://allurereport.org/docs/how-it-works-report-configuration/
+// Reference: https://allurereport.org/docs/v3/configure/
 
 export default {
 	name: "JBang Test Report",
