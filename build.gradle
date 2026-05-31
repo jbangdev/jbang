@@ -109,14 +109,22 @@ task allureReportCustomConfig(type: Exec) {
 	group = 'verification'
 	description = 'Re-generate Allure report with custom allurerc.mjs config'
 	def customConfig = project.file('allurerc.mjs')
-	def allureCli = layout.buildDirectory.file('allure/commandline/bin/allure')
-	onlyIf { customConfig.exists() && allureCli.get().asFile.exists() }
+	onlyIf { customConfig.exists() }
 	doFirst {
 		def allureReportTask = tasks.named('allureReport').get()
 		def reportDir = allureReportTask.reportDir.get().asFile.absolutePath
+		// Resolve the CLI executable the same way the plugin does (allure.bat on Windows)
+		def binDir = layout.buildDirectory.dir('allure/commandline/bin').get().asFile
+		def allureExe = org.apache.tools.ant.taskdefs.condition.Os.isFamily(
+			org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)
+			? new File(binDir, 'allure.bat') : new File(binDir, 'allure')
+		if (!allureExe.exists()) {
+			// Fallback for Windows: some distributions use .cmd
+			allureExe = new File(binDir, 'allure.cmd')
+		}
 		// Use the same input directories as allureReport (respects allureMergeDirs)
 		def resultDirs = allureReportTask.resultsDirs.files.collect { it.absolutePath }
-		def cmd = [allureCli.get().asFile.absolutePath, 'generate'] + resultDirs +
+		def cmd = [allureExe.absolutePath, 'generate'] + resultDirs +
 			['--config', customConfig.absolutePath, '--output', reportDir]
 		commandLine cmd
 	}
