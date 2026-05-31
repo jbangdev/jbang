@@ -94,6 +94,29 @@ allure {
 	}
 }
 
+// Re-generate the Allure report using our allurerc.mjs which configures
+// Allure 3 environments (OS-based side-by-side comparison) and custom
+// grouping. The plugin's allureReport task generates a minimal JSON config
+// that can't express JS-based environment matchers, so we re-run the CLI
+// with our .mjs config, overwriting the report in-place.
+// This task is finalized by allureReport so it runs automatically whenever
+// allureReport is invoked (including from CI).
+task allureReportCustomConfig(type: Exec) {
+	group = 'verification'
+	description = 'Re-generate Allure report with custom allurerc.mjs config'
+	def customConfig = project.file('allurerc.mjs')
+	def allureCli = project.file("$buildDir/allure/commandline/bin/allure")
+	def resultsDir = project.file("$buildDir/allure-results")
+	onlyIf { customConfig.exists() && allureCli.exists() }
+	doFirst {
+		def reportDir = tasks.named('allureReport').get().reportDir.get().asFile.absolutePath
+		commandLine allureCli.absolutePath, 'generate', resultsDir.absolutePath,
+			'--config', customConfig.absolutePath,
+			'--output', reportDir
+	}
+}
+tasks.named('allureReport') { finalizedBy 'allureReportCustomConfig' }
+
 publishing {
 	publications {
 		maven(MavenPublication) {
