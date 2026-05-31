@@ -1,26 +1,50 @@
-// Allure 3 report configuration file.
+// Allure 3 report configuration.
 //
-// NOTE: When generating reports via `./gradlew allureReport`, the Allure Gradle
-// plugin 4.x generates its own config file and passes it to the Allure 3 CLI
-// via --config. This file is therefore NOT automatically picked up by Gradle.
-// It IS used when running the Allure 3 CLI directly (e.g. `allure generate ...`).
+// The Gradle allureReport task is configured (in build.gradle) to use this file
+// via --config, overriding the plugin's auto-generated allurerc.json.
 //
-// The Gradle plugin default already uses the "awesome" plugin with
-// groupBy defaulting to ["parentSuite", "suite", "subSuite"], which groups
-// tests by platform (OS/arch/Java) at the top level — matching our intent.
-//
-// Custom grouping hierarchy:
-//   Level 1: parentSuite label  — OS/arch/Java version (set per-job in CI)
-//   Level 2: tag label          — "unit-test" or "integration-test"
+// Environments: each CI matrix cell produces a distinct parentSuite label
+// (e.g. "Linux-amd64-21.0.10-unit-test-jvm-17-abc1234"). The matchers below
+// group results by OS so the Allure 3 Environments view shows a side-by-side
+// comparison across platforms.
 //
 // Reference: https://allurereport.org/docs/how-it-works-report-configuration/
+
 export default {
-    name: "JBang Test Report",
-    plugins: {
-        awesome: {
-            options: {
-                groupBy: ["parentSuite", "tag"],
-            },
-        },
-    },
+	name: "JBang Test Report",
+	plugins: {
+		awesome: {
+			options: {
+				singleFile: true,
+				groupBy: ["parentSuite", "suite", "subSuite"],
+			},
+		},
+	},
+	environments: {
+		linux: {
+			name: "Linux",
+			matcher: ({ labels }) =>
+				labels.some(
+					(l) => l.name === "parentSuite" && /^Linux/i.test(l.value),
+				),
+		},
+		macos: {
+			name: "macOS",
+			matcher: ({ labels }) =>
+				labels.some(
+					(l) =>
+						l.name === "parentSuite" &&
+						/^Mac/i.test(l.value),
+				),
+		},
+		windows: {
+			name: "Windows",
+			matcher: ({ labels }) =>
+				labels.some(
+					(l) =>
+						l.name === "parentSuite" &&
+						/^Windows/i.test(l.value),
+				),
+		},
+	},
 };
