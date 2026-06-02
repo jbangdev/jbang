@@ -1,7 +1,9 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+
+import org.aesh.command.CommandDefinition;
+import org.aesh.command.option.Option;
 
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactResolver;
@@ -9,15 +11,13 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
-import picocli.CommandLine;
-
-@CommandLine.Command(name = "version", description = "Display version info.")
+@CommandDefinition(name = "version", description = "Display version info.", generateHelp = true)
 public class Version extends BaseCommand {
 
-	@CommandLine.Option(names = { "--check" }, description = "Check if a new version of jbang is available")
+	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available")
 	boolean checkForUpdate;
 
-	@CommandLine.Option(names = { "--update" }, description = "Update jbang to the latest version")
+	@Option(name = "update", hasValue = false, description = "Update jbang to the latest version")
 	boolean update;
 
 	@Override
@@ -25,7 +25,7 @@ public class Version extends BaseCommand {
 		if (update) {
 			if (VersionChecker.updateOrInform(checkForUpdate)) {
 				try {
-					AppInstall.installJBang(true);
+					App.AppInstall.installJBang(true);
 				} catch (IOException e) {
 					throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
@@ -38,15 +38,15 @@ public class Version extends BaseCommand {
 		}
 
 		if (isVerbose()) {
-			PrintWriter out = spec.commandLine().getOut();
-			out.println("Cache: " + Settings.getCacheDir());
-			out.println("Config: " + Settings.getConfigDir());
-			out.println("Repository: " + ArtifactResolver.getLocalMavenRepo());
-			out.println("Java: " + System.getProperty("java.home") + " [" + System.getProperty("java.version") + "]");
-			out.println("OS: " + Util.getOS());
-			out.println("Arch: " + Util.getArch());
-			out.println("Shell: " + Util.getShell());
-			out.println("Native Image: " + JavaUtil.inNativeImage());
+			System.err.println("Cache: " + Settings.getCacheDir());
+			System.err.println("Config: " + Settings.getConfigDir());
+			System.err.println("Repository: " + ArtifactResolver.getLocalMavenRepo());
+			System.err
+				.println("Java: " + System.getProperty("java.home") + " [" + System.getProperty("java.version") + "]");
+			System.err.println("OS: " + Util.getOS());
+			System.err.println("Arch: " + Util.getArch());
+			System.err.println("Shell: " + Util.getShell());
+			System.err.println("Native Image: " + JavaUtil.inNativeImage());
 		}
 
 		return EXIT_OK;

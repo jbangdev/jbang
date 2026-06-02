@@ -1,68 +1,49 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-wrapper-install(1)
+= JBANG-WRAPPER-INSTALL
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang wrapper install -- Install/Setup jbang as a wrapper script in a folder
 
-jbang-wrapper-install - Install/Setup jbang as a `wrapper` script in a folder
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang wrapper install [-hfox] [-d=<dir>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+== DESCRIPTION
 
-*jbang wrapper install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* [*-d*=_<dest>_]
+Install/Setup jbang as a wrapper script in a folder
 
-// end::picocli-generated-man-section-synopsis[]
+== OPTIONS
 
-// tag::picocli-generated-man-section-description[]
-== Description
+*-h*, *--help*::
+Display this help and exit
 
-Install/Setup jbang as a `wrapper` script in a folder
-
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*-d*, *--dir*=_<dest>_::
-  The folder to install the wrapper into.
+*-d*, *--dir*=<dir>::
+The folder to install the wrapper into.
 
 *-f*, *--force*::
-  Force installation of wrapper even if files already exist
+Force installation of wrapper even if files already exist
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-// end::picocli-generated-man-section-arguments[]
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

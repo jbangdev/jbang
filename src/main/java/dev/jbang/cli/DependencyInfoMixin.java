@@ -4,27 +4,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionGroup;
+import org.aesh.command.option.OptionList;
+
 import dev.jbang.util.Util;
 
-import picocli.CommandLine;
-
 public class DependencyInfoMixin {
-	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
+
+	@OptionGroup(shortName = 'D', description = "set a system property", defaultValue = "true")
 	Map<String, String> properties;
-	@CommandLine.Option(names = {
-			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
+
+	@OptionList(name = "deps", valueSeparator = ',', description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
-	@CommandLine.Option(names = {
-			"--repos" }, converter = CommaSeparatedConverter.class, description = "Add additional repositories.")
+
+	@OptionList(name = "repos", valueSeparator = ',', description = "Add additional repositories.")
 	List<String> repositories;
-	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
+
+	@OptionList(name = "cp", aliases = { "class-path" }, description = "Add class path entries.")
 	List<String> classpaths;
 
-	@CommandLine.Option(names = {
-			"--ignore-transitive-repositories",
-			"--itr" }, description = "Ignore remote repositories found in transitive dependencies")
-	void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
-		Util.setIgnoreTransitiveRepositories(ignoreTransitiveRepositories);
+	@Option(name = "ignore-transitive-repositories", aliases = {
+			"itr" }, hasValue = false, description = "Ignore remote repositories found in transitive dependencies")
+	boolean ignoreTransitiveRepositories;
+
+	public Map<String, String> getProperties() {
+		return properties != null && properties.isEmpty() ? null : properties;
 	}
 
 	public List<String> getDependencies() {
@@ -39,8 +44,10 @@ public class DependencyInfoMixin {
 		return classpaths;
 	}
 
-	public Map<String, String> getProperties() {
-		return properties;
+	public void applyIgnoreTransitiveRepositories() {
+		if (ignoreTransitiveRepositories) {
+			Util.setIgnoreTransitiveRepositories(true);
+		}
 	}
 
 	public List<String> opts() {

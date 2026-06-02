@@ -1,67 +1,59 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-jdk-default(1)
+= JBANG-JDK-DEFAULT
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang jdk default -- Sets the default JDK to be used by JBang.
 
-jbang-jdk-default - Sets the default JDK to be used by JBang.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang jdk default [-hvdox] [--format=<format>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<versionOrId>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang jdk default* *-o* *--fresh* *--quiet* *--verbose* [_version_]
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Sets the default JDK to be used by JBang.
 
-// end::picocli-generated-man-section-description[]
+== OPTIONS
 
-// tag::picocli-generated-man-section-options[]
-== Options
+*-h*, *--help*::
+Display this help and exit
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*-v*, *--for-version*::
+Sets the default for the specified major version
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*-d*, *--show-details*::
+Shows detailed information for each JDK (only when format=text)
++
+Aliases: `--details`
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--format*=<format>::
+Specify output format ('text' or 'json')
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-[_version_]::
-  The version of the JDK to select
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// end::picocli-generated-man-section-arguments[]
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<versionOrId>*::
+The version of the JDK to select
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

@@ -1,77 +1,48 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-app-uninstall(1)
+= JBANG-APP-UNINSTALL
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang app uninstall -- Removes a previously installed command.
 
-jbang-app-uninstall - Removes a previously installed command.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang app uninstall [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] <name>
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang app uninstall* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                    [*--config*=_<config>_] _name_
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Removes a previously installed command.
 
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
+
+*--config*=<config>::
+Path to config file to be used instead of the default
 
 *--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-_name_::
-  The name of the command
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// end::picocli-generated-man-section-arguments[]
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<name>*::
+The name of the command
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

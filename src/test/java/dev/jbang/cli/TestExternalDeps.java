@@ -14,8 +14,6 @@ import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
 
-import picocli.CommandLine;
-
 class TestExternalDeps extends BaseTest {
 
 	String checkdeps = "public class test {"
@@ -41,10 +39,8 @@ class TestExternalDeps extends BaseTest {
 
 		Util.writeString(f.toPath(), checkdeps);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-					f.getPath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--deps", "info.picocli:picocli:4.6.3",
+				f.getPath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getPath());
@@ -59,13 +55,11 @@ class TestExternalDeps extends BaseTest {
 
 		Util.writeString(f.toPath(), checkdeps);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--repos", "central", "--repos",
-					"https://jitpack.io",
-					"--deps",
-					"com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom",
-					f.getPath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--repos", "central", "--repos",
+				"https://jitpack.io",
+				"--deps",
+				"com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom",
+				f.getPath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getPath());

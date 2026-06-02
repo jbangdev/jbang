@@ -1,79 +1,50 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-config(1)
+= JBANG-CONFIG
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang config -- Read and write configuration options.
 
-jbang-config - Read and write configuration options.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang config [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [COMMAND]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang config* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Read and write configuration options.
 
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-// end::picocli-generated-man-section-arguments[]
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// tag::picocli-generated-man-section-commands[]
-== Commands
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-xref:jbang:cli:jbang-config-get.adoc[*get*]::
-  Get a configuration value
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-xref:jbang:cli:jbang-config-set.adoc[*set*]::
-  Set a configuration value
+== COMMANDS
 
-xref:jbang:cli:jbang-config-unset.adoc[*unset*]::
-  Remove a configuration value
+* xref:jbang:cli:jbang-config-get.adoc[*get*] - Get a configuration value
+* xref:jbang:cli:jbang-config-set.adoc[*set*] - Set a configuration value
+* xref:jbang:cli:jbang-config-unset.adoc[*unset*] - Remove a configuration value
+* xref:jbang:cli:jbang-config-list.adoc[*list*] - List active configuration values
 
-xref:jbang:cli:jbang-config-list.adoc[*list*]::
-  List active configuration values
-
-// end::picocli-generated-man-section-commands[]
-
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

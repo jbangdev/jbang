@@ -11,6 +11,14 @@ import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 
+import org.aesh.command.CommandDefinition;
+import org.aesh.command.option.Argument;
+import org.aesh.command.option.Arguments;
+import org.aesh.command.option.Mixin;
+import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionGroup;
+import org.aesh.command.option.OptionList;
+
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.catalog.TemplateProperty;
@@ -23,51 +31,79 @@ import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
-import picocli.CommandLine;
-import picocli.CommandLine.ArgGroup;
 
-@CommandLine.Command(name = "init", description = "Initialize a script.")
+@CommandDefinition(name = "init", description = "Initialize a script.", generateHelp = true, helpGroup = "Editing")
 public class Init extends BaseCommand {
 
-	@CommandLine.Mixin
-	BuildMixin buildMixin;
+	@Option(shortName = 'j', name = "java", description = "JDK version to use for running the script.")
+	String javaVersion;
 
-	// @CommandLine.Mixin
-	@ArgGroup(heading = "AI Options for init with a prompt:\n", exclusive = false)
-	AIOptions aiOptions = new AIOptions();
+	@Mixin
+	AIOptions aiOptions;
 
-	@CommandLine.Option(names = { "--template",
-			"-t" }, description = "Init script with a java class useful for scripting")
+	@Option(shortName = 't', name = "template", description = "Init script with a java class useful for scripting")
 	public String initTemplate;
 
-	@CommandLine.Option(names = {
-			"--force" }, description = "Force overwrite of existing files")
+	@Option(name = "force", hasValue = false, description = "Force overwrite of existing files")
 	public boolean force;
 
-	@CommandLine.Option(names = { "--edit" }, description = "Open editor on the generated file(s)")
+	@Option(name = "edit", hasValue = false, description = "Open editor on the generated file(s)")
 	public boolean edit;
 
-	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
-	public Map<String, Object> properties = new HashMap<>();
+	@OptionGroup(shortName = 'D', description = "set a system property")
+	public Map<String, String> properties;
 
-	@CommandLine.Option(names = {
-			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
+	@OptionList(name = "deps", valueSeparator = ',', description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 
-	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
+	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "1", description = "A file or URL to a Java code file", required = true)
 	String scriptOrFile;
-	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
-	List<String> params = new ArrayList<>();
+
+	@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
+	List<String> params;
+
+	@Override
+	public void afterParse() {
+		super.afterParse();
+		if (aiOptions.provider == null) {
+			aiOptions.provider = System.getenv("JBANG_AI_PROVIDER");
+		}
+		if (aiOptions.apiKey == null) {
+			aiOptions.apiKey = System.getenv("JBANG_AI_API_KEY");
+		}
+		if (aiOptions.endpoint == null) {
+			aiOptions.endpoint = System.getenv("JBANG_AI_ENDPOINT");
+		}
+		if (aiOptions.model == null) {
+			aiOptions.model = System.getenv("JBANG_AI_MODEL");
+		}
+	}
 
 	public void requireScriptArgument() {
 		if (scriptOrFile == null) {
-			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
+	}
+
+	List<String> params() {
+		if (params != null && !params.isEmpty()) {
+			return params;
+		}
+		return Collections.emptyList();
 	}
 
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
+
+		if (initTemplate == null) {
+			initTemplate = "hello";
+		}
+
+		Map<String, Object> propsMap = new HashMap<>();
+		if (properties != null) {
+			propsMap.putAll(properties);
+		}
 
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
@@ -84,18 +120,16 @@ public class Init extends BaseCommand {
 		String baseName = Util.getBaseName(Paths.get(scriptOrFile).getFileName().toString());
 		String extension = Util.extension(scriptOrFile);
 
-		properties.put("scriptref", scriptOrFile);
-		properties.put("baseName", baseName);
-		properties.put("dependencies", dependencies);
+		propsMap.put("scriptref", scriptOrFile);
+		propsMap.put("baseName", baseName);
+		propsMap.put("dependencies", dependencies);
 
-		int reqVersion = buildMixin.javaVersion != null ? JavaUtil.minRequestedVersion(buildMixin.javaVersion)
+		int reqVersion = javaVersion != null ? JavaUtil.minRequestedVersion(javaVersion)
 				: JavaUtil.getCurrentMajorJavaVersion();
 
-		properties.put("requestedJavaVersion", buildMixin.javaVersion);
-		properties.put("javaVersion", reqVersion);
-		properties.put("compactSourceFiles", reqVersion >= 25);
-		// properties.put("magiccontent", "//no gpt response. make sure you ran with
-		// --preview and OPENAI_API_KEY set");
+		propsMap.put("requestedJavaVersion", javaVersion);
+		propsMap.put("javaVersion", reqVersion);
+		propsMap.put("compactSourceFiles", reqVersion >= 25);
 
 		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
 			.stream()
@@ -109,7 +143,6 @@ public class Init extends BaseCommand {
 			.collect(Collectors.toList());
 
 		if (!force) {
-			// Check if any of the files already exist
 			for (RefTarget refTarget : refTargets) {
 				Path target = refTarget.to(outDir);
 				if (Files.exists(target)) {
@@ -119,22 +152,18 @@ public class Init extends BaseCommand {
 			}
 		}
 
-		if (!params.isEmpty()) {
-
+		if (!params().isEmpty()) {
 			AIProvider provider = new AIProviderFactory(aiOptions.provider, aiOptions.apiKey,
-					aiOptions.endpoint,
-					aiOptions.model)
+					aiOptions.endpoint, aiOptions.model)
 				.createProvider();
 			if (provider != null) {
 				try {
 					Util.infoMsg("JBang AI activated, using " + provider.getName() + ":" + provider.getModel()
 							+ " for init. Have a bit of patience - Ctrl+C to abort.");
-					String response = provider.generateCode(baseName, extension, String.join(" ", params),
+					String response = provider.generateCode(baseName, extension, String.join(" ", params()),
 							"" + reqVersion);
-					// sometimes gpt adds a markdown ```java block so lets remove all lines starting
-					// with ``` in the output.
 					response = response.replaceAll("(?m)^```.*(?:\r?\n|$)", "");
-					properties.put("magiccontent", response);
+					propsMap.put("magiccontent", response);
 				} catch (IllegalStateException | IOException e) {
 					Util.errorMsg(
 							"Failed to generate code with " + provider.getName(), e);
@@ -146,20 +175,18 @@ public class Init extends BaseCommand {
 			}
 		}
 
-		applyTemplateProperties(tpl);
+		applyTemplateProperties(tpl, propsMap);
 
 		try {
 			for (RefTarget refTarget : refTargets) {
 				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
-					// TODO fix outFile path handling
 					Path out = refTarget.to(outDir);
-					renderQuteTemplate(out, refTarget.getSource(), properties);
+					renderQuteTemplate(out, refTarget.getSource(), propsMap);
 				} else {
 					refTarget.copy(outDir);
 				}
 			}
 		} catch (IOException e) {
-			// Clean up any files we already created
 			for (RefTarget refTarget : refTargets) {
 				Util.deletePath(refTarget.to(outDir), true);
 			}
@@ -169,11 +196,7 @@ public class Init extends BaseCommand {
 		if (edit) {
 			info("File initialized. Opening editor for you. You can also now run it with 'jbang "
 					+ renderedScriptOrFile);
-			// TODO: quick hack that gets the job of opening editor done; but really should
-			// make a isolated api to open editor instead of invoking subcommand.
-			// nice thing wit this is that it will honor you jbang config for edit
-			// automatically.
-			JBang.getCommandLine().execute("edit", renderedScriptOrFile);
+			JBang.execute("edit", renderedScriptOrFile);
 		} else {
 			info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 					+ "' or edit it using 'jbang edit --open=[editor] "
@@ -185,11 +208,11 @@ public class Init extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	private void applyTemplateProperties(dev.jbang.catalog.Template tpl) {
+	private void applyTemplateProperties(dev.jbang.catalog.Template tpl, Map<String, Object> propsMap) {
 		if (tpl.properties != null) {
 			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
 				if (entry.getValue().getDefaultValue() != null) {
-					properties.putIfAbsent(entry.getKey(), entry.getValue().getDefaultValue());
+					propsMap.putIfAbsent(entry.getKey(), entry.getValue().getDefaultValue());
 				}
 			}
 		}
@@ -216,7 +239,7 @@ public class Init extends BaseCommand {
 		return Paths.get(result);
 	}
 
-	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
+	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> propsMap)
 			throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templateRef);
 		if (template == null) {
@@ -235,8 +258,8 @@ public class Init extends BaseCommand {
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
 			TemplateInstance templateWithData = template.instance();
-			properties.forEach(templateWithData::data);
-			Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + properties);
+			propsMap.forEach(templateWithData::data);
+			Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + propsMap);
 			String result = templateWithData.render();
 
 			writer.write(result);
