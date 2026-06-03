@@ -1,83 +1,54 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-config-get(1)
+= JBANG-CONFIG-GET
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang config get -- Get a configuration value
 
-jbang-config-get - Get a configuration value
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang config get [-hgox] [-f=<file>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] <key>
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang config get* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                 [*--config*=_<config>_] [*-f*=_<configFile>_] _<key>_
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Get a configuration value
 
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*-f*, *--file*=_<configFile>_::
-  Path to the config file to use
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-g*, *--global*::
-  Use the global (user) config file
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
+
+*-g*, *--global*::
+Use the global (user) config file
+
+*-f*, *--file*=<file>::
+Path to the config file to use
+
+*--config*=<config>::
+Path to config file to be used instead of the default
 
 *--insecure*::
-  Enable insecure trust of all SSL certificates.
-
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-_<key>_::
-  The name of the configuration option to get
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// end::picocli-generated-man-section-arguments[]
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<key>*::
+The name of the configuration option to get
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

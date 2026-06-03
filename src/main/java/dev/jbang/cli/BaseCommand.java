@@ -1,27 +1,27 @@
 package dev.jbang.cli;
 
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.*;
 
+import org.aesh.command.Command;
+import org.aesh.command.CommandLifecycle;
+import org.aesh.command.CommandResult;
+import org.aesh.command.invocation.CommandInvocation;
+import org.aesh.command.option.Option;
+
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
 
-import picocli.CommandLine;
-
-public abstract class BaseCommand implements Callable<Integer> {
+public abstract class BaseCommand implements Command<CommandInvocation>, CommandLifecycle {
 
 	public static final int EXIT_OK = 0;
 	public static final int EXIT_GENERIC_ERROR = 1;
@@ -35,74 +35,56 @@ public abstract class BaseCommand implements Callable<Integer> {
 		logger.setLevel(Level.SEVERE);
 	}
 
-	@CommandLine.Spec
-	CommandLine.Model.CommandSpec spec;
+	@Option(name = "config", description = "Path to config file to be used instead of the default")
+	String configPath;
 
-	@CommandLine.Mixin
-	HelpMixin helpMixin;
+	@Option(name = "insecure", hasValue = false, description = "Enable insecure trust of all SSL certificates.")
+	boolean insecure;
 
-	@CommandLine.Option(names = { "--config" }, description = "Path to config file to be used instead of the default")
-	void setConfig(Path config) {
-		if (Files.isReadable(config)) {
-			Configuration.instance(Configuration.get(config));
-		} else {
-			warn("Configuration file does not exist or could not be read: " + config);
-		}
-	}
+	@Option(name = "verbose", hasValue = false, inherited = true, exclusiveWith = {
+			"quiet" }, description = "jbang will be verbose on what it does.")
+	boolean verbose;
 
-	@CommandLine.Option(names = { "--insecure" }, description = "Enable insecure trust of all SSL certificates.")
-	void setInsecure(boolean insecure) {
-		if (insecure) {
-			enableInsecure();
-		}
-	}
+	@Option(name = "quiet", hasValue = false, inherited = true, exclusiveWith = {
+			"verbose" }, description = "jbang will be quiet, only print when error occurs.")
+	boolean quiet;
 
-	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
+	@Option(shortName = 'o', name = "offline", hasValue = false, inherited = true, exclusiveWith = {
+			"fresh" }, description = "Work offline. Fail-fast if dependencies are missing.")
+	boolean offline;
+
+	@Option(name = "fresh", hasValue = false, inherited = true, exclusiveWith = {
+			"offline" }, description = "Make sure we use fresh (i.e. non-cached) resources.")
+	boolean fresh;
+
+	@Option(name = "preview", hasValue = false, inherited = true, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
+	boolean preview;
+
+	@Option(shortName = 'x', name = "stacktrace", hasValue = false, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
+	boolean printExceptions;
+
+	protected CommandInvocation commandInvocation;
 
 	void debug(String msg) {
 		if (isVerbose()) {
-			if (spec != null) {
-				PrintWriter err = spec.commandLine().getErr();
-				err.print(Util.getMsgHeader());
-				err.println(msg);
-			} else {
-				Util.verboseMsg(msg);
-			}
+			Util.verboseMsg(msg);
 		}
 	}
 
 	void info(String msg) {
 		if (!isQuiet()) {
-			if (spec != null) {
-				PrintWriter err = spec.commandLine().getErr();
-				err.print(Util.getMsgHeader());
-				err.println(msg);
-			} else {
-				Util.infoMsg(msg);
-			}
+			Util.infoMsg(msg);
 		}
 	}
 
 	void warn(String msg) {
 		if (!isQuiet()) {
-			if (spec != null) {
-				PrintWriter err = spec.commandLine().getErr();
-				err.print(Util.getMsgHeader());
-				err.println(msg);
-			} else {
-				Util.warnMsg(msg);
-			}
+			Util.warnMsg(msg);
 		}
 	}
 
 	void error(String msg, Throwable th) {
-		if (spec != null) {
-			PrintWriter err = spec.commandLine().getErr();
-			err.print(Util.getMsgHeader());
-			err.println(msg);
-		} else {
-			Util.errorMsg(msg, th);
-		}
+		Util.errorMsg(msg, th);
 	}
 
 	boolean isVerbose() {
@@ -145,8 +127,72 @@ public abstract class BaseCommand implements Callable<Integer> {
 	}
 
 	@Override
-	public Integer call() throws IOException {
-		return doCall();
+	public CommandResult execute(CommandInvocation commandInvocation) throws InterruptedException {
+		this.commandInvocation = commandInvocation;
+
+		try {
+			int exitCode = doCall();
+			return CommandResult.valueOf(exitCode);
+		} catch (ExitException e) {
+			if (e.getStatus() != 0 && e.getMessage() != null) {
+				Util.errorMsg(null, e);
+			}
+			return CommandResult.valueOf(e.getStatus());
+		} catch (IOException e) {
+			Util.errorMsg(null, e);
+			return CommandResult.valueOf(EXIT_GENERIC_ERROR);
+		} catch (IllegalArgumentException e) {
+			Util.errorMsg(null, e);
+			return CommandResult.valueOf(EXIT_INVALID_INPUT);
+		} catch (Exception e) {
+			Util.errorMsg(null, e);
+			return CommandResult.valueOf(EXIT_INTERNAL_ERROR);
+		}
+	}
+
+	protected Integer missingSubcommand() {
+		System.err.println("Missing required subcommand for '" + getClass().getAnnotation(
+				org.aesh.command.CommandDefinition.class)
+			.name() + "'");
+		if (commandInvocation != null) {
+			System.err.println(commandInvocation.getHelpInfo());
+		}
+		return EXIT_INVALID_INPUT;
+	}
+
+	@Override
+	public void afterParse() {
+		if (verbose) {
+			Util.setVerbose(true);
+		}
+		if (quiet) {
+			Util.setQuiet(true);
+		}
+		if (offline) {
+			Util.setOffline(true);
+		}
+		if (fresh) {
+			Util.setFresh(true);
+		}
+		if (preview) {
+			Util.setPreview(true);
+		}
+		if (printExceptions) {
+			Util.setPrintExceptions(true);
+		}
+
+		if (configPath != null) {
+			Path config = Paths.get(configPath);
+			if (Files.isReadable(config)) {
+				Configuration.instance(Configuration.get(config));
+			} else {
+				warn("Configuration file does not exist or could not be read: " + config);
+			}
+		}
+
+		if (insecure) {
+			enableInsecure();
+		}
 	}
 
 	public abstract Integer doCall() throws IOException;

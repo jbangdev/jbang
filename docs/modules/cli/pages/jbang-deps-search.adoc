@@ -1,0 +1,59 @@
+= JBANG-DEPS-SEARCH
+
+== NAME
+
+jbang deps search -- Search for artifacts in local and central Maven repositories.
+
+== SYNOPSIS
+
+[source]
+----
+jbang deps search [-hox] [--max=<max>] [-q=<query>] [--target=<target>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<args>]
+----
+
+== DESCRIPTION
+
+Search for artifacts in local and central Maven repositories.
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*--max*=<max>::
+Maximum number of results to return.
++
+Default: `100`
+
+*-q*, *--query*=<query>::
+Artifact pattern to search for.
+
+*--target*=<target>::
+Target where to add the dependency, i.e. app.java or build.jbang
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+jbang will be verbose on what it does.
+
+*--quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+== ARGUMENTS
+
+*<args>*::
+[query] [target]
+

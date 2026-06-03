@@ -1,74 +1,54 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-jdk-install(1)
+= JBANG-JDK-INSTALL
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang jdk install -- Installs a JDK.
 
-jbang-jdk-install - Installs a JDK.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang jdk install [-hfox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] <versionOrId> [<existingJdkPath>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang jdk install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* _versionOrId_
-                  [_existingJdkPath_]
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Installs a JDK.
 
-// end::picocli-generated-man-section-description[]
+== OPTIONS
 
-// tag::picocli-generated-man-section-options[]
-== Options
+*-h*, *--help*::
+Display this help and exit
 
 *-f*, *--force*::
-  Force installation even when already installed
+Force installation even when already installed
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-_versionOrId_::
-  The version or id to install
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-[_existingJdkPath_]::
-  Pre installed JDK path
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// end::picocli-generated-man-section-arguments[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+*<versionOrId>*::
+The version or id to install
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<existingJdkPath>*::
+Pre installed JDK path
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

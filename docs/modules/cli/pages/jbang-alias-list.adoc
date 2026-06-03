@@ -1,90 +1,60 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-alias-list(1)
+= JBANG-ALIAS-LIST
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang alias list -- Lists locally defined aliases or from the given catalog.
 
-jbang-alias-list - Lists locally defined aliases or from the given catalog.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang alias list [-hgox] [-f=<file>] [--show-origin] [--format=<format>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<catalogName>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang alias list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-origin*]
-                 *--verbose* [*--config*=_<config>_] [*-f*=_<catalogFile>_]
-                 [*--format*=_<format>_] [_catalogName_]
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Lists locally defined aliases or from the given catalog.
 
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*-f*, *--file*=_<catalogFile>_::
-  Path to the catalog file to use
-
-*--format*=_<format>_::
-  Specify output format ('text' or 'json')
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
-
-*-g*, *--global*::
-  Use the global (user) catalog file
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
 
-*--insecure*::
-  Enable insecure trust of all SSL certificates.
+*-g*, *--global*::
+Use the global (user) catalog file
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
-
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*-f*, *--file*=<file>::
+Path to the catalog file to use
 
 *--show-origin*::
-  Show the origin of the alias
+Show the origin of the alias
+
+*--format*=<format>::
+Specify output format ('text' or 'json')
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-[_catalogName_]::
-  The name of a catalog
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// end::picocli-generated-man-section-arguments[]
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<catalogName>*::
+The name of a catalog
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]
