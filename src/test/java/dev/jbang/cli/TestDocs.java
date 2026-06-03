@@ -29,10 +29,9 @@ public class TestDocs extends BaseTest {
 		CaptureResult<Integer> result = checkedRun(null, "docs", script.toString());
 
 		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
-		// Output is written via Util.infoMsg which goes to stderr
-		assertThat(result.err).contains("Widget");
-		assertThat(result.err).contains("Fields");
-		assertThat(result.err).contains("Methods");
+		assertThat(result.out).contains("Widget");
+		assertThat(result.out).contains("Fields");
+		assertThat(result.out).contains("Methods");
 	}
 
 	@Test
@@ -43,8 +42,8 @@ public class TestDocs extends BaseTest {
 		CaptureResult<Integer> result = checkedRun(null, "docs", "--json", script.toString());
 
 		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
-		assertThat(result.err).contains("\"schema\"");
-		assertThat(result.err).contains("\"types\"");
+		assertThat(result.out).contains("\"schema\"");
+		assertThat(result.out).contains("\"types\"");
 	}
 
 	@Test
@@ -55,8 +54,8 @@ public class TestDocs extends BaseTest {
 		CaptureResult<Integer> result = checkedRun(null, "docs", tmp.toString());
 
 		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
-		assertThat(result.err).contains("Alpha");
-		assertThat(result.err).contains("Beta");
+		assertThat(result.out).contains("Alpha");
+		assertThat(result.out).contains("Beta");
 	}
 
 	@Test
@@ -71,8 +70,8 @@ public class TestDocs extends BaseTest {
 		CaptureResult<Integer> result = checkedRun(null, "docs", "--type", "Foo", tmp.toString());
 
 		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
-		assertThat(result.err).contains("Foo");
-		assertThat(result.err).doesNotContain("Bar");
+		assertThat(result.out).contains("Foo");
+		assertThat(result.out).doesNotContain("Bar");
 	}
 
 	@Test

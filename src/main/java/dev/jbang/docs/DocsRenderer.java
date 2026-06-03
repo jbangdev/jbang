@@ -52,7 +52,7 @@ public class DocsRenderer {
 	 */
 	public static String toJson(String target, String artifact, List<DocsType> types, String generatedFrom) {
 		Map<String, Object> root = new LinkedHashMap<>();
-		root.put("schema", "https://jbx.telegraphic.dev/schemas/jbx-docs/v1.json");
+		root.put("schema", "https://jbang.dev/schemas/jbang-docs/v1.json");
 		root.put("target", target);
 		if (artifact != null && !artifact.isEmpty()) {
 			root.put("artifact", parseArtifactCoordinate(artifact));

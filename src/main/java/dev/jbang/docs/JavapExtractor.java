@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -66,9 +67,21 @@ public class JavapExtractor {
 	 * Run {@code javap -p -classpath <jar> <className>} and return stdout, or null
 	 * on failure.
 	 */
+	private static String resolveJavap() {
+		String javapCmd = "javap";
+		String javaHome = System.getenv("JAVA_HOME");
+		if (javaHome != null && !javaHome.isEmpty()) {
+			Path candidate = Paths.get(javaHome).resolve("bin").resolve(javapCmd);
+			if (candidate.toFile().exists()) {
+				javapCmd = candidate.toAbsolutePath().toString();
+			}
+		}
+		return javapCmd;
+	}
+
 	private static String runJavap(Path jarPath, String className) {
 		try {
-			ProcessBuilder pb = new ProcessBuilder("javap", "-p", "-classpath",
+			ProcessBuilder pb = new ProcessBuilder(resolveJavap(), "-p", "-classpath",
 					jarPath.toAbsolutePath().toString(), className);
 			pb.redirectErrorStream(true);
 			Process process = pb.start();

@@ -127,7 +127,7 @@ class TestDocsRenderer {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> root = gson.fromJson(json, Map.class);
 
-		assertThat(root.get("schema")).isEqualTo("https://jbx.telegraphic.dev/schemas/jbx-docs/v1.json");
+		assertThat(root.get("schema")).isEqualTo("https://jbang.dev/schemas/jbang-docs/v1.json");
 		assertThat(root.get("target")).isEqualTo("Widget.java");
 		assertThat(root.get("types")).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
@@ -151,7 +151,7 @@ class TestDocsRenderer {
 		Gson gson = new Gson();
 		@SuppressWarnings("unchecked")
 		Map<String, Object> root = gson.fromJson(json, Map.class);
-		assertThat(root.get("schema")).isEqualTo("https://jbx.telegraphic.dev/schemas/jbx-docs/v1.json");
+		assertThat(root.get("schema")).isEqualTo("https://jbang.dev/schemas/jbang-docs/v1.json");
 		assertThat(root.get("types")).isInstanceOf(List.class);
 		@SuppressWarnings("unchecked")
 		List<Object> types = (List<Object>) root.get("types");
