@@ -42,8 +42,32 @@ public class DocsCommand extends BaseCommand {
 			"--types" }, description = "Filter output to matching type names (simple or fully-qualified). Repeatable.")
 	List<String> types;
 
+	// Capture any args that appear after the positional parameter (picocli's
+	// global stopAtPositional=true means options after the script arg are treated
+	// as unmatched). We re-process --type/--types from here.
+	@CommandLine.Unmatched
+	List<String> unmatchedArgs;
+
 	@Override
 	public Integer doCall() throws IOException {
+		// Re-process unmatched args to support --type/--types after the positional arg.
+		// This is needed because the global stopAtPositional=true setting in JBang
+		// causes options after the script positional to be treated as unmatched.
+		if (unmatchedArgs != null && !unmatchedArgs.isEmpty()) {
+			if (types == null) {
+				types = new ArrayList<>();
+			}
+			for (int i = 0; i < unmatchedArgs.size(); i++) {
+				String arg = unmatchedArgs.get(i);
+				if ((arg.equals("--type") || arg.equals("--types")) && i + 1 < unmatchedArgs.size()) {
+					types.add(unmatchedArgs.get(++i));
+				} else if (arg.startsWith("--type=")) {
+					types.add(arg.substring("--type=".length()));
+				} else if (arg.startsWith("--types=")) {
+					types.add(arg.substring("--types=".length()));
+				}
+			}
+		}
 		scriptMixin.validate();
 		String target = scriptMixin.scriptOrFile;
 
@@ -148,10 +172,13 @@ public class DocsCommand extends BaseCommand {
 					"docs requires Maven coordinates as group:artifact or group:artifact:version");
 		}
 
-		// Ensure a version is set; fall back to RELEASE so the resolver picks latest
+		// Require an explicit version — consistent with run/build.
+		// TODO: support version-less coordinates by resolving RELEASE/LATEST
+		// automatically
 		String version = coord.getVersion();
 		if (version == null || version.isEmpty()) {
-			version = "RELEASE";
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"docs requires a version: group:artifact:version");
 		}
 		String gav = coord.getGroupId() + ":" + coord.getArtifactId() + ":" + version;
 

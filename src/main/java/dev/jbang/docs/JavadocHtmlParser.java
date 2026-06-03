@@ -192,6 +192,21 @@ public class JavadocHtmlParser {
 				}
 			}
 		}
+		// Fallback for older JDK javadoc HTML: scan <pre> blocks for member signatures
+		if (members.isEmpty()) {
+			Matcher preMatcher = PRE_RE.matcher(html);
+			while (preMatcher.find()) {
+				String text = normalizeDocText(stripHtmlTags(preMatcher.group(1)))
+					.replaceAll("\\u200B", "") // remove zero-width spaces
+					.replaceAll("\\s*&\\s*", " ") // normalize non-breaking space artifacts
+					.trim();
+				if (!text.isEmpty() && isJavadocMemberSignature(text)) {
+					MemberDoc doc = new MemberDoc();
+					doc.signature = text;
+					members.add(doc);
+				}
+			}
+		}
 		return members;
 	}
 
@@ -289,7 +304,9 @@ public class JavadocHtmlParser {
 			.replace("&amp;", "&")
 			.replace("&quot;", "\"")
 			.replace("&#39;", "'")
-			.replace("&nbsp;", " ");
+			.replace("&nbsp;", " ")
+			.replace("&#8203;", "") // zero-width space used for line-break hints in older javadoc HTML
+			.replace("\u200B", ""); // raw zero-width space
 	}
 
 	private static boolean isJavadocMemberSignature(String text) {
