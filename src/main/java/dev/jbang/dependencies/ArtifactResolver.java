@@ -191,6 +191,38 @@ public class ArtifactResolver implements Closeable {
 		}
 	}
 
+	/**
+	 * Resolves an artifact by coordinate string (groupId:artifactId:version) and
+	 * returns the resolved {@link Artifact} with pinned version and local file. Use
+	 * "RELEASE" as the version to pick the latest release.
+	 *
+	 * @throws ArtifactResolutionException if the artifact cannot be resolved
+	 */
+	public Artifact resolveArtifact(String coord) throws ArtifactResolutionException {
+		Artifact artifact = toArtifact(MavenCoordinate.fromString(coord));
+		return context.repositorySystem()
+			.resolveArtifact(context.repositorySystemSession(),
+					new ArtifactRequest()
+						.setArtifact(artifact)
+						.setRepositories(context.remoteRepositories()))
+			.getArtifact();
+	}
+
+	/**
+	 * Resolves the javadoc classifier JAR for an already-resolved artifact and
+	 * returns its local path, or throws {@link ArtifactResolutionException} if not
+	 * available.
+	 */
+	public Path resolveJavadocJar(Artifact mainArtifact) throws ArtifactResolutionException {
+		Artifact javadocArtifact = context.repositorySystem()
+			.resolveArtifact(context.repositorySystemSession(),
+					new ArtifactRequest()
+						.setArtifact(new SubArtifact(mainArtifact, "javadoc", "jar"))
+						.setRepositories(context.remoteRepositories()))
+			.getArtifact();
+		return javadocArtifact.getFile().toPath();
+	}
+
 	public List<ArtifactInfo> resolve(List<String> depIds) {
 		context.repositorySystemSession().getData().set("depIds", depIds);
 		// Maven is by default "forgiving" for dependency POM loading: here we want to
