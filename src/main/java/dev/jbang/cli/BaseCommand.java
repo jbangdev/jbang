@@ -41,27 +41,27 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	@Option(name = "insecure", hasValue = false, description = "Enable insecure trust of all SSL certificates.")
 	boolean insecure;
 
-	@Option(name = "verbose", hasValue = false, inherited = true, exclusiveWith = {
+	@Option(name = "verbose", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"quiet" }, description = "jbang will be verbose on what it does.")
-	boolean verbose;
+	Boolean verbose;
 
-	@Option(name = "quiet", hasValue = false, inherited = true, exclusiveWith = {
+	@Option(name = "quiet", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"verbose" }, description = "jbang will be quiet, only print when error occurs.")
-	boolean quiet;
+	Boolean quiet;
 
-	@Option(shortName = 'o', name = "offline", hasValue = false, inherited = true, exclusiveWith = {
+	@Option(shortName = 'o', name = "offline", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"fresh" }, description = "Work offline. Fail-fast if dependencies are missing.")
-	boolean offline;
+	Boolean offline;
 
-	@Option(name = "fresh", hasValue = false, inherited = true, exclusiveWith = {
+	@Option(name = "fresh", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"offline" }, description = "Make sure we use fresh (i.e. non-cached) resources.")
-	boolean fresh;
+	Boolean fresh;
 
-	@Option(name = "preview", hasValue = false, inherited = true, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
-	boolean preview;
+	@Option(name = "preview", hasValue = false, negatable = true, inherited = true, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
+	Boolean preview;
 
-	@Option(shortName = 'x', name = "stacktrace", hasValue = false, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
-	boolean printExceptions;
+	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
+	Boolean printExceptions;
 
 	protected CommandInvocation commandInvocation;
 
@@ -162,23 +162,23 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 
 	@Override
 	public void afterParse() {
-		if (verbose) {
-			Util.setVerbose(true);
+		if (verbose != null) {
+			Util.setVerbose(verbose);
 		}
-		if (quiet) {
-			Util.setQuiet(true);
+		if (quiet != null) {
+			Util.setQuiet(quiet);
 		}
-		if (offline) {
-			Util.setOffline(true);
+		if (offline != null) {
+			Util.setOffline(offline);
 		}
-		if (fresh) {
-			Util.setFresh(true);
+		if (fresh != null) {
+			Util.setFresh(fresh);
 		}
-		if (preview) {
-			Util.setPreview(true);
+		if (preview != null) {
+			Util.setPreview(preview);
 		}
-		if (printExceptions) {
-			Util.setPrintExceptions(true);
+		if (printExceptions != null) {
+			Util.setPrintExceptions(printExceptions);
 		}
 
 		if (configPath != null) {
