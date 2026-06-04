@@ -102,8 +102,8 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 	}
 
 	private static Stream<Path> listFiles(Path dir) {
-		try {
-			return Files.list(dir);
+		try (Stream<Path> files = Files.list(dir)) {
+			return files.collect(Collectors.toList()).stream();
 		} catch (IOException e) {
 			return Stream.empty();
 		}
