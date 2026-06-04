@@ -8,12 +8,8 @@ jbang cache clear -- Clear the various caches used by jbang. By default this wil
 
 [source]
 ----
-jbang cache clear [-hox] [--[no-]url] [--[no-]jar] [--[no-]deps] [--[no-]jdk] [--[no-]kotlinc] [--[no-]groovyc] [--[no-]project] [--[no-]script] [--[no-]stdin] [--all] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh]
+jbang cache clear [-h] [--[no-]url] [--[no-]jar] [--[no-]deps] [--[no-]jdk] [--[no-]kotlinc] [--[no-]groovyc] [--[no-]project] [--[no-]script] [--[no-]stdin] [--all] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
 ----
-
-== DESCRIPTION
-
-Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.
 
 == OPTIONS
 
@@ -56,18 +52,18 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 

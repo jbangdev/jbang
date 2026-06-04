@@ -1,10 +1,10 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-// aesh classes are provided via --cp from the jbang shadow jar
+//DEPS org.aesh:aesh:3.12.1
 ///COMPILE_OPTIONS -proc:none
 //JAVA 17+
 
 import org.aesh.command.Command;
-import org.aesh.util.doc.DocFormat;
+import org.aesh.command.DocFormat;
 import org.aesh.util.doc.DocumentationGenerator;
 
 import java.io.*;

@@ -8,12 +8,8 @@ jbang export portable -- Exports jar together with dependencies in way that make
 
 [source]
 ----
-jbang export portable [-hnox] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<scriptOrFile>]
+jbang export portable [-hn] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
 ----
-
-== DESCRIPTION
-
-Exports jar together with dependencies in way that makes it portable
 
 == OPTIONS
 
@@ -54,6 +50,7 @@ Treat resource as a module. Optionally with the given module name
 Options to pass to the compiler
 
 *--manifest*=<key>=<value>::
+Add entry to the JAR manifest (e.g. --manifest=Main-Class=com.example.Main)
 
 *--[no-]integrations*::
 Enable or disable integration execution (default: true)
@@ -97,19 +94,19 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == ARGUMENTS
