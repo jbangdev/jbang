@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
@@ -416,9 +414,13 @@ public class Export extends BaseCommand {
 			}
 			if (zipEntry.getName().startsWith("META-INF/services/")) {
 				Util.verboseMsg("Merging service files: " + zipEntry.getName());
-				try (ReadableByteChannel readableByteChannel = Channels.newChannel(zipFile.getInputStream(zipEntry));
-						FileOutputStream fileOutputStream = new FileOutputStream(outFile.toFile(), true)) {
-					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				try (InputStream is = zipFile.getInputStream(zipEntry);
+						FileOutputStream fos = new FileOutputStream(outFile.toFile(), true)) {
+					byte[] buf = new byte[8192];
+					int n;
+					while ((n = is.read(buf)) != -1) {
+						fos.write(buf, 0, n);
+					}
 				}
 			} else {
 				Util.verboseMsg("Skipping duplicate file: " + zipEntry.getName());

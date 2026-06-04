@@ -9,12 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
@@ -589,6 +592,56 @@ public class TestExport extends BaseTest {
 		assertThat(result.err, containsString("DUMMY.SF"));
 		assertThat(result.err, containsString("DUMMY.DSA"));
 		assertThat(result.err, containsString("DUMMY.RSA"));
+	}
+
+	@Test
+	void testExportFatjarServiceFileMerging(@TempDir Path temp) throws Exception {
+		// Create two jars with overlapping META-INF/services/ entries
+		String serviceFile = "META-INF/services/com.example.Service";
+
+		Path jar1 = temp.resolve("dep1.jar");
+		try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar1.toFile()))) {
+			jos.putNextEntry(new ZipEntry(serviceFile));
+			jos.write("com.example.Impl1\n".getBytes());
+			jos.closeEntry();
+		}
+
+		Path jar2 = temp.resolve("dep2.jar");
+		try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar2.toFile()))) {
+			jos.putNextEntry(new ZipEntry(serviceFile));
+			jos.write("com.example.Impl2\n".getBytes());
+			jos.closeEntry();
+		}
+
+		// Create a script that depends on both jars
+		String code = "//DEPS " + jar1.toAbsolutePath() + "\n"
+				+ "//DEPS " + jar2.toAbsolutePath() + "\n"
+				+ "public class svctest { public static void main(String... a) {} }\n";
+		Path src = temp.resolve("svctest.java");
+		Util.writeString(src, code);
+
+		CaptureResult<Integer> result = checkedRun("export", "fatjar", src.toString());
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+
+		// Verify the merged service file contains both implementations
+		Path fatjar = cwdDir.resolve("svctest-fatjar.jar");
+		assertThat(fatjar.toFile(), anExistingFile());
+
+		try (JarInputStream jis = new JarInputStream(new FileInputStream(fatjar.toFile()))) {
+			java.util.jar.JarEntry entry;
+			String serviceContent = null;
+			while ((entry = jis.getNextJarEntry()) != null) {
+				if (serviceFile.equals(entry.getName())) {
+					byte[] buf = new byte[4096];
+					int n = jis.read(buf);
+					serviceContent = new String(buf, 0, n);
+					break;
+				}
+			}
+			assertThat("Service file should exist in fatjar", serviceContent, is(notNullValue()));
+			assertThat("Service file should contain Impl1", serviceContent, containsString("com.example.Impl1"));
+			assertThat("Service file should contain Impl2", serviceContent, containsString("com.example.Impl2"));
+		}
 	}
 
 }
