@@ -22,6 +22,7 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.devkitman.JdkDistroQuery;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
 import dev.jbang.util.CommandBuffer;
@@ -162,6 +163,12 @@ public class Jdk extends BaseCommand {
 		@Option(shortName = 'a', name = "available", hasValue = false, description = "Shows versions available for installation")
 		boolean available;
 
+		@Option(shortName = 'P', name = "providers", hasValue = false, description = "Shows available providers")
+		boolean listProviders;
+
+		@Option(shortName = 'D', name = "distros", hasValue = false, description = "Shows distributions available for installation")
+		boolean listDistros;
+
 		@Option(shortName = 'd', name = "show-details", aliases = {
 				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
 		boolean details;
@@ -173,24 +180,58 @@ public class Jdk extends BaseCommand {
 		public Integer doCall() throws IOException {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
 			dev.jbang.devkitman.Jdk defaultJdk = jdkMan.getDefaultJdk();
-			int defMajorVersion = defaultJdk != null ? defaultJdk.majorVersion() : 0;
+			String defVersion = defaultJdk != null ? defaultJdk.version() : "";
 			PrintStream out = System.out;
-			List<? extends dev.jbang.devkitman.Jdk> jdks;
-			if (available) {
-				jdks = jdkMan.listAvailableJdks();
-			} else {
-				jdks = jdkMan.listInstalledJdks();
+
+			if (listProviders) {
+				List<JdkProvider> providers = new ArrayList<>(jdkMan.providers());
+				providers.sort(Comparator.comparing(JdkProvider::name));
+				if (format == OutputFormat.json) {
+					Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+					parser.toJson(providers, out);
+				} else {
+					out.println("Available JDK Providers:");
+					providers.forEach(p -> out.println("   " + p.name()));
+				}
+				return EXIT_OK;
+			} else if (listDistros) {
+				List<JdkDistroQuery.JdkDistro> distros = jdkMan.listDistros();
+				distros.sort(Comparator.comparing(JdkDistroQuery.JdkDistro::name));
+				if (format == OutputFormat.json) {
+					Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+					parser.toJson(distros, out);
+				} else {
+					out.println("Available JDK Distributions:");
+					distros.forEach(d -> out.println("   " + d.name()));
+				}
+				return EXIT_OK;
 			}
-			List<JdkOut> jdkOuts = jdks.stream()
-				.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
-						jdk.isInstalled() ? ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home() : null,
-						null,
-						details ? jdk.equals(defaultJdk)
-								: jdk.majorVersion() == defMajorVersion,
-						jdk.tags()))
-				.collect(Collectors.toList());
+
+			List<JdkOut> jdkOuts;
+			if (available) {
+				List<dev.jbang.devkitman.Jdk.AvailableJdk> jdks = jdkMan.listAvailableJdks();
+				jdkOuts = jdks.stream()
+					.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
+							null, null,
+							details ? jdk.equals(defaultJdk)
+									: jdk.version().equals(defVersion),
+							jdk.tags()))
+					.collect(Collectors.toList());
+			} else {
+				List<dev.jbang.devkitman.Jdk.InstalledJdk> jdks = jdkMan.listInstalledJdks();
+				jdkOuts = jdks.stream()
+					.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
+							jdk.home(),
+							jdk instanceof dev.jbang.devkitman.Jdk.LinkedJdk
+									? ((dev.jbang.devkitman.Jdk.LinkedJdk) jdk).linked().id()
+									: null,
+							details ? jdk.equals(defaultJdk)
+									: jdk.version().equals(defVersion),
+							jdk.tags()))
+					.collect(Collectors.toList());
+			}
 			if (!details) {
-				// Only keep a list of unique major versions
+				// Only keep a list of unique versions
 				Set<JdkOut> uniqueJdks = new TreeSet<>(Comparator.<JdkOut>comparingInt(j -> j.version).reversed());
 				uniqueJdks.addAll(jdkOuts);
 				jdkOuts = new ArrayList<>(uniqueJdks);
@@ -207,12 +248,20 @@ public class Jdk extends BaseCommand {
 						out.print("   ");
 						out.print(jdk.version);
 						out.print(" (");
-						out.print(jdk.fullVersion);
 						if (details) {
+							out.print(jdk.fullVersion);
 							out.print(", " + jdk.providerName + ", " + jdk.id);
 							if (jdk.javaHomeDir != null) {
 								out.print(", " + jdk.javaHomeDir);
 							}
+							if (jdk.linkedId != null) {
+								out.print(", link to " + jdk.linkedId);
+							}
+							if (!jdk.tags.isEmpty()) {
+								out.print(", " + jdk.tags);
+							}
+						} else {
+							out.print(available ? jdk.id : jdk.fullVersion);
 						}
 						out.print(")");
 						if (!available) {
@@ -243,16 +292,18 @@ public class Jdk extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
+			// This will first select for JDKs from providers that can actually install JDKs
 			dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getInstalledJdk(versionOrId,
 					JdkProvider.Predicates.canInstall);
 			if (jdk == null) {
+				// If necessary we select JDKs from providers that can update JDKs
 				jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canUpdate);
 				if (jdk == null) {
 					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
 				}
 			}
 			jdk.uninstall();
-			Util.infoMsg("Uninstalled JDK:\n  " + versionOrId);
+			Util.infoMsg("Uninstalled JDK:\n  " + jdk.id());
 			return EXIT_OK;
 		}
 	}
@@ -294,7 +345,7 @@ public class Jdk extends BaseCommand {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
 			dev.jbang.devkitman.Jdk jdk = null;
 			if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
-				jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canUpdate);
+				jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
 			}
 			if (jdk == null || !jdk.isInstalled()) {
 				jdk = jdkMan.getOrInstallJdk(versionOrId);
