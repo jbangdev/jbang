@@ -216,10 +216,41 @@ class TestAeshParsing extends BaseTest {
 	void testHelpShowsVisibleOptions() throws Exception {
 		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run", "--help"));
 		String output = result.normalizedOut() + result.normalizedErr();
-		assertThat(output, containsString("--verbose"));
-		assertThat(output, containsString("--quiet"));
-		assertThat(output, containsString("--offline"));
-		assertThat(output, containsString("--fresh"));
+		assertThat(output, containsString("verbose"));
+		assertThat(output, containsString("quiet"));
+		assertThat(output, containsString("offline"));
+		assertThat(output, containsString("fresh"));
+	}
+
+	// --- Boolean options with explicit =true/=false values (#2504) ---
+
+	@Test
+	void testNoVerboseDisablesVerbose() {
+		Util.setVerbose(true);
+		JBang.parseCommand("run", "--no-verbose", "test.java");
+		assertThat(Util.isVerbose(), is(false));
+	}
+
+	@Test
+	void testNoOfflineDisablesOffline() {
+		Util.setOffline(true);
+		JBang.parseCommand("run", "--no-offline", "test.java");
+		assertThat(Util.isOffline(), is(false));
+	}
+
+	@Test
+	void testNoFreshDisablesFresh() {
+		Util.setFresh(true);
+		JBang.parseCommand("run", "--no-fresh", "test.java");
+		assertThat(Util.isFresh(), is(false));
+	}
+
+	@Test
+	void testUnspecifiedVerboseDefaultsToFalse() {
+		// When --verbose is not specified, verbose should be false
+		// (beforeParse resets all flags)
+		JBang.parseCommand("run", "test.java");
+		assertThat(Util.isVerbose(), is(false));
 	}
 
 	// --- Subcommand list consistency ---
