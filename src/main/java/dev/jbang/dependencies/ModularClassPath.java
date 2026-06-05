@@ -5,13 +5,17 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
@@ -93,18 +97,52 @@ public class ModularClassPath {
 
 				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
 
-				pathElements.forEach((k, v) -> {
-					if (v != null && v.name() != null && v.name().startsWith(JAVAFX_PREFIX)) {
-						// only JavaFX jars are required in the module-path
-						modulePaths.add(k);
-					} else {
-						// classpathElements.add(k);
+				// Index the resolved modules by name so we can follow `requires` edges.
+				Map<String, String> moduleNameToPath = new HashMap<>();
+				Map<String, JavaModuleDescriptor> moduleNameToDescriptor = new HashMap<>();
+				pathElements.forEach((path, descriptor) -> {
+					if (descriptor != null && descriptor.name() != null) {
+						moduleNameToPath.put(descriptor.name(), path);
+						moduleNameToDescriptor.put(descriptor.name(), descriptor);
 					}
 				});
 
+				// Start from the JavaFX modules and transitively collect everything they
+				// require. This way modules like `jdk.jsobject` (required by `javafx.web`)
+				// also end up on the module-path instead of the class-path, where the boot
+				// layer would not find them. See https://github.com/jbangdev/jbang/issues/559
+				Set<String> requiredModules = new HashSet<>();
+				Deque<String> toVisit = new ArrayDeque<>();
+				moduleNameToDescriptor.keySet()
+					.stream()
+					.filter(name -> name.startsWith(JAVAFX_PREFIX))
+					.forEach(toVisit::add);
+				while (!toVisit.isEmpty()) {
+					String name = toVisit.poll();
+					if (!requiredModules.add(name)) {
+						continue;
+					}
+					JavaModuleDescriptor descriptor = moduleNameToDescriptor.get(name);
+					if (descriptor != null) {
+						descriptor.requires()
+							.stream()
+							.map(JavaModuleDescriptor.JavaRequires::name)
+							.filter(moduleNameToDescriptor::containsKey)
+							.forEach(toVisit::add);
+					}
+				}
+
+				// Put the JavaFX modules and their required modules on the module-path.
+				requiredModules.stream()
+					.map(moduleNameToPath::get)
+					.filter(Objects::nonNull)
+					.forEach(modulePaths::add);
+
 				if (!modulePaths.isEmpty()) {
 					commandArguments.add("--module-path");
-					String modulePath = String.join(File.pathSeparator, modulePaths);
+					String modulePath = modulePaths.stream()
+						.distinct()
+						.collect(Collectors.joining(File.pathSeparator));
 					commandArguments.add(modulePath);
 				}
 
