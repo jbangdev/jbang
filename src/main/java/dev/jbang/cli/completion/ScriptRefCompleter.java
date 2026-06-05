@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.OptionCompleter;
 
+import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.source.Source;
@@ -41,6 +42,14 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		// Also accept files without extension (scripts with shebangs)
 	}
 
+	/**
+	 * Maximum age in milliseconds for a previous completion to count as double-tab.
+	 */
+	private static final long DOUBLE_TAB_THRESHOLD_MS = 5000;
+
+	/** File name used to record the last completion invocation. */
+	private static final String LAST_COMPLETE_FILE = ".lastcomplete";
+
 	private static String described(String candidate, String description) {
 		return candidate + "\t" + description;
 	}
@@ -52,6 +61,9 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			partial = "";
 		}
 
+		boolean doubleTap = isDoubleTap(partial);
+		recordCompletion(partial);
+
 		Set<String> candidates = new TreeSet<>(); // sorted for stable output
 
 		boolean specialMode = false;
@@ -59,7 +71,12 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			completeCatalogAliases(candidates, partial);
 			specialMode = true;
 		} else if (GitHubCompletionProvider.canComplete(partial)) {
-			GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
+			if (doubleTap) {
+				GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
+			} else {
+				// First tab on a GitHub URL: show it as-is with a hint
+				candidates.add(described(partial, "Press TAB again to browse"));
+			}
 			specialMode = true;
 		} else if (looksLikeGav(partial)) {
 			completeGav(candidates, partial);
@@ -496,5 +513,53 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		} catch (IOException e) {
 			return false;
 		}
+	}
+
+	// ---- Double-tab detection ------------------------------------------
+
+	/**
+	 * Checks whether the current completion is a "double-tap" — a second TAB press
+	 * on the same partial input within {@link #DOUBLE_TAB_THRESHOLD_MS}. This
+	 * allows heavier/slower completions (e.g. remote lookups) to be gated behind an
+	 * explicit second press.
+	 */
+	static boolean isDoubleTap(String partial) {
+		try {
+			Path file = getLastCompleteFile();
+			if (!Files.exists(file)) {
+				return false;
+			}
+			long age = System.currentTimeMillis() - Files.getLastModifiedTime(file).toMillis();
+			if (age > DOUBLE_TAB_THRESHOLD_MS) {
+				return false;
+			}
+			String previous = new String(Files.readAllBytes(file)).trim();
+			return previous.equals(partial);
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Records the current completion invocation so a subsequent TAB can be detected
+	 * as a double-tap.
+	 */
+	/** Visible for testing. */
+	static void recordCompletionForTest(String partial) {
+		recordCompletion(partial);
+	}
+
+	private static void recordCompletion(String partial) {
+		try {
+			Path file = getLastCompleteFile();
+			Files.createDirectories(file.getParent());
+			Files.write(file, partial.getBytes());
+		} catch (IOException e) {
+			// best-effort — ignore
+		}
+	}
+
+	private static Path getLastCompleteFile() {
+		return Settings.getCacheDir(false).resolve(LAST_COMPLETE_FILE);
 	}
 }
