@@ -1,6 +1,7 @@
 package dev.jbang.cli.completion;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,12 +72,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			completeCatalogAliases(candidates, partial);
 			specialMode = true;
 		} else if (GitHubCompletionProvider.canComplete(partial)) {
-			if (doubleTap) {
-				GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
-			} else {
-				// First tab on a GitHub URL: show it as-is with a hint
-				candidates.add(described(partial, "Press TAB again to browse"));
-			}
+			GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
 			specialMode = true;
 		} else if (looksLikeGav(partial)) {
 			completeGav(candidates, partial);
@@ -126,11 +122,6 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 	// ---- Navigation hints ----------------------------------------------
 
-	/**
-	 * When the input is empty or a short prefix, add hint candidates that teach the
-	 * user about special completion modes. These are real, insertable values — not
-	 * decorative text.
-	 */
 	/** URL prefixes that jbang can complete further. */
 	private static final String[] URL_HINTS = {
 			"https://github.com/",
@@ -139,6 +130,11 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			"https://bitbucket.org/",
 	};
 
+	/**
+	 * When the input is empty or a short prefix, add hint candidates that teach the
+	 * user about special completion modes. These are real, insertable values — not
+	 * decorative text.
+	 */
 	private void addNavigationHints(Set<String> candidates, String partial) {
 		if (partial.isEmpty()) {
 			candidates.add(described("@", "Browse catalogs"));
@@ -533,7 +529,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			if (age > DOUBLE_TAB_THRESHOLD_MS) {
 				return false;
 			}
-			String previous = new String(Files.readAllBytes(file)).trim();
+			String previous = new String(Files.readAllBytes(file), StandardCharsets.UTF_8).trim();
 			return previous.equals(partial);
 		} catch (IOException e) {
 			return false;
@@ -544,19 +540,19 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	 * Records the current completion invocation so a subsequent TAB can be detected
 	 * as a double-tap.
 	 */
-	/** Visible for testing. */
-	static void recordCompletionForTest(String partial) {
-		recordCompletion(partial);
-	}
-
 	private static void recordCompletion(String partial) {
 		try {
 			Path file = getLastCompleteFile();
 			Files.createDirectories(file.getParent());
-			Files.write(file, partial.getBytes());
+			Files.write(file, partial.getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			// best-effort — ignore
 		}
+	}
+
+	/** Exposed for testing. */
+	static void recordCompletionForTest(String partial) {
+		recordCompletion(partial);
 	}
 
 	private static Path getLastCompleteFile() {
