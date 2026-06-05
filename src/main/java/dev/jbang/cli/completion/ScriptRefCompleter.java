@@ -114,10 +114,24 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	 * user about special completion modes. These are real, insertable values — not
 	 * decorative text.
 	 */
+	/** URL prefixes that jbang can complete further. */
+	private static final String[] URL_HINTS = {
+			"https://github.com/",
+			"https://gist.github.com/",
+			"https://gitlab.com/",
+			"https://bitbucket.org/",
+	};
+
 	private void addNavigationHints(Set<String> candidates, String partial) {
 		if (partial.isEmpty()) {
 			candidates.add(described("@", "Browse catalogs"));
-			candidates.add(described("https://github.com/", "Complete from GitHub repo"));
+		}
+		// Offer URL hints that match the partial prefix
+		String lowerPartial = partial.toLowerCase();
+		for (String url : URL_HINTS) {
+			if (url.toLowerCase().startsWith(lowerPartial) && !url.equals(partial)) {
+				candidates.add(described(url, "URL"));
+			}
 		}
 		// When input contains a dot but hasn't triggered GAV mode yet (< 2 dots),
 		// hint that appending ':' switches to Maven artifact completion.
@@ -253,6 +267,10 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	 */
 	static boolean looksLikeGav(String partial) {
 		if (partial.contains(":")) {
+			// URLs like https://... are not GAV coordinates
+			if (partial.contains("://")) {
+				return false;
+			}
 			return true;
 		}
 		// At least two dot-separated segments (e.g. "com.google") with no path
