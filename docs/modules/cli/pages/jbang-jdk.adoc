@@ -1,85 +1,53 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-jdk(1)
+= JBANG-JDK
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang jdk -- Manage Java Development Kits installed by jbang.
 
-jbang-jdk - Manage Java Development Kits installed by jbang.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang jdk [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [COMMAND]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
-
-*jbang jdk* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
-
-// end::picocli-generated-man-section-synopsis[]
-
-// tag::picocli-generated-man-section-description[]
-== Description
+== DESCRIPTION
 
 Manage Java Development Kits installed by jbang.
 
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
 *--verbose*::
-  jbang will be verbose on what it does.
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-options[]
+*--quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-arguments[]
-// end::picocli-generated-man-section-arguments[]
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// tag::picocli-generated-man-section-commands[]
-== Commands
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-xref:jbang:cli:jbang-jdk-default.adoc[*default*]::
-  Sets the default JDK to be used by JBang.
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-xref:jbang:cli:jbang-jdk-home.adoc[*home*]::
-  Prints the folder where the given JDK is installed.
+== COMMANDS
 
-xref:jbang:cli:jbang-jdk-install.adoc[*install*]::
-  Installs a JDK.
+* xref:jbang:cli:jbang-jdk-install.adoc[*install*] - Installs a JDK.
+* xref:jbang:cli:jbang-jdk-list.adoc[*list*] - Lists installed JDKs.
+* xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*] - Uninstalls an existing JDK.
+* xref:jbang:cli:jbang-jdk-home.adoc[*home*] - Prints the folder where the given JDK is installed.
+* xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*] - Prints out the environment variables needed to use the given JDK.
+* xref:jbang:cli:jbang-jdk-exec.adoc[*exec*] - Executes the given command using the default (or specified) JDK.
+* xref:jbang:cli:jbang-jdk-default.adoc[*default*] - Sets the default JDK to be used by JBang.
 
-xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*, *env*]::
-  Prints out the environment variables needed to use the given JDK.
-
-xref:jbang:cli:jbang-jdk-list.adoc[*list*]::
-  Lists installed JDKs.
-
-xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*]::
-  Uninstalls an existing JDK.
-
-// end::picocli-generated-man-section-commands[]
-
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

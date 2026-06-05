@@ -87,8 +87,6 @@ import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.WarTestFixtures;
 
-import picocli.CommandLine;
-
 public class TestRun extends BaseTest {
 
 	@Test
@@ -106,10 +104,8 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-					"--cp", extracp, arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--deps", "info.picocli:picocli:4.6.3",
+				"--cp", extracp, arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(arg);
@@ -143,8 +139,7 @@ public class TestRun extends BaseTest {
 	void testHelloWorldAlias() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		Path cat = examplesTestFolder.resolve("jbang-catalog.json").toAbsolutePath();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--catalog", cat.toString(), "helloworld");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--catalog", cat.toString(), "helloworld");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.catalog(cat.toFile());
@@ -176,8 +171,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.jsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -201,8 +195,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("ec.jsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-s", arg, "-c", "Collector2.class");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "-s", arg, "-c", "Collector2.class");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(
@@ -221,8 +214,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		Path hw = examplesTestFolder.resolve("helloworld.java");
 		String hwtxt = Util.readFileContent(hw);
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-c", hwtxt, "firstarg");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "-c", hwtxt, "firstarg");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -238,8 +230,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testMarkdown() throws IOException {
 		String arg = examplesTestFolder.resolve("readme.md").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -258,8 +249,7 @@ public class TestRun extends BaseTest {
 		Files.write(readmeFileWin, readmeText.replace("\n", "\r\n").getBytes());
 
 		String arg = readmeFileWin.toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -281,8 +271,7 @@ public class TestRun extends BaseTest {
 
 		wms.start();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -296,8 +285,7 @@ public class TestRun extends BaseTest {
 	void testEmptyInteractiveShell(@TempDir File dir) throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "a");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "a");
 
 		File empty = new File(dir, "empty.jsh");
 		empty.createNewFile();
@@ -321,8 +309,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("hellojsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jsh", arg, "helloworld");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--jsh", arg, "helloworld");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -346,10 +333,8 @@ public class TestRun extends BaseTest {
 
 		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-					"--cp", "dummy.jar", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--deps", "info.picocli:picocli:4.6.3",
+				"--cp", "dummy.jar", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -384,8 +369,7 @@ public class TestRun extends BaseTest {
 			TrustedSources.instance().add(jar, tdir.resolve("test.trust").toFile());
 
 			environmentVariables.clear("JAVA_HOME");
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-			Run run = (Run) pr.subcommand().commandSpec().userObject();
+			Run run = JBang.parseCommand("run", jar);
 
 			ProjectBuilder pb = run.createProjectBuilderForRun();
 			Project code = pb.build(jar);
@@ -406,8 +390,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -429,8 +412,7 @@ public class TestRun extends BaseTest {
 
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-i", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "-i", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -464,8 +446,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "qcli";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -490,8 +471,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -510,10 +490,8 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--main",
-					"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--main",
+				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -535,10 +513,8 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--module", "--main",
-					"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--module=", "--main",
+				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -569,9 +545,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.set("JBANG_DIR", jbangTempDir.toString());
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "aliaswithrepo");
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "aliaswithrepo");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 
@@ -590,10 +564,8 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-					"--cp", extracp, jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--deps", "info.picocli:picocli:4.6.3",
+				"--cp", extracp, jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -611,10 +583,8 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.jsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--interactive", arg,
-					"blah");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--interactive", arg,
+				"blah");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -635,8 +605,7 @@ public class TestRun extends BaseTest {
 	void testWithSourcesShell() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("main.jsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -655,8 +624,7 @@ public class TestRun extends BaseTest {
 	void testDebug() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--debug", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -676,8 +644,7 @@ public class TestRun extends BaseTest {
 	void testDebugHost() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug=server=n", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--debug=server=n", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -696,8 +663,7 @@ public class TestRun extends BaseTest {
 	void testDebugHostWithCustomPort() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug=5000", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--debug=5000", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -717,8 +683,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -740,8 +705,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--interactive", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--interactive", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -762,11 +726,8 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.setStopAtPositional(true)
-			.parseArgs("run", "-Dwonka=panda", "-Dquoted=see this",
-					arg, "-Dafter=wonka");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "-Dwonka=panda", "-Dquoted=see this",
+				arg, "-Dafter=wonka");
 
 		assertThat(run.userParams.size(), is(1));
 
@@ -802,8 +763,7 @@ public class TestRun extends BaseTest {
 		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", url);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", url);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -818,8 +778,7 @@ public class TestRun extends BaseTest {
 	@Test
 	public void testMetaCharacters() throws IOException {
 		String url = examplesTestFolder.resolve("classpath_example.java").toFile().toURI().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -838,8 +797,7 @@ public class TestRun extends BaseTest {
 	void testDependenciesWithRanges() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("classpath_log_grab_with_ranges.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -1013,9 +971,7 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), base);
 
 		String arg = f.getAbsolutePath();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -1216,20 +1172,18 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCDSNotPresent() {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", arg);
 
-		assert (run.runMixin.cds == null);
+		assert (run.runMixin.getCds() == null);
 	}
 
 	@Test
 	void testCDSPresentOnCli() throws IOException {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--cds", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--cds", arg);
 
-		assert (run.runMixin.cds != null);
-		assert (run.runMixin.cds);
+		assert (run.runMixin.getCds() != null);
+		assert (run.runMixin.getCds());
 	}
 
 	@Test
@@ -1238,8 +1192,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("cds.java");
 		writeString(p, source);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", p.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", p.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -1258,11 +1211,10 @@ public class TestRun extends BaseTest {
 	@Test
 	void testNoCDSPresent() {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--no-cds", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--no-cds", arg);
 
-		assert (run.runMixin.cds != null);
-		assert (!run.runMixin.cds);
+		assert (run.runMixin.getCds() != null);
+		assert (!run.runMixin.getCds());
 	}
 
 	String agent = "//JAVAAGENT Can-Redefine-Classes=false Can-Retransform-Classes\n" +
@@ -1283,8 +1235,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("Agent.java");
 		writeString(p, agent);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
@@ -1311,8 +1262,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("Agent.java");
 		writeString(p, preagent);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
@@ -1351,12 +1301,10 @@ public class TestRun extends BaseTest {
 		Path mainFile = output.toPath().resolve("main.java");
 		Util.writeString(mainFile, base.replace("dualclass", "main"));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					"--javaagent=" + agentFile.toAbsolutePath() + "=optionA",
-					"--javaagent=org.jboss.byteman:byteman:4.0.13",
-					mainFile.toAbsolutePath().toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				"--javaagent=" + agentFile.toAbsolutePath() + "=optionA",
+				"--javaagent=org.jboss.byteman:byteman:4.0.13",
+				mainFile.toAbsolutePath().toString());
 
 		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
 		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
@@ -1381,18 +1329,15 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testJavaAgentParsing() {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--javaagent=xyz.jar", "wonka.java");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--javaagent=xyz.jar", "wonka.java");
 
 		assertThat(run.runMixin.javaAgentSlots, hasKey("xyz.jar"));
 	}
 
 	@Test
 	void testJavaAgentViaGAV() {
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 
 		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
 	}
@@ -1401,8 +1346,7 @@ public class TestRun extends BaseTest {
 	void testAssertions() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--ea", f.getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--ea", f.getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -1418,11 +1362,9 @@ public class TestRun extends BaseTest {
 	void testSystemAssertions() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--enablesystemassertions", "--main",
-					"fakemain",
-					f.getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--esa", "--main",
+				"fakemain",
+				f.getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getAbsolutePath());
@@ -1438,8 +1380,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("cds.java");
 		writeString(p, source);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", p.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", p.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -1453,11 +1394,9 @@ public class TestRun extends BaseTest {
 	void testEnablePreview() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--enable-preview", "--main",
-					"fakemain",
-					f.getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--enable-preview", "--main",
+				"fakemain",
+				f.getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getAbsolutePath());
@@ -1471,11 +1410,9 @@ public class TestRun extends BaseTest {
 	void testEnablePreviewJsh() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--enable-preview", "-i", "--main",
-					"fakemain",
-					f.getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--enable-preview", "-i", "--main",
+				"fakemain",
+				f.getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getAbsolutePath());
@@ -1494,11 +1431,9 @@ public class TestRun extends BaseTest {
 	void testEnablePreviewJava() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--enable-preview", "--main",
-					"fakemain",
-					f.getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--enable-preview", "--main",
+				"fakemain",
+				f.getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getAbsolutePath());
@@ -1695,8 +1630,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("script");
 		writeString(p, script);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
@@ -1722,8 +1656,7 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("script");
 		writeString(p, ambigiousScript);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
@@ -1738,10 +1671,8 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("script");
 		writeString(p, ambigiousScript);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("build", "-m", "Three",
-					p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", "-m", "Three",
+				p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
@@ -1756,8 +1687,7 @@ public class TestRun extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", incFile, mainFile);
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", "-s", incFile, mainFile);
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(mainFile);
@@ -1784,9 +1714,7 @@ public class TestRun extends BaseTest {
 		Path mainFile = Paths.get("foo.java");
 		Path resFile = Paths.get("res/resource.properties");
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("build", "--files", resFile.toString(), mainFile.toString());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = JBang.parseCommand("build", "--files", resFile.toString(), mainFile.toString());
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
 		Project prj = pb.build(mainFile.toString());
@@ -1969,8 +1897,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testJFRPresent() throws IOException {
 		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jfr", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--jfr", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -1987,8 +1914,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testJVMOpts() throws IOException {
 		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--runtime-option=--show-version", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--runtime-option=--show-version", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -2004,11 +1930,8 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTestWithDeps.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					fileref.toString());
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				fileref.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -2024,14 +1947,11 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					"--deps", "org.openjfx:javafx-graphics:17:mac",
-					"--deps", "org.openjfx:javafx-controls:17:mac",
-					"--deps", "eu.hansolo.fx:charts:RELEASE",
-					fileref.toString());
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				"--deps", "org.openjfx:javafx-graphics:17:mac",
+				"--deps", "org.openjfx:javafx-controls:17:mac",
+				"--deps", "eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -2047,13 +1967,10 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					"--deps",
-					"org.openjfx:javafx-graphics:17:mac,org.openjfx:javafx-controls:17:mac,eu.hansolo.fx:charts:RELEASE",
-					fileref.toString());
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				"--deps",
+				"org.openjfx:javafx-graphics:17:mac,org.openjfx:javafx-controls:17:mac,eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -2069,15 +1986,12 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run",
-					"--java", "11",
-					"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
-					"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
-					"--deps", "eu.hansolo.fx:charts:RELEASE",
-					fileref.toString());
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run",
+				"--java", "11",
+				"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
+				"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
+				"--deps", "eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -2102,11 +2016,8 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), base);
 
 		String arg = f.getAbsolutePath();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
-					"dummygroup:dummyart:0.1", arg);
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--repos", "https://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -2126,11 +2037,8 @@ public class TestRun extends BaseTest {
 	void testGAVCliReposAndDepsSingleRepo(@TempDir File output) throws IOException {
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
-					"dummygroup:dummyart:0.1", jar);
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--repos", "https://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 
@@ -2149,12 +2057,9 @@ public class TestRun extends BaseTest {
 	void testGAVCliReposAndDepsTwoRepos(@TempDir File output) throws IOException {
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--repos", "mavencentral", "--repos",
-					"https://dummyrepo", "--deps",
-					"dummygroup:dummyart:0.1", jar);
-
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--repos", "mavencentral", "--repos",
+				"https://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 
@@ -2171,8 +2076,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testMissingSource() throws IOException {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-s", "missing.jsh", "-i");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "-s", "missing.jsh", "-i");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		try {
@@ -2194,12 +2098,10 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("script.java");
 		writeString(p, script);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-		build.call();
+		Build build = JBang.parseCommand("build", p.toFile().getAbsolutePath());
+		build.doCall();
 
-		pr = JBang.getCommandLine().parseArgs("run", "--deps", "org.example:dummy:1", p.toFile().getAbsolutePath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--deps", "org.example:dummy:1", p.toFile().getAbsolutePath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(p.toString());
@@ -2217,18 +2119,16 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testBuildMissingScript() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build");
-			Build build = (Build) pr.subcommand().commandSpec().userObject();
+		assertThrows(ExitException.class, () -> {
+			Build build = JBang.parseCommand("build");
 			build.doCall();
 		});
 	}
 
 	@Test
 	void testRunMissingScript() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run");
-			Run run = (Run) pr.subcommand().commandSpec().userObject();
+		assertThrows(ExitException.class, () -> {
+			Run run = JBang.parseCommand("run");
 			run.doCall();
 		});
 	}
@@ -2258,9 +2158,7 @@ public class TestRun extends BaseTest {
 				+ "}";
 		Util.writeString(f.toPath(), content);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--fresh", "--repos", "central", f.getPath());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--fresh", "--repos", "central", f.getPath());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(f.getPath());
@@ -2273,8 +2171,7 @@ public class TestRun extends BaseTest {
 	void testForceJavaVersion() throws IOException {
 		int v = defaultJdkManager().getJdk(null).majorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--java", "" + v, arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(arg);
@@ -2285,8 +2182,7 @@ public class TestRun extends BaseTest {
 	void testBuildJbangProject() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("build.jbang").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("--preview", "run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("--preview", "run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -2331,8 +2227,7 @@ public class TestRun extends BaseTest {
 	void testBuildJbangProjectFolder() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("--preview", "run", arg);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("--preview", "run", arg);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(arg);
@@ -2387,7 +2282,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%" + arg);
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script, "%" + arg);
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
 		Path file = NetUtil.downloadAndCacheFile(arg);
 		assertThat(result.err, containsString(file.toString()));
@@ -2408,7 +2303,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%{" + arg + "}");
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script, "%{" + arg + "}");
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
 		Path file = NetUtil.downloadAndCacheFile(arg);
 		assertThat(result.err, containsString(file.toString()));
@@ -2439,7 +2334,7 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg1 = "http://localhost:" + wms.port() + "/readme1.md";
 		String arg2 = "http://localhost:" + wms.port() + "/readme2.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script,
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script,
 				"foo%{" + arg1 + "}bar%{" + arg2 + "}baz");
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg1));
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg2));
@@ -2465,7 +2360,7 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String agent = examplesTestFolder.resolve("JULAgent.java").toString();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose",
+		CaptureResult<Integer> result = checkedRun("run", "--verbose",
 				"--javaagent=" + agent + "=test:%{" + arg + "}",
 				script);
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
@@ -2481,7 +2376,7 @@ public class TestRun extends BaseTest {
 	void testRemoteFileArgSimpleEscaped() throws Exception {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%%" + arg);
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script, "%%" + arg);
 		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
 		assertThat(result.err, containsString("%" + arg));
 		assertThat(result.err, not(containsString("%%" + arg)));
@@ -2495,7 +2390,7 @@ public class TestRun extends BaseTest {
 		}
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "foo%%{" + arg + "}bar");
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script, "foo%%{" + arg + "}bar");
 		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
 		assertThat(result.err, containsString("foo%{" + arg + "}bar"));
 		assertThat(result.err, not(containsString("foo%%{" + arg + "}bar")));
@@ -2508,7 +2403,7 @@ public class TestRun extends BaseTest {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
 		}
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
-		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script,
+		CaptureResult<Integer> result = checkedRun("run", "--verbose", script,
 				"%{deps:info.picocli:picocli:4.6.3,log4j:log4j:1.2.17}");
 		assertThat(result.err, containsString("Resolving dependencies..."));
 		assertThat(result.err,
@@ -2524,7 +2419,7 @@ public class TestRun extends BaseTest {
 		}
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		Assertions.assertThrows(ExitException.class,
-				() -> checkedRun(null, "run", "--verbose", script, "%{foo:bar}"));
+				() -> checkedRun("run", "--verbose", script, "%{foo:bar}"));
 	}
 
 	@Test
@@ -2532,8 +2427,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "org.graalvm.python:python-launcher:23.1.0";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -2556,9 +2450,7 @@ public class TestRun extends BaseTest {
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "echo", "baz");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "echo", "baz");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build("echo");
@@ -2574,9 +2466,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCatalogAliasArguments() throws IOException {
 		File f = examplesTestFolder.resolve("jbang-catalog.json").toFile();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("run", "--catalog", f.getAbsolutePath(), "echo", "baz");
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--catalog", f.getAbsolutePath(), "echo", "baz");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build("echo");
@@ -2592,15 +2482,14 @@ public class TestRun extends BaseTest {
 	@Test
 	void testNativeOptsVerbose() {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
+		JBang.parseCommand("build", "-n", "-N=--verbose", arg);
 	}
 
 	@Test
 	void testReadingAddExports() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -2621,8 +2510,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2639,8 +2527,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "ALL-UNNAMED"));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2656,8 +2543,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "com.example.module"));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2674,8 +2560,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ADD_EXPORTS, exports));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2692,8 +2577,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ADD_OPENS, "   "));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2710,8 +2594,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ADD_OPENS, opens));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2728,8 +2611,7 @@ public class TestRun extends BaseTest {
 		Path jar = createJar(output, Integer.toString(Runtime.version().feature()),
 				Collections.singletonMap(Project.ATTR_ENABLE_NATIVE_ACCESS, "module1 module2"));
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar.toString());
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", jar.toString());
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar.toString());
@@ -2744,8 +2626,7 @@ public class TestRun extends BaseTest {
 	void testReadingNoAddExportsOnJava8() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
 
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java=8", jar);
-		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		Run run = JBang.parseCommand("run", "--java=8", jar);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
@@ -2811,8 +2692,7 @@ public class TestRun extends BaseTest {
 			String war = warPath.toAbsolutePath().toString();
 
 			// Verify the WAR file can be run
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", war);
-			Run run = (Run) pr.subcommand().commandSpec().userObject();
+			Run run = JBang.parseCommand("run", war);
 
 			ProjectBuilder pb = run.createProjectBuilderForRun();
 			Project code = pb.build(war);

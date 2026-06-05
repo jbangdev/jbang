@@ -16,6 +16,10 @@ on:
         type: boolean
         default: true
 
+concurrency:
+  group: ci-build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml

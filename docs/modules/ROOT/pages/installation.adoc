@@ -444,6 +444,23 @@ By default JBang downloads itself from GitHub. You can override the download URL
 export JBANG_DOWNLOAD_URL=https://internal-mirror.example.com/jbang/jbang.tar
 ----
 
+=== Downloading a specific version or the early-access build
+
+Set `JBANG_DOWNLOAD_VERSION` to pick a specific release. Numeric values are resolved to the matching `vX.Y.Z` GitHub release; any other value is used as a release tag name as-is. This means you can opt-in to the perpetual early-access build with a simple:
+
+[source,bash]
+----
+export JBANG_DOWNLOAD_VERSION=early-access
+----
+
+which resolves to https://github.com/jbangdev/jbang/releases/download/early-access/ . Equivalent forms:
+
+[source,bash]
+----
+export JBANG_DOWNLOAD_VERSION=0.120.0     # -> .../download/v0.120.0/jbang.tar
+export JBANG_DOWNLOAD_VERSION=early-access # -> .../download/early-access/jbang.tar
+----
+
 == Version Check
 
 `jbang` will check once a day if a new version is available. If a new version is available a message will be printed with information on how to install.
@@ -504,7 +521,7 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 
 | `JBANG_DOWNLOAD_VERSION`
 | _(latest)_
-| Specific JBang version to download (e.g., `0.120.0`). When unset, the latest release is used.
+| Specific JBang version to download. Numeric values (e.g., `0.120.0`) are resolved to the matching `vX.Y.Z` GitHub release; any non-numeric value (e.g., `early-access`) is used as a release tag name as-is. When unset, the latest release is used.
 
 | `JBANG_JAVA_OPTIONS`
 | _(empty)_

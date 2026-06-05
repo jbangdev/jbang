@@ -25,3 +25,6 @@ allure-results
 .DS_Store
 .env
 assets/
+.cachebro/
+CLAUDE.md
+PLAN-*.md

@@ -1,0 +1,48 @@
+= JBANG-DEPS
+
+== NAME
+
+jbang deps -- Manage dependencies in jbang files.
+
+== SYNOPSIS
+
+[source]
+----
+jbang deps [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [COMMAND]
+----
+
+== DESCRIPTION
+
+Manage dependencies in jbang files.
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+jbang will be verbose on what it does.
+
+*--quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+== COMMANDS
+
+* xref:jbang:cli:jbang-deps-search.adoc[*search*] - Search for artifacts in local and central Maven repositories.
+* xref:jbang:cli:jbang-deps-add.adoc[*add*] - Add dependencies to a jbang file.
+

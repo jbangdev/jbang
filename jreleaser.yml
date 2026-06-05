@@ -39,6 +39,7 @@ project:
   snapshot:
     pattern: '^\d+\.\d+\.\d+\.\d+(?:-SNAPSHOT)?$'
     label: early-access
+    fullChangelog: true
 
 release:
   github:
@@ -53,6 +54,29 @@ release:
       formatted: always
       preset: "conventional-commits"
       format: '- {{commitShortHash}} {{commitTitle}}'
+      content: |
+        {{#Model.project.snapshot.enabled}}
+        WARNING: This is an early-access release directly from `main` branch, not intended for production use. 
+
+        If you want to try the latest and greatest, please give it a spin and report any issues you find.
+
+        Here is how to install it:
+
+        Linux / macOS / WSL (bash):
+        ```
+        curl -Ls https://sh.jbang.dev | JBANG_DOWNLOAD_VERSION=early-access bash -s - app setup
+        ```
+
+        Windows PowerShell:
+        ```
+        $env:JBANG_DOWNLOAD_VERSION='early-access'; iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+        ```
+        {{/Model.project.snapshot.enabled}}
+
+        ## Changelog
+
+        {{changelogChanges}}
+        {{changelogContributors}}
 
 checksum:
   individual: true

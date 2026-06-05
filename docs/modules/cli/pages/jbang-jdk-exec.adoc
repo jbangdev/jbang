@@ -1,0 +1,51 @@
+= JBANG-JDK-EXEC
+
+== NAME
+
+jbang jdk exec -- Executes the given command using the default (or specified) JDK.
+
+== SYNOPSIS
+
+[source]
+----
+jbang jdk exec [-hox] [-j=<java>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] <command>
+----
+
+== DESCRIPTION
+
+Executes the given command using the default (or specified) JDK.
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*-j*, *--java*=<java>::
+JDK version to use for executing the command.
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--verbose*::
+jbang will be verbose on what it does.
+
+*--quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+== ARGUMENTS
+
+*<command>*::
+Command to execute
+

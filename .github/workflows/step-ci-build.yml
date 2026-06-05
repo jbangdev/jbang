@@ -361,15 +361,19 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
-          path: build/allure-results
-          merge-multiple: true
-      - id: generate-report
-        run: ./gradlew --no-daemon allureReport --clean
-      - name: Arcive test results
+          path: build/allure-inputs
+      - name: Configure Allure multi-dir input
+        # Gradle reads ORG_GRADLE_PROJECT_* env vars as -P project properties,
+        # so shared-test-archiving's internal `gradle allureReport` will use
+        # all per-OS launch dirs instead of the (non-existent) build/allure-results.
+        run: |
+          DIRS=$(find build/allure-inputs -mindepth 1 -maxdepth 1 -type d | tr '\n' ',' | sed 's/,$//')
+          echo "ORG_GRADLE_PROJECT_allureMergeDirs=$DIRS" >> $GITHUB_ENV
+      - name: Archive test results
         uses: ./.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
-          suffix: ${{ matrix.os }}
+          suffix: ""
 
   test-results-summary:
     if: always() && !inputs.skip_tests
