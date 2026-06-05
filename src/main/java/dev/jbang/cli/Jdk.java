@@ -244,9 +244,12 @@ public class Jdk extends BaseCommand {
 		public Integer doCall() throws IOException {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
 			dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getInstalledJdk(versionOrId,
-					JdkProvider.Predicates.canUpdate);
+					JdkProvider.Predicates.canInstall);
 			if (jdk == null) {
-				throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
+				jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canUpdate);
+				if (jdk == null) {
+					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
+				}
 			}
 			jdk.uninstall();
 			Util.infoMsg("Uninstalled JDK:\n  " + versionOrId);
