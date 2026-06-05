@@ -397,6 +397,22 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, hasItem("dev.jba:"));
 	}
 
+	// --- Double-tab detection tests ---
+
+	@Test
+	void testDoubleTapDetected() throws Exception {
+		// First call records, second within threshold detects double-tap
+		ScriptRefCompleter.isDoubleTap("test"); // ignore result
+		dev.jbang.cli.completion.ScriptRefCompleter.recordCompletionForTest("test");
+		assertThat(ScriptRefCompleter.isDoubleTap("test"), is(true));
+	}
+
+	@Test
+	void testDoubleTapNotDetectedForDifferentInput() throws Exception {
+		ScriptRefCompleter.recordCompletionForTest("first");
+		assertThat(ScriptRefCompleter.isDoubleTap("second"), is(false));
+	}
+
 	// --- Helpers ---
 
 	private static List<String> valuesOnly(List<String> candidates) {
