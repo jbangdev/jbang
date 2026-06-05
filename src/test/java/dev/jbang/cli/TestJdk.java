@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class TestJdk extends BaseTest {
@@ -149,6 +150,31 @@ public class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString("* -> 17.0.7-jbang"));
+	}
+
+	@Test
+	void testVersionDefaultAsDefault() throws Exception {
+		Arrays.asList("11.0.7", "12.0.7", "12.0.9", "13.0.7").forEach(TestJdk::createMockJdk);
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "default", "12"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+
+		result = checkedRun(withProviders("jdk", "default"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), containsString("* -> 12.0.7-jbang"));
+
+		result = checkedRun(withProviders("jdk", "default", "-v", "12.0.9-jbang"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK for version 12 set to 12"));
+
+		result = checkedRun(withProviders("jdk", "default"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), containsString("* -> 12.0.9-jbang"));
 	}
 
 	@Test
@@ -324,6 +350,23 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkInstallWithLinkingAndIntegerId() {
+		assertThrows(IllegalArgumentException.class,
+				() -> checkedRun("install", "--force", "11", "/non-existent-path"),
+				"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+	}
+
+	@Test
+	void testJdkInstallWithLinkingToExistingJBangJdkPath() {
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks).resolve("11");
+		initMockJdkDir(jdkPath, "11.0.14");
+
+		assertThrows(IllegalArgumentException.class,
+				() -> checkedRun("install", "my11", jdkPath.toString()),
+				"The provided path cannot point to a JBang managed JDK");
+	}
+
+	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir) {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 
@@ -361,6 +404,30 @@ public class TestJdk extends BaseTest {
 				containsString("JDK my11-linked has been linked to: " + jdkOk));
 		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
 		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("my11-linked").toRealPath())));
+	}
+
+	@Test
+	void testJdkInstallSameVersion() throws Exception {
+		Arrays.asList(11).forEach(TestJdk::createMockJdk);
+
+		CaptureResult<Integer> result = checkedRun("install", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("JDK is already installed"));
+		assertThat(result.normalizedErr(), containsString("Use --force to install anyway"));
+	}
+
+	@Test
+	void testJdkInstallSameVersionForced() throws Exception {
+		Arrays.asList(11).forEach(TestJdk::createMockJdk);
+		Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "--force", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
+		assertTrue(Files.isDirectory(jdkPath.resolve("11.1")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
 	}
 
 	@Test
@@ -415,15 +482,20 @@ public class TestJdk extends BaseTest {
 	}
 
 	public static void createMockJdk(int jdkVersion) {
-		createMockJdk(jdkVersion, TestJdk::initMockJdkDir);
+		String fullVersion = jdkVersion + ".0.7";
+		createMockJdk(fullVersion);
+	}
+
+	public static void createMockJdk(String fullVersion) {
+		createMockJdk(fullVersion, TestJdk::initMockJdkDir);
 	}
 
 	public static void createMockJdkRuntime(int jdkVersion) {
-		createMockJdk(jdkVersion, TestJdk::initMockJdkDirRuntime);
+		String fullVersion = jdkVersion + ".0.7";
+		createMockJdk(fullVersion, TestJdk::initMockJdkDirRuntime);
 	}
 
-	private static void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
-		String fullVersion = jdkVersion + ".0.7";
+	public static void createMockJdk(String fullVersion, BiConsumer<Path, String> init) {
 		Path jdksPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 		Path jdkPath = jdksPath.resolve(fullVersion + "-jbang");
 		init.accept(jdkPath, fullVersion);
@@ -431,7 +503,7 @@ public class TestJdk extends BaseTest {
 		if (!Files.exists(deflink)) {
 			Util.createLink(deflink, jdkPath);
 		}
-		Path defvlink = jdksPath.resolve(String.valueOf(jdkVersion));
+		Path defvlink = jdksPath.resolve(String.valueOf(JavaUtil.parseJavaVersion(fullVersion)));
 		if (!Files.exists(defvlink)) {
 			Util.createLink(defvlink, jdkPath);
 		}

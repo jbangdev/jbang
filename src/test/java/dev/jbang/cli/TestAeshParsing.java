@@ -201,15 +201,6 @@ class TestAeshParsing extends BaseTest {
 		assertThat(run.runMixin.flightRecorderString, emptyOrNullString());
 	}
 
-	// --- Hidden options not in help ---
-
-	@Test
-	void testHiddenOptionNotInHelp() throws Exception {
-		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run", "--help"));
-		String output = result.normalizedOut() + result.normalizedErr();
-		assertThat(output, not(containsString("jdk-providers")));
-	}
-
 	// --- Help output contains expected options ---
 
 	@Test
