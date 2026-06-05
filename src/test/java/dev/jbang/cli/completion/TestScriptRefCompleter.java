@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.aesh.command.Command;
 import org.aesh.command.completer.CompleterInvocation;
@@ -86,7 +87,8 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("");
 
-		assertThat(candidates, hasItem("subdir/"));
+		assertThat(valuesOnly(candidates), hasItem("subdir/"));
+		assertThat(candidates, hasItem("subdir/\tDirectory"));
 	}
 
 	@Test
@@ -157,8 +159,9 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("");
 
-		assertThat(candidates, hasItem("myalias"));
-		assertThat(candidates, hasItem("otheralias"));
+		assertThat(valuesOnly(candidates), hasItem("myalias"));
+		assertThat(valuesOnly(candidates), hasItem("otheralias"));
+		assertThat(candidates, hasItem("myalias\tAlias"));
 	}
 
 	@Test
@@ -174,8 +177,8 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("my");
 
-		assertThat(candidates, hasItem("myalias"));
-		assertThat(candidates, not(hasItem("otheralias")));
+		assertThat(valuesOnly(candidates), hasItem("myalias"));
+		assertThat(valuesOnly(candidates), not(hasItem("otheralias")));
 	}
 
 	@Test
@@ -193,7 +196,7 @@ public class TestScriptRefCompleter extends BaseTest {
 		List<String> candidates = complete("");
 
 		assertThat(candidates, hasItem("hello.java"));
-		assertThat(candidates, hasItem("myalias"));
+		assertThat(valuesOnly(candidates), hasItem("myalias"));
 	}
 
 	@Test
@@ -214,6 +217,43 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, hasItem("test.java"));
 	}
 
+	// --- Navigation hint tests ---
+
+	@Test
+	void testEmptyInputShowsNavigationHints() throws IOException {
+		List<String> candidates = complete("");
+
+		assertThat(candidates, hasItem("@\tBrowse catalogs"));
+		assertThat(candidates, hasItem("https://github.com/\tComplete from GitHub repo"));
+	}
+
+	@Test
+	void testNonEmptyInputOmitsNavigationHints() throws IOException {
+		Files.writeString(cwdDir.resolve("hello.java"), "// hello");
+
+		List<String> candidates = complete("hel");
+
+		assertThat(valuesOnly(candidates), not(hasItem("@")));
+		assertThat(valuesOnly(candidates), not(hasItem("https://github.com/")));
+	}
+
+	@Test
+	void testDottedInputHintsMavenColon() {
+		List<String> candidates = complete("dev.jbang");
+
+		// Single candidate has its description stripped to avoid aesh
+		// space-escaping the tab-separated description
+		assertThat(valuesOnly(candidates), hasItem("dev.jbang:"));
+	}
+
+	@Test
+	void testDottedInputNoColonHintWhenAlreadyGav() {
+		// 2+ dots triggers GAV mode — no hint needed
+		List<String> candidates = complete("com.google.guava");
+
+		assertThat(valuesOnly(candidates), not(hasItem("com.google.guava:")));
+	}
+
 	// --- Catalog alias browsing tests ---
 
 	@Test
@@ -228,7 +268,8 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("@");
 
-		assertThat(candidates, hasItem("@mycat"));
+		assertThat(valuesOnly(candidates), hasItem("@mycat"));
+		assertThat(candidates, hasItem("@mycat\tCatalog"));
 	}
 
 	@Test
@@ -247,8 +288,9 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("@mycat");
 
-		assertThat(candidates, hasItem("foo@mycat"));
-		assertThat(candidates, hasItem("bar@mycat"));
+		assertThat(valuesOnly(candidates), hasItem("foo@mycat"));
+		assertThat(valuesOnly(candidates), hasItem("bar@mycat"));
+		assertThat(candidates, hasItem("foo@mycat\tAlias in mycat"));
 	}
 
 	@Test
@@ -264,8 +306,8 @@ public class TestScriptRefCompleter extends BaseTest {
 
 		List<String> candidates = complete("@my");
 
-		assertThat(candidates, hasItem("@mycat"));
-		assertThat(candidates, not(hasItem("@other")));
+		assertThat(valuesOnly(candidates), hasItem("@mycat"));
+		assertThat(valuesOnly(candidates), not(hasItem("@other")));
 	}
 
 	// --- GAV completion tests ---
@@ -324,7 +366,26 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, not(hasItem("com.example.test.java")));
 	}
 
+	@Test
+	void testGavModeNoResultsSuppressesFileFallback() {
+		// When GAV mode finds nothing, return the partial itself
+		// to suppress the shell's file-completion fallback
+		List<String> candidates = complete("dev.jba:");
+
+		assertThat(candidates, hasSize(1));
+		assertThat(candidates, hasItem("dev.jba:"));
+	}
+
 	// --- Helpers ---
+
+	private static List<String> valuesOnly(List<String> candidates) {
+		return candidates.stream()
+			.map(c -> {
+				int t = c.indexOf('\t');
+				return t >= 0 ? c.substring(0, t) : c;
+			})
+			.collect(Collectors.toList());
+	}
 
 	private List<String> complete(String partial) {
 		return completeRaw(partial);

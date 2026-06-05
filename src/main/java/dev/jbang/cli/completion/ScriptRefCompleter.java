@@ -41,6 +41,10 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		// Also accept files without extension (scripts with shebangs)
 	}
 
+	private static String described(String candidate, String description) {
+		return candidate + "\t" + description;
+	}
+
 	@Override
 	public void complete(CompleterInvocation inv) {
 		String partial = inv.getGivenCompleteValue();
@@ -50,24 +54,48 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 		Set<String> candidates = new TreeSet<>(); // sorted for stable output
 
+		boolean specialMode = false;
 		if (partial.startsWith("@")) {
 			completeCatalogAliases(candidates, partial);
+			specialMode = true;
 		} else if (GitHubCompletionProvider.canComplete(partial)) {
 			GitHubCompletionProvider.complete(candidates, partial, SCRIPT_EXTENSIONS);
+			specialMode = true;
 		} else if (looksLikeGav(partial)) {
 			completeGav(candidates, partial);
+			specialMode = true;
 		} else {
 			completeFiles(candidates, partial);
 			completeAliases(candidates, partial);
+			addNavigationHints(candidates, partial);
+		}
+
+		// In specialized modes (GAV, catalog, GitHub), if no results were found,
+		// return the partial itself to suppress the shell's file-completion
+		// fallback which would offer unrelated local files.
+		if (specialMode && candidates.isEmpty() && !partial.isEmpty()) {
+			candidates.add(partial);
 		}
 
 		inv.addAllCompleterValues(candidates);
+		// When there is exactly one candidate, aesh escapes spaces for direct
+		// insertion which mangles embedded tab descriptions. Strip the
+		// description so the value is clean.
 		if (candidates.size() == 1) {
 			String single = candidates.iterator().next();
+			int tab = single.indexOf('\t');
+			String value;
+			if (tab >= 0) {
+				value = single.substring(0, tab);
+				inv.clearCompleterValues();
+				inv.addCompleterValue(value);
+			} else {
+				value = single;
+			}
 			// Don't append a space after directory, GAV separator, or
 			// group prefix — the user will keep navigating
-			if (single.endsWith("/") || single.endsWith("\\")
-					|| single.endsWith(":") || single.endsWith(".")) {
+			if (value.endsWith("/") || value.endsWith("\\")
+					|| value.endsWith(":") || value.endsWith(".")) {
 				inv.setAppendSpace(false);
 			}
 		}
@@ -76,6 +104,26 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		if (partial.startsWith("@") && !candidates.isEmpty()) {
 			inv.setIgnoreStartsWith(true);
 			inv.setOffset(0);
+		}
+	}
+
+	// ---- Navigation hints ----------------------------------------------
+
+	/**
+	 * When the input is empty or a short prefix, add hint candidates that teach the
+	 * user about special completion modes. These are real, insertable values — not
+	 * decorative text.
+	 */
+	private void addNavigationHints(Set<String> candidates, String partial) {
+		if (partial.isEmpty()) {
+			candidates.add(described("@", "Browse catalogs"));
+			candidates.add(described("https://github.com/", "Complete from GitHub repo"));
+		}
+		// When input contains a dot but hasn't triggered GAV mode yet (< 2 dots),
+		// hint that appending ':' switches to Maven artifact completion.
+		if (!partial.isEmpty() && partial.contains(".") && !partial.contains("/")
+				&& !partial.contains(":") && !looksLikeGav(partial)) {
+			candidates.add(described(partial + ":", "Maven artifact lookup"));
 		}
 	}
 
@@ -111,7 +159,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 					continue;
 				}
 				if (Files.isDirectory(entry)) {
-					candidates.add(prefix + name + "/");
+					candidates.add(described(prefix + name + "/", "Directory"));
 				} else if (isScriptFile(name)) {
 					candidates.add(prefix + name);
 				}
@@ -137,7 +185,9 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			Catalog merged = Catalog.getMerged(true, true);
 			for (String name : merged.aliases.keySet()) {
 				if (name.startsWith(partial)) {
-					candidates.add(name);
+					dev.jbang.catalog.Alias alias = merged.aliases.get(name);
+					String desc = (alias != null && alias.description != null) ? alias.description : "Alias";
+					candidates.add(described(name, desc));
 				}
 			}
 		} catch (Exception e) {
@@ -159,7 +209,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			try {
 				Catalog merged = Catalog.getMerged(true, true);
 				for (String name : merged.catalogs.keySet()) {
-					candidates.add("@" + name);
+					candidates.add(described("@" + name, "Catalog"));
 				}
 			} catch (Exception e) {
 				// best-effort
@@ -172,7 +222,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			Catalog catalog = Catalog.getByName(catalogName);
 			// List all aliases in this catalog as alias@catalogName
 			for (String alias : catalog.aliases.keySet()) {
-				candidates.add(alias + "@" + catalogName);
+				candidates.add(described(alias + "@" + catalogName, "Alias in " + catalogName));
 			}
 		} catch (Exception e) {
 			// Not a valid catalog — ignore
@@ -185,7 +235,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			Catalog merged = Catalog.getMerged(true, true);
 			for (String name : merged.catalogs.keySet()) {
 				if (name.startsWith(catalogName) && !name.equals(catalogName)) {
-					candidates.add("@" + name);
+					candidates.add(described("@" + name, "Catalog"));
 				}
 			}
 		} catch (Exception ex) {
@@ -291,11 +341,11 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 				String groupSoFar = parentGroup.isEmpty() ? name : parentGroup + "." + name;
 				if (hasArtifactChildren(entry)) {
 					// This groupId has artifacts — offer it with trailing colon
-					candidates.add(groupSoFar + ":");
+					candidates.add(described(groupSoFar + ":", "Maven artifacts"));
 				}
 				if (hasSubGroups(entry)) {
 					// Has deeper groupId segments — offer with trailing dot
-					candidates.add(groupSoFar + ".");
+					candidates.add(described(groupSoFar + ".", "Maven group"));
 				}
 			}
 		} catch (IOException e) {
@@ -327,7 +377,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 				}
 				// Only offer if this looks like an artifactId (has version subdirs)
 				if (isArtifactDir(entry)) {
-					candidates.add(groupId + ":" + name + ":");
+					candidates.add(described(groupId + ":" + name + ":", "Maven artifact"));
 				}
 			}
 		} catch (IOException e) {
@@ -359,7 +409,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 				}
 				// Verify it's a real version dir (contains a .pom)
 				if (isVersionDir(entry)) {
-					candidates.add(groupId + ":" + artifactId + ":" + name);
+					candidates.add(described(groupId + ":" + artifactId + ":" + name, "Version"));
 				}
 			}
 		} catch (IOException e) {
