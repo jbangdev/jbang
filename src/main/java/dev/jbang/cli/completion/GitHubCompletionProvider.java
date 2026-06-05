@@ -33,6 +33,8 @@ import com.google.gson.reflect.TypeToken;
  */
 class GitHubCompletionProvider {
 
+	private static final Gson GSON = new Gson();
+
 	/** Optional https:// prefix — we accept bare github.com/ too. */
 	private static final String GITHUB_PREFIX = "(?:https?://)?github\\.com";
 
@@ -62,13 +64,13 @@ class GitHubCompletionProvider {
 	/**
 	 * Simple LRU + TTL cache for directory listings keyed by API URL.
 	 */
-	private static final Map<String, CacheEntry> CACHE = new LinkedHashMap<String, CacheEntry>(
-			MAX_CACHE_ENTRIES + 1, 0.75f, true) {
-		@Override
-		protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
-			return size() > MAX_CACHE_ENTRIES;
-		}
-	};
+	private static final Map<String, CacheEntry> CACHE = Collections.synchronizedMap(
+			new LinkedHashMap<String, CacheEntry>(MAX_CACHE_ENTRIES + 1, 0.75f, true) {
+				@Override
+				protected boolean removeEldestEntry(Map.Entry<String, CacheEntry> eldest) {
+					return size() > MAX_CACHE_ENTRIES;
+				}
+			});
 
 	/**
 	 * Returns true if the partial input looks like a GitHub URL that we can
@@ -203,8 +205,7 @@ class GitHubCompletionProvider {
 			}
 			conn.disconnect();
 
-			Gson gson = new Gson();
-			List<Map<String, Object>> raw = gson.fromJson(body,
+			List<Map<String, Object>> raw = GSON.fromJson(body,
 					new TypeToken<List<Map<String, Object>>>() {
 					}.getType());
 
