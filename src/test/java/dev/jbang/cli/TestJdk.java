@@ -133,7 +133,7 @@ public class TestJdk extends BaseTest {
 		result = checkedRun(withProviders("jdk", "default"));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("* -> 12-jbang"));
+		assertThat(result.normalizedOut(), containsString("* -> 12.0.7-jbang"));
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class TestJdk extends BaseTest {
 		result = checkedRun(withProviders("jdk", "default"));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("* -> 17-jbang"));
+		assertThat(result.normalizedOut(), containsString("* -> 17.0.7-jbang"));
 	}
 
 	@Test
@@ -368,7 +368,14 @@ public class TestJdk extends BaseTest {
 		int jdkVersion = 14;
 		createMockJdk(jdkVersion);
 
-		CaptureResult<Integer> result = checkedRun(withProviders(
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "list", "--show-details"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(countLines(result.normalizedOut()), equalTo(4));
+		assertThat(result.normalizedOut(), containsString("default"));
+		assertThat(result.normalizedOut(), containsString("14-default"));
+		assertThat(result.normalizedOut(), containsString("14.0.7-jbang"));
+
+		result = checkedRun(withProviders(
 				"jdk", "uninstall", Integer.toString(jdkVersion)));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
@@ -376,6 +383,10 @@ public class TestJdk extends BaseTest {
 				containsString("Uninstalled JDK:"));
 		assertThat(result.normalizedErr(),
 				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
+
+		result = checkedRun(withProviders("jdk", "list", "--show-details"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), containsString("No JDKs installed"));
 	}
 
 	@Test
@@ -412,11 +423,17 @@ public class TestJdk extends BaseTest {
 	}
 
 	private static void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
-		Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks).resolve(String.valueOf(jdkVersion));
-		init.accept(jdkPath, jdkVersion + ".0.7");
-		Path link = Settings.getDefaultJdkDir();
-		if (!Files.exists(link)) {
-			Util.createLink(link, jdkPath);
+		String fullVersion = jdkVersion + ".0.7";
+		Path jdksPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+		Path jdkPath = jdksPath.resolve(fullVersion + "-jbang");
+		init.accept(jdkPath, fullVersion);
+		Path deflink = Settings.getDefaultJdkDir();
+		if (!Files.exists(deflink)) {
+			Util.createLink(deflink, jdkPath);
+		}
+		Path defvlink = jdksPath.resolve(String.valueOf(jdkVersion));
+		if (!Files.exists(defvlink)) {
+			Util.createLink(defvlink, jdkPath);
 		}
 	}
 
@@ -443,5 +460,12 @@ public class TestJdk extends BaseTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private int countLines(String text) {
+		return text.lines()
+			.filter(line -> !line.trim().isEmpty())
+			.mapToInt(line -> 1)
+			.sum();
 	}
 }
