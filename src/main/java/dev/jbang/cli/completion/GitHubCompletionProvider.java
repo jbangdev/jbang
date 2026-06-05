@@ -147,9 +147,9 @@ class GitHubCompletionProvider {
 				continue;
 			}
 			if ("dir".equals(entry.type)) {
-				candidates.add(urlPrefix + entry.name + "/");
+				candidates.add(urlPrefix + entry.name + "/\tGitHub directory");
 			} else if (hasMatchingExtension(entry.name, extensions)) {
-				candidates.add(urlPrefix + entry.name);
+				candidates.add(urlPrefix + entry.name + "\tGitHub");
 			}
 		}
 	}
