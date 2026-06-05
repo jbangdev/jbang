@@ -324,6 +324,23 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkInstallWithLinkingAndIntegerId() {
+		assertThrows(IllegalArgumentException.class,
+				() -> checkedRun("install", "--force", "11", "/non-existent-path"),
+				"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+	}
+
+	@Test
+	void testJdkInstallWithLinkingToExistingJBangJdkPath() {
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks).resolve("11");
+		initMockJdkDir(jdkPath, "11.0.14");
+
+		assertThrows(IllegalArgumentException.class,
+				() -> checkedRun("install", "my11", jdkPath.toString()),
+				"The provided path cannot point to a JBang managed JDK");
+	}
+
+	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir) {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 
@@ -361,6 +378,30 @@ public class TestJdk extends BaseTest {
 				containsString("JDK my11-linked has been linked to: " + jdkOk));
 		assertTrue(Util.isLink(jdkPath.resolve("my11-linked")));
 		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("my11-linked").toRealPath())));
+	}
+
+	@Test
+	void testJdkInstallSameVersion() throws Exception {
+		Arrays.asList(11).forEach(TestJdk::createMockJdk);
+
+		CaptureResult<Integer> result = checkedRun("install", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("JDK is already installed"));
+		assertThat(result.normalizedErr(), containsString("Use --force to install anyway"));
+	}
+
+	@Test
+	void testJdkInstallSameVersionForced() throws Exception {
+		Arrays.asList(11).forEach(TestJdk::createMockJdk);
+		Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "--force", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
+		assertTrue(Files.isDirectory(jdkPath.resolve("11.1")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
 	}
 
 	@Test
