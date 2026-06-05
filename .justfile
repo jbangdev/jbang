@@ -33,6 +33,12 @@ itest *args:
 jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
+# open interactive shell with jbang completion (zsh, bash, or fish)
+[no-exit-message]
+shell sh="zsh":
+    {{preitest}}
+    @"{{justfile_directory()}}/misc/dev-shell.sh" "{{sh}}" "{{justfile_directory()}}/build/install/jbang/bin"
+
 jbangdebug *args:
     JBANG_JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044 PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
