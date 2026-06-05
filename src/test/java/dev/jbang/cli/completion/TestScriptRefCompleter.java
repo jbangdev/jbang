@@ -224,11 +224,32 @@ public class TestScriptRefCompleter extends BaseTest {
 		List<String> candidates = complete("");
 
 		assertThat(candidates, hasItem("@\tBrowse catalogs"));
-		assertThat(candidates, hasItem("https://github.com/\tComplete from GitHub repo"));
+		assertThat(valuesOnly(candidates), hasItem("https://github.com/"));
+		assertThat(valuesOnly(candidates), hasItem("https://gitlab.com/"));
 	}
 
 	@Test
-	void testNonEmptyInputOmitsNavigationHints() throws IOException {
+	void testHttpPrefixOffersUrlHints() {
+		List<String> candidates = complete("htt");
+
+		assertThat(valuesOnly(candidates), hasItem("https://github.com/"));
+		assertThat(valuesOnly(candidates), hasItem("https://gist.github.com/"));
+		assertThat(valuesOnly(candidates), hasItem("https://gitlab.com/"));
+		assertThat(valuesOnly(candidates), hasItem("https://bitbucket.org/"));
+	}
+
+	@Test
+	void testHttpsBPrefixNarrowsUrlHints() {
+		// https://b narrows to bitbucket only (github/gitlab don't match)
+		List<String> candidates = complete("https://b");
+
+		assertThat(valuesOnly(candidates), hasItem("https://bitbucket.org/"));
+		assertThat(valuesOnly(candidates), not(hasItem("https://github.com/")));
+		assertThat(valuesOnly(candidates), not(hasItem("https://gitlab.com/")));
+	}
+
+	@Test
+	void testNonMatchingPrefixOmitsUrlHints() throws IOException {
 		Files.writeString(cwdDir.resolve("hello.java"), "// hello");
 
 		List<String> candidates = complete("hel");
