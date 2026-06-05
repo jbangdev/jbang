@@ -269,10 +269,13 @@ public class TestScriptRefCompleter extends BaseTest {
 
 	@Test
 	void testDottedInputNoColonHintWhenAlreadyGav() {
-		// 2+ dots triggers GAV mode — no hint needed
+		// 2+ dots triggers GAV mode — Maven colon *hint* should not appear,
+		// but real GAV results (local or remote) are expected
 		List<String> candidates = complete("com.google.guava");
 
-		assertThat(valuesOnly(candidates), not(hasItem("com.google.guava:")));
+		// Should not have the navigation hint "Maven artifact lookup"
+		assertThat(candidates.stream()
+			.anyMatch(c -> c.contains("Maven artifact lookup")), is(false));
 	}
 
 	// --- Catalog alias browsing tests ---

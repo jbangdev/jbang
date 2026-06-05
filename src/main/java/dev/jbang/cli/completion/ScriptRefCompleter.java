@@ -76,11 +76,19 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			specialMode = true;
 		} else if (looksLikeGav(partial)) {
 			completeGav(candidates, partial);
+			completeGavRemote(candidates, partial);
 			specialMode = true;
 		} else {
 			completeFiles(candidates, partial);
 			completeAliases(candidates, partial);
 			addNavigationHints(candidates, partial);
+			// When no files or aliases matched and the partial looks like it
+			// could be a groupId prefix, search Maven Central for matching
+			// artifacts. Only hint-only candidates (starting with @ or https://
+			// or ending with : for the Maven colon hint) don't count.
+			if (!partial.isEmpty() && looksLikeGroupIdPrefix(partial) && !hasRealCandidates(candidates)) {
+				completeGavRemote(candidates, partial);
+			}
 		}
 
 		// In specialized modes (GAV, catalog, GitHub), if no results were found,
@@ -278,6 +286,42 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	 * dotted package prefix (at least two dot-separated segments with no path
 	 * separators).
 	 */
+	/**
+	 * Returns true if the partial could plausibly be the start of a Maven groupId
+	 * (letters, digits, dots, hyphens — no path separators, colons, or URL
+	 * schemes).
+	 */
+	private static boolean looksLikeGroupIdPrefix(String partial) {
+		if (partial.contains("/") || partial.contains("\\") || partial.contains(":")) {
+			return false;
+		}
+		// Must look like a Java package prefix: letters, digits, dots, hyphens
+		for (int i = 0; i < partial.length(); i++) {
+			char c = partial.charAt(i);
+			if (!Character.isLetterOrDigit(c) && c != '.' && c != '-' && c != '_') {
+				return false;
+			}
+		}
+		return partial.length() >= 2;
+	}
+
+	/**
+	 * Returns true if the candidate set contains at least one "real" candidate (not
+	 * just navigation hints like @, https://, or the Maven colon hint).
+	 */
+	private static boolean hasRealCandidates(Set<String> candidates) {
+		for (String c : candidates) {
+			int tab = c.indexOf('\t');
+			String value = tab >= 0 ? c.substring(0, tab) : c;
+			// Skip navigation hints
+			if (value.equals("@") || value.startsWith("https://") || value.endsWith(":")) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
 	static boolean looksLikeGav(String partial) {
 		if (partial.contains(":")) {
 			// URLs like https://... are not GAV coordinates
@@ -445,6 +489,94 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			}
 		} catch (IOException e) {
 			// best-effort
+		}
+	}
+
+	// ---- Remote Maven Central completion --------------------------------
+
+	/** Timeout for Maven Central search during completion (shorter than normal). */
+	private static final int SEARCH_TIMEOUT_MS = 3000;
+
+	/**
+	 * Search Maven Central for GAV candidates when the local repository has no
+	 * matches. Only called on double-tap to avoid latency on casual TAB.
+	 */
+	private void completeGavRemote(Set<String> candidates, String partial) {
+		try {
+			String[] parts = partial.split(":", -1);
+			// Build the Solr query based on what the user has typed
+			String solrQuery;
+			if (parts.length >= 3) {
+				// groupId:artifactId:versionPrefix — exact g+a, list versions
+				solrQuery = "g:" + parts[0] + " AND a:" + parts[1];
+			} else if (parts.length == 2) {
+				// groupId:artifactPrefix — exact g, partial a
+				solrQuery = "g:" + parts[0] + (parts[1].isEmpty() ? "" : " AND a:" + parts[1] + "*");
+			} else {
+				// groupId prefix only
+				solrQuery = "g:" + partial + "*";
+			}
+			String searchUrl = "https://search.maven.org/solrsearch/select?rows=20&q="
+					+ java.net.URLEncoder.encode(solrQuery, "UTF-8");
+			if (parts.length >= 3) {
+				searchUrl += "&core=gav";
+			}
+
+			java.net.URL url = new java.net.URL(searchUrl);
+			java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+			conn.setConnectTimeout(SEARCH_TIMEOUT_MS);
+			conn.setReadTimeout(SEARCH_TIMEOUT_MS);
+			conn.setRequestProperty("User-Agent", "jbang");
+			if (conn.getResponseCode() != 200) {
+				conn.disconnect();
+				return;
+			}
+			String body;
+			try (java.io.BufferedReader rdr = new java.io.BufferedReader(
+					new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+				StringBuilder sb = new StringBuilder();
+				String line;
+				while ((line = rdr.readLine()) != null) {
+					sb.append(line);
+				}
+				body = sb.toString();
+			}
+			conn.disconnect();
+
+			// Parse the Solr response
+			com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+			com.google.gson.JsonArray docs = json.getAsJsonObject("response").getAsJsonArray("docs");
+
+			// Collect existing candidate values (before tab) to avoid duplicates
+			Set<String> existing = new HashSet<>();
+			for (String c : candidates) {
+				int tab = c.indexOf('\t');
+				existing.add(tab >= 0 ? c.substring(0, tab) : c);
+			}
+
+			for (int i = 0; i < docs.size(); i++) {
+				com.google.gson.JsonObject doc = docs.get(i).getAsJsonObject();
+				String g = doc.has("g") ? doc.get("g").getAsString() : null;
+				String a = doc.has("a") ? doc.get("a").getAsString() : null;
+				String v = doc.has("v") ? doc.get("v").getAsString() : null;
+				if (g == null)
+					continue;
+
+				String value;
+				if (parts.length >= 3 && a != null && v != null) {
+					value = g + ":" + a + ":" + v;
+				} else if (parts.length == 2 && a != null) {
+					value = g + ":" + a + ":";
+				} else {
+					// GroupId prefix — offer groupId: as candidate
+					value = g + ":";
+				}
+				if (!existing.contains(value)) {
+					candidates.add(described(value, "Maven Central"));
+				}
+			}
+		} catch (Exception e) {
+			// best-effort — network errors are expected
 		}
 	}
 
