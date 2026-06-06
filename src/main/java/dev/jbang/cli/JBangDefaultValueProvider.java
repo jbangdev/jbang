@@ -33,18 +33,6 @@ public class JBangDefaultValueProvider implements DefaultValueProvider {
 			return null;
 		}
 
-		// Skip config defaults for inherited options on child commands.
-		// The root command (JBang) will get the config default and handle
-		// it in afterParse(). Without this guard, a child command's config
-		// default (e.g. verbose=true) would override a CLI flag like
-		// --no-verbose that was already processed by the parent.
-		if (option.isInherited()
-				&& option.parent() != null
-				&& option.parent().getCommand() != null
-				&& !(option.parent().getCommand() instanceof JBang)) {
-			return null;
-		}
-
 		String optName = option.name().replace("-", "");
 		String fullPath = null;
 
