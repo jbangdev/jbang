@@ -39,7 +39,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	String configPath;
 
 	@Option(name = "insecure", hasValue = false, description = "Enable insecure trust of all SSL certificates.")
-	boolean insecure;
+	Boolean insecure;
 
 	@Option(name = "verbose", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"quiet" }, description = "jbang will be verbose on what it does.")
@@ -190,7 +190,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			}
 		}
 
-		if (insecure) {
+		if (Boolean.TRUE.equals(insecure)) {
 			enableInsecure();
 		}
 	}

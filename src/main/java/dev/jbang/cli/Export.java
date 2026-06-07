@@ -53,7 +53,7 @@ public class Export extends BaseCommand {
 		java.nio.file.Path outputFile;
 
 		@Option(name = "force", hasValue = false, description = "Force export, i.e. overwrite exported file if already exists")
-		boolean force;
+		Boolean force;
 
 		// Create a Manifest with a Class-Path option
 		protected Manifest createManifest(String newPath) {
@@ -118,7 +118,7 @@ public class Export extends BaseCommand {
 			Path source = ctx.getJarFile();
 			Path outputPath = getJarOutputPath();
 			if (outputPath.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
@@ -155,7 +155,7 @@ public class Export extends BaseCommand {
 			Path source = ctx.getJarFile();
 			Path outputPath = getJarOutputPath();
 			if (outputPath.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
@@ -174,7 +174,7 @@ public class Export extends BaseCommand {
 				Util.mkdirs(libDir);
 				StringBuilder newPath = new StringBuilder();
 				for (ArtifactInfo dep : deps) {
-					if (force) {
+					if (Boolean.TRUE.equals(force)) {
 						Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()),
 								StandardCopyOption.REPLACE_EXISTING);
 					} else {
@@ -218,7 +218,7 @@ public class Export extends BaseCommand {
 					Util.errorMsg("Cannot export as maven repository as " + outPath + " is not a directory.");
 					return EXIT_INVALID_INPUT;
 				}
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.mkdirs(outPath);
 				} else {
 					Util.errorMsg("Cannot export as " + outPath + " does not exist. Use --force to create.");
@@ -262,7 +262,7 @@ public class Export extends BaseCommand {
 			artifactFile.getParent().toFile().mkdirs();
 
 			if (artifactFile.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					artifactFile.toFile().delete();
 				} else {
 					Util.errorMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
@@ -309,7 +309,7 @@ public class Export extends BaseCommand {
 			Path source = ctx.getNativeImageFile();
 			Path outputPath = getNativeOutputPath();
 			if (outputPath.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
@@ -349,7 +349,7 @@ public class Export extends BaseCommand {
 			Path source = ctx.getJarFile();
 			Path outputPath = getFatjarOutputPath();
 			if (outputPath.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
@@ -474,7 +474,7 @@ public class Export extends BaseCommand {
 				relativeOP = "." + File.separator + Util.getCwd().relativize(outputPath);
 			}
 			if (outputPath.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + relativeOP + " already exists. Use --force to overwrite.");
@@ -550,7 +550,7 @@ public class Export extends BaseCommand {
 		int apply(BuildContext ctx) throws IOException {
 			Path projectDir = getOutputPath("");
 			if (projectDir.toFile().exists()) {
-				if (force) {
+				if (Boolean.TRUE.equals(force)) {
 					Util.deletePath(projectDir, false);
 				} else {
 					Util.errorMsg("Cannot export as " + projectDir + " already exists. Use --force to overwrite.");

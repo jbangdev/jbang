@@ -43,7 +43,7 @@ public class Config extends BaseCommand {
 	static abstract class BaseConfigCommand extends BaseCommand {
 
 		@Option(shortName = 'g', name = "global", hasValue = false, description = "Use the global (user) config file")
-		boolean global;
+		Boolean global;
 
 		@Option(shortName = 'f', name = "file", description = "Path to the config file to use")
 		Path configFile;
@@ -59,7 +59,7 @@ public class Config extends BaseCommand {
 
 		protected Path getConfigFile(boolean strict) {
 			Path cfg;
-			if (global) {
+			if (Boolean.TRUE.equals(global)) {
 				cfg = Settings.getUserConfigFile();
 			} else {
 				Path cfgPath = configFile;
@@ -169,10 +169,10 @@ public class Config extends BaseCommand {
 	@CommandDefinition(name = "list", description = "List active configuration values", generateHelp = true)
 	public static class ConfigList extends BaseConfigCommand {
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the configuration")
-		boolean showOrigin;
+		Boolean showOrigin;
 
 		@Option(name = "show-available", hasValue = false, description = "Show the available key names")
-		boolean showAvailable;
+		Boolean showAvailable;
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
@@ -180,11 +180,11 @@ public class Config extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			PrintStream out = System.out;
-			if (showAvailable && showOrigin) {
+			if (Boolean.TRUE.equals(showAvailable) && Boolean.TRUE.equals(showOrigin)) {
 				throw new ExitException(EXIT_INVALID_INPUT,
 						"Options '--show-available' and '--show-origin' cannot be used together");
 			}
-			if (showAvailable) {
+			if (Boolean.TRUE.equals(showAvailable)) {
 				Set<AvailableOption> opts = new HashSet<>(Arrays.asList(Config.extraOptions));
 				gatherKeys(JBang.class, opts);
 				if (format == OutputFormat.json) {
@@ -199,7 +199,7 @@ public class Config extends BaseCommand {
 				}
 			} else {
 				Configuration cfg = getConfig(null, true);
-				if (showOrigin) {
+				if (Boolean.TRUE.equals(showOrigin)) {
 					printConfigWithOrigin(out, cfg, format);
 				} else {
 					printConfig(out, cfg, format);

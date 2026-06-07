@@ -68,10 +68,10 @@ public class App extends BaseCommand {
 		RunMixin runMixin;
 
 		@Option(name = "force", hasValue = false, description = "Force re-installation")
-		boolean force;
+		Boolean force;
 
 		@Option(name = "no-build", hasValue = false, description = "Don't pre-build the code before installation")
-		boolean noBuild;
+		Boolean noBuild;
 
 		@Option(name = "name", description = "A name for the command")
 		String name;
@@ -98,7 +98,7 @@ public class App extends BaseCommand {
 						throw new ExitException(EXIT_INVALID_INPUT,
 								"It's not possible to install jbang with a different name");
 					}
-					installed = installJBang(force);
+					installed = installJBang(Boolean.TRUE.equals(force));
 				} else {
 					if ("jbang".equals(name)) {
 						throw new ExitException(EXIT_INVALID_INPUT, "jbang is a reserved name.");
@@ -134,7 +134,7 @@ public class App extends BaseCommand {
 
 		public boolean install() throws IOException {
 			Path binDir = Settings.getConfigBinDir();
-			if (!force && name != null && existScripts(binDir, name)) {
+			if (!Boolean.TRUE.equals(force) && name != null && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
@@ -143,7 +143,7 @@ public class App extends BaseCommand {
 			Project prj = pb.build(scriptRef);
 			if (name == null) {
 				name = CatalogUtil.nameFromRef(scriptRef);
-				if (!force && existScripts(binDir, name)) {
+				if (!Boolean.TRUE.equals(force) && existScripts(binDir, name)) {
 					Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 					return false;
 				}
@@ -152,7 +152,7 @@ public class App extends BaseCommand {
 					&& !prj.getResourceRef().isURL()) {
 				scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 			}
-			if (!noBuild) {
+			if (!Boolean.TRUE.equals(noBuild)) {
 				prj.codeBuilder().build();
 			}
 			installScripts(name, scriptRef, collectRunOptions(), userParams);
@@ -369,7 +369,7 @@ public class App extends BaseCommand {
 		Boolean java;
 
 		@Option(name = "force", hasValue = false, description = "Force setup to be performed even when existing configuration has been detected")
-		boolean force;
+		Boolean force;
 
 		@Override
 		public Integer doCall() throws IOException {
@@ -379,7 +379,7 @@ public class App extends BaseCommand {
 			} else {
 				withJava = java;
 			}
-			return setup(withJava, force, true);
+			return setup(withJava, Boolean.TRUE.equals(force), true);
 		}
 
 		public static boolean needsSetup() {

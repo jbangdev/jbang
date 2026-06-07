@@ -56,7 +56,7 @@ public class Template extends BaseCommand {
 		String name;
 
 		@Option(name = "force", hasValue = false, description = "Force overwriting of existing template")
-		boolean force;
+		Boolean force;
 
 		@Arguments(paramLabel = "files", arity = "1..*", description = "Paths or URLs to template files", required = true)
 		List<String> fileRefs;
@@ -119,7 +119,7 @@ public class Template extends BaseCommand {
 			Map<String, TemplateProperty> propertiesMap = parseProperties(propertyStrings);
 
 			Path catFile = catalogOptions.getCatalogOrDefault();
-			if (force || !CatalogUtil.hasTemplate(catFile, name)) {
+			if (Boolean.TRUE.equals(force) || !CatalogUtil.hasTemplate(catFile, name)) {
 				CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 			} else {
 				Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
@@ -226,13 +226,13 @@ public class Template extends BaseCommand {
 	public static class TemplateList extends BaseTemplateCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the template")
-		boolean showOrigin;
+		Boolean showOrigin;
 
 		@Option(name = "show-files", hasValue = false, description = "Show list of files for each template")
-		boolean showFiles;
+		Boolean showFiles;
 
 		@Option(name = "show-properties", hasValue = false, description = "Show list of properties for each template")
-		boolean showProperties;
+		Boolean showProperties;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String catalogName;
@@ -254,10 +254,12 @@ public class Template extends BaseCommand {
 			} else {
 				catalog = Catalog.getMerged(true, false);
 			}
-			if (showOrigin) {
-				printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, format);
+			if (Boolean.TRUE.equals(showOrigin)) {
+				printTemplatesWithOrigin(out, catalogName, catalog, Boolean.TRUE.equals(showFiles),
+						Boolean.TRUE.equals(showProperties), format);
 			} else {
-				printTemplates(out, catalogName, catalog, showFiles, showProperties, format);
+				printTemplates(out, catalogName, catalog, Boolean.TRUE.equals(showFiles),
+						Boolean.TRUE.equals(showProperties), format);
 			}
 			return EXIT_OK;
 		}

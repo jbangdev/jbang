@@ -65,7 +65,7 @@ public class Alias extends BaseCommand {
 		String name;
 
 		@Option(name = "force", hasValue = false, description = "Force overwriting of existing alias")
-		boolean force;
+		Boolean force;
 
 		@Option(name = "enable-preview", hasValue = false, description = "Activate Java preview features")
 		Boolean enablePreviewRequested;
@@ -113,7 +113,7 @@ public class Alias extends BaseCommand {
 					runMixin.enableSystemAssertions,
 					buildMixin.manifestOptions, createJavaAgents(), docs, null);
 			Path catFile = catalogOptions.getCatalogOrDefault();
-			if (force || !CatalogUtil.hasAlias(catFile, name)) {
+			if (Boolean.TRUE.equals(force) || !CatalogUtil.hasAlias(catFile, name)) {
 				CatalogUtil.addAlias(catFile, name, alias);
 			} else {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to add anyway.");
@@ -166,7 +166,7 @@ public class Alias extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the alias")
-		boolean showOrigin;
+		Boolean showOrigin;
 
 		@Argument(paramLabel = "catalogName", index = "0", arity = "0..1", description = "The name of a catalog")
 		String catalogName;
@@ -188,7 +188,7 @@ public class Alias extends BaseCommand {
 			} else {
 				catalog = Catalog.getMerged(true, false);
 			}
-			if (showOrigin) {
+			if (Boolean.TRUE.equals(showOrigin)) {
 				printAliasesWithOrigin(out, catalogName, catalog, format);
 			} else {
 				printAliases(out, catalogName, catalog, format);

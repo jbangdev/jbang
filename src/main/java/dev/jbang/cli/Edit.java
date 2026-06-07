@@ -69,16 +69,16 @@ public class Edit extends BaseCommand {
 	}
 
 	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
-	public boolean live;
+	public Boolean live;
 
 	@Option(name = "open", fallbackValue = "", description = "Opens editor/IDE on the temporary project.")
 	public String editor;
 
 	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")
-	public boolean noOpen;
+	public Boolean noOpen;
 
 	@Option(shortName = 'b', name = "sandbox", hasValue = false, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
-	boolean sandbox;
+	Boolean sandbox;
 
 	/**
 	 * Returns a parent path if one of the targetFileNames exist in such parent.
@@ -160,7 +160,7 @@ public class Edit extends BaseCommand {
 			additionalFiles = new ArrayList<>();
 		}
 
-		if (!sandbox) {
+		if (!Boolean.TRUE.equals(sandbox)) {
 			File location;
 			if (scriptMixin.scriptOrFile != null) {
 				location = new File(scriptMixin.scriptOrFile);
@@ -179,7 +179,7 @@ public class Edit extends BaseCommand {
 				additionalFiles.add(0, pathToString(location.toPath()));
 			}
 
-			if (!noOpen) {
+			if (!Boolean.TRUE.equals(noOpen)) {
 				openEditor(pathToString(path), additionalFiles);
 			}
 			System.out.println(path);
@@ -197,11 +197,11 @@ public class Edit extends BaseCommand {
 			Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 			String projectPathString = pathToString(project.toAbsolutePath());
 
-			if (!noOpen) {
+			if (!Boolean.TRUE.equals(noOpen)) {
 				openEditor(projectPathString, additionalFiles);
 			}
 
-			if (!live) {
+			if (!Boolean.TRUE.equals(live)) {
 				out.println(projectPathString);
 			} else {
 				Path orginalFile = prj.getResourceRef().getFile();

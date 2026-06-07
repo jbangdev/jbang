@@ -329,7 +329,7 @@ public class Info extends BaseCommand {
 	public static class ClassPath extends BaseInfoCommand {
 
 		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
-		boolean dependenciesOnly;
+		Boolean dependenciesOnly;
 
 		@Override
 		public Integer doCall() throws IOException {
@@ -338,7 +338,7 @@ public class Info extends BaseCommand {
 			List<String> deps = info.resolvedDependencies != null ? info.resolvedDependencies
 					: Collections.emptyList();
 			List<String> cp = new ArrayList<>(deps.size() + 1);
-			if (!dependenciesOnly && info.applicationJar != null
+			if (!Boolean.TRUE.equals(dependenciesOnly) && info.applicationJar != null
 					&& !deps.contains(info.applicationJar)) {
 				cp.add(info.applicationJar);
 			}
@@ -364,7 +364,7 @@ public class Info extends BaseCommand {
 	public static class Docs extends BaseInfoCommand {
 
 		@Option(name = "open", hasValue = false, negatable = true, description = "Open the (first) documentation file/link in the default browser")
-		public boolean open;
+		public Boolean open;
 
 		@Override
 		public Integer doCall() throws IOException {
@@ -399,7 +399,7 @@ public class Info extends BaseCommand {
 				Util.infoMsg("No documentation files found");
 				return EXIT_OK;
 			}
-			if (!open) {
+			if (!Boolean.TRUE.equals(open)) {
 				Util.infoMsg("Use --open to open the documentation file in the default browser.");
 				return EXIT_OK;
 			}
