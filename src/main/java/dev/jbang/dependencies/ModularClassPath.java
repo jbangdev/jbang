@@ -5,13 +5,17 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
@@ -159,14 +163,16 @@ public class ModularClassPath {
 	 * <p>
 	 * Instead of special-casing JavaFX, this treats the script as a class-path
 	 * application but moves every resolved dependency that is a real
-	 * (non-automatic) module onto the {@code --module-path}, and adds those modules
-	 * as roots so the boot layer resolves them (and whatever they {@code requires})
-	 * transitively.
+	 * (non-automatic) module onto the {@code --module-path}, plus every module they
+	 * {@code requires} transitively, and adds those modules as roots.
 	 * <p>
-	 * Crucially, automatic modules are left on the class-path: their name is
-	 * derived from the file name and may not be a valid Java identifier (e.g.
-	 * {@code fastparse_2.13-2.3.3.jar} -> {@code fastparse.2.13}), which would
-	 * abort boot-layer initialization.
+	 * Automatic and plain jars that nobody requires are left on the class-path:
+	 * their name is derived from the file name and may not be a valid Java
+	 * identifier (e.g. {@code fastparse_2.13-2.3.3.jar} -> {@code fastparse.2.13}),
+	 * which would abort boot-layer initialization if forced onto the module-path.
+	 * An automatic module that <em>is</em> required by a promoted module is
+	 * promoted too, since a valid {@code requires} clause guarantees it has a
+	 * usable name.
 	 */
 	private List<String> getHybridModuleArguments() {
 		List<File> fileList = artifacts.stream()
@@ -189,13 +195,48 @@ public class ModularClassPath {
 				.keySet()
 				.forEach(file -> modulePaths.add(file.getPath()));
 
-			// Promote every remaining jar that is a real (non-automatic) module. Plain jars
-			// and automatic modules stay on the class-path.
+			// Index every resolved module (real and automatic) by name so we can follow
+			// `requires` edges below.
+			Map<String, String> moduleNameToPath = new HashMap<>();
+			Map<String, JavaModuleDescriptor> moduleNameToDescriptor = new HashMap<>();
 			resolvePathsResult.getPathElements().forEach((file, descriptor) -> {
-				if (descriptor != null && descriptor.name() != null && !descriptor.isAutomatic()) {
-					modulePaths.add(file.getPath());
-					rootModules.add(descriptor.name());
+				if (descriptor != null && descriptor.name() != null) {
+					moduleNameToPath.put(descriptor.name(), file.getPath());
+					moduleNameToDescriptor.put(descriptor.name(), descriptor);
 				}
+			});
+
+			// Seed with the real (non-automatic) modules, then transitively pull in every
+			// module they `requires`. This also promotes an *automatic* module when it is
+			// required by a promoted module: such a module necessarily has a valid name
+			// (otherwise it could not appear in a `requires` clause), so it is safe on the
+			// module-path. Automatic and plain jars that nobody requires stay on the
+			// class-path, where their file-name-derived (possibly invalid) module name does
+			// no harm.
+			Set<String> promoted = new HashSet<>();
+			Deque<String> toVisit = moduleNameToDescriptor.entrySet()
+				.stream()
+				.filter(e -> !e.getValue().isAutomatic())
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toCollection(ArrayDeque::new));
+			while (!toVisit.isEmpty()) {
+				String name = toVisit.poll();
+				if (!promoted.add(name)) {
+					continue;
+				}
+				JavaModuleDescriptor descriptor = moduleNameToDescriptor.get(name);
+				if (descriptor != null) {
+					descriptor.requires()
+						.stream()
+						.map(JavaModuleDescriptor.JavaRequires::name)
+						.filter(moduleNameToDescriptor::containsKey)
+						.forEach(toVisit::add);
+				}
+			}
+
+			promoted.forEach(name -> {
+				modulePaths.add(moduleNameToPath.get(name));
+				rootModules.add(name);
 			});
 
 			if (modulePaths.isEmpty()) {
