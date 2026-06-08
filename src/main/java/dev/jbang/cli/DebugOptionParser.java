@@ -50,7 +50,24 @@ public class DebugOptionParser implements OptionParser {
 			}
 		}
 
-		addOptionValue(option, "");
+		// Bare --debug: resolve via DefaultValueProvider.fallbackValue(),
+		// then annotation fallbackValue, mirroring aesh's applyOptionalFallback().
+		String fallback = resolveFallback(option);
+		addOptionValue(option, fallback != null ? fallback : "");
+	}
+
+	private static String resolveFallback(ProcessedOption option) {
+		if (option.parent() != null && option.parent().getDefaultValueProvider() != null) {
+			try {
+				String val = option.parent().getDefaultValueProvider().fallbackValue(option);
+				if (val != null) {
+					return val;
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+		return option.hasFallbackValue() ? option.getFallbackValue() : null;
 	}
 
 	private void addOptionValue(ProcessedOption option, String value) {

@@ -8,8 +8,6 @@ import java.util.Map;
 import org.aesh.command.option.Option;
 import org.aesh.command.option.OptionList;
 
-import dev.jbang.Configuration;
-
 public class RunMixin {
 
 	@OptionList(shortName = 'R', name = "runtime-option", aliases = {
@@ -19,9 +17,7 @@ public class RunMixin {
 	@Option(name = "jfr", fallbackValue = "", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
-	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, fallbackValue = "4004", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
-	public String debugRaw;
-
+	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, converter = DebugConverter.class, fallbackValue = "4004", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
 	public Map<String, String> debugString;
 
 	@Option(name = "enableassertions", aliases = { "ea" }, hasValue = false, description = "Enable assertions")
@@ -43,30 +39,7 @@ public class RunMixin {
 	public Boolean interactive;
 
 	public void resolveAfterParse() {
-		// DebugOptionParser sets "" sentinel when --debug is bare.
-		// Custom parsers fully own the parsing so aesh's
-		// applyOptionalFallback() doesn't run after them.
-		if ("".equals(debugRaw)) {
-			Configuration cfg = Configuration.instance();
-			String cfgDebug = cfg.get("run.debug");
-			debugRaw = cfgDebug != null ? cfgDebug : "4004";
-		}
-		resolveDebugArgs();
 		resolveJavaAgentSlots();
-	}
-
-	public void resolveDebugArgs() {
-		if (debugRaw != null && !debugRaw.isEmpty()) {
-			debugString = new LinkedHashMap<>();
-			for (String part : debugRaw.split(",")) {
-				if (part.contains("=")) {
-					String[] kv = part.split("=", 2);
-					debugString.put(kv[0], kv[1]);
-				} else {
-					debugString.put("address", part);
-				}
-			}
-		}
 	}
 
 	void resolveJavaAgentSlots() {
