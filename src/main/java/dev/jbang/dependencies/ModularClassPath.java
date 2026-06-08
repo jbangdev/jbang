@@ -29,6 +29,14 @@ public class ModularClassPath {
 	// `org.openjfx:jdk-jsobject`.
 	static final String JDK_JSOBJECT_MODULE = "jdk.jsobject";
 
+	// Proof-of-concept flag, enabled with `-Djbang.hybrid.module.resolve=true`.
+	// When set, jbang stops special-casing JavaFX and instead promotes every
+	// resolved
+	// dependency that is a real (non-automatic) module onto the `--module-path`,
+	// leaving plain jars on the class-path. See
+	// https://github.com/jbangdev/jbang/pull/2511
+	static final String HYBRID_MODULE_RESOLVE_PROPERTY = "jbang.hybrid.module.resolve";
+
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
@@ -70,6 +78,9 @@ public class ModularClassPath {
 	}
 
 	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
+		if (Boolean.getBoolean(HYBRID_MODULE_RESOLVE_PROPERTY) && supportsModules(jdk)) {
+			return getHybridModuleArguments();
+		}
 		if (hasJavaFX() && supportsModules(jdk)) {
 			List<String> commandArguments = new ArrayList<>();
 
@@ -137,6 +148,72 @@ public class ModularClassPath {
 			}
 			return commandArguments;
 		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	/**
+	 * Proof-of-concept "hybrid" module resolution (see
+	 * https://github.com/jbangdev/jbang/pull/2511), enabled with
+	 * {@code -Djbang.hybrid.module.resolve=true}.
+	 * <p>
+	 * Instead of special-casing JavaFX, this treats the script as a class-path
+	 * application but moves every resolved dependency that is a real
+	 * (non-automatic) module onto the {@code --module-path}, and adds those modules
+	 * as roots so the boot layer resolves them (and whatever they {@code requires})
+	 * transitively.
+	 * <p>
+	 * Crucially, automatic modules are left on the class-path: their name is
+	 * derived from the file name and may not be a valid Java identifier (e.g.
+	 * {@code fastparse_2.13-2.3.3.jar} -> {@code fastparse.2.13}), which would
+	 * abort boot-layer initialization.
+	 */
+	private List<String> getHybridModuleArguments() {
+		List<File> fileList = artifacts.stream()
+			.map(ai -> ai.getFile().toFile())
+			.collect(Collectors.toList());
+
+		ResolvePathsRequest<File> request = ResolvePathsRequest.ofFiles(fileList)
+			.setModuleDescriptor(
+					JavaModuleDescriptor.newModule("bogus")
+						.build());
+
+		try {
+			ResolvePathsResult<File> resolvePathsResult = new LocationManager().resolvePaths(request);
+
+			List<String> modulePaths = new ArrayList<>();
+			List<String> rootModules = new ArrayList<>();
+
+			// Anything plexus already classified as a module-path element.
+			resolvePathsResult.getModulepathElements()
+				.keySet()
+				.forEach(file -> modulePaths.add(file.getPath()));
+
+			// Promote every remaining jar that is a real (non-automatic) module. Plain jars
+			// and automatic modules stay on the class-path.
+			resolvePathsResult.getPathElements().forEach((file, descriptor) -> {
+				if (descriptor != null && descriptor.name() != null && !descriptor.isAutomatic()) {
+					modulePaths.add(file.getPath());
+					rootModules.add(descriptor.name());
+				}
+			});
+
+			if (modulePaths.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			List<String> commandArguments = new ArrayList<>();
+			commandArguments.add("--module-path");
+			commandArguments.add(modulePaths.stream()
+				.distinct()
+				.collect(Collectors.joining(File.pathSeparator)));
+			if (!rootModules.isEmpty()) {
+				commandArguments.add("--add-modules");
+				commandArguments.add(rootModules.stream().distinct().collect(Collectors.joining(",")));
+			}
+			return commandArguments;
+		} catch (IOException io) {
+			Util.errorMsg("Error resolving hybrid module-path", io);
 			return Collections.emptyList();
 		}
 	}
