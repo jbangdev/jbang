@@ -148,11 +148,11 @@ public class JavaUtil {
 			JdkProvider provider;
 			switch (providerName) {
 			case "default":
-				provider = new DefaultJdkProvider(Settings.getDefaultJdkDir(),
-						Settings.getCacheDir(Cache.CacheClass.jdks));
+				provider = new DefaultJdkProvider(normalizePath(Settings.getDefaultJdkDir()),
+						normalizePath(Settings.getCacheDir(Cache.CacheClass.jdks)));
 				break;
 			case "jbang":
-				JBangJdkProvider p = new JBangJdkProvider();
+				JBangJdkProvider p = new JBangJdkProvider(normalizePath(Settings.getCacheDir(Cache.CacheClass.jdks)));
 				String distros = Util.getDistro();
 				if (!distroNames.isEmpty()) {
 					distros = String.join(",", distroNames);
@@ -175,7 +175,8 @@ public class JavaUtil {
 				provider = p;
 				break;
 			default:
-				JdkDiscovery.Config cfg = new JdkDiscovery.Config(Settings.getCacheDir(Cache.CacheClass.jdks));
+				JdkDiscovery.Config cfg = new JdkDiscovery.Config(
+						normalizePath(Settings.getCacheDir(Cache.CacheClass.jdks)));
 				provider = JdkProviders.instance().byName(providerName, cfg);
 				if (provider == null) {
 					Util.warnMsg("Unknown JDK provider: " + providerName);
@@ -183,6 +184,19 @@ public class JavaUtil {
 				break;
 			}
 			return provider;
+		}
+
+		private Path normalizePath(Path path) {
+			try {
+				Path absolutePath = path.toAbsolutePath().normalize();
+				Path parent = absolutePath.getParent();
+				if (parent != null && Files.exists(parent)) {
+					return parent.toRealPath().resolve(absolutePath.getFileName());
+				}
+			} catch (IOException e) {
+				Util.verboseMsg("Failed to canonicalize path: " + path + " (" + e.getMessage() + ")");
+			}
+			return path.toAbsolutePath().normalize();
 		}
 	}
 
