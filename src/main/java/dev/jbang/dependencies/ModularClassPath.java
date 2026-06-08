@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class ModularClassPath {
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
+	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
 		this.artifacts = artifacts;
@@ -57,14 +59,32 @@ public class ModularClassPath {
 			.collect(Collectors.joining(" "));
 	}
 
+	boolean hasJavaFX() {
+		if (!javafx.isPresent()) {
+			javafx = Optional.of(
+					getClassPath().contains("org/openjfx/javafx-") || getClassPath().contains("org\\openjfx\\javafx-"));
+		}
+		return javafx.get();
+	}
+
 	/**
-	 * "Hybrid" module resolution (see
+	 * Builds the {@code --module-path}/{@code --add-modules} arguments for a JavaFX
+	 * application, using a "hybrid" resolution (see
 	 * https://github.com/jbangdev/jbang/pull/2511).
 	 * <p>
-	 * Instead of special-casing JavaFX, this treats the script as a class-path
-	 * application but moves every resolved dependency that is a real
-	 * (non-automatic) module onto the {@code --module-path}, plus every module they
-	 * {@code requires} transitively, and adds those modules as roots.
+	 * This only kicks in when JavaFX is detected on the class-path. A plain
+	 * class-path application (e.g. Quarkus) must <em>stay</em> on the class-path:
+	 * promoting its jars to the module-path turns them into named modules, which
+	 * lose the relaxed reflective access of the unnamed module that many frameworks
+	 * rely on (e.g. {@code jboss-logging} building a logger proxy for a type that
+	 * is still on the class-path). {@code //MODULE} scripts are not handled here
+	 * either - the command generators put their whole class-path on the module-path
+	 * via {@code -p} and launch with {@code -m}.
+	 * <p>
+	 * Rather than special-casing JavaFX module names, the resolution moves every
+	 * resolved dependency that is a real (non-automatic) module onto the
+	 * {@code --module-path}, plus every module they {@code requires} transitively,
+	 * and adds those modules as roots.
 	 * <p>
 	 * Automatic and plain jars that nobody requires are left on the class-path:
 	 * their name is derived from the file name and may not be a valid Java
@@ -72,10 +92,11 @@ public class ModularClassPath {
 	 * which would abort boot-layer initialization if forced onto the module-path.
 	 * An automatic module that <em>is</em> required by a promoted module is
 	 * promoted too, since a valid {@code requires} clause guarantees it has a
-	 * usable name.
+	 * usable name (this is how {@code jdk.jsobject}, required by {@code javafx.web}
+	 * and shipped separately since JDK 26, lands on the module-path).
 	 */
 	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
-		if (!supportsModules(jdk)) {
+		if (!hasJavaFX() || !supportsModules(jdk)) {
 			return Collections.emptyList();
 		}
 		List<File> fileList = artifacts.stream()
