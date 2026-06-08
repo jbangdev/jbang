@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,23 +26,9 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.util.Util;
 
 public class ModularClassPath {
-	static final String JAVAFX_PREFIX = "javafx";
-	// Required by `javafx.web`; removed from the JDK in 26 and now shipped as
-	// `org.openjfx:jdk-jsobject`.
-	static final String JDK_JSOBJECT_MODULE = "jdk.jsobject";
-
-	// Proof-of-concept flag, enabled with `-Djbang.hybrid.module.resolve=true`.
-	// When set, jbang stops special-casing JavaFX and instead promotes every
-	// resolved
-	// dependency that is a real (non-automatic) module onto the `--module-path`,
-	// leaving plain jars on the class-path. See
-	// https://github.com/jbangdev/jbang/pull/2511
-	static final String HYBRID_MODULE_RESOLVE_PROPERTY = "jbang.hybrid.module.resolve";
-
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
-	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
 		this.artifacts = artifacts;
@@ -73,93 +57,9 @@ public class ModularClassPath {
 			.collect(Collectors.joining(" "));
 	}
 
-	boolean hasJavaFX() {
-		if (!javafx.isPresent()) {
-			javafx = Optional.of(
-					getClassPath().contains("org/openjfx/javafx-") || getClassPath().contains("org\\openjfx\\javafx-"));
-		}
-		return javafx.get();
-	}
-
-	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
-		if (Boolean.getBoolean(HYBRID_MODULE_RESOLVE_PROPERTY) && supportsModules(jdk)) {
-			return getHybridModuleArguments();
-		}
-		if (hasJavaFX() && supportsModules(jdk)) {
-			List<String> commandArguments = new ArrayList<>();
-
-			List<File> fileList = artifacts.stream()
-				.map(ai -> ai.getFile().toFile())
-				.collect(Collectors.toList());
-
-			ResolvePathsRequest<File> result = ResolvePathsRequest.ofFiles(fileList)
-				.setModuleDescriptor(
-						JavaModuleDescriptor.newModule("bogus")
-							.build());
-
-			LocationManager lm = new LocationManager();
-
-			try {
-				ResolvePathsResult<File> resolvePathsResult = lm.resolvePaths(result);
-
-				List<String> modulePaths = new ArrayList<>();
-				Map<String, JavaModuleDescriptor> pathElements = new HashMap<>();
-
-				resolvePathsResult.getModulepathElements()
-					.keySet()
-					.forEach(file -> modulePaths.add(file.getPath()));
-
-				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
-
-				pathElements.forEach((k, v) -> {
-					if (v != null && v.name() != null
-							&& (v.name().startsWith(JAVAFX_PREFIX) || v.name().equals(JDK_JSOBJECT_MODULE))) {
-						// JavaFX jars belong on the module-path. So does `jdk.jsobject`, which is
-						// required by `javafx.web`: until JDK 25 it was part of the JDK, but JDK 26
-						// removed it and openjfx now ships it as the separate
-						// `org.openjfx:jdk-jsobject`
-						// artifact. Left on the class-path the boot layer cannot find it and fails with
-						// `Module jdk.jsobject not found, required by javafx.web`.
-						// See https://github.com/jbangdev/jbang/issues/559
-						modulePaths.add(k);
-					} else {
-						// classpathElements.add(k);
-					}
-				});
-
-				if (!modulePaths.isEmpty()) {
-					commandArguments.add("--module-path");
-					String modulePath = String.join(File.pathSeparator, modulePaths);
-					commandArguments.add(modulePath);
-				}
-
-				String modules = pathElements.values()
-					.stream()
-					.filter(Objects::nonNull)
-					.map(JavaModuleDescriptor::name)
-					.filter(Objects::nonNull)
-					.filter(module -> module.startsWith(JAVAFX_PREFIX)
-							&& !module.endsWith("Empty"))
-					.collect(Collectors.joining(","));
-				if (!Util.isBlankString(modules)) {
-					commandArguments.add("--add-modules");
-					commandArguments.add(modules);
-				}
-
-			} catch (IOException io) {
-				Util.errorMsg("Error processing javafx modules", io);
-				return Collections.emptyList();
-			}
-			return commandArguments;
-		} else {
-			return Collections.emptyList();
-		}
-	}
-
 	/**
-	 * Proof-of-concept "hybrid" module resolution (see
-	 * https://github.com/jbangdev/jbang/pull/2511), enabled with
-	 * {@code -Djbang.hybrid.module.resolve=true}.
+	 * "Hybrid" module resolution (see
+	 * https://github.com/jbangdev/jbang/pull/2511).
 	 * <p>
 	 * Instead of special-casing JavaFX, this treats the script as a class-path
 	 * application but moves every resolved dependency that is a real
@@ -174,7 +74,10 @@ public class ModularClassPath {
 	 * promoted too, since a valid {@code requires} clause guarantees it has a
 	 * usable name.
 	 */
-	private List<String> getHybridModuleArguments() {
+	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
+		if (!supportsModules(jdk)) {
+			return Collections.emptyList();
+		}
 		List<File> fileList = artifacts.stream()
 			.map(ai -> ai.getFile().toFile())
 			.collect(Collectors.toList());
