@@ -133,7 +133,7 @@ public class TestJdk extends BaseTest {
 		result = checkedRun(withProviders("jdk", "default"));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("* -> 12-jbang"));
+		assertDefaultJdkOutput(result.normalizedOut(), 12);
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class TestJdk extends BaseTest {
 		result = checkedRun(withProviders("jdk", "default"));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("* -> 17-jbang"));
+		assertDefaultJdkOutput(result.normalizedOut(), 17);
 	}
 
 	@Test
@@ -443,5 +443,12 @@ public class TestJdk extends BaseTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void assertDefaultJdkOutput(String output, int version) {
+		Pattern pattern = Pattern.compile("(?m)^\\s*\\* -> " + version + "(?:\\.\\d+\\.\\d+)?-jbang \\(" + version
+				+ "\\..*\\)$");
+		Matcher matcher = pattern.matcher(output);
+		assertThat(matcher.find(), equalTo(true));
 	}
 }
