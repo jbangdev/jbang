@@ -38,14 +38,11 @@ public class Run extends BaseBuildCommand {
 	public String literalScript;
 
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
-	public List<String> userParams;
+	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public void afterParse() {
 		super.afterParse();
-		if (userParams == null) {
-			userParams = new ArrayList<>();
-		}
 	}
 
 	protected void requireScriptArgument() {
