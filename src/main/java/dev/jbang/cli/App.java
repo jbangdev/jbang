@@ -85,7 +85,6 @@ public class App extends BaseCommand {
 			if (userParams == null) {
 				userParams = new ArrayList<>();
 			}
-			runMixin.resolveAfterParse();
 		}
 
 		@Override

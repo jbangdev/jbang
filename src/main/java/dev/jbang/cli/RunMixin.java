@@ -30,7 +30,7 @@ public class RunMixin {
 	@OptionList(name = "javaagent")
 	List<String> javaAgentRaw;
 
-	public Map<String, String> javaAgentSlots;
+	private Map<String, String> javaAgentSlots;
 
 	@Option(name = "cds", hasValue = false, negatable = true, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)")
 	Boolean cds;
@@ -38,12 +38,15 @@ public class RunMixin {
 	@Option(shortName = 'i', name = "interactive", hasValue = false, description = "Activate interactive mode")
 	public Boolean interactive;
 
-	public void resolveAfterParse() {
-		resolveJavaAgentSlots();
-	}
-
-	void resolveJavaAgentSlots() {
-		if (javaAgentRaw != null && !javaAgentRaw.isEmpty()) {
+	/**
+	 * Returns the --javaagent options as a structured map, converting lazily from
+	 * the raw {@code @OptionList} strings. Uses {@code LinkedHashMap} to preserve
+	 * insertion order (agent ordering matters). Aesh's {@code @OptionGroup} can't
+	 * be used here because it uses {@code HashMap} internally, losing order (see
+	 * <a href="https://github.com/aeshell/aesh/issues/513">aesh#513</a>).
+	 */
+	public Map<String, String> getJavaAgentSlots() {
+		if (javaAgentSlots == null && javaAgentRaw != null && !javaAgentRaw.isEmpty()) {
 			javaAgentSlots = new LinkedHashMap<>();
 			for (String raw : javaAgentRaw) {
 				int eq = raw.indexOf('=');
@@ -54,6 +57,7 @@ public class RunMixin {
 				}
 			}
 		}
+		return javaAgentSlots;
 	}
 
 	public Boolean getCds() {
@@ -87,8 +91,9 @@ public class RunMixin {
 		if (Boolean.TRUE.equals(enableSystemAssertions)) {
 			opts.add("--enablesystemassertions");
 		}
-		if (javaAgentSlots != null) {
-			for (Map.Entry<String, String> e : javaAgentSlots.entrySet()) {
+		Map<String, String> agentSlots = getJavaAgentSlots();
+		if (agentSlots != null) {
+			for (Map.Entry<String, String> e : agentSlots.entrySet()) {
 				opts.add("--javaagent");
 				opts.add(e.getValue() == null || e.getValue().isEmpty()
 						? e.getKey()

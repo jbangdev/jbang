@@ -80,7 +80,6 @@ public class Alias extends BaseCommand {
 		public void afterParse() {
 			super.afterParse();
 			dependencyInfoMixin.applyIgnoreTransitiveRepositories();
-			runMixin.resolveAfterParse();
 		}
 
 		@Override
@@ -149,10 +148,11 @@ public class Alias extends BaseCommand {
 		}
 
 		private List<JavaAgent> createJavaAgents() {
-			if (runMixin.javaAgentSlots == null) {
+			Map<String, String> slots = runMixin.getJavaAgentSlots();
+			if (slots == null) {
 				return Collections.emptyList();
 			}
-			return runMixin.javaAgentSlots.entrySet()
+			return slots.entrySet()
 				.stream()
 				.map(e -> new JavaAgent(e.getKey(), e.getValue()))
 				.collect(Collectors.toList());

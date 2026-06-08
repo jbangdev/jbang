@@ -43,7 +43,6 @@ public class Run extends BaseBuildCommand {
 	@Override
 	public void afterParse() {
 		super.afterParse();
-		runMixin.resolveAfterParse();
 		if (userParams == null) {
 			userParams = new ArrayList<>();
 		}
@@ -122,7 +121,7 @@ public class Run extends BaseBuildCommand {
 
 	void buildAgents(BuildContext ctx) throws IOException {
 		Project prj = ctx.getProject();
-		Map<String, String> agents = runMixin.javaAgentSlots;
+		Map<String, String> agents = runMixin.getJavaAgentSlots();
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj
 				.getResourceRef();
