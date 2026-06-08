@@ -68,7 +68,7 @@ public class Alias extends BaseCommand {
 		boolean force;
 
 		@Option(name = "enable-preview", hasValue = false, description = "Activate Java preview features")
-		Boolean enablePreviewRequested;
+		boolean enablePreviewRequested;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 		List<String> userParams;

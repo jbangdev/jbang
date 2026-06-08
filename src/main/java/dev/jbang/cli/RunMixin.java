@@ -19,7 +19,7 @@ public class RunMixin {
 	@Option(name = "jfr", fallbackValue = "", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
-	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
+	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, fallbackValue = "4004", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
 	public String debugRaw;
 
 	public Map<String, String> debugString;
@@ -43,14 +43,13 @@ public class RunMixin {
 	public Boolean interactive;
 
 	public void resolveAfterParse() {
-		Configuration cfg = Configuration.instance();
+		// DebugOptionParser sets "" sentinel when --debug is bare.
+		// Custom parsers fully own the parsing so aesh's
+		// applyOptionalFallback() doesn't run after them.
 		if ("".equals(debugRaw)) {
+			Configuration cfg = Configuration.instance();
 			String cfgDebug = cfg.get("run.debug");
 			debugRaw = cfgDebug != null ? cfgDebug : "4004";
-		}
-		if ("".equals(flightRecorderString)) {
-			String cfgJfr = cfg.get("run.jfr");
-			flightRecorderString = cfgJfr != null ? cfgJfr : "";
 		}
 		resolveDebugArgs();
 		resolveJavaAgentSlots();
