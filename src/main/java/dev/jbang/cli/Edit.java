@@ -60,12 +60,9 @@ public class Edit extends BaseCommand {
 		String envEditor = System.getenv("JBANG_EDITOR");
 		if (envEditor != null && !envEditor.isEmpty()) {
 			editor = envEditor;
-		} else if (editor != null && editor.isEmpty()) {
-			String cfgEditor = dev.jbang.Configuration.instance().get("edit.open");
-			if (cfgEditor != null) {
-				editor = cfgEditor;
-			}
 		}
+		// Config fallback for bare --open is handled by
+		// JBangDefaultValueProvider.fallbackValue() looking up "edit.open".
 	}
 
 	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
