@@ -80,14 +80,12 @@ public class ModuleUtil {
 			// ignore
 			Util.warnMsg("Could not locate module-info.java template");
 		} else {
-			// First get the keys of the root dependencies, ignoring any classifier. A
-			// dependency can resolve to a platform-specific artifact that carries the real
-			// module while the unclassified artifact is only an empty placeholder: JavaFX
-			// is
-			// the prime example, where `org.openjfx:javafx-base` resolves to both an empty
+			// Keys of the root dependencies, ignoring any classifier. A
+			// dependency can resolve to a platform-specific artifact that
+			// carries the real module next to an unclassified empty
+			// placeholder. For `org.openjfx:javafx-base` these are the empty
 			// `javafx-base.jar` (module `javafx.baseEmpty`) and the platform
-			// `javafx-base-<os>.jar` (the real `javafx.base` module that holds the
-			// classes).
+			// `javafx-base-<os>.jar` (the real `javafx.base` module).
 			Set<String> depKeys = project.getMainSourceSet()
 				.getDependencies()
 				.stream()
