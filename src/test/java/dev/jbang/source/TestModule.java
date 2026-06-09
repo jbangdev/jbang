@@ -123,6 +123,65 @@ public class TestModule extends BaseTest {
 		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
 	}
 
+	// Uses JavaFX 11.0.2 because the test toolchain may run on Java 11, whose
+	// ModuleFinder cannot read the newer JavaFX 21+ module descriptors.
+	String srcWithJavaFxDep = "//MODULE testmodule\n" +
+			"//DEPS org.openjfx:javafx-base:11.0.2\n" +
+			"package test;" +
+			"import javafx.collections.FXCollections;\n" +
+			"public class moduletest {\n" +
+			"    public static void main(String... args) {\n" +
+			"        System.out.println(FXCollections.observableArrayList(\"hi\"));\n" +
+			"    }\n" +
+			"}\n";
+
+	@Test
+	void testModuleJavaFX(@TempDir File output) throws IOException {
+		Path f = output.toPath().resolve("moduletest.java");
+		Util.writeString(f, srcWithJavaFxDep);
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(f);
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(ctx) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) throws IOException {
+						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
+						assertThat(modInfo.toFile(), anExistingFile());
+						String info = Util.readFileContent(modInfo);
+						// JavaFX ships an empty `javafx.baseEmpty` placeholder jar next to the real
+						// platform `javafx.base` module: the generated module-info must require the
+						// real one, otherwise `javafx.collections` is not visible and compilation
+						// fails.
+						assertThat(info, containsString("requires javafx.base;"));
+						assertThat(info, not(containsString("javafx.baseEmpty")));
+
+						super.runCompiler(optionList);
+					}
+				};
+			}
+
+			@Override
+			protected Builder<Project> getJarBuildStep() {
+				return new JarBuildStep(ctx) {
+					@Override
+					public Project build() {
+						assertThat(ctx.getCompileDir().resolve("module-info.class").toFile(), anExistingFile());
+						// Skip building of JAR
+						return ctx.getProject();
+					}
+				};
+			}
+		}.setFresh(true).build();
+
+		String cmd = gen.build().generate();
+		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
+	}
+
 	@Test
 	void testEmptyModule(@TempDir File output) throws IOException {
 		testEmptyModule(srcWithEmptyModDep, output);
