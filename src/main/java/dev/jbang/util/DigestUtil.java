@@ -7,10 +7,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import org.eclipse.aether.internal.impl.checksum.DefaultChecksumAlgorithmFactorySelector;
+import org.eclipse.aether.internal.impl.checksum.Md5ChecksumAlgorithmFactory;
+import org.eclipse.aether.internal.impl.checksum.Sha1ChecksumAlgorithmFactory;
+import org.eclipse.aether.internal.impl.checksum.Sha256ChecksumAlgorithmFactory;
+import org.eclipse.aether.internal.impl.checksum.Sha512ChecksumAlgorithmFactory;
+import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmFactory;
+import org.eclipse.aether.spi.connector.checksum.ChecksumAlgorithmHelper;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.JBangTrustedChecksumsSource;
 import dev.jbang.source.Project;
 
 public final class DigestUtil {
@@ -20,18 +35,26 @@ public final class DigestUtil {
 	private DigestUtil() {
 	}
 
+	/**
+	 * Computes a digest of a file using the resolver's
+	 * {@link ChecksumAlgorithmHelper}.
+	 *
+	 * @param path      the file to digest
+	 * @param algorithm lock-file algorithm name (e.g. "sha256")
+	 * @return digest string in lock-file format, e.g. "sha256:abcdef..."
+	 */
 	public static String digestPath(Path path, String algorithm) {
 		try {
-			MessageDigest md = MessageDigest.getInstance(algorithm.toUpperCase(Locale.ROOT));
-			try (InputStream in = Files.newInputStream(path)) {
-				byte[] buffer = new byte[8192];
-				int read;
-				while ((read = in.read(buffer)) >= 0) {
-					md.update(buffer, 0, read);
-				}
+			String resolverName = JBangTrustedChecksumsSource.algorithmNameToResolverName(algorithm);
+			List<ChecksumAlgorithmFactory> factories = getChecksumFactories(resolverName);
+			Map<String, String> checksums = ChecksumAlgorithmHelper.calculate(path.toFile(), factories);
+			String hex = checksums.get(resolverName);
+			if (hex == null) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Checksum algorithm " + resolverName + " not available", null);
 			}
-			return algorithm.toLowerCase(Locale.ROOT) + ":" + toHex(md.digest());
-		} catch (IOException | NoSuchAlgorithmException e) {
+			return algorithm.toLowerCase(Locale.ROOT) + ":" + hex;
+		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Unable to digest file: " + path, e);
 		}
@@ -69,11 +92,11 @@ public final class DigestUtil {
 	}
 
 	public static void verifyLockedSet(String kind, String ref,
-			java.util.Set<String> expected, java.util.Set<String> actual) {
+			Set<String> expected, Set<String> actual) {
 		if (!actual.equals(expected)) {
-			java.util.Set<String> missing = new java.util.LinkedHashSet<>(expected);
+			Set<String> missing = new LinkedHashSet<>(expected);
 			missing.removeAll(actual);
-			java.util.Set<String> extra = new java.util.LinkedHashSet<>(actual);
+			Set<String> extra = new LinkedHashSet<>(actual);
 			extra.removeAll(expected);
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Lock verification failed for " + ref + " (" + kind + " mismatch).\n"
@@ -148,6 +171,28 @@ public final class DigestUtil {
 			this.ref = ref;
 			this.checksum = checksum;
 		}
+	}
+
+	/**
+	 * Returns a singleton list of {@link ChecksumAlgorithmFactory} for the given
+	 * resolver algorithm name. Uses the resolver's built-in factories (SHA-256,
+	 * SHA-512, SHA-1, MD5).
+	 */
+	public static List<ChecksumAlgorithmFactory> getChecksumFactories(String resolverName) {
+		// Use the resolver's built-in factories directly — they're available via
+		// the impl jar on the classpath. This avoids needing a Lookup/session.
+		DefaultChecksumAlgorithmFactorySelector selector = new DefaultChecksumAlgorithmFactorySelector(
+				getBuiltinChecksumAlgorithmFactories());
+		return selector.selectList(Collections.singletonList(resolverName));
+	}
+
+	private static Map<String, ChecksumAlgorithmFactory> getBuiltinChecksumAlgorithmFactories() {
+		Map<String, ChecksumAlgorithmFactory> result = new HashMap<>();
+		result.put("SHA-256", new Sha256ChecksumAlgorithmFactory());
+		result.put("SHA-512", new Sha512ChecksumAlgorithmFactory());
+		result.put("SHA-1", new Sha1ChecksumAlgorithmFactory());
+		result.put("MD5", new Md5ChecksumAlgorithmFactory());
+		return result;
 	}
 
 	private static String toHex(byte[] bytes) {

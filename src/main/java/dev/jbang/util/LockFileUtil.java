@@ -84,7 +84,9 @@ public final class LockFileUtil {
 				p.load(in);
 			}
 		}
-		p.setProperty(ref, digest);
+		if (digest != null) {
+			p.setProperty(ref, digest);
+		}
 		if (sources != null && !sources.isEmpty()) {
 			p.setProperty(ref + ".sources", String.join(",", sources));
 		}

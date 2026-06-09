@@ -172,6 +172,8 @@ dependencies {
 	implementation "org.jboss:jandex:2.2.3.Final"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.36"
+	implementation "org.apache.maven.resolver:maven-resolver-spi:1.9.24"
+	implementation "org.apache.maven.resolver:maven-resolver-impl:1.9.24"
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
