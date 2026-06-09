@@ -81,19 +81,27 @@ public class ModularClassPath {
 	 * either - the command generators put their whole class-path on the module-path
 	 * via {@code -p} and launch with {@code -m}.
 	 * <p>
-	 * Rather than special-casing JavaFX module names, the resolution moves every
-	 * resolved dependency that is a real (non-automatic) module onto the
-	 * {@code --module-path}, plus every module they {@code requires} transitively,
-	 * and adds those modules as roots.
+	 * Resolution is seeded with the JavaFX modules themselves and then follows
+	 * their {@code requires} edges transitively: every {@code javafx.*} module and
+	 * everything they require lands on the {@code --module-path} and is added as a
+	 * root. Crucially it does <em>not</em> promote unrelated real modules that
+	 * merely happen to be on the class-path - a quarkus-fx style application
+	 * bundles plenty of those (e.g. {@code jboss-logging},
+	 * {@code smallrye-config}), and turning some of them into named modules while
+	 * their collaborators stay on the class-path is exactly what breaks reflective
+	 * access (a named {@code jboss-logging} cannot build a logger proxy for
+	 * {@code smallrye-config}'s {@code ConfigLogging} interface that is still in
+	 * the unnamed module).
 	 * <p>
-	 * Automatic and plain jars that nobody requires are left on the class-path:
-	 * their name is derived from the file name and may not be a valid Java
-	 * identifier (e.g. {@code fastparse_2.13-2.3.3.jar} -> {@code fastparse.2.13}),
-	 * which would abort boot-layer initialization if forced onto the module-path.
-	 * An automatic module that <em>is</em> required by a promoted module is
-	 * promoted too, since a valid {@code requires} clause guarantees it has a
-	 * usable name (this is how {@code jdk.jsobject}, required by {@code javafx.web}
-	 * and shipped separately since JDK 26, lands on the module-path).
+	 * Automatic and plain jars that no JavaFX module requires are left on the
+	 * class-path: their name is derived from the file name and may not be a valid
+	 * Java identifier (e.g. {@code fastparse_2.13-2.3.3.jar} ->
+	 * {@code fastparse.2.13}), which would abort boot-layer initialization if
+	 * forced onto the module-path. An automatic module that <em>is</em> required by
+	 * a JavaFX module is promoted too, since a valid {@code requires} clause
+	 * guarantees it has a usable name (this is how {@code jdk.jsobject}, required
+	 * by {@code javafx.web} and shipped separately since JDK 26, lands on the
+	 * module-path).
 	 */
 	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
 		if (!hasJavaFX() || !supportsModules(jdk)) {
@@ -130,18 +138,17 @@ public class ModularClassPath {
 				}
 			});
 
-			// Seed with the real (non-automatic) modules, then transitively pull in every
-			// module they `requires`. This also promotes an *automatic* module when it is
-			// required by a promoted module: such a module necessarily has a valid name
-			// (otherwise it could not appear in a `requires` clause), so it is safe on the
-			// module-path. Automatic and plain jars that nobody requires stay on the
-			// class-path, where their file-name-derived (possibly invalid) module name does
-			// no harm.
+			// Seed with the JavaFX modules, then transitively pull in every module they
+			// `requires`. This also promotes an *automatic* module when it is required by a
+			// JavaFX module: such a module necessarily has a valid name (otherwise it could
+			// not appear in a `requires` clause), so it is safe on the module-path. Every
+			// other jar - automatic or real - stays on the class-path; promoting unrelated
+			// real modules (e.g. jboss-logging) is what breaks frameworks that rely on the
+			// relaxed reflective access of the unnamed module.
 			Set<String> promoted = new HashSet<>();
-			Deque<String> toVisit = moduleNameToDescriptor.entrySet()
+			Deque<String> toVisit = moduleNameToDescriptor.keySet()
 				.stream()
-				.filter(e -> !e.getValue().isAutomatic())
-				.map(Map.Entry::getKey)
+				.filter(name -> name.startsWith("javafx."))
 				.collect(Collectors.toCollection(ArrayDeque::new));
 			while (!toVisit.isEmpty()) {
 				String name = toVisit.poll();

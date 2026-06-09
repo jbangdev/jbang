@@ -218,6 +218,39 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
+	void testResolveJavaModulesKeepsUnrelatedRealModulesOnClasspath() throws IOException {
+		// A "quarkus-fx" style mix: JavaFX (which must go on the module-path) next to
+		// an unrelated *real* module that a framework reflects on at runtime. Promoting
+		// such a module to a named module while its collaborators stay on the
+		// class-path
+		// breaks reflective access - the original symptom was jboss-logging (named)
+		// failing to build a logger proxy for smallrye-config's ConfigLogging interface
+		// that is still in the unnamed module. See
+		// https://github.com/jbangdev/jbang/pull/2511.
+		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac",
+				"org.jboss.logging:jboss-logging:3.6.0.Final");
+
+		ModularClassPath cp = new ModularClassPath(
+				DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false)
+					.getArtifacts()) {
+			@Override
+			protected boolean supportsModules(Jdk jdk) {
+				return true;
+			}
+		};
+
+		List<String> ma = cp.getAutoDectectedModuleArguments(defaultJdkManager().getOrInstallJdk(null));
+		String moduleArgs = String.join(" ", ma);
+
+		// JavaFX is promoted to the module-path...
+		assertThat(ma, hasItem("--module-path"));
+		assertThat(moduleArgs, containsString("javafx"));
+		// ...but the unrelated real module is left on the class-path.
+		assertThat(moduleArgs, not(containsString("jboss-logging")));
+		assertThat(cp.getClassPath(), containsString("jboss-logging"));
+	}
+
+	@Test
 	void testImportPOM() {
 
 		List<String> deps = Arrays.asList("org.slf4j:slf4j-bom:2.0.17@pom", "org.slf4j:slf4j-api");
