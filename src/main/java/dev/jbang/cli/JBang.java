@@ -17,7 +17,7 @@ import dev.jbang.Main;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "jbang", description = "jbang is a tool for building and running .java/.jsh scripts and jar packages.", groupCommands = {
-		Run.class, Build.class, Init.class, Edit.class, Deps.class,
+		Run.class, Build.class, Lock.class, Init.class, Edit.class, Deps.class,
 		Cache.class, Export.class, Jdk.class,
 		Config.class, Trust.class, Alias.class, Template.class, Catalog.class, App.class,
 		Completion.class, Info.class, Version.class,

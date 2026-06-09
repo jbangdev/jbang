@@ -255,6 +255,8 @@
     { "type": "dev.jbang.cli.Deps" },
     { "type": "dev.jbang.cli.Deps$DepsAdd" },
     { "type": "dev.jbang.cli.Deps$DepsSearch" },
+    { "type": "dev.jbang.cli.Lock" },
+    { "type": "dev.jbang.cli.Lock_AeshMetadata" },
     { "type": "dev.jbang.cli.Edit" },
     { "type": "dev.jbang.cli.Export" },
     { "type": "dev.jbang.cli.Export$BaseExportCommand" },
