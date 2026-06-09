@@ -153,12 +153,11 @@ public class TestModule extends BaseTest {
 						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
 						assertThat(modInfo.toFile(), anExistingFile());
 						String info = Util.readFileContent(modInfo);
-						// JavaFX ships an empty `javafx.baseEmpty` placeholder jar next to the real
-						// platform `javafx.base` module: the generated module-info must require the
-						// real one, otherwise `javafx.collections` is not visible and compilation
-						// fails.
+						// JavaFX ships an empty placeholder jar (no classifier) next to the platform
+						// jar that holds the real `javafx.base` module. The generated module-info
+						// must require the real one, otherwise `javafx.collections` is not visible and
+						// compilation fails.
 						assertThat(info, containsString("requires javafx.base;"));
-						assertThat(info, not(containsString("javafx.baseEmpty")));
 
 						super.runCompiler(optionList);
 					}

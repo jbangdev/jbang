@@ -92,17 +92,18 @@ public class ModuleUtil {
 				.map(MavenCoordinate::fromString)
 				.map(c -> c.getGroupId() + ":" + c.getArtifactId() + ":" + c.getType())
 				.collect(Collectors.toSet());
-			// Now filter the resolved artifacts down to those root dependencies and get
-			// their module names, skipping the empty `*Empty` placeholder modules so we
-			// require the real module (e.g. `javafx.base`, not `javafx.baseEmpty`).
+			// Match the resolved artifacts back to those root dependencies
+			// (again ignoring the classifier) and collect their module names.
+			// An empty placeholder module may end up required next to the real
+			// one (e.g. `javafx.baseEmpty` next to `javafx.base`); that is
+			// harmless, so we do not special-case it by name.
 			Stream<String> depModNames = ctx.resolveClassPath()
 				.getArtifacts()
 				.stream()
 				.filter(a -> depKeys.contains(a.getCoordinate().getGroupId() + ":"
 						+ a.getCoordinate().getArtifactId() + ":" + a.getCoordinate().getType()))
 				.map(ArtifactInfo::getModuleName)
-				.filter(Objects::nonNull)
-				.filter(name -> !name.endsWith("Empty"));
+				.filter(Objects::nonNull);
 			// And join this list of names with the JDK module names
 			List<String> moduleNames = Stream.concat(ModuleUtil.listJdkModules().stream(), depModNames)
 				.collect(Collectors.toList());
