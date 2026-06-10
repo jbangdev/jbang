@@ -117,6 +117,7 @@ public class Util {
 	private static Boolean downloadSources;
 	private static Instant startTime = Instant.now();
 	private static boolean printExceptions = false;
+	private static int askInputTimeout = 30;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -151,6 +152,14 @@ public class Util {
 
 	public static boolean printExceptions() {
 		return printExceptions;
+	}
+
+	public static int getAskInputTimeout() {
+		return askInputTimeout;
+	}
+
+	public static void setAskInputTimeout(int askInputTimeout) {
+		Util.askInputTimeout = askInputTimeout;
 	}
 
 	public static void setOffline(boolean offline) {

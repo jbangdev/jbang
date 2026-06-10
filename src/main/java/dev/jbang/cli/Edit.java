@@ -329,7 +329,7 @@ public class Edit extends BaseCommand {
 				options.add("Use '" + ed + "'");
 			}
 
-			int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
+			int result = Util.askInput(question, Util.getAskInputTimeout(), 0, options.toArray(new String[] {}));
 			if (result == 0) {
 				return Optional.empty();
 			} else if (result == 1) {
