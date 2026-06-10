@@ -78,7 +78,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 				options.add("Trust organization url in future: " + trustOrgUrl);
 			}
 
-			int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
+			int result = Util.askInput(question, Util.getAskInputTimeout(), 0, options.toArray(new String[] {}));
 			TrustedSources ts = TrustedSources.instance();
 			if (result == 1) {
 				ts.addTemporary(trustUrl);
