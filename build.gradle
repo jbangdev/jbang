@@ -214,7 +214,7 @@ buildConfig {
 tasks.withType(Test).configureEach {
 	//environment "JAVA_HOME", "/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1"
 	//executable = new File("/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1/bin/java")
-	//maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+	maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }
 
 // to enable reproducible builds
