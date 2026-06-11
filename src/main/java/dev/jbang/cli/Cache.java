@@ -49,14 +49,14 @@ public class Cache extends BaseCommand {
 		Boolean stdin;
 
 		@Option(name = "all", hasValue = false, description = "clear all caches")
-		boolean all;
+		Boolean all;
 
 		@Override
 		public Integer doCall() {
 			EnumSet<dev.jbang.Cache.CacheClass> classes = EnumSet.noneOf(dev.jbang.Cache.CacheClass.class);
 
 			// if all we add everything
-			if (all) {
+			if (Boolean.TRUE.equals(all)) {
 				classes.addAll(Arrays.asList(dev.jbang.Cache.CacheClass.values()));
 			} else if (url == null
 					&& jar == null

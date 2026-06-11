@@ -11,7 +11,7 @@ import dev.jbang.catalog.Catalog;
 public class CatalogFileOptionsMixin {
 
 	@Option(shortName = 'g', name = "global", hasValue = false, description = "Use the global (user) catalog file")
-	boolean global;
+	Boolean global;
 
 	@Option(shortName = 'f', name = "file", description = "Path to the catalog file to use")
 	Path catalogFile;
@@ -23,7 +23,7 @@ public class CatalogFileOptionsMixin {
 
 	public Path getCatalog(boolean strict) {
 		Path cat;
-		if (global) {
+		if (Boolean.TRUE.equals(global)) {
 			cat = Settings.getUserCatalogFile();
 		} else {
 			Path catPath = catalogFile;

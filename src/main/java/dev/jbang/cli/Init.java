@@ -45,10 +45,10 @@ public class Init extends BaseCommand {
 	public String initTemplate;
 
 	@Option(name = "force", hasValue = false, description = "Force overwrite of existing files")
-	public boolean force;
+	public Boolean force;
 
 	@Option(name = "edit", hasValue = false, description = "Open editor on the generated file(s)")
-	public boolean edit;
+	public Boolean edit;
 
 	@OptionGroup(shortName = 'D', description = "set a system property")
 	public Map<String, String> properties;
@@ -142,7 +142,7 @@ public class Init extends BaseCommand {
 					ResourceResolver.combined(tpl.catalog.catalogRef, ResourceResolver.forResources())))
 			.collect(Collectors.toList());
 
-		if (!force) {
+		if (!Boolean.TRUE.equals(force)) {
 			for (RefTarget refTarget : refTargets) {
 				Path target = refTarget.to(outDir);
 				if (Files.exists(target)) {
@@ -193,7 +193,7 @@ public class Init extends BaseCommand {
 		}
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir, absolute);
-		if (edit) {
+		if (Boolean.TRUE.equals(edit)) {
 			info("File initialized. Opening editor for you. You can also now run it with 'jbang "
 					+ renderedScriptOrFile);
 			JBang.execute("edit", renderedScriptOrFile);

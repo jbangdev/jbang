@@ -49,7 +49,7 @@ public class Catalog extends BaseCommand {
 		String name;
 
 		@Option(name = "force", hasValue = false, description = "Force overwriting of existing catalog")
-		boolean force;
+		Boolean force;
 
 		@Option(name = "import", description = "Import catalog items into the catalog's scope")
 		Boolean importItems;
@@ -68,7 +68,7 @@ public class Catalog extends BaseCommand {
 			}
 			CatalogRef ref = CatalogRef.get(urlOrFile);
 			Path catFile = catalogOptions.getCatalogOrDefault();
-			if (force || !CatalogUtil.hasCatalogRef(catFile, name)) {
+			if (Boolean.TRUE.equals(force) || !CatalogUtil.hasCatalogRef(catFile, name)) {
 				CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description, importItems);
 			} else {
 				Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
@@ -109,7 +109,7 @@ public class Catalog extends BaseCommand {
 	public static class CatalogList extends BaseCatalogCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the catalog")
-		boolean showOrigin;
+		Boolean showOrigin;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String name;
@@ -130,7 +130,7 @@ public class Catalog extends BaseCommand {
 				} else {
 					catalog = dev.jbang.catalog.Catalog.getMerged(true, false);
 				}
-				if (showOrigin) {
+				if (Boolean.TRUE.equals(showOrigin)) {
 					printCatalogsWithOrigin(out, name, catalog, format);
 				} else {
 					printCatalogs(out, name, catalog, format);

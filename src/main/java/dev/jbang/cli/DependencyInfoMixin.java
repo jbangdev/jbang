@@ -26,7 +26,7 @@ public class DependencyInfoMixin {
 
 	@Option(name = "ignore-transitive-repositories", aliases = {
 			"itr" }, hasValue = false, description = "Ignore remote repositories found in transitive dependencies")
-	boolean ignoreTransitiveRepositories;
+	Boolean ignoreTransitiveRepositories;
 
 	public Map<String, String> getProperties() {
 		return properties != null && properties.isEmpty() ? null : properties;
@@ -45,7 +45,7 @@ public class DependencyInfoMixin {
 	}
 
 	public void applyIgnoreTransitiveRepositories() {
-		if (ignoreTransitiveRepositories) {
+		if (Boolean.TRUE.equals(ignoreTransitiveRepositories)) {
 			Util.setIgnoreTransitiveRepositories(true);
 		}
 	}

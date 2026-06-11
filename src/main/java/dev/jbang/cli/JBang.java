@@ -25,7 +25,7 @@ import dev.jbang.util.Util;
 public class JBang extends BaseCommand {
 
 	@Option(shortName = 'V', name = "version", hasValue = false, description = "Display version info (use `jbang --verbose version` for more details)")
-	boolean versionRequested;
+	Boolean versionRequested;
 
 	@Override
 	public void beforeParse() {
@@ -38,7 +38,7 @@ public class JBang extends BaseCommand {
 	}
 
 	public Integer doCall() throws IOException {
-		if (versionRequested) {
+		if (Boolean.TRUE.equals(versionRequested)) {
 			System.out.println(Util.getJBangVersion());
 			return EXIT_OK;
 		}

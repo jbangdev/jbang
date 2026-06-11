@@ -35,7 +35,7 @@ public class Wrapper extends BaseCommand {
 		Path dest;
 
 		@Option(shortName = 'f', name = "force", hasValue = false, description = "Force installation of wrapper even if files already exist")
-		boolean force;
+		Boolean force;
 
 		@Override
 		public Integer doCall() {
@@ -43,7 +43,7 @@ public class Wrapper extends BaseCommand {
 			if (!Files.isDirectory(destPath)) {
 				throw new ExitException(EXIT_INVALID_INPUT, "Destination folder does not exist");
 			}
-			if ((checkScripts(destPath) || checkJar(destPath.resolve(DIR_NAME))) && !force) {
+			if ((checkScripts(destPath) || checkJar(destPath.resolve(DIR_NAME))) && !Boolean.TRUE.equals(force)) {
 				Util.warnMsg("Wrapper already exists. Use --force to install anyway");
 				return EXIT_OK;
 			}

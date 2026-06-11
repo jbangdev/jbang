@@ -35,7 +35,7 @@ public class Deps extends BaseCommand {
 	public static class DepsSearch extends BaseCommand {
 
 		@Option(name = "max", description = "Maximum number of results to return.", defaultValue = "100")
-		int max;
+		Integer max;
 
 		@Option(shortName = 'q', name = "query", description = "Artifact pattern to search for.")
 		String query;

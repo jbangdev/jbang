@@ -101,7 +101,7 @@ public class Jdk extends BaseCommand {
 		JdkProvidersMixin jdkMixin;
 
 		@Option(shortName = 'f', name = "force", hasValue = false, description = "Force installation even when already installed")
-		boolean force;
+		Boolean force;
 
 		@Argument(paramLabel = "versionOrId", index = "0", arity = "1", description = "The version or id to install", required = true)
 		String versionOrId;
@@ -113,7 +113,7 @@ public class Jdk extends BaseCommand {
 		public Integer doCall() throws IOException {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
 			dev.jbang.devkitman.Jdk jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canInstall);
-			if (force || jdk == null) {
+			if (Boolean.TRUE.equals(force) || jdk == null) {
 				if (jdk != null) {
 					((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).uninstall();
 				}
@@ -160,11 +160,11 @@ public class Jdk extends BaseCommand {
 		JdkProvidersMixin jdkMixin;
 
 		@Option(shortName = 'a', name = "available", hasValue = false, description = "Shows versions available for installation")
-		boolean available;
+		Boolean available;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
 				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
-		boolean details;
+		Boolean details;
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
@@ -176,7 +176,7 @@ public class Jdk extends BaseCommand {
 			int defMajorVersion = defaultJdk != null ? defaultJdk.majorVersion() : 0;
 			PrintStream out = System.out;
 			List<? extends dev.jbang.devkitman.Jdk> jdks;
-			if (available) {
+			if (Boolean.TRUE.equals(available)) {
 				jdks = jdkMan.listAvailableJdks();
 			} else {
 				jdks = jdkMan.listInstalledJdks();
@@ -185,11 +185,11 @@ public class Jdk extends BaseCommand {
 				.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
 						jdk.isInstalled() ? ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home() : null,
 						null,
-						details ? jdk.equals(defaultJdk)
+						Boolean.TRUE.equals(details) ? jdk.equals(defaultJdk)
 								: jdk.majorVersion() == defMajorVersion,
 						jdk.tags()))
 				.collect(Collectors.toList());
-			if (!details) {
+			if (!Boolean.TRUE.equals(details)) {
 				// Only keep a list of unique major versions
 				Set<JdkOut> uniqueJdks = new TreeSet<>(Comparator.<JdkOut>comparingInt(j -> j.version).reversed());
 				uniqueJdks.addAll(jdkOuts);
@@ -200,7 +200,7 @@ public class Jdk extends BaseCommand {
 				parser.toJson(jdkOuts, out);
 			} else {
 				if (!jdkOuts.isEmpty()) {
-					if (!available) {
+					if (!Boolean.TRUE.equals(available)) {
 						out.println("Installed JDKs (<=default):");
 					}
 					jdkOuts.forEach(jdk -> {
@@ -208,14 +208,14 @@ public class Jdk extends BaseCommand {
 						out.print(jdk.version);
 						out.print(" (");
 						out.print(jdk.fullVersion);
-						if (details) {
+						if (Boolean.TRUE.equals(details)) {
 							out.print(", " + jdk.providerName + ", " + jdk.id);
 							if (jdk.javaHomeDir != null) {
 								out.print(", " + jdk.javaHomeDir);
 							}
 						}
 						out.print(")");
-						if (!available) {
+						if (!Boolean.TRUE.equals(available)) {
 							if (Boolean.TRUE.equals(jdk.isDefault)) {
 								out.print(" <");
 							}
@@ -223,7 +223,7 @@ public class Jdk extends BaseCommand {
 						out.println();
 					});
 				} else {
-					out.printf("No JDKs %s%n", available ? "available" : "installed");
+					out.printf("No JDKs %s%n", Boolean.TRUE.equals(available) ? "available" : "installed");
 				}
 			}
 			return EXIT_OK;
@@ -391,11 +391,11 @@ public class Jdk extends BaseCommand {
 		String versionOrId;
 
 		@Option(name = "for-version", shortName = 'v', hasValue = false, description = "Sets the default for the specified major version")
-		boolean forVersion;
+		Boolean forVersion;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
 				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
-		boolean details;
+		Boolean details;
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
@@ -409,11 +409,11 @@ public class Jdk extends BaseCommand {
 			}
 			if (versionOrId != null) {
 				dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
-				dev.jbang.devkitman.Jdk.InstalledJdk defjdk = forVersion
+				dev.jbang.devkitman.Jdk.InstalledJdk defjdk = Boolean.TRUE.equals(forVersion)
 						? jdkMan.getDefaultJdkForVersion(jdk.majorVersion())
 						: jdkMan.getDefaultJdk();
 				if (defjdk == null || (!jdk.equals(defjdk) && !Objects.equals(jdk.home(), defjdk.home()))) {
-					if (forVersion) {
+					if (Boolean.TRUE.equals(forVersion)) {
 						jdkMan.setDefaultJdkForVersion(jdk);
 					} else {
 						jdkMan.setDefaultJdk(jdk);
@@ -443,7 +443,7 @@ public class Jdk extends BaseCommand {
 							}
 							out.print(" -> ");
 							out.print(jdk.linkedId);
-							if (details) {
+							if (Boolean.TRUE.equals(details)) {
 								out.print(" (" + jdk.realHomeDir + ", " + jdk.fullVersion + ", " + jdk.id);
 								if (!jdk.tags.isEmpty()) {
 									out.print(", " + jdk.tags);
