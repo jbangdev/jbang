@@ -52,7 +52,7 @@ public class Catalog extends BaseCommand {
 		boolean force;
 
 		@Option(name = "import", description = "Import catalog items into the catalog's scope")
-		Boolean importItems;
+		boolean importItems;
 
 		@Argument(paramLabel = "fileOrURL", description = "A file or URL to a catalog file", required = true)
 		String urlOrFile;

@@ -253,6 +253,103 @@ class TestAeshParsing extends BaseTest {
 		assertThat(Util.isVerbose(), is(false));
 	}
 
+	// --- Boolean =true/=false syntax ---
+
+	@Test
+	void testVerboseEqualsTrue() {
+		JBang.parseCommand("run", "--verbose=true", "test.java");
+		assertThat(Util.isVerbose(), is(true));
+	}
+
+	@Test
+	void testVerboseEqualsFalse() {
+		Util.setVerbose(true);
+		JBang.parseCommand("run", "--verbose=false", "test.java");
+		assertThat(Util.isVerbose(), is(false));
+	}
+
+	@Test
+	void testForceEqualsTrue() {
+		Init init = JBang.parseCommand("init", "--force=true", "dummy");
+		assertThat(init.force, is(true));
+	}
+
+	@Test
+	void testForceEqualsFalse() {
+		Init init = JBang.parseCommand("init", "--force=false", "dummy");
+		assertThat(init.force, is(false));
+	}
+
+	// --- Java version validation ---
+
+	@Test
+	void testJavaVersionValid() {
+		Run run = JBang.parseCommand("run", "--java", "17", "test.java");
+		assertThat(run.buildMixin.javaVersion, equalTo("17"));
+	}
+
+	@Test
+	void testJavaVersionValidPlus() {
+		Run run = JBang.parseCommand("run", "--java", "11+", "test.java");
+		assertThat(run.buildMixin.javaVersion, equalTo("11+"));
+	}
+
+	@Test
+	void testJavaVersionInvalid() {
+		assertThrows(RuntimeException.class,
+				() -> JBang.parseCommand("run", "--java", "abc", "test.java"));
+	}
+
+	// --- Debug option with custom OptionParser and fallback (#511) ---
+
+	@Test
+	void testBareDebugGetsFallbackValue() {
+		// --debug without a value should get the annotation fallbackValue "4004"
+		// DebugConverter converts "4004" to Map{"address" -> "4004"}
+		Run run = JBang.parseCommand("run", "--debug", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
+	}
+
+	@Test
+	void testDebugWithExplicitPort() {
+		Run run = JBang.parseCommand("run", "--debug", "5005", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "5005"));
+	}
+
+	@Test
+	void testDebugWithEqualsPort() {
+		Run run = JBang.parseCommand("run", "--debug=5005", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "5005"));
+	}
+
+	@Test
+	void testBareDebugGetsConfigFallback() throws IOException {
+		// Config-set debug should be used as fallback when --debug is bare
+		String config = "run.debug = 9009\n";
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
+		Configuration.instance(null);
+
+		Run run = JBang.parseCommand("run", "--debug", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "9009"));
+	}
+
+	@Test
+	void testDebugExplicitOverridesConfig() throws IOException {
+		// Explicit value should override config
+		String config = "run.debug = 9009\n";
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
+		Configuration.instance(null);
+
+		Run run = JBang.parseCommand("run", "--debug=7007", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "7007"));
+	}
+
+	@Test
+	void testDebugNotSpecified() {
+		Run run = JBang.parseCommand("run", "test.java");
+		assertThat(run.runMixin.debugString, is(nullValue()));
+	}
+
 	// --- Subcommand list consistency ---
 
 	@Test

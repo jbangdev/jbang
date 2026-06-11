@@ -190,7 +190,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			}
 		}
 
-		if (insecure) {
+		if (Boolean.TRUE.equals(insecure)) {
 			enableInsecure();
 		}
 	}
