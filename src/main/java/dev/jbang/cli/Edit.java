@@ -53,25 +53,12 @@ public class Edit extends BaseCommand {
 	public void afterParse() {
 		super.afterParse();
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
-		applyEditorDefaults();
-	}
-
-	private void applyEditorDefaults() {
-		String envEditor = System.getenv("JBANG_EDITOR");
-		if (envEditor != null && !envEditor.isEmpty()) {
-			editor = envEditor;
-		} else if (editor != null && editor.isEmpty()) {
-			String cfgEditor = dev.jbang.Configuration.instance().get("edit.open");
-			if (cfgEditor != null) {
-				editor = cfgEditor;
-			}
-		}
 	}
 
 	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
-	@Option(name = "open", fallbackValue = "", description = "Opens editor/IDE on the temporary project.")
+	@Option(name = "open", defaultValue = "${env:JBANG_EDITOR:-}", fallbackValue = "${env:JBANG_EDITOR:-}", description = "Opens editor/IDE on the temporary project.")
 	public String editor;
 
 	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")

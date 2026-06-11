@@ -77,16 +77,7 @@ public class App extends BaseCommand {
 		String name;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-		public List<String> userParams;
-
-		@Override
-		public void afterParse() {
-			super.afterParse();
-			if (userParams == null) {
-				userParams = new ArrayList<>();
-			}
-			runMixin.resolveAfterParse();
-		}
+		public List<String> userParams = new ArrayList<>();
 
 		@Override
 		public Integer doCall() throws IOException {

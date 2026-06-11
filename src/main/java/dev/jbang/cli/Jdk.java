@@ -48,7 +48,7 @@ public class Jdk extends BaseCommand {
 		String realHomeDir;
 		String linkedId;
 		@SerializedName("default")
-		Boolean isDefault;
+		boolean isDefault;
 		Set<String> tags;
 
 		public JdkOut(String id, String version, String providerName, Path home, String linkedId,

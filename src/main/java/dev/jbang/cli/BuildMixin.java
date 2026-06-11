@@ -14,7 +14,7 @@ public class BuildMixin {
 	@Mixin
 	public JdkProvidersMixin jdkMixin;
 
-	@Option(shortName = 'j', name = "java", description = "JDK version to use for running the script.")
+	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
 	public String javaVersion;
 
 	@Option(shortName = 'm', name = "main", description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")

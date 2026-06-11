@@ -1,14 +1,12 @@
 package dev.jbang.cli;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.aesh.command.option.Option;
+import org.aesh.command.option.OptionGroup;
 import org.aesh.command.option.OptionList;
-
-import dev.jbang.Configuration;
 
 public class RunMixin {
 
@@ -19,9 +17,7 @@ public class RunMixin {
 	@Option(name = "jfr", fallbackValue = "", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
-	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
-	public String debugRaw;
-
+	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, converter = DebugConverter.class, fallbackValue = "4004", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
 	public Map<String, String> debugString;
 
 	@Option(name = "enableassertions", aliases = { "ea" }, hasValue = false, description = "Enable assertions")
@@ -31,9 +27,7 @@ public class RunMixin {
 			"esa" }, hasValue = false, description = "Enable system assertions")
 	public Boolean enableSystemAssertions;
 
-	@OptionList(name = "javaagent")
-	List<String> javaAgentRaw;
-
+	@OptionGroup(name = "javaagent", defaultValue = "", description = "Java agent to use")
 	public Map<String, String> javaAgentSlots;
 
 	@Option(name = "cds", hasValue = false, negatable = true, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)")
@@ -42,46 +36,8 @@ public class RunMixin {
 	@Option(shortName = 'i', name = "interactive", hasValue = false, description = "Activate interactive mode")
 	public Boolean interactive;
 
-	public void resolveAfterParse() {
-		Configuration cfg = Configuration.instance();
-		if ("".equals(debugRaw)) {
-			String cfgDebug = cfg.get("run.debug");
-			debugRaw = cfgDebug != null ? cfgDebug : "4004";
-		}
-		if ("".equals(flightRecorderString)) {
-			String cfgJfr = cfg.get("run.jfr");
-			flightRecorderString = cfgJfr != null ? cfgJfr : "";
-		}
-		resolveDebugArgs();
-		resolveJavaAgentSlots();
-	}
-
-	public void resolveDebugArgs() {
-		if (debugRaw != null && !debugRaw.isEmpty()) {
-			debugString = new LinkedHashMap<>();
-			for (String part : debugRaw.split(",")) {
-				if (part.contains("=")) {
-					String[] kv = part.split("=", 2);
-					debugString.put(kv[0], kv[1]);
-				} else {
-					debugString.put("address", part);
-				}
-			}
-		}
-	}
-
-	void resolveJavaAgentSlots() {
-		if (javaAgentRaw != null && !javaAgentRaw.isEmpty()) {
-			javaAgentSlots = new LinkedHashMap<>();
-			for (String raw : javaAgentRaw) {
-				int eq = raw.indexOf('=');
-				if (eq >= 0) {
-					javaAgentSlots.put(raw.substring(0, eq), raw.substring(eq + 1));
-				} else {
-					javaAgentSlots.put(raw, null);
-				}
-			}
-		}
+	public Map<String, String> getJavaAgentSlots() {
+		return javaAgentSlots;
 	}
 
 	public Boolean getCds() {
@@ -115,8 +71,9 @@ public class RunMixin {
 		if (Boolean.TRUE.equals(enableSystemAssertions)) {
 			opts.add("--enablesystemassertions");
 		}
-		if (javaAgentSlots != null) {
-			for (Map.Entry<String, String> e : javaAgentSlots.entrySet()) {
+		Map<String, String> agentSlots = getJavaAgentSlots();
+		if (agentSlots != null) {
+			for (Map.Entry<String, String> e : agentSlots.entrySet()) {
 				opts.add("--javaagent");
 				opts.add(e.getValue() == null || e.getValue().isEmpty()
 						? e.getKey()
