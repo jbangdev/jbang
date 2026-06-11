@@ -90,6 +90,7 @@ public class Main {
 			Set<String> names = new LinkedHashSet<>();
 			names.add("run");
 			names.add("build");
+			names.add("lock");
 			names.add("edit");
 			names.add("init");
 			names.add("alias");
