@@ -44,9 +44,11 @@ public class TestConfigKeyCompleter extends BaseTest {
 	@Test
 	void testGetAvailableKeysContainsCliOptions() {
 		Map<String, String> keys = ConfigKeyCompleter.getAvailableKeys();
-		// Top-level jbang options (no jbang. prefix)
+		// Top-level jbang options: both short and qualified forms
 		assertThat(keys, hasKey("verbose"));
+		assertThat(keys, hasKey("jbang.verbose"));
 		assertThat(keys, hasKey("offline"));
+		assertThat(keys, hasKey("jbang.offline"));
 		// Subcommand options should also appear
 		assertThat("Keys should include subcommand options",
 				keys.keySet().stream().anyMatch(k -> k.contains(".")), is(true));

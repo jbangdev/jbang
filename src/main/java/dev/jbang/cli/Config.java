@@ -78,8 +78,14 @@ public class Config extends BaseCommand {
 		for (org.aesh.command.impl.internal.ProcessedOption opt : cmd.getOptions()) {
 			if (opt.name() != null && !opt.name().isEmpty()) {
 				String optName = opt.name().replace("-", "");
-				String key = path != null ? path + "." + optName : optName;
-				keys.add(new AvailableOption(key, opt.description()));
+				if (path != null) {
+					keys.add(new AvailableOption(path + "." + optName, opt.description()));
+				} else {
+					// Root command: add both short form (e.g. "fresh") and
+					// qualified form (e.g. "jbang.fresh")
+					keys.add(new AvailableOption(optName, opt.description()));
+					keys.add(new AvailableOption(cmdName + "." + optName, opt.description()));
+				}
 			}
 		}
 		if (parser.isGroupCommand()) {
