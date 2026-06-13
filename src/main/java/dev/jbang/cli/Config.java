@@ -74,10 +74,11 @@ public class Config extends BaseCommand {
 		if (!"jbang".equals(cmdName)) {
 			currentPath.add(cmdName);
 		}
-		String path = currentPath.isEmpty() ? cmdName : String.join(".", currentPath);
+		String path = currentPath.isEmpty() ? null : String.join(".", currentPath);
 		for (org.aesh.command.impl.internal.ProcessedOption opt : cmd.getOptions()) {
 			if (opt.name() != null && !opt.name().isEmpty()) {
-				String key = path + "." + opt.name().replace("-", "");
+				String optName = opt.name().replace("-", "");
+				String key = path != null ? path + "." + optName : optName;
 				keys.add(new AvailableOption(key, opt.description()));
 			}
 		}
