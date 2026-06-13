@@ -27,6 +27,11 @@ import dev.jbang.cli.Config;
  */
 public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> {
 
+	/**
+	 * Cached available keys — static data that never changes during a JVM session.
+	 */
+	private static volatile Map<String, String> cachedAvailableKeys;
+
 	private static String described(String candidate, String description) {
 		return candidate + "\t" + description;
 	}
@@ -41,6 +46,14 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 		Set<String> candidates = new TreeSet<>();
 		Map<String, String> availableKeys = getAvailableKeys();
 
+		// Load merged config once for both passes
+		Configuration cfg = null;
+		try {
+			cfg = Configuration.getMerged();
+		} catch (Exception e) {
+			// best-effort — user-defined keys won't be completed
+		}
+
 		// First pass: prefix match (standard completion behaviour)
 		for (Map.Entry<String, String> entry : availableKeys.entrySet()) {
 			String key = entry.getKey();
@@ -52,19 +65,13 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 
 		// Also complete keys from the merged configuration (user-set values
 		// that might not match known option names)
-		try {
-			Configuration cfg = Configuration.getMerged();
+		if (cfg != null) {
 			for (String key : cfg.flatten().keySet()) {
-				if (key.startsWith(partial)) {
-					boolean alreadyPresent = availableKeys.containsKey(key);
-					if (!alreadyPresent) {
-						String val = cfg.get(key);
-						candidates.add(described(key, val != null ? "= " + val : ""));
-					}
+				if (key.startsWith(partial) && !availableKeys.containsKey(key)) {
+					String val = cfg.get(key);
+					candidates.add(described(key, val != null ? "= " + val : ""));
 				}
 			}
-		} catch (Exception e) {
-			// best-effort
 		}
 
 		// Second pass: if prefix match found nothing and the partial is
@@ -78,16 +85,13 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 				}
 			}
 			// Also check user-defined keys
-			try {
-				Configuration cfg = Configuration.getMerged();
+			if (cfg != null) {
 				for (String key : cfg.flatten().keySet()) {
 					if (!availableKeys.containsKey(key) && matchesSegment(key, partial)) {
 						String val = cfg.get(key);
 						candidates.add(described(key, val != null ? "= " + val : ""));
 					}
 				}
-			} catch (Exception e) {
-				// best-effort
 			}
 			// Tell aesh to replace the whole token rather than append,
 			// since the candidates don't share the typed prefix.
@@ -125,22 +129,22 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 	 * </ul>
 	 */
 	static boolean matchesSegment(String key, String partial) {
-		// Try matching at each dot boundary
+		// Try matching at each dot boundary. This handles both single-
+		// segment partials ("debu" matching "run.debug") and multi-segment
+		// partials ("add.deb" matching "alias.add.debug") because each
+		// suffix includes all remaining segments.
 		int idx = 0;
 		while (true) {
 			int dot = key.indexOf('.', idx);
 			if (dot < 0) {
 				break;
 			}
-			String suffix = key.substring(dot + 1);
-			if (suffix.startsWith(partial)) {
+			if (key.substring(dot + 1).startsWith(partial)) {
 				return true;
 			}
 			idx = dot + 1;
 		}
-		// Also try contains for multi-segment partials like "add.debu"
-		// that might not align exactly to a segment start
-		return key.contains("." + partial);
+		return false;
 	}
 
 	/**
@@ -150,9 +154,13 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 	 * @return map of key → description
 	 */
 	static Map<String, String> getAvailableKeys() {
-		Map<String, String> keys = new TreeMap<>();
-		for (AvailableOption opt : Config.getAvailableOptions()) {
-			keys.put(opt.key, opt.description);
+		Map<String, String> keys = cachedAvailableKeys;
+		if (keys == null) {
+			keys = new TreeMap<>();
+			for (AvailableOption opt : Config.getAvailableOptions()) {
+				keys.put(opt.key, opt.description);
+			}
+			cachedAvailableKeys = keys;
 		}
 		return keys;
 	}

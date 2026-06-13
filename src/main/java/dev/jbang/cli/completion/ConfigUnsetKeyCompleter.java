@@ -1,5 +1,6 @@
 package dev.jbang.cli.completion;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -65,6 +66,7 @@ public class ConfigUnsetKeyCompleter implements OptionCompleter<CompleterInvocat
 
 	private void collectSetKeys(Set<String> candidates, Configuration cfg,
 			Map<String, String> availableKeys, String partial, boolean prefixOnly) {
+		Set<String> seenKeys = new HashSet<>();
 		Configuration current = cfg;
 		while (current != null) {
 			String origin = null;
@@ -72,6 +74,9 @@ public class ConfigUnsetKeyCompleter implements OptionCompleter<CompleterInvocat
 				origin = current.getStoreRef().getOriginalResource();
 			}
 			for (String key : current.keySet()) {
+				if (seenKeys.contains(key)) {
+					continue;
+				}
 				boolean matches = prefixOnly
 						? key.startsWith(partial)
 						: ConfigKeyCompleter.matchesSegment(key, partial);
@@ -84,11 +89,8 @@ public class ConfigUnsetKeyCompleter implements OptionCompleter<CompleterInvocat
 					} else {
 						desc = "Set";
 					}
-					String prefix = key + "\t";
-					boolean alreadyPresent = candidates.stream().anyMatch(c -> c.startsWith(prefix));
-					if (!alreadyPresent) {
-						candidates.add(described(key, desc));
-					}
+					candidates.add(described(key, desc));
+					seenKeys.add(key);
 				}
 			}
 			current = current.getFallback();

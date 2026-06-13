@@ -60,7 +60,7 @@ public class Config extends BaseCommand {
 				gatherFromParser(container.getParser(), Collections.emptyList(), opts);
 			}
 		} catch (Exception e) {
-			// best-effort
+			Util.verboseMsg("Failed to gather config keys from CLI tree: " + e.getMessage());
 		}
 		return opts;
 	}
