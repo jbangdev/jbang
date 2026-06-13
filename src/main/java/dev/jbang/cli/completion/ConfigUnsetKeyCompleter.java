@@ -31,38 +31,21 @@ public class ConfigUnsetKeyCompleter implements OptionCompleter<CompleterInvocat
 		}
 
 		Set<String> candidates = new TreeSet<>();
-
-		// Get available key descriptions for richer output
 		Map<String, String> availableKeys = ConfigKeyCompleter.getAvailableKeys();
 
 		try {
 			Configuration cfg = Configuration.getMerged();
-			// Walk the configuration chain to show origin
-			Configuration current = cfg;
-			while (current != null) {
-				String origin = null;
-				if (current.getStoreRef() != null) {
-					origin = current.getStoreRef().getOriginalResource();
+
+			// First pass: prefix match
+			collectSetKeys(candidates, cfg, availableKeys, partial, true);
+
+			// Second pass: segment match fallback when prefix found nothing
+			if (candidates.isEmpty() && !partial.isEmpty()) {
+				collectSetKeys(candidates, cfg, availableKeys, partial, false);
+				if (!candidates.isEmpty()) {
+					inv.setIgnoreStartsWith(true);
+					inv.setOffset(0);
 				}
-				for (String key : current.keySet()) {
-					if (key.startsWith(partial)) {
-						String desc;
-						if (origin != null) {
-							desc = origin;
-						} else if (availableKeys.containsKey(key)) {
-							desc = availableKeys.get(key);
-						} else {
-							desc = "Set";
-						}
-						// First match wins (nearest config has priority)
-						String prefix = key + "\t";
-						boolean alreadyPresent = candidates.stream().anyMatch(c -> c.startsWith(prefix));
-						if (!alreadyPresent) {
-							candidates.add(described(key, desc));
-						}
-					}
-				}
-				current = current.getFallback();
 			}
 		} catch (Exception e) {
 			// best-effort
@@ -77,6 +60,38 @@ public class ConfigUnsetKeyCompleter implements OptionCompleter<CompleterInvocat
 				inv.clearCompleterValues();
 				inv.addCompleterValue(single.substring(0, tab));
 			}
+		}
+	}
+
+	private void collectSetKeys(Set<String> candidates, Configuration cfg,
+			Map<String, String> availableKeys, String partial, boolean prefixOnly) {
+		Configuration current = cfg;
+		while (current != null) {
+			String origin = null;
+			if (current.getStoreRef() != null) {
+				origin = current.getStoreRef().getOriginalResource();
+			}
+			for (String key : current.keySet()) {
+				boolean matches = prefixOnly
+						? key.startsWith(partial)
+						: ConfigKeyCompleter.matchesSegment(key, partial);
+				if (matches) {
+					String desc;
+					if (origin != null) {
+						desc = origin;
+					} else if (availableKeys.containsKey(key)) {
+						desc = availableKeys.get(key);
+					} else {
+						desc = "Set";
+					}
+					String prefix = key + "\t";
+					boolean alreadyPresent = candidates.stream().anyMatch(c -> c.startsWith(prefix));
+					if (!alreadyPresent) {
+						candidates.add(described(key, desc));
+					}
+				}
+			}
+			current = current.getFallback();
 		}
 	}
 }

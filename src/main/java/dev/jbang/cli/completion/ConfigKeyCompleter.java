@@ -41,6 +41,7 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 		Set<String> candidates = new TreeSet<>();
 		Map<String, String> availableKeys = getAvailableKeys();
 
+		// First pass: prefix match (standard completion behaviour)
 		for (Map.Entry<String, String> entry : availableKeys.entrySet()) {
 			String key = entry.getKey();
 			String desc = entry.getValue();
@@ -55,7 +56,6 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 			Configuration cfg = Configuration.getMerged();
 			for (String key : cfg.flatten().keySet()) {
 				if (key.startsWith(partial)) {
-					// Only add if not already present from available keys
 					boolean alreadyPresent = availableKeys.containsKey(key);
 					if (!alreadyPresent) {
 						String val = cfg.get(key);
@@ -65,6 +65,36 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 			}
 		} catch (Exception e) {
 			// best-effort
+		}
+
+		// Second pass: if prefix match found nothing and the partial is
+		// non-empty, do a segment match. "debu" matches "run.debug",
+		// "add." matches "alias.add.*", "catalog.add.*", etc.
+		if (candidates.isEmpty() && !partial.isEmpty()) {
+			for (Map.Entry<String, String> entry : availableKeys.entrySet()) {
+				String key = entry.getKey();
+				if (matchesSegment(key, partial)) {
+					candidates.add(described(key, entry.getValue()));
+				}
+			}
+			// Also check user-defined keys
+			try {
+				Configuration cfg = Configuration.getMerged();
+				for (String key : cfg.flatten().keySet()) {
+					if (!availableKeys.containsKey(key) && matchesSegment(key, partial)) {
+						String val = cfg.get(key);
+						candidates.add(described(key, val != null ? "= " + val : ""));
+					}
+				}
+			} catch (Exception e) {
+				// best-effort
+			}
+			// Tell aesh to replace the whole token rather than append,
+			// since the candidates don't share the typed prefix.
+			if (!candidates.isEmpty()) {
+				inv.setIgnoreStartsWith(true);
+				inv.setOffset(0);
+			}
 		}
 
 		inv.addAllCompleterValues(candidates);
@@ -79,6 +109,38 @@ public class ConfigKeyCompleter implements OptionCompleter<CompleterInvocation> 
 				inv.addCompleterValue(single.substring(0, tab));
 			}
 		}
+	}
+
+	/**
+	 * Returns true if the partial matches any segment boundary in the key.
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * <li>{@code matchesSegment("run.debug", "debu")} → true (segment "debug"
+	 * starts with "debu")</li>
+	 * <li>{@code matchesSegment("alias.add.debug", "add.")} → true ("add.debug"
+	 * starts with "add.")</li>
+	 * <li>{@code matchesSegment("alias.add.debug", "add.deb")} → true</li>
+	 * <li>{@code matchesSegment("run.debug", "xyz")} → false</li>
+	 * </ul>
+	 */
+	static boolean matchesSegment(String key, String partial) {
+		// Try matching at each dot boundary
+		int idx = 0;
+		while (true) {
+			int dot = key.indexOf('.', idx);
+			if (dot < 0) {
+				break;
+			}
+			String suffix = key.substring(dot + 1);
+			if (suffix.startsWith(partial)) {
+				return true;
+			}
+			idx = dot + 1;
+		}
+		// Also try contains for multi-segment partials like "add.debu"
+		// that might not align exactly to a segment start
+		return key.contains("." + partial);
 	}
 
 	/**

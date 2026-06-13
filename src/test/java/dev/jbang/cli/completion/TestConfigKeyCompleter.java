@@ -140,6 +140,62 @@ public class TestConfigKeyCompleter extends BaseTest {
 		}
 	}
 
+	// ---- Segment matching tests ----------------------------------------
+
+	@Test
+	void testMatchesSegmentBasic() {
+		assertThat(ConfigKeyCompleter.matchesSegment("run.debug", "debu"), is(true));
+		assertThat(ConfigKeyCompleter.matchesSegment("alias.add.debug", "debu"), is(true));
+		assertThat(ConfigKeyCompleter.matchesSegment("run.debug", "xyz"), is(false));
+	}
+
+	@Test
+	void testMatchesSegmentWithDot() {
+		assertThat(ConfigKeyCompleter.matchesSegment("alias.add.debug", "add."), is(true));
+		assertThat(ConfigKeyCompleter.matchesSegment("alias.add.debug", "add.deb"), is(true));
+		assertThat(ConfigKeyCompleter.matchesSegment("catalog.add.format", "add."), is(true));
+		assertThat(ConfigKeyCompleter.matchesSegment("run.debug", "add."), is(false));
+	}
+
+	@Test
+	void testSegmentMatchFallback() {
+		ConfigKeyCompleter completer = new ConfigKeyCompleter();
+		TestCompleterInvocation inv = new TestCompleterInvocation("debu");
+		completer.complete(inv);
+
+		List<String> values = stripDescriptions(inv.candidates);
+		// Should find keys containing a "debug" segment via fallback
+		assertThat("segment match should find debug keys",
+				values.stream().anyMatch(v -> v.contains("debug")), is(true));
+		// Should set ignoreStartsWith for segment matches
+		assertThat(inv.ignoreStartsWith, is(true));
+	}
+
+	@Test
+	void testSegmentMatchWithDotPartial() {
+		ConfigKeyCompleter completer = new ConfigKeyCompleter();
+		TestCompleterInvocation inv = new TestCompleterInvocation("add.");
+		completer.complete(inv);
+
+		List<String> values = stripDescriptions(inv.candidates);
+		// Should find all keys with an "add" segment
+		assertThat("segment match should find add.* keys",
+				values.stream().anyMatch(v -> v.contains(".add.")), is(true));
+	}
+
+	@Test
+	void testPrefixMatchTakesPriorityOverSegment() {
+		ConfigKeyCompleter completer = new ConfigKeyCompleter();
+		// "cache" prefix-matches "cache-evict" directly
+		TestCompleterInvocation inv = new TestCompleterInvocation("cache");
+		completer.complete(inv);
+
+		List<String> values = stripDescriptions(inv.candidates);
+		assertThat(values, hasItem("cache-evict"));
+		// ignoreStartsWith should NOT be set for prefix matches
+		assertThat(inv.ignoreStartsWith, is(false));
+	}
+
 	private List<String> stripDescriptions(List<String> candidates) {
 		List<String> result = new ArrayList<>();
 		for (String c : candidates) {
