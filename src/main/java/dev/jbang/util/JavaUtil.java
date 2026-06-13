@@ -358,7 +358,7 @@ public class JavaUtil {
 				return -1;
 			}
 			int n1 = minRequestedVersion(v1);
-			int n2 = minRequestedVersion(v1);
+			int n2 = minRequestedVersion(v2);
 			if (n1 < n2) {
 				return -1;
 			} else if (n1 > n2) {
