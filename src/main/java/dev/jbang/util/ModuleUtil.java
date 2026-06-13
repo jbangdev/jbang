@@ -6,9 +6,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,18 +80,28 @@ public class ModuleUtil {
 			// ignore
 			Util.warnMsg("Could not locate module-info.java template");
 		} else {
-			// First get the list of root dependencies as proper maven coordinates
-			Map<String, MavenCoordinate> deps = project.getMainSourceSet()
+			// Keys of the root dependencies, ignoring any classifier. A
+			// dependency can resolve to a platform-specific artifact that
+			// carries the real module next to an unclassified empty
+			// placeholder. For `org.openjfx:javafx-base` these are the empty
+			// `javafx-base.jar` (module `javafx.baseEmpty`) and the platform
+			// `javafx-base-<os>.jar` (the real `javafx.base` module).
+			Set<String> depKeys = project.getMainSourceSet()
 				.getDependencies()
 				.stream()
 				.map(MavenCoordinate::fromString)
-				.collect(Collectors.toMap(MavenCoordinate::getManagementKey, Function.identity()));
-			// Now filter out the resolved artifacts that are root dependencies
-			// and get their names
+				.map(c -> c.getGroupId() + ":" + c.getArtifactId() + ":" + c.getType())
+				.collect(Collectors.toSet());
+			// Match the resolved artifacts back to those root dependencies
+			// (again ignoring the classifier) and collect their module names.
+			// An empty placeholder module may end up required next to the real
+			// one (e.g. `javafx.baseEmpty` next to `javafx.base`); that is
+			// harmless, so we do not special-case it by name.
 			Stream<String> depModNames = ctx.resolveClassPath()
 				.getArtifacts()
 				.stream()
-				.filter(a -> deps.containsKey(a.getCoordinate().getManagementKey()))
+				.filter(a -> depKeys.contains(a.getCoordinate().getGroupId() + ":"
+						+ a.getCoordinate().getArtifactId() + ":" + a.getCoordinate().getType()))
 				.map(ArtifactInfo::getModuleName)
 				.filter(Objects::nonNull);
 			// And join this list of names with the JDK module names
