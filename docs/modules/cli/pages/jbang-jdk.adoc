@@ -8,12 +8,8 @@ jbang jdk -- Manage Java Development Kits installed by jbang.
 
 [source]
 ----
-jbang jdk [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [COMMAND]
+jbang jdk [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
 ----
-
-== DESCRIPTION
-
-Manage Java Development Kits installed by jbang.
 
 == OPTIONS
 
@@ -26,28 +22,33 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == COMMANDS
 
 * xref:jbang:cli:jbang-jdk-install.adoc[*install*] - Installs a JDK.
+* xref:jbang:cli:jbang-jdk-install.adoc[*install*] - Installs a JDK.
 * xref:jbang:cli:jbang-jdk-list.adoc[*list*] - Lists installed JDKs.
+* xref:jbang:cli:jbang-jdk-list.adoc[*list*] - Lists installed JDKs.
+* xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*] - Uninstalls an existing JDK.
 * xref:jbang:cli:jbang-jdk-uninstall.adoc[*uninstall*] - Uninstalls an existing JDK.
 * xref:jbang:cli:jbang-jdk-home.adoc[*home*] - Prints the folder where the given JDK is installed.
 * xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*] - Prints out the environment variables needed to use the given JDK.
+* xref:jbang:cli:jbang-jdk-java-env.adoc[*java-env*] - Prints out the environment variables needed to use the given JDK.
+* xref:jbang:cli:jbang-jdk-exec.adoc[*exec*] - Executes the given command using the default (or specified) JDK.
 * xref:jbang:cli:jbang-jdk-exec.adoc[*exec*] - Executes the given command using the default (or specified) JDK.
 * xref:jbang:cli:jbang-jdk-default.adoc[*default*] - Sets the default JDK to be used by JBang.
 
