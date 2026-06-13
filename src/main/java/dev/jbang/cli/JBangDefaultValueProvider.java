@@ -15,11 +15,11 @@ import dev.jbang.Configuration;
 
 public class JBangDefaultValueProvider implements DefaultValueProvider {
 
-	// Options that use fallbackValue="" or DebugOptionParser for three-state
-	// semantics (null=not specified, ""=bare flag, "value"=explicit). The provider
-	// must not supply defaults for these because the empty-string sentinel triggers
-	// config-file lookup in RunMixin.resolveAfterParse() instead.
-	private static final Set<String> FALLBACK_OPTIONS = new HashSet<>(Arrays.asList("debug", "jfr"));
+	// Options where config defaults should only apply as fallback values (when
+	// the option is explicitly used bare, e.g. --debug), not as default values
+	// (when the option is omitted entirely). This prevents config-set debug/jfr
+	// from activating on every command invocation.
+	private static final Set<String> FALLBACK_ONLY_OPTIONS = new HashSet<>(Arrays.asList("debug", "jfr"));
 
 	private static volatile Map<Class<?>, String> classToPath;
 
@@ -29,7 +29,7 @@ public class JBangDefaultValueProvider implements DefaultValueProvider {
 			return null;
 		}
 
-		if (FALLBACK_OPTIONS.contains(option.name())) {
+		if (FALLBACK_ONLY_OPTIONS.contains(option.name())) {
 			return null;
 		}
 
@@ -52,6 +52,26 @@ public class JBangDefaultValueProvider implements DefaultValueProvider {
 			}
 		}
 
+		return getValue(optName);
+	}
+
+	@Override
+	public String fallbackValue(ProcessedOption option) {
+		if (option.name() == null) {
+			return null;
+		}
+		String optName = option.name().replace("-", "");
+		String fullPath = null;
+		if (option.parent() != null && option.parent().getCommand() != null) {
+			fullPath = getCommandPathForClass(option.parent().getCommand().getClass());
+		}
+		if (fullPath != null) {
+			String key = fullPath + "." + optName;
+			String val = getValue(key);
+			if (val != null) {
+				return val;
+			}
+		}
 		return getValue(optName);
 	}
 

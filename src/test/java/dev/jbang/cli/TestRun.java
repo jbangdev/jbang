@@ -1299,8 +1299,8 @@ public class TestRun extends BaseTest {
 				"--javaagent=org.jboss.byteman:byteman:4.0.13",
 				mainFile.toAbsolutePath().toString());
 
-		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
-		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
+		assertThat(run.runMixin.getJavaAgentSlots().containsKey(agentFile.toAbsolutePath().toString()), is(true));
+		assertThat(run.runMixin.getJavaAgentSlots().get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
 
 		ProjectBuilder pb = run.createProjectBuilderForRun().mainClass("fakemain");
 		Project prj = pb.build(mainFile);
@@ -1324,7 +1324,7 @@ public class TestRun extends BaseTest {
 	void testJavaAgentParsing() {
 		Run run = JBang.parseCommand("run", "--javaagent=xyz.jar", "wonka.java");
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("xyz.jar"));
+		assertThat(run.runMixin.getJavaAgentSlots(), hasKey("xyz.jar"));
 	}
 
 	@Test
@@ -1332,7 +1332,7 @@ public class TestRun extends BaseTest {
 		Run run = JBang.parseCommand("run",
 				"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
+		assertThat(run.runMixin.getJavaAgentSlots(), hasKey("org.jboss.byteman:byteman:4.0.13"));
 	}
 
 	@Test

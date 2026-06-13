@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -51,7 +52,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqSimple(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqSimple(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -64,12 +65,13 @@ public class TestUtilDownloads extends BaseTest {
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
-		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
-		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
+		FileTime backdatedLmt = Files.getLastModifiedTime(file);
+		ZonedDateTime zlmt = ZonedDateTime.ofInstant(backdatedLmt.toInstant(), ZoneId.of("GMT"));
+		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -91,7 +93,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqSimpleFresh(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqSimpleFresh(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -107,7 +109,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -168,7 +170,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqWithLastModifiedUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqWithLastModifiedUpdated(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -186,7 +188,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -243,7 +245,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqWithLastModifiedUpdatedEvict1(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqWithLastModifiedUpdatedEvict1(WireMockRuntimeInfo wmri) throws IOException {
 		Configuration.instance().put("cache-evict", "1");
 
 		UUID id = UUID.randomUUID();
@@ -263,7 +265,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -281,7 +283,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqWithLastModifiedUpdatedEvictPT1S(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqWithLastModifiedUpdatedEvictPT1S(WireMockRuntimeInfo wmri) throws IOException {
 		Configuration.instance().put("cache-evict", "pt1s");
 
 		UUID id = UUID.randomUUID();
@@ -301,7 +303,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -362,7 +364,7 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqWithETagUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+	void test2ReqWithETagUpdated(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -382,7 +384,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(etag.toFile(), anExistingFile());
 		assertThat(Util.readString(etag), is("tag1"));
 
-		Thread.sleep(1100);
+		backdateCachedFile(file);
 
 		editStub(get(urlEqualTo("/test.txt"))
 			.withId(id)
@@ -418,6 +420,15 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
+	}
+
+	/**
+	 * Backdates a file's last-modified time by 2 seconds so cache-evict checks see
+	 * it as stale, without needing Thread.sleep(1100).
+	 */
+	private static void backdateCachedFile(Path file) throws IOException {
+		Instant past = Instant.now().minusSeconds(2);
+		Files.setLastModifiedTime(file, FileTime.from(past));
 	}
 
 	private static ValueMatcher<Request> withoutHeader(String hdr) {
