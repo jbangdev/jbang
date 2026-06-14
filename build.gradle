@@ -191,6 +191,7 @@ dependencies {
 	testImplementation "org.wiremock:wiremock:${wiremockVersion}"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
+	testImplementation "com.tngtech.archunit:archunit-junit5:1.4.0"
 	// only for test running
 	agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
