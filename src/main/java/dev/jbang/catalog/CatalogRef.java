@@ -1,6 +1,6 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.ExitException.EXIT_INVALID_INPUT;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -23,12 +23,12 @@ import dev.jbang.util.Util;
 
 public abstract class BaseCommand implements Command<CommandInvocation>, CommandLifecycle {
 
-	public static final int EXIT_OK = 0;
-	public static final int EXIT_GENERIC_ERROR = 1;
-	public static final int EXIT_INVALID_INPUT = 2;
-	public static final int EXIT_UNEXPECTED_STATE = 3;
-	public static final int EXIT_INTERNAL_ERROR = 4;
-	public static final int EXIT_EXECUTE = 255;
+	public static final int EXIT_OK = ExitException.EXIT_OK;
+	public static final int EXIT_GENERIC_ERROR = ExitException.EXIT_GENERIC_ERROR;
+	public static final int EXIT_INVALID_INPUT = ExitException.EXIT_INVALID_INPUT;
+	public static final int EXIT_UNEXPECTED_STATE = ExitException.EXIT_UNEXPECTED_STATE;
+	public static final int EXIT_INTERNAL_ERROR = ExitException.EXIT_INTERNAL_ERROR;
+	public static final int EXIT_EXECUTE = ExitException.EXIT_EXECUTE;
 
 	private static final Logger logger = Logger.getLogger("dev.jbang.cli");
 	static {

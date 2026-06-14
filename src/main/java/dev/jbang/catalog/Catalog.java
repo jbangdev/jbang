@@ -1,7 +1,7 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import static dev.jbang.cli.ExitException.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.ExitException.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
 import java.io.InputStream;

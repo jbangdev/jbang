@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import dev.jbang.Settings;
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 
 public class VersionChecker {
@@ -32,7 +31,7 @@ public class VersionChecker {
 		try {
 			inform(retrieveLatestVersionAsync().get(), false);
 		} catch (ExecutionException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 		} catch (InterruptedException e) {
 			// Ignore
 		}
@@ -65,7 +64,7 @@ public class VersionChecker {
 				}
 			}
 		} catch (ExecutionException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 		} catch (InterruptedException e) {
 			// Ignore
 		}

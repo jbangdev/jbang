@@ -1,5 +1,6 @@
 package dev.jbang.resources.resolvers;
 
+import static dev.jbang.cli.ExitException.EXIT_UNEXPECTED_STATE;
 import static dev.jbang.util.Util.goodTrustURL;
 import static dev.jbang.util.Util.swizzleURL;
 
@@ -98,7 +99,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 						"Trust all sources (WARNING! disables url protection):\n    jbang trust add *" +
 						"\n" +
 						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n";
-				throw new ExitException(10, exmsg);
+				throw new ExitException(EXIT_UNEXPECTED_STATE, exmsg);
 			}
 		}
 

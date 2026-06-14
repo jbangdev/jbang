@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import org.jspecify.annotations.NonNull;
 
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
@@ -36,7 +35,7 @@ public class MarkdownSource extends JshSource {
 			resourceRef = LiteralScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
 					scriptText, null);
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
+			throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE,
 					"Could not cache script from markdown at " + resourceRef.getOriginalResource(), e);
 		}
 		return new MarkdownSource(resourceRef,

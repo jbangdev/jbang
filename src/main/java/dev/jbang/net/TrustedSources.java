@@ -1,5 +1,8 @@
 package dev.jbang.net;
 
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
+import static dev.jbang.cli.ExitException.EXIT_INVALID_INPUT;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -262,7 +265,7 @@ public class TrustedSources {
 		try {
 			Util.writeString(storage.toPath(), newsources);
 		} catch (IOException e) {
-			throw new ExitException(2, "Error when writing to " + storage, e);
+			throw new ExitException(EXIT_INVALID_INPUT, "Error when writing to " + storage, e);
 		}
 		trustedSources = rules.toArray(new String[0]);
 	}
@@ -273,7 +276,7 @@ public class TrustedSources {
 			ResourceRef templateRef = ResourceRef.forResource("classpath:/trusted-sources.qute");
 			Template template = TemplateEngine.instance().getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(1, "Could not locate template named: '" + templateRef + "'");
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not locate template named: '" + templateRef + "'");
 			String result = template.render();
 
 			try {

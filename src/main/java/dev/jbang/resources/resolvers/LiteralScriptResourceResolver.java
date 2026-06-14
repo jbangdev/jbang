@@ -14,7 +14,6 @@ import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
@@ -49,7 +48,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 				result = stringToResourceRef(resource, scriptText, forceType);
 			}
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not cache script from stdin", e);
+			throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE, "Could not cache script from stdin", e);
 		}
 
 		return result;

@@ -2,6 +2,7 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Settings.getJBangLocalMavenRepoOverride;
+import static dev.jbang.cli.ExitException.EXIT_OK;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.isWindows;
@@ -132,7 +133,7 @@ public class DependencyUtil {
 											// 'DefaultRepositorySystem.resolveDependencies()', this however is probably
 											// a connection problem.
 			errorMsg("Exception: " + e.getMessage());
-			throw new ExitException(0,
+			throw new ExitException(EXIT_OK,
 					"Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators.",
 					e);
 		}

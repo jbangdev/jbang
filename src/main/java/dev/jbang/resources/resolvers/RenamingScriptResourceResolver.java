@@ -13,7 +13,6 @@ import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
@@ -78,7 +77,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 								msg = "Cannot run " + probe
 										+ " as it is a directory and no default application (i.e. `main.java`) was found.";
 							}
-							throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, msg);
+							throw new ExitException(ExitException.EXIT_INVALID_INPUT, msg);
 						}
 					}
 					String original = Util.readString(probe.toPath());
@@ -109,7 +108,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 				}
 			}
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not download " + resource, e);
+			throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE, "Could not download " + resource, e);
 		}
 
 		return result;

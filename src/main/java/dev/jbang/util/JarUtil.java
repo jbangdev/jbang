@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public final class JarUtil {
 		Util.verboseMsg("Package: " + String.join(" ", arguments));
 		String out = Util.runCommand(arguments.toArray(new String[] {}));
 		if (out == null) {
-			throw new ExitException(1, "Error creating/updating jar");
+			throw new ExitException(EXIT_GENERIC_ERROR, "Error creating/updating jar");
 		}
 	}
 }

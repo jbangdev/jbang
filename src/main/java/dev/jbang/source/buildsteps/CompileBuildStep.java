@@ -1,5 +1,7 @@
 package dev.jbang.source.buildsteps;
 
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +21,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.resources.ResourceRef;
@@ -89,7 +90,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		if (project.getModuleName().isPresent()) {
 			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Module code cannot work with the default package, adding a 'package' statement is required");
 			}
 			if (!hasModuleInfoFile()) {
@@ -128,11 +129,11 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
+			throw new ExitException(EXIT_GENERIC_ERROR, e);
 		}
 
 		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during compile");
+			throw new ExitException(EXIT_GENERIC_ERROR, "Error during compile");
 		}
 	}
 
@@ -257,7 +258,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 				}
 			}
 		} catch (IOException e) {
-			throw new ExitException(1, e);
+			throw new ExitException(EXIT_GENERIC_ERROR, e);
 		}
 	}
 

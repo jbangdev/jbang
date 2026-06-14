@@ -1,5 +1,6 @@
 package dev.jbang.dependencies;
 
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
 import static dev.jbang.util.Util.infoMsg;
 
 import java.io.Closeable;
@@ -245,7 +246,7 @@ public class ArtifactResolver implements Closeable {
 				.map(ArtifactResolver::toArtifactInfo)
 				.collect(Collectors.toList());
 		} catch (DependencyResolutionException ex) {
-			throw new ExitException(1, "Could not resolve dependencies: " + ex.getMessage(), ex);
+			throw new ExitException(EXIT_GENERIC_ERROR, "Could not resolve dependencies: " + ex.getMessage(), ex);
 		}
 	}
 
@@ -362,7 +363,7 @@ public class ArtifactResolver implements Closeable {
 			VersionRangeResult versionRangeResult = context.repositorySystem()
 				.resolveVersionRange(session, versionRangeRequest);
 			if (versionRangeResult.getVersions().isEmpty()) {
-				throw new ExitException(1, "Could not resolve version range: " + artifact);
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not resolve version range: " + artifact);
 			}
 			String version = versionRangeResult.getVersions()
 				.get(versionRangeResult.getVersions().size() - 1)
@@ -376,7 +377,7 @@ public class ArtifactResolver implements Closeable {
 			return context.repositorySystem()
 				.readArtifactDescriptor(session, descriptorRequest);
 		} catch (VersionRangeResolutionException | ArtifactDescriptorException ex) {
-			throw new ExitException(1, "Could not read artifact descriptor for " + artifact, ex);
+			throw new ExitException(EXIT_GENERIC_ERROR, "Could not read artifact descriptor for " + artifact, ex);
 		}
 	}
 

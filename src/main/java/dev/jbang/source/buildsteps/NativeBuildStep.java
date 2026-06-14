@@ -1,5 +1,7 @@
 package dev.jbang.source.buildsteps;
 
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -85,11 +87,11 @@ public class NativeBuildStep implements Builder<Project> {
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
+			throw new ExitException(EXIT_GENERIC_ERROR, e);
 		}
 
 		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during native-image");
+			throw new ExitException(EXIT_GENERIC_ERROR, "Error during native-image");
 		}
 	}
 

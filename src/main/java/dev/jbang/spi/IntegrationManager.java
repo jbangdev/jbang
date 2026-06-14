@@ -1,7 +1,7 @@
 package dev.jbang.spi;
 
-import static dev.jbang.cli.BaseCommand.EXIT_GENERIC_ERROR;
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.ExitException.EXIT_GENERIC_ERROR;
+import static dev.jbang.cli.ExitException.EXIT_INVALID_INPUT;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.BufferedReader;

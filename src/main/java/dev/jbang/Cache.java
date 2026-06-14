@@ -1,5 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.cli.ExitException.EXIT_INTERNAL_ERROR;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +42,7 @@ public class Cache {
 						Files.deleteIfExists(Settings.getCacheDependencyFile().toAbsolutePath());
 					}
 				} catch (IOException io) {
-					throw new ExitException(-1,
+					throw new ExitException(EXIT_INTERNAL_ERROR,
 							"Could not delete dependency cache " + Settings.getCacheDependencyFile().toString(), io);
 				}
 			} else {

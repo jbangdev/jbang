@@ -1,5 +1,7 @@
 package dev.jbang.util;
 
+import static dev.jbang.cli.ExitException.EXIT_INTERNAL_ERROR;
+
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.io.BufferedReader;
@@ -68,7 +70,6 @@ import com.google.gson.Gson;
 import dev.jbang.Configuration;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
@@ -411,7 +412,7 @@ public class Util {
 		try {
 			Files.walkFileTree(bd, matcherVisitor);
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
+			throw new ExitException(ExitException.EXIT_INTERNAL_ERROR,
 					"Problem looking for " + fp + " in " + bd + ": " + e, e);
 		}
 
@@ -578,7 +579,7 @@ public class Util {
 		try {
 			return readString(file);
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not read content for " + file, e);
+			throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE, "Could not read content for " + file, e);
 		}
 	}
 
@@ -842,7 +843,7 @@ public class Util {
 		try {
 			return getStableID(readString(backingFile.toPath()));
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, e);
 		}
 	}
 
@@ -855,7 +856,7 @@ public class Util {
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
-			throw new ExitException(-1, e);
+			throw new ExitException(EXIT_INTERNAL_ERROR, e);
 		}
 		inputs.forEach(input -> {
 			digest.update(input.getBytes(StandardCharsets.UTF_8));
@@ -1001,7 +1002,7 @@ public class Util {
 			err[0] = e;
 		}
 		if (!quiet && err[0] != null) {
-			throw new ExitException(-1, "Could not delete " + path.toString(), err[0]);
+			throw new ExitException(EXIT_INTERNAL_ERROR, "Could not delete " + path.toString(), err[0]);
 		}
 		return err[0] == null;
 	}
@@ -1019,7 +1020,8 @@ public class Util {
 					return;
 				}
 			}
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Failed to create link " + link + " -> " + target);
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+					"Failed to create link " + link + " -> " + target);
 		}
 	}
 
@@ -1205,7 +1207,7 @@ public class Util {
 			permissions.add(PosixFilePermission.GROUP_EXECUTE);
 			Files.setPosixFilePermissions(file, permissions);
 		} catch (UnsupportedOperationException | IOException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
 		}
 	}
 
@@ -1495,7 +1497,7 @@ public class Util {
 				try {
 					return Matcher.quoteReplacement(NetUtil.downloadAndCacheFile(txt).toString());
 				} catch (IOException e) {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt,
 							e);
 				}
 			} else if (txt.startsWith("deps:")) {
@@ -1506,7 +1508,7 @@ public class Util {
 				return mcp.getClassPath();
 			} else {
 				String type = txt.substring(0, txt.indexOf(":"));
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Unknown substitution type: " + type);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Unknown substitution type: " + type);
 			}
 		});
 	}
