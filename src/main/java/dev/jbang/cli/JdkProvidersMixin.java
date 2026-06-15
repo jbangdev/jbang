@@ -12,10 +12,10 @@ import dev.jbang.util.JavaUtil;
 
 public class JdkProvidersMixin {
 
-	@OptionList(name = "jdk-providers", valueSeparator = ',', visibility = OptionVisibility.HIDDEN, description = "Use the given providers to check for installed JDKs")
+	@OptionList(name = "jdk-providers", valueSeparator = ',', description = "Use the given providers to manage JDKs")
 	List<String> jdkProviders;
 
-	@OptionList(name = "jdk-distros", valueSeparator = ',', visibility = OptionVisibility.HIDDEN, description = "Use the given distributions to install new JDKs")
+	@OptionList(name = "jdk-distros", valueSeparator = ',', description = "Use the given distributions to install new JDKs")
 	List<String> jdkDistros;
 
 	@Option(name = "jdk-installer", visibility = OptionVisibility.HIDDEN, description = "Use the given installer to install new JDKs")
