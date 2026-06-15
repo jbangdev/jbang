@@ -341,26 +341,34 @@ latestDistTar {
 
 tasks.register('nativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('nativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.tar" })
 }
 
 tasks.register('latestNativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('latestNativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.tar" })
 }
