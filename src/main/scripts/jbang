@@ -281,11 +281,16 @@ if [[ -z "$binaryPath" ]]; then
 fi
 if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
+    if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
+      bundleName="jbang-${os}-${arch}.tar"
+    else
+      bundleName="jbang.tar"
+    fi
     mkdir -p "$TDIR/urls"
     if [ -n "$JBANG_DOWNLOAD_URL" ]; then
       jburl="$JBANG_DOWNLOAD_URL";
     elif [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
-      jburl="${jbangDownloadBaseUrl}/latest/download/jbang.tar";
+      jburl="${jbangDownloadBaseUrl}/latest/download/$bundleName";
     else
       # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
       # release tags (e.g. 'early-access', '1.0.0-rc1') are used as-is.
@@ -293,7 +298,7 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
         *[!0-9.]*) jbtag="$JBANG_DOWNLOAD_VERSION" ;;
         *)         jbtag="v$JBANG_DOWNLOAD_VERSION" ;;
       esac
-      jburl="${jbangDownloadBaseUrl}/download/$jbtag/jbang.tar";
+      jburl="${jbangDownloadBaseUrl}/download/$jbtag/$bundleName";
     fi
     echo "Downloading JBang ${JBANG_DOWNLOAD_VERSION:-latest} from $jburl..." 1>&2
     download "$jburl" "$TDIR/urls/jbang.tar"
