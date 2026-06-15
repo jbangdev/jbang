@@ -69,7 +69,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_RELEASE_GITHUB_DRAFT: false
+          JRELEASER_DRAFT: false
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: full-release --yolo
@@ -79,9 +79,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/early-access --jq '.id')
-          gh api --method PATCH repos/${{ github.repository }}/releases/$RELEASE_ID \
-            -F draft=false -F prerelease=true
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases --jq 'map(select(.tag_name=="early-access")) | first | .id')
+          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+            echo "Marking release $RELEASE_ID as published pre-release"
+            gh api --method PATCH repos/${{ github.repository }}/releases/$RELEASE_ID \
+              -F draft=false -F prerelease=true
+          else
+            echo "::warning::Could not find early-access release to un-draft"
+          fi
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
