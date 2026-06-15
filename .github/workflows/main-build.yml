@@ -69,7 +69,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_DRAFT: false
+          JRELEASER_RELEASE_GITHUB_DRAFT: false
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: full-release --yolo
