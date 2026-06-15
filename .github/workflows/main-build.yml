@@ -74,6 +74,14 @@ jobs:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: full-release --yolo
           setup-java: false
+      - name: Mark release as pre-release (not draft)
+        if: steps.version.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/early-access --jq '.id')
+          gh api --method PATCH repos/${{ github.repository }}/releases/$RELEASE_ID \
+            -F draft=false -F prerelease=true
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
