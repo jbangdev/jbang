@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -78,6 +79,9 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			completeGav(candidates, partial);
 			completeGavRemote(candidates, partial);
 			specialMode = true;
+		} else if (looksLikeUrl(partial)) {
+			addNavigationHints(candidates, partial);
+			specialMode = true;
 		} else {
 			completeFiles(candidates, partial);
 			completeAliases(candidates, partial);
@@ -130,6 +134,12 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 
 	// ---- Navigation hints ----------------------------------------------
 
+	private static boolean looksLikeUrl(String s) {
+		String lower = s.toLowerCase();
+		return lower.startsWith("http://") || lower.startsWith("https://")
+				|| lower.startsWith("ftp://");
+	}
+
 	/** URL prefixes that jbang can complete further. */
 	private static final String[] URL_HINTS = {
 			"https://github.com/",
@@ -165,41 +175,43 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	// ---- File completion -----------------------------------------------
 
 	private void completeFiles(Set<String> candidates, String partial) {
-		Path cwd = Util.getCwd();
-		Path base;
-		String prefix;
+		try {
+			Path cwd = Util.getCwd();
+			Path base;
+			String prefix;
 
-		int lastSep = Math.max(partial.lastIndexOf('/'), partial.lastIndexOf('\\'));
-		if (lastSep >= 0) {
-			prefix = partial.substring(0, lastSep + 1);
-			base = cwd.resolve(prefix).normalize();
-		} else {
-			prefix = "";
-			base = cwd;
-		}
+			int lastSep = Math.max(partial.lastIndexOf('/'), partial.lastIndexOf('\\'));
+			if (lastSep >= 0) {
+				prefix = partial.substring(0, lastSep + 1);
+				base = cwd.resolve(prefix).normalize();
+			} else {
+				prefix = "";
+				base = cwd;
+			}
 
-		if (!Files.isDirectory(base)) {
-			return;
-		}
+			if (!Files.isDirectory(base)) {
+				return;
+			}
 
-		String namePrefix = partial.substring(prefix.length());
+			String namePrefix = partial.substring(prefix.length());
 
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(base)) {
-			for (Path entry : stream) {
-				String name = entry.getFileName().toString();
-				if (name.startsWith(".")) {
-					continue; // skip hidden files
-				}
-				if (!name.toLowerCase().startsWith(namePrefix.toLowerCase())) {
-					continue;
-				}
-				if (Files.isDirectory(entry)) {
-					candidates.add(described(prefix + name + "/", "Directory"));
-				} else if (isScriptFile(name)) {
-					candidates.add(prefix + name);
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(base)) {
+				for (Path entry : stream) {
+					String name = entry.getFileName().toString();
+					if (name.startsWith(".")) {
+						continue; // skip hidden files
+					}
+					if (!name.toLowerCase().startsWith(namePrefix.toLowerCase())) {
+						continue;
+					}
+					if (Files.isDirectory(entry)) {
+						candidates.add(described(prefix + name + "/", "Directory"));
+					} else if (isScriptFile(name)) {
+						candidates.add(prefix + name);
+					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | InvalidPathException e) {
 			// best-effort — ignore
 		}
 	}
