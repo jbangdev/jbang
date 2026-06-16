@@ -79,7 +79,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases --jq 'map(select(.tag_name=="early-access")) | first | .id')
+          # Delete any older early-access releases (JReleaser creates a new draft each run)
+          gh api repos/${{ github.repository }}/releases \
+            --jq '[.[] | select(.tag_name=="early-access")] | sort_by(.created_at) | reverse | .[1:] | .[].id' \
+          | while read id; do
+            echo "Deleting old early-access release $id"
+            gh api --method DELETE repos/${{ github.repository }}/releases/$id || true
+          done
+          # Un-draft the latest one
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases \
+            --jq '[.[] | select(.tag_name=="early-access")] | sort_by(.created_at) | last | .id')
           if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
             echo "Marking release $RELEASE_ID as published pre-release"
             gh api --method PATCH repos/${{ github.repository }}/releases/$RELEASE_ID \
