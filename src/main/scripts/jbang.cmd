@@ -42,6 +42,17 @@ if "!binaryPath!"=="" if "!jarPath!"=="" (
   exit /b %ERRORLEVEL%
 )
 
+rem Setup environment for execution
+set JBANG_RUNTIME_SHELL=cmd
+set JBANG_LAUNCH_CMD=%~f0
+rem tell jbang whether stdin is a tty or not
+2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
+
+rem execute jbang and redirect output to temporary file
+rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
+if not exist "%TDIR%" ( mkdir "%TDIR%" )
+set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+
 if not "!binaryPath!"=="" goto :run_with_cli
 if not exist "%jarPath%" goto :run_with_cli
 
@@ -84,17 +95,6 @@ if "!JAVA_EXEC!"=="" (
   )
 )
 
-rem Setup environment for execution
-set JBANG_RUNTIME_SHELL=cmd
-set JBANG_LAUNCH_CMD=%~f0
-rem tell jbang whether stdin is a tty or not
-2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
-
-rem execute jbang and redirect output to temporary file
-rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
-if not exist "%TDIR%" ( mkdir "%TDIR%" )
-set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
-
 set CMD=!JAVA_EXEC!
 SETLOCAL DISABLEDELAYEDEXPANSION
 "%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %* || goto :handleError
@@ -102,18 +102,8 @@ set ERROR=%ERRORLEVEL%
 goto :onwards
 
 :run_with_cli
-rem Setup environment for execution
-set JBANG_RUNTIME_SHELL=cmd
-set JBANG_LAUNCH_CMD=%~f0
-rem tell jbang whether stdin is a tty or not
-2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
-
-rem execute jbang and redirect output to temporary file
-if not exist "%TDIR%" ( mkdir "%TDIR%" )
-set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
-
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%binaryPath%" > "%tmpfile%" %* || goto :handleError
+"%binaryPath%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% %* || goto :handleError
 set ERROR=%ERRORLEVEL%
 goto :onwards
 
