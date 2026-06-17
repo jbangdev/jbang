@@ -123,6 +123,25 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkListDistros() throws Exception {
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "list", "--distros"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		Pattern p = Pattern.compile("^ {3}[a-z0-9_]+?$", Pattern.MULTILINE);
+		Matcher m = p.matcher(result.normalizedOut());
+		assertThat(m.find(), equalTo(true));
+	}
+
+	@Test
+	void testJdkListProviders() throws Exception {
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "list", "--providers"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), equalTo("Available JDK Providers:\n" +
+				"   default\n" +
+				"   jbang\n" +
+				"   linked\n"));
+	}
+
+	@Test
 	void testDefault() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(TestJdk::createMockJdk);
 

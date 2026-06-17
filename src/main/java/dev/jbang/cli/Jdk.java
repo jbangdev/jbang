@@ -241,7 +241,9 @@ public class Jdk extends BaseCommand {
 				parser.toJson(jdkOuts, out);
 			} else {
 				if (!jdkOuts.isEmpty()) {
-					if (!available) {
+					if (available) {
+						out.println("Available JDKs:");
+					} else {
 						out.println("Installed JDKs (<=default):");
 					}
 					jdkOuts.forEach(jdk -> {
