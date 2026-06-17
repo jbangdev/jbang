@@ -114,7 +114,16 @@ public class JdkIT extends BaseIT {
 				"-Dhttp.nonProxyHosts=",
 				"-Djavax.net.ssl.trustStore=" + trustStore,
 				"-Djavax.net.ssl.trustStorePassword=password");
+		String proxyUrl = "http://127.0.0.1:" + wireMock.port();
 		env.put("JBANG_JAVA_OPTIONS", jbangJavaOptions);
+		env.put("http_proxy", proxyUrl);
+		env.put("https_proxy", proxyUrl);
+		env.put("HTTP_PROXY", proxyUrl);
+		env.put("HTTPS_PROXY", proxyUrl);
+		env.put("all_proxy", proxyUrl);
+		env.put("ALL_PROXY", proxyUrl);
+		env.put("no_proxy", "");
+		env.put("NO_PROXY", "");
 		env.put("JBANG_DIR", runRoot.resolve("jbang").toString());
 		env.put("JBANG_REPO", runRoot.resolve("repo").toString());
 		env.put("JBANG_CACHE_DIR", runRoot.resolve("cache").toString());
