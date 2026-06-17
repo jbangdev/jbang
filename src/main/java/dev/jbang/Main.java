@@ -22,6 +22,12 @@ import dev.jbang.util.VersionChecker;
 
 public class Main {
 	public static void main(String... args) {
+		// Apply -D system properties from JBANG_JAVA_OPTIONS. When jbang runs as a
+		// JVM the startup script passes JBANG_JAVA_OPTIONS as JVM arguments, but when
+		// running as a GraalVM native image there is no JVM startup step, so we read
+		// and apply any -D flags ourselves before any other code runs.
+		applySystemPropertiesFromEnv();
+
 		// Set up JUL logging so the output looks like JBang output
 		try {
 			LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
@@ -80,6 +86,30 @@ public class Main {
 		}
 		if (exitCode != 0) {
 			System.exit(exitCode);
+		}
+	}
+
+	/**
+	 * Applies system properties from the JBANG_JAVA_OPTIONS environment variable.
+	 * This is needed for GraalVM native image builds where JBANG_JAVA_OPTIONS is
+	 * not automatically processed as JVM arguments. Only properties that are not
+	 * already set are applied, so JVM-mode behavior is unchanged.
+	 */
+	static void applySystemPropertiesFromEnv() {
+		String javaOptions = System.getenv("JBANG_JAVA_OPTIONS");
+		if (javaOptions == null || javaOptions.isEmpty()) {
+			return;
+		}
+		for (String option : javaOptions.trim().split("\\s+")) {
+			if (option.startsWith("-D")) {
+				String prop = option.substring(2);
+				int idx = prop.indexOf('=');
+				String key = idx >= 0 ? prop.substring(0, idx) : prop;
+				String value = idx >= 0 ? prop.substring(idx + 1) : "";
+				if (!key.isEmpty() && System.getProperty(key) == null) {
+					System.setProperty(key, value);
+				}
+			}
 		}
 	}
 
