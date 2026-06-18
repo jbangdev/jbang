@@ -29,7 +29,7 @@ def aeshVersion = '3.14.3'
 def devkitmanVersion = '0.4.9'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
-def tambouiVersion = '0.4.0-SNAPSHOT'
+def tambouiVersion = '0.4.0'
 def wiremockVersion = '3.13.2'
 
 configurations {
@@ -47,7 +47,6 @@ javadoc {
 
 repositories {
 	mavenCentral()
-	mavenLocal()
 	//maven { url 'https://jitpack.io' }
 }
 
