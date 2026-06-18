@@ -471,6 +471,14 @@
       "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
     {
+      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$DistroResult",
+      "fields": [
+        { "name": "name" },
+        { "name": "api_parameter" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
       "fields": [
         { "name": "result" }
