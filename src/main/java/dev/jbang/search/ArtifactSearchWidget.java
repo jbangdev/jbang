@@ -40,6 +40,7 @@ import dev.tamboui.widgets.input.TextInputState;
 public class ArtifactSearchWidget {
 
 	private static final Style HIGHLIGHT_STYLE = Style.EMPTY.bg(Color.indexed(236)).addModifier(Modifier.BOLD);
+	private static final String ACTION_SEARCH_CENTRAL = "searchCentral";
 
 	private final ArtifactSearch centralClient = SolrArtifactSearch.createCsc();
 
@@ -91,13 +92,14 @@ public class ArtifactSearchWidget {
 			refreshArtifactMatches();
 		}
 
-		// Unbind Tab from focus cycling so our handler receives it
 		Bindings bindings = BindingSets.standard()
 			.toBuilder()
 			.unbind(Actions.FOCUS_NEXT)
 			.unbind(Actions.FOCUS_PREVIOUS)
 			.unbind(Actions.QUIT)
 			.bind(KeyTrigger.ctrl('c'), Actions.QUIT)
+			.bind(KeyTrigger.key(KeyCode.TAB), ACTION_SEARCH_CENTRAL)
+			.bind(KeyTrigger.key(KeyCode.F5), ACTION_SEARCH_CENTRAL)
 			.build();
 		try (ToolkitRunner r = ToolkitRunner.builder().bindings(bindings).build()) {
 			this.runner = r;
@@ -119,7 +121,7 @@ public class ArtifactSearchWidget {
 	private Element render() {
 		return dock()
 			.top(renderSearchInput())
-			.bottom(column(renderDetails(), renderHelpBar()))
+			.bottom(renderStatusBar())
 			.center(renderMainArea())
 			.id("main")
 			.focusable()
@@ -128,10 +130,9 @@ public class ArtifactSearchWidget {
 
 	private Element renderSearchInput() {
 		String suffix = searchingCentral ? " \u23f3" : "";
-		String intentLabel = currentIntent.label.isEmpty() ? "" : " \u2014 " + currentIntent.label;
-		return panel(" Search" + suffix + intentLabel + " ",
+		return panel(" Search" + suffix + " ",
 				textInput(searchInput)
-					.placeholder("Type to search...")
+					.placeholder("Type to search (paste imports or errors too)...")
 					.focusable(false)
 					.cursorRequiresFocus(false))
 			.rounded()
@@ -154,7 +155,7 @@ public class ArtifactSearchWidget {
 					? "Start typing to search local Maven artifacts"
 					: searchingCentral
 							? "Searching Maven Central..."
-							: "No matches found. Press Tab/F5 to search Maven Central.";
+							: "No matches. Tab to search Maven Central.";
 			return panel(" Results ", text("  " + hint).dim())
 				.rounded()
 				.borderColor(Color.DARK_GRAY);
@@ -165,15 +166,11 @@ public class ArtifactSearchWidget {
 			items.add(highlightedGav(artifactMatches.get(i)));
 		}
 
-		String resultTitle = currentIntent.prefersCentral() && !currentIntent.label.isEmpty()
-				? " Results \u2014 " + currentIntent.label + " (" + artifactMatches.size() + ") "
-				: " Results (" + artifactMatches.size() + ") ";
-
 		return list(items.toArray(new StyledElement[0]))
 			.selected(artifactIndex)
 			.highlightStyle(HIGHLIGHT_STYLE)
 			.highlightSymbol("\u25b8 ")
-			.title(resultTitle)
+			.title(" Results (" + artifactMatches.size() + ") ")
 			.rounded()
 			.borderColor(phase == Phase.ARTIFACT ? Color.CYAN : Color.DARK_GRAY);
 	}
@@ -203,66 +200,53 @@ public class ArtifactSearchWidget {
 			.borderColor(Color.YELLOW);
 	}
 
-	private Element renderDetails() {
-		if (phase == Phase.VERSION) {
-			return renderVersionDetails();
-		}
-		return renderArtifactDetails();
-	}
-
-	private Element renderArtifactDetails() {
-		if (artifactMatches.isEmpty() || artifactIndex >= artifactMatches.size()) {
-			return spacer(0);
-		}
-
-		Artifact a = artifactMatches.get(artifactIndex).item();
-		String gav = a.getGroupId() + ":" + a.getArtifactId() + ":" + a.getVersion();
-
-		return panel(" Details ",
-				row(
-						column(
-								row(text("Group:    ").dim(), text(a.getGroupId()).bold()),
-								row(text("Artifact: ").dim(), text(a.getArtifactId()).bold()),
-								row(text("Version:  ").dim(), text(a.getVersion()).green().bold())),
-						spacer(),
-						text("//DEPS " + gav).cyan()))
-			.rounded()
-			.borderColor(Color.DARK_GRAY)
-			.length(5);
-	}
-
-	private Element renderVersionDetails() {
-		String selectedVersion = versionIndex < versionList.size()
-				? versionList.get(versionIndex).getVersion()
-				: "?";
-		String gav = selectedArtifact.getGroupId() + ":" + selectedArtifact.getArtifactId() + ":" + selectedVersion;
-
-		return panel(" Add as ",
-				text("//DEPS " + gav).cyan().bold())
-			.rounded()
-			.borderColor(Color.DARK_GRAY)
-			.length(3);
-	}
-
-	private Element renderHelpBar() {
-		String msg = statusMessage;
+	/**
+	 * Combined status bar: left side shows key hints, right side shows the //DEPS
+	 * preview for the current selection (or status messages).
+	 */
+	private Element renderStatusBar() {
 		if (phase == Phase.ARTIFACT) {
 			return row(
-					text(" \u2191\u2193").yellow().bold(), text(" Navigate  ").dim(),
-					text("Enter").yellow().bold(), text(" Select  ").dim(),
-					text("Tab/F5").yellow().bold(), text(offline ? " Central (off)  " : " Central  ").dim(),
-					text("Esc").yellow().bold(), text(" Quit").dim(),
+					text(" \u2191\u2193").yellow().bold(), text(" nav ").dim(),
+					text("\u23ce").yellow().bold(), text(" select ").dim(),
+					text("Tab").yellow().bold(), text(offline ? " central(off) " : " central ").dim(),
+					text("Esc").yellow().bold(), text(" quit").dim(),
 					spacer(),
-					text(msg).green());
+					renderInlinePreview());
 		} else {
 			return row(
-					text(" \u2191\u2193").yellow().bold(), text(" Navigate  ").dim(),
-					text("Enter").yellow().bold(), text(" Select  ").dim(),
-					text("Tab/F5").yellow().bold(), text(" Fetch versions  ").dim(),
-					text("Esc").yellow().bold(), text(" Back").dim(),
+					text(" \u2191\u2193").yellow().bold(), text(" nav ").dim(),
+					text("\u23ce").yellow().bold(), text(" add ").dim(),
+					text("Tab").yellow().bold(), text(" fetch ").dim(),
+					text("Esc").yellow().bold(), text(" back").dim(),
 					spacer(),
-					text(msg).green());
+					renderInlinePreview());
 		}
+	}
+
+	/**
+	 * Inline preview shown at the right edge of the status bar. Shows //DEPS g:a:v
+	 * when something is selected, otherwise status messages.
+	 */
+	private Element renderInlinePreview() {
+		if (!statusMessage.isEmpty()) {
+			return text(statusMessage + " ").green();
+		}
+		if (phase == Phase.VERSION && selectedArtifact != null && !versionList.isEmpty()
+				&& versionIndex < versionList.size()) {
+			String v = versionList.get(versionIndex).getVersion();
+			String gav = selectedArtifact.getGroupId() + ":" + selectedArtifact.getArtifactId() + ":" + v;
+			return text("//DEPS " + gav + " ").cyan().bold();
+		}
+		if (phase == Phase.ARTIFACT && !artifactMatches.isEmpty() && artifactIndex < artifactMatches.size()) {
+			Artifact a = artifactMatches.get(artifactIndex).item();
+			String gav = a.getGroupId() + ":" + a.getArtifactId() + ":" + a.getVersion();
+			return text("//DEPS " + gav + " ").cyan();
+		}
+		if (!currentIntent.label.isEmpty()) {
+			return text(currentIntent.label + " ").dim();
+		}
+		return text("");
 	}
 
 	// -------------------------------------------------------------------------
@@ -308,7 +292,7 @@ public class ArtifactSearchWidget {
 
 	private EventResult handleKey(KeyEvent event) {
 		// Tab/F5 - search Central (async)
-		if (event.code() == KeyCode.TAB || event.code() == KeyCode.F5) {
+		if (event.matches(ACTION_SEARCH_CENTRAL)) {
 			searchCentralAsync();
 			return EventResult.HANDLED;
 		}
