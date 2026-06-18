@@ -446,6 +446,7 @@
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
       "fields": [
+        { "name": "distribution" },
         { "name": "java_version" },
         { "name": "javafx_bundled" },
         { "name": "links" },
