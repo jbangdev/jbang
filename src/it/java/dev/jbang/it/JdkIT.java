@@ -72,7 +72,7 @@ public class JdkIT extends BaseIT {
 			.succeeded()
 			.outContains("Available JDKs:")
 			.outFind(Pattern.compile("^ {3}\\d+ \\([^,]+\\)$", Pattern.MULTILINE));
-		assertDiscoPackagesRequestsServedByWireMock();
+		assertDiscoRequestsServedByWireMock();
 	}
 
 	@Test
@@ -83,7 +83,7 @@ public class JdkIT extends BaseIT {
 			.succeeded()
 			.outContains("Available JDKs:")
 			.outFind(Pattern.compile("^ {3}\\d+ \\([^,]+, [^,]+, .+\\)$", Pattern.MULTILINE));
-		assertDiscoPackagesRequestsServedByWireMock();
+		assertDiscoRequestsServedByWireMock();
 	}
 
 	@Test
@@ -94,6 +94,7 @@ public class JdkIT extends BaseIT {
 			.succeeded()
 			.outContains("Available JDK Distributions:")
 			.outFind(Pattern.compile("^ {3}[a-z0-9_]+$", Pattern.MULTILINE));
+		assertDiscoRequestsServedByWireMock();
 	}
 
 	private Map<String, String> proxyEnv() {
@@ -120,10 +121,10 @@ public class JdkIT extends BaseIT {
 		return env;
 	}
 
-	private void assertDiscoPackagesRequestsServedByWireMock() {
+	private void assertDiscoRequestsServedByWireMock() {
 		List<ServeEvent> discoEvents = wireMock.getAllServeEvents()
 			.stream()
-			.filter(event -> event.getRequest().getUrl().startsWith("/disco/v3.0/packages"))
+			.filter(event -> event.getRequest().getUrl().startsWith("/disco/v3.0"))
 			.collect(Collectors.toList());
 		assertThat(discoEvents).isNotEmpty();
 		assertThat(discoEvents).allMatch(event -> event.getStubMapping() != null);
