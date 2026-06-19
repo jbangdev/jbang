@@ -376,8 +376,7 @@ tasks.register('latestNativeDistTar', Tar) {
 jar {
 	manifest {
 		attributes(
-			'Main-Class': 'dev.jbang.Main',
-			'Enable-Final-Field-Mutation': 'ALL-UNNAMED'
+			'Main-Class': 'dev.jbang.Main'
 		)
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE

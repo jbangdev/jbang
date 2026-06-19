@@ -74,8 +74,8 @@ public class Catalog {
 	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
-	public final String baseRef;
-	public final String description;
+	public /*final*/ String baseRef;
+	public /*final*/ String description;
 	public transient ResourceRef catalogRef;
 
 	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, CatalogRef> catalogs,
