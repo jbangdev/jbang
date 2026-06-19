@@ -6,17 +6,15 @@ import static org.hamcrest.Matchers.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.aesh.command.Command;
-import org.aesh.command.completer.CompleterInvocation;
-import org.aesh.console.AeshContext;
-import org.aesh.terminal.formatting.TerminalString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Catalog;
@@ -33,7 +31,7 @@ public class TestScriptRefCompleter extends BaseTest {
 	// --- File completion tests ---
 
 	@Test
-	void testCompletesJavaFiles() throws IOException {
+	void testCompletesJavaFilesAndFiltersNonScript() throws IOException {
 		Files.writeString(cwdDir.resolve("hello.java"), "// hello");
 		Files.writeString(cwdDir.resolve("world.java"), "// world");
 		Files.writeString(cwdDir.resolve("readme.txt"), "text");
@@ -45,40 +43,19 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, not(hasItem("readme.txt")));
 	}
 
-	@Test
-	void testCompletesKotlinFiles() throws IOException {
-		Files.writeString(cwdDir.resolve("app.kt"), "fun main() {}");
-
-		List<String> candidates = complete("");
-
-		assertThat(candidates, hasItem("app.kt"));
+	static Stream<Arguments> scriptExtensions() {
+		return Stream.of(
+				Arguments.of("app.kt", "fun main() {}"),
+				Arguments.of("script.groovy", "println 'hi'"),
+				Arguments.of("snippet.jsh", "var x = 1;"),
+				Arguments.of("literate.md", "# hello"));
 	}
 
-	@Test
-	void testCompletesGroovyFiles() throws IOException {
-		Files.writeString(cwdDir.resolve("script.groovy"), "println 'hi'");
-
-		List<String> candidates = complete("");
-
-		assertThat(candidates, hasItem("script.groovy"));
-	}
-
-	@Test
-	void testCompletesJShellFiles() throws IOException {
-		Files.writeString(cwdDir.resolve("snippet.jsh"), "var x = 1;");
-
-		List<String> candidates = complete("");
-
-		assertThat(candidates, hasItem("snippet.jsh"));
-	}
-
-	@Test
-	void testCompletesMarkdownFiles() throws IOException {
-		Files.writeString(cwdDir.resolve("literate.md"), "# hello");
-
-		List<String> candidates = complete("");
-
-		assertThat(candidates, hasItem("literate.md"));
+	@ParameterizedTest
+	@MethodSource("scriptExtensions")
+	void testCompletesScriptExtension(String filename, String content) throws IOException {
+		Files.writeString(cwdDir.resolve(filename), content);
+		assertThat(complete(""), hasItem(filename));
 	}
 
 	@Test
@@ -400,22 +377,6 @@ public class TestScriptRefCompleter extends BaseTest {
 		assertThat(candidates, hasItem("dev.jba:"));
 	}
 
-	// --- Double-tab detection tests ---
-
-	@Test
-	void testDoubleTapDetected() throws Exception {
-		// First call records, second within threshold detects double-tap
-		ScriptRefCompleter.isDoubleTap("test"); // ignore result
-		dev.jbang.cli.completion.ScriptRefCompleter.recordCompletionForTest("test");
-		assertThat(ScriptRefCompleter.isDoubleTap("test"), is(true));
-	}
-
-	@Test
-	void testDoubleTapNotDetectedForDifferentInput() throws Exception {
-		ScriptRefCompleter.recordCompletionForTest("first");
-		assertThat(ScriptRefCompleter.isDoubleTap("second"), is(false));
-	}
-
 	// --- Helpers ---
 
 	private static List<String> valuesOnly(List<String> candidates) {
@@ -441,117 +402,5 @@ public class TestScriptRefCompleter extends BaseTest {
 		StubCompleterInvocation inv = new StubCompleterInvocation(partial);
 		c.complete(inv);
 		return inv.getValues();
-	}
-
-	/**
-	 * Minimal stub of CompleterInvocation for testing.
-	 */
-	private static class StubCompleterInvocation implements CompleterInvocation {
-		private final String given;
-		private final List<String> values = new ArrayList<>();
-		private boolean appendSpace = true;
-
-		StubCompleterInvocation(String given) {
-			this.given = given;
-		}
-
-		@Override
-		public String getGivenCompleteValue() {
-			return given;
-		}
-
-		@Override
-		public Command getCommand() {
-			return null;
-		}
-
-		@Override
-		public List<TerminalString> getCompleterValues() {
-			List<TerminalString> result = new ArrayList<>();
-			for (String v : values) {
-				result.add(new TerminalString(v));
-			}
-			return result;
-		}
-
-		@Override
-		public void setCompleterValues(Collection<String> completerValues) {
-			values.clear();
-			values.addAll(completerValues);
-		}
-
-		@Override
-		public void setCompleterValuesTerminalString(List<TerminalString> completerValues) {
-			values.clear();
-			for (TerminalString ts : completerValues) {
-				values.add(ts.getCharacters());
-			}
-		}
-
-		@Override
-		public void clearCompleterValues() {
-			values.clear();
-		}
-
-		@Override
-		public void addAllCompleterValues(Collection<String> completerValues) {
-			values.addAll(completerValues);
-		}
-
-		@Override
-		public void addCompleterValue(String value) {
-			values.add(value);
-		}
-
-		@Override
-		public void addCompleterValueTerminalString(TerminalString value) {
-			values.add(value.getCharacters());
-		}
-
-		@Override
-		public boolean isAppendSpace() {
-			return appendSpace;
-		}
-
-		@Override
-		public void setAppendSpace(boolean appendSpace) {
-			this.appendSpace = appendSpace;
-		}
-
-		@Override
-		public void setIgnoreOffset(boolean ignoreOffset) {
-		}
-
-		@Override
-		public boolean doIgnoreOffset() {
-			return false;
-		}
-
-		@Override
-		public void setOffset(int offset) {
-		}
-
-		@Override
-		public int getOffset() {
-			return 0;
-		}
-
-		@Override
-		public void setIgnoreStartsWith(boolean ignoreStartsWith) {
-		}
-
-		@Override
-		public boolean isIgnoreStartsWith() {
-			return false;
-		}
-
-		@Override
-		public AeshContext getAeshContext() {
-			return null;
-		}
-
-		List<String> getValues() {
-			return values;
-		}
 	}
 }

@@ -1,7 +1,11 @@
 package dev.jbang.cli.completion;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -10,12 +14,17 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.OptionCompleter;
 
-import dev.jbang.Settings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import dev.jbang.catalog.Catalog;
 import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.source.Source;
@@ -31,26 +40,13 @@ import dev.jbang.util.Util;
  * <li>Alias names from the merged catalog</li>
  * <li>Catalog alias browsing ({@code @catalogName} lists aliases in that
  * catalog, selecting one produces {@code alias@catalogName})</li>
- * <li>Maven GAV coordinates from the local repository ({@code ~/.m2})</li>
+ * <li>Maven GAV coordinates from the local repository and Maven Central</li>
  * </ul>
  */
 public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> {
 
 	/** Extensions recognised by JBang (derived from {@link Source.Type}). */
-	private static final Set<String> SCRIPT_EXTENSIONS;
-
-	static {
-		SCRIPT_EXTENSIONS = new HashSet<>(Source.Type.extensions());
-		// Also accept files without extension (scripts with shebangs)
-	}
-
-	/**
-	 * Maximum age in milliseconds for a previous completion to count as double-tab.
-	 */
-	private static final long DOUBLE_TAB_THRESHOLD_MS = 5000;
-
-	/** File name used to record the last completion invocation. */
-	private static final String LAST_COMPLETE_FILE = ".lastcomplete";
+	private static final Set<String> SCRIPT_EXTENSIONS = new HashSet<>(Source.Type.extensions());
 
 	private static String described(String candidate, String description) {
 		return candidate + "\t" + description;
@@ -62,9 +58,6 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		if (partial == null) {
 			partial = "";
 		}
-
-		boolean doubleTap = isDoubleTap(partial);
-		recordCompletion(partial);
 
 		Set<String> candidates = new TreeSet<>(); // sorted for stable output
 
@@ -293,12 +286,6 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	// ---- Maven GAV completion -------------------------------------------
 
 	/**
-	 * Heuristic to detect if the partial input looks like a Maven GAV coordinate.
-	 * We trigger GAV completion when the input contains a colon or looks like a
-	 * dotted package prefix (at least two dot-separated segments with no path
-	 * separators).
-	 */
-	/**
 	 * Returns true if the partial could plausibly be the start of a Maven groupId
 	 * (letters, digits, dots, hyphens — no path separators, colons, or URL
 	 * schemes).
@@ -509,65 +496,19 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 	/** Timeout for Maven Central search during completion (shorter than normal). */
 	private static final int SEARCH_TIMEOUT_MS = 3000;
 
-	/**
-	 * Search Maven Central for GAV candidates when the local repository has no
-	 * matches. Only called on double-tap to avoid latency on casual TAB.
-	 */
+	/** Search Maven Central for GAV candidates. */
 	private void completeGavRemote(Set<String> candidates, String partial) {
 		try {
 			String[] parts = partial.split(":", -1);
-			// Build the Solr query based on what the user has typed
-			String solrQuery;
-			if (parts.length >= 3) {
-				// groupId:artifactId:versionPrefix — exact g+a, list versions
-				solrQuery = "g:" + parts[0] + " AND a:" + parts[1];
-			} else if (parts.length == 2) {
-				// groupId:artifactPrefix — exact g, partial a
-				solrQuery = "g:" + parts[0] + (parts[1].isEmpty() ? "" : " AND a:" + parts[1] + "*");
-			} else {
-				// groupId prefix only
-				solrQuery = "g:" + partial + "*";
-			}
-			String searchUrl = "https://search.maven.org/solrsearch/select?rows=20&q="
-					+ java.net.URLEncoder.encode(solrQuery, "UTF-8");
-			if (parts.length >= 3) {
-				searchUrl += "&core=gav";
-			}
-
-			java.net.URL url = new java.net.URL(searchUrl);
-			java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-			conn.setConnectTimeout(SEARCH_TIMEOUT_MS);
-			conn.setReadTimeout(SEARCH_TIMEOUT_MS);
-			conn.setRequestProperty("User-Agent", "jbang");
-			if (conn.getResponseCode() != 200) {
-				conn.disconnect();
+			JsonArray docs = searchMavenCentral(parts, partial);
+			if (docs == null) {
 				return;
 			}
-			String body;
-			try (java.io.BufferedReader rdr = new java.io.BufferedReader(
-					new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-				StringBuilder sb = new StringBuilder();
-				String line;
-				while ((line = rdr.readLine()) != null) {
-					sb.append(line);
-				}
-				body = sb.toString();
-			}
-			conn.disconnect();
 
-			// Parse the Solr response
-			com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
-			com.google.gson.JsonArray docs = json.getAsJsonObject("response").getAsJsonArray("docs");
-
-			// Collect existing candidate values (before tab) to avoid duplicates
-			Set<String> existing = new HashSet<>();
-			for (String c : candidates) {
-				int tab = c.indexOf('\t');
-				existing.add(tab >= 0 ? c.substring(0, tab) : c);
-			}
+			Set<String> existing = candidateValues(candidates);
 
 			for (int i = 0; i < docs.size(); i++) {
-				com.google.gson.JsonObject doc = docs.get(i).getAsJsonObject();
+				JsonObject doc = docs.get(i).getAsJsonObject();
 				String g = doc.has("g") ? doc.get("g").getAsString() : null;
 				String a = doc.has("a") ? doc.get("a").getAsString() : null;
 				String v = doc.has("v") ? doc.get("v").getAsString() : null;
@@ -580,7 +521,6 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 				} else if (parts.length == 2 && a != null) {
 					value = g + ":" + a + ":";
 				} else {
-					// GroupId prefix — offer groupId: as candidate
 					value = g + ":";
 				}
 				if (!existing.contains(value)) {
@@ -592,15 +532,59 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		}
 	}
 
-	/**
-	 * Returns true if the directory contains at least one subdirectory that is an
-	 * artifact directory (i.e. looks like an artifactId, not a deeper groupId
-	 * segment).
-	 */
-	private boolean hasArtifactChildren(Path dir) {
+	/** Query Maven Central Solr and return the docs array, or null on error. */
+	private JsonArray searchMavenCentral(String[] parts, String partial) throws IOException {
+		String solrQuery;
+		if (parts.length >= 3) {
+			solrQuery = "g:" + parts[0] + " AND a:" + parts[1];
+		} else if (parts.length == 2) {
+			solrQuery = "g:" + parts[0] + (parts[1].isEmpty() ? "" : " AND a:" + parts[1] + "*");
+		} else {
+			solrQuery = "g:" + partial + "*";
+		}
+		String searchUrl = "https://search.maven.org/solrsearch/select?rows=20&q="
+				+ URLEncoder.encode(solrQuery, "UTF-8");
+		if (parts.length >= 3) {
+			searchUrl += "&core=gav";
+		}
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(searchUrl).openConnection();
+		conn.setConnectTimeout(SEARCH_TIMEOUT_MS);
+		conn.setReadTimeout(SEARCH_TIMEOUT_MS);
+		conn.setRequestProperty("User-Agent", "jbang");
+		try {
+			if (conn.getResponseCode() != 200) {
+				return null;
+			}
+			String body;
+			try (BufferedReader rdr = new BufferedReader(
+					new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+				body = rdr.lines().collect(Collectors.joining());
+			}
+			return JsonParser.parseString(body)
+				.getAsJsonObject()
+				.getAsJsonObject("response")
+				.getAsJsonArray("docs");
+		} finally {
+			conn.disconnect();
+		}
+	}
+
+	/** Extract the value part (before tab description) of each candidate. */
+	private static Set<String> candidateValues(Set<String> candidates) {
+		Set<String> values = new HashSet<>();
+		for (String c : candidates) {
+			int tab = c.indexOf('\t');
+			values.add(tab >= 0 ? c.substring(0, tab) : c);
+		}
+		return values;
+	}
+
+	/** Returns true if any subdirectory of {@code dir} matches the predicate. */
+	private boolean anyChildDir(Path dir, Predicate<Path> test) {
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
 			for (Path child : stream) {
-				if (Files.isDirectory(child) && isArtifactDir(child)) {
+				if (Files.isDirectory(child) && test.test(child)) {
 					return true;
 				}
 			}
@@ -610,96 +594,29 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 		return false;
 	}
 
+	/** Has at least one child that is an artifact directory. */
+	private boolean hasArtifactChildren(Path dir) {
+		return anyChildDir(dir, this::isArtifactDir);
+	}
+
 	/**
-	 * Returns true if the directory contains at least one subdirectory that is not
-	 * an artifact directory (i.e. is a deeper groupId segment).
+	 * Has at least one child that is a deeper groupId segment (not an artifact).
 	 */
 	private boolean hasSubGroups(Path dir) {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-			for (Path child : stream) {
-				if (Files.isDirectory(child) && !isArtifactDir(child)) {
-					return true;
-				}
-			}
-		} catch (IOException e) {
-			// ignore
-		}
-		return false;
+		return anyChildDir(dir, d -> !isArtifactDir(d));
 	}
 
-	/**
-	 * An artifact directory contains version subdirectories which in turn contain
-	 * {@code .pom} files.
-	 */
+	/** An artifact directory contains version subdirectories with .pom files. */
 	private boolean isArtifactDir(Path dir) {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-			for (Path child : stream) {
-				if (Files.isDirectory(child) && isVersionDir(child)) {
-					return true;
-				}
-			}
-		} catch (IOException e) {
-			// ignore
-		}
-		return false;
+		return anyChildDir(dir, this::isVersionDir);
 	}
 
-	/**
-	 * A version directory contains at least one {@code .pom} file.
-	 */
+	/** A version directory contains at least one .pom file. */
 	private boolean isVersionDir(Path dir) {
 		try (Stream<Path> files = Files.list(dir)) {
 			return files.anyMatch(f -> f.toString().endsWith(".pom"));
 		} catch (IOException e) {
 			return false;
 		}
-	}
-
-	// ---- Double-tab detection ------------------------------------------
-
-	/**
-	 * Checks whether the current completion is a "double-tap" — a second TAB press
-	 * on the same partial input within {@link #DOUBLE_TAB_THRESHOLD_MS}. This
-	 * allows heavier/slower completions (e.g. remote lookups) to be gated behind an
-	 * explicit second press.
-	 */
-	static boolean isDoubleTap(String partial) {
-		try {
-			Path file = getLastCompleteFile();
-			if (!Files.exists(file)) {
-				return false;
-			}
-			long age = System.currentTimeMillis() - Files.getLastModifiedTime(file).toMillis();
-			if (age > DOUBLE_TAB_THRESHOLD_MS) {
-				return false;
-			}
-			String previous = new String(Files.readAllBytes(file), StandardCharsets.UTF_8).trim();
-			return previous.equals(partial);
-		} catch (IOException e) {
-			return false;
-		}
-	}
-
-	/**
-	 * Records the current completion invocation so a subsequent TAB can be detected
-	 * as a double-tap.
-	 */
-	private static void recordCompletion(String partial) {
-		try {
-			Path file = getLastCompleteFile();
-			Files.createDirectories(file.getParent());
-			Files.write(file, partial.getBytes(StandardCharsets.UTF_8));
-		} catch (IOException e) {
-			// best-effort — ignore
-		}
-	}
-
-	/** Exposed for testing. */
-	static void recordCompletionForTest(String partial) {
-		recordCompletion(partial);
-	}
-
-	private static Path getLastCompleteFile() {
-		return Settings.getCacheDir(false).resolve(LAST_COMPLETE_FILE);
 	}
 }
