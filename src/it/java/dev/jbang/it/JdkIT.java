@@ -88,11 +88,11 @@ public class JdkIT extends BaseIT {
 
 	@Test
 	void testJdkListDisros() {
-		CommandResult result = shell(proxyEnv(), "jbang jdk list --distros");
+		CommandResult result = shell(proxyEnv(), "jbang jdk list --available");
 
 		CommandResultAssert.assertThat(result)
 			.succeeded()
-			.outContains("Available JDK Distributions:\n")
+			.outContains("Available JDKs:")
 			.outFind(Pattern.compile("^ {3}\\d+ \\([^,]+\\)$", Pattern.MULTILINE));
 		assertDiscoPackagesRequestsServedByWireMock();
 	}
