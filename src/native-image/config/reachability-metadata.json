@@ -446,6 +446,7 @@
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
       "fields": [
+        { "name": "distribution" },
         { "name": "java_version" },
         { "name": "javafx_bundled" },
         { "name": "links" },
@@ -459,6 +460,21 @@
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResultLinks",
       "fields": [
         { "name": "pkg_download_redirect" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$DistrosResponse",
+      "fields": [
+        { "name": "result" }
+      ],
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$DistroResult",
+      "fields": [
+        { "name": "name" },
+        { "name": "api_parameter" }
       ],
       "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
