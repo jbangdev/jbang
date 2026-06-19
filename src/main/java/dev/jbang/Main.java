@@ -22,6 +22,11 @@ import dev.jbang.util.VersionChecker;
 
 public class Main {
 	public static void main(String... args) {
+		// In native-image mode the JVM never sees JBANG_JAVA_OPTIONS, so
+		// we parse -Dkey=value entries from it here and set them as system
+		// properties. On the JVM this is harmless (properties are already set).
+		applyJavaOptionsFromEnv();
+
 		// Set up JUL logging so the output looks like JBang output
 		try {
 			LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
@@ -109,6 +114,34 @@ public class Main {
 			subcommandNames = names;
 		}
 		return subcommandNames;
+	}
+
+	/**
+	 * Reads {@code JBANG_JAVA_OPTIONS} from the environment and applies any
+	 * {@code -Dkey=value} entries as system properties. This makes proxy settings,
+	 * trust stores, etc. work in native-image mode where the JVM launcher isn't
+	 * there to process them.
+	 */
+	static void applyJavaOptionsFromEnv() {
+		// Only needed in native-image mode — on JVM the launcher handles -D flags
+		if (!dev.jbang.util.JavaUtil.inNativeImage()) {
+			return;
+		}
+		String opts = System.getenv("JBANG_JAVA_OPTIONS");
+		if (opts == null || opts.isEmpty()) {
+			return;
+		}
+		for (String token : opts.split("\\s+")) {
+			if (token.startsWith("-D") && token.length() > 2) {
+				String prop = token.substring(2);
+				int eq = prop.indexOf('=');
+				if (eq > 0) {
+					System.setProperty(prop.substring(0, eq), prop.substring(eq + 1));
+				} else {
+					System.setProperty(prop, "");
+				}
+			}
+		}
 	}
 
 	public static String[] handleDefaultRun(String[] args) {
