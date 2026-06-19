@@ -152,7 +152,7 @@ execute_jbang() {
   ## run it using command substitution to have just the user process once jbang is done
   if [[ -n "$binaryPath" ]]; then
     # Run native binary
-    output=$(CLICOLOR_FORCE=1 "$binaryPath" ${JBANG_JAVA_OPTIONS} "$@")
+    output=$(CLICOLOR_FORCE=1 "$binaryPath" "$@")
     err=$?
   else
     # Run JAR

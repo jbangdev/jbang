@@ -105,7 +105,7 @@ function Invoke-JBang {
     
     if ($binaryPath) {
         # Run native binary
-        $output = & "$binaryPath" $env:JBANG_JAVA_OPTIONS $args
+        $output = & "$binaryPath" $args
         $err=$LASTEXITCODE
     } else {
         # Run JAR

@@ -103,7 +103,7 @@ goto :onwards
 
 :run_with_cli
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%binaryPath%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% %* || goto :handleError
+"%binaryPath%" > "%tmpfile%" %* || goto :handleError
 set ERROR=%ERRORLEVEL%
 goto :onwards
 
