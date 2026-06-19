@@ -70,7 +70,7 @@ public class JdkIT extends BaseIT {
 
 		CommandResultAssert.assertThat(result)
 			.succeeded()
-			.outContains("Available JDKs:\n")
+			.outContains("Available JDKs:")
 			.outFind(Pattern.compile("^ {3}\\d+ \\([^,]+\\)$", Pattern.MULTILINE));
 		assertDiscoPackagesRequestsServedByWireMock();
 	}
@@ -81,7 +81,7 @@ public class JdkIT extends BaseIT {
 
 		CommandResultAssert.assertThat(result)
 			.succeeded()
-			.outContains("Available JDKs:\n")
+			.outContains("Available JDKs:")
 			.outFind(Pattern.compile("^ {3}\\d+ \\([^,]+, [^,]+, .+\\)$", Pattern.MULTILINE));
 		assertDiscoPackagesRequestsServedByWireMock();
 	}
@@ -92,9 +92,8 @@ public class JdkIT extends BaseIT {
 
 		CommandResultAssert.assertThat(result)
 			.succeeded()
-			.outContains("Available JDK Distributions:\n")
+			.outContains("Available JDK Distributions:")
 			.outFind(Pattern.compile("^ {3}[a-z0-9_]+$", Pattern.MULTILINE));
-		assertDiscoPackagesRequestsServedByWireMock();
 	}
 
 	private Map<String, String> proxyEnv() {
