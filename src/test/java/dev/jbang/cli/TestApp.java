@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
@@ -45,6 +46,18 @@ public class TestApp extends BaseTest {
 			"jbang run com.h2database:h2:1.4.200 %*");
 	private static final List<String> h2ps1Contents = Collections.singletonList(
 			"jbang run com.h2database:h2:1.4.200 @args");
+
+	@Test
+	void testHasJBangSetup(@TempDir Path tempDir) throws IOException {
+		Path rcFile = tempDir.resolve(".bashrc");
+		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));
+
+		Files.write(rcFile, Collections.singletonList("export PATH=/usr/bin"));
+		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));
+
+		Files.write(rcFile, Collections.singletonList("# Add JBang to environment"));
+		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(true));
+	}
 
 	@Test
 	void testAppInstallFile() throws Exception {

@@ -516,9 +516,7 @@ public class App extends BaseCommand {
 		private static boolean changeBashOrZshRcScript(Path binDir, Path javaHome, Path rcFile) {
 			try {
 				// Detect if JBang has already been set up before
-				boolean jbangFound = Files.exists(rcFile)
-						&& Files.lines(rcFile)
-							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+				boolean jbangFound = hasJBangSetup(rcFile);
 				if (!jbangFound) {
 					// Add lines to add JBang to PATH
 					String lines = "\n# Add JBang to environment\n" +
@@ -540,6 +538,15 @@ public class App extends BaseCommand {
 				Util.verboseMsg("Couldn't change script: " + rcFile, e);
 			}
 			return false;
+		}
+
+		static boolean hasJBangSetup(Path rcFile) throws IOException {
+			if (!Files.exists(rcFile)) {
+				return false;
+			}
+			try (Stream<String> lines = Files.lines(rcFile)) {
+				return lines.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+			}
 		}
 
 		private static Path getHome() {
