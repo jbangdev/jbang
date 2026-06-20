@@ -79,7 +79,7 @@ if "!JAVA_EXEC!"=="" (
       powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
       if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
       rem Set the current JDK
-      "!JAVA_EXEC!" -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
+      "!JAVA_EXEC!" -jar "%jarPath%" jdk default "%javaVersion%"
     )
   )
 )
@@ -97,7 +97,7 @@ set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 
 set CMD=!JAVA_EXEC!
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %* || goto :handleError
+"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %* || goto :handleError
 set ERROR=%ERRORLEVEL%
 goto :onwards
 

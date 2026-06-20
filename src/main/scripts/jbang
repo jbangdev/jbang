@@ -133,7 +133,7 @@ setup_java_exec() {
         # Activate the downloaded JDK giving it its proper name
         mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
         # Set the current JDK
-        "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default "$javaVersion"
+        "${JAVA_EXEC}" -jar "${jarPath}" jdk default "$javaVersion"
       fi
     fi
   fi
@@ -156,7 +156,7 @@ execute_jbang() {
     err=$?
   else
     # Run JAR
-    output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
+    output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -jar "${jarPath}" "$@")
     err=$?
   fi
   
