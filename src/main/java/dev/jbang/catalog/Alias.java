@@ -68,9 +68,9 @@ public class Alias extends CatalogItem {
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
 		@NonNull
-		public final String agentRef;
+		public /* final */ String agentRef;
 		@NonNull
-		public final String options;
+		public /* final */ String options;
 
 		public JavaAgent() { // to make gson happy in native image
 			this(null, null);
