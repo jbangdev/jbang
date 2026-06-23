@@ -8,13 +8,19 @@ jbang jdk home -- Prints the folder where the given JDK is installed.
 
 [source]
 ----
-jbang jdk home [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
+jbang jdk home [-h] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
 ----
 
 == OPTIONS
 
 *-h*, *--help*::
 Display this help and exit
+
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *--config*=<config>::
 Path to config file to be used instead of the default

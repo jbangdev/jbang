@@ -8,13 +8,19 @@ jbang jdk exec -- Executes the given command using the default (or specified) JD
 
 [source]
 ----
-jbang jdk exec [-h] [-j=<java>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <command>
+jbang jdk exec [-h] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <command>
 ----
 
 == OPTIONS
 
 *-h*, *--help*::
 Display this help and exit
+
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *-j*, *--java*=<java>::
 JDK version to use for executing the command.
