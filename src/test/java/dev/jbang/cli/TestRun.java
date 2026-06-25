@@ -53,6 +53,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -1916,6 +1917,53 @@ public class TestRun extends BaseTest {
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(line, containsString(" --show-version "));
+	}
+
+	@Test
+	@Timeout(10) // Expected to fail: aesh bug https://github.com/aeshell/aesh/issues/541 causes
+					// infinite loop
+	void testJVMOptsShortAttached() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R-Xmx4G", "-R-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms4G"));
+	}
+
+	@Test
+	void testJVMOptsShortSpace() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R", "-Xmx4G", "-R", "-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
+	void testJVMOptsShortEquals() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R=-Xmx4G", "-R=-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
 	}
 
 	@Test
