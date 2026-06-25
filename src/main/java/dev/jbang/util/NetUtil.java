@@ -641,14 +641,60 @@ public class NetUtil {
 	}
 
 	private static boolean isAGithubUrl(URLConnection urlConnection) {
-		String host = urlConnection.getURL().getHost();
+		return isAGithubHost(urlConnection.getURL().getHost());
+	}
+
+	private static boolean isAGithubHost(String host) {
 		return host.equals("github.com") || host.endsWith(".github.com")
 				|| host.equals("githubusercontent.com") || host.endsWith(".githubusercontent.com");
 	}
 
 	private static boolean isAGitlabUrl(URLConnection urlConnection) {
-		String host = urlConnection.getURL().getHost();
+		return isAGitlabHost(urlConnection.getURL().getHost());
+	}
+
+	private static boolean isAGitlabHost(String host) {
 		return host.equals("gitlab.com") || host.endsWith(".gitlab.com");
+	}
+
+	/**
+	 * Returns a human-readable description of the authentication method that would
+	 * be used for the given URL, or {@code null} if no authentication is
+	 * configured.
+	 */
+	public static String describeAuthMethod(String url) {
+		try {
+			URL u = new URL(url);
+			String host = u.getHost();
+
+			// 1. Well-known env vars for specific hosts
+			if (isAGithubHost(host) && !isNullOrBlankString(System.getenv("GITHUB_TOKEN"))) {
+				return "GITHUB_TOKEN";
+			}
+			if (isAGitlabHost(host) && !isNullOrBlankString(System.getenv("GITLAB_TOKEN"))) {
+				return "GITLAB_TOKEN";
+			}
+
+			// 2. URL userinfo
+			if (u.getUserInfo() != null) {
+				return "URL credentials";
+			}
+
+			// 3. .netrc
+			NetrcParser.NetrcEntry entry = getNetrc().getEntry(host).orElse(null);
+			if (entry != null && !isNullOrBlankString(entry.getLogin()) && !isNullOrBlankString(entry.getPassword())) {
+				return ".netrc";
+			}
+
+			// 4. Global basic auth env vars
+			if (!isNullOrBlankString(System.getenv(JBANG_AUTH_BASIC_USERNAME))
+					&& !isNullOrBlankString(System.getenv(JBANG_AUTH_BASIC_PASSWORD))) {
+				return "JBANG_AUTH_BASIC_USERNAME/PASSWORD";
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return null;
 	}
 
 	public static String getDispositionFilename(String disposition) {
