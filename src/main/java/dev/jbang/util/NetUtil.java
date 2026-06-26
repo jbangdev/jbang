@@ -541,28 +541,72 @@ public class NetUtil {
 		return httpConn;
 	}
 
+	private static volatile NetrcParser cachedNetrc;
+
+	static NetrcParser getNetrc() {
+		if (cachedNetrc == null) {
+			cachedNetrc = NetrcParser.parseDefault();
+		}
+		return cachedNetrc;
+	}
+
+	// Visible for testing
+	static void resetNetrcCache() {
+		cachedNetrc = null;
+	}
+
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
 		String auth = null;
+		String host = urlConnection.getURL().getHost();
+
+		// 1. Check well-known env vars for specific hosts
 		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
-		} else {
+			verboseMsg("Using GITHUB_TOKEN environment variable for host: " + host);
+		} else if (isAGitlabUrl(urlConnection) && System.getenv().containsKey("GITLAB_TOKEN")) {
+			auth = "Bearer " + System.getenv("GITLAB_TOKEN");
+			verboseMsg("Using GITLAB_TOKEN environment variable for host: " + host);
+		}
+
+		// 2. Check URL userinfo (https://user:pass@host/...)
+		if (auth == null) {
 			URL url = urlConnection.getURL();
-			String username;
-			String password;
 			if (url.getUserInfo() != null) {
 				String[] credentials = url.getUserInfo().split(":", 2);
-				username = PropertiesValueResolver.replaceProperties(credentials[0]);
-				password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1]) : "";
-			} else {
-				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
-				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+				String username = PropertiesValueResolver.replaceProperties(credentials[0]);
+				String password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1])
+						: "";
+				String id = username + ":" + password;
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+				verboseMsg("Using URL credentials for host: " + host);
 			}
+		}
+
+		// 3. Check .netrc / _netrc file
+		if (auth == null) {
+			NetrcParser.NetrcEntry entry = getNetrc().getEntry(host).orElse(null);
+			if (entry != null && entry.getPassword() != null) {
+				String login = entry.getLogin() != null ? entry.getLogin() : "";
+				String id = login + ":" + entry.getPassword();
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+				verboseMsg("Using .netrc credentials for host: " + host);
+			}
+		}
+
+		// 4. Fall back to global basic auth env vars
+		if (auth == null) {
+			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
 			if (username != null && password != null) {
 				String id = username + ":" + password;
 				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
 				auth = "Basic " + encodedId;
+				verboseMsg("Using JBANG_AUTH_BASIC environment variables for host: " + host);
 			}
 		}
+
 		if (auth != null) {
 			urlConnection.setRequestProperty("Authorization", auth);
 		}
@@ -572,6 +616,11 @@ public class NetUtil {
 		String host = urlConnection.getURL().getHost();
 		return host.endsWith("github.com")
 				|| host.endsWith("githubusercontent.com");
+	}
+
+	private static boolean isAGitlabUrl(URLConnection urlConnection) {
+		String host = urlConnection.getURL().getHost();
+		return host.endsWith("gitlab.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {
