@@ -36,7 +36,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -48,10 +50,28 @@ import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import org.jspecify.annotations.NonNull;
 
 public class NetUtil {
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
+
+	/**
+	 * Whenever the HTTP(S) resource being downloaded has a known extension,
+	 * the corresponding {@code Accept} header will be additionally sent.
+	 * <p>
+	 * This is useful in case a remote server (e.g.: GitHub) may serve different
+	 * content types for the same URL (e.g. both JSON and the HTML view of JSON
+	 * source code), and a proxy server has one of them already cached.
+	 *
+	 * @see ConnectionConfigurator#accept()
+	 */
+	private static final @NonNull Map<@NonNull String, @NonNull String> KNOWN_CONTENT_TYPES;
+
+	static {
+		KNOWN_CONTENT_TYPES = new LinkedHashMap<>();
+		KNOWN_CONTENT_TYPES.put(".json", "application/json");
+	}
 
 	/**
 	 * Either retrieves a previously downloaded file from the cache or downloads a
@@ -109,6 +129,7 @@ public class NetUtil {
 				ConnectionConfigurator.userAgent(),
 				ConnectionConfigurator.authentication(),
 				ConnectionConfigurator.timeout(null),
+				ConnectionConfigurator.accept(),
 				ConnectionConfigurator.cacheControl(cachedFile, metaSaveDir));
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.handleUnmodified(cachedFile,
@@ -144,7 +165,8 @@ public class NetUtil {
 		ConnectionConfigurator cfg = ConnectionConfigurator.all(
 				ConnectionConfigurator.userAgent(),
 				ConnectionConfigurator.authentication(),
-				ConnectionConfigurator.timeout(timeOut));
+				ConnectionConfigurator.timeout(timeOut),
+				ConnectionConfigurator.accept());
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.throwOnError(
 						ResultHandler.downloadTo(saveDir, saveDir)));
@@ -234,6 +256,28 @@ public class NetUtil {
 				if (t >= 0) {
 					conn.setConnectTimeout(t);
 					conn.setReadTimeout(t);
+				}
+			});
+		}
+
+		/**
+		 * Returns a configurator that sets the {@code Accept} header for an
+		 * HTTP connection based on the file extension of the URL path.
+		 * The header value is determined from a predefined mapping of known
+		 * content types.
+		 *
+		 * @return a configurator that optionally sets the {@code Accept} header
+		 *   on an HTTP(S) connection.
+		 * @see #KNOWN_CONTENT_TYPES
+		 */
+		static @NonNull ConnectionConfigurator accept() {
+			return forHttp(conn -> {
+				final String path = conn.getURL().getPath();
+				for (final Entry<String, String> entry : KNOWN_CONTENT_TYPES.entrySet()) {
+					if (path.endsWith(entry.getKey())) {
+						conn.setRequestProperty("Accept", entry.getValue());
+						break;
+					}
 				}
 			});
 		}
