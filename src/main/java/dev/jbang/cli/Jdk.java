@@ -120,8 +120,8 @@ public class Jdk extends BaseCommand {
 				}
 				if (!Util.isNullOrBlankString(path)) {
 					if (isValidInteger(versionOrId)) {
-						throw new IllegalArgumentException(
-								"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+						versionOrId = generateUserId(versionOrId);
+						Util.infoMsg("Numeric id detected, using '" + versionOrId + "' as id");
 					}
 					Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
 					Path jdkPath = Paths.get(path);
@@ -150,6 +150,10 @@ public class Jdk extends BaseCommand {
 			} catch (NumberFormatException e) {
 				return false;
 			}
+		}
+
+		private String generateUserId(String version) {
+			return version + "-user";
 		}
 	}
 
