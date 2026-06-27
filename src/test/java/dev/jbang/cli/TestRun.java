@@ -2440,7 +2440,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("echo.java").toFile();
 		List<String> args = Arrays.asList("foo", "bar");
 		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
 		Run run = JBang.parseCommand("run", "echo", "baz");

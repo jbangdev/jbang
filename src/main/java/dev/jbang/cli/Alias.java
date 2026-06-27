@@ -110,7 +110,7 @@ public class Alias extends BaseCommand {
 					runMixin.flightRecorderString, runMixin.debugString, runMixin.getCds(), runMixin.interactive,
 					enablePreviewRequested, runMixin.enableAssertions,
 					runMixin.enableSystemAssertions,
-					buildMixin.manifestOptions, createJavaAgents(), docs, null);
+					buildMixin.manifestOptions, createJavaAgents(), docs, null, null);
 			Path catFile = catalogOptions.getCatalogOrDefault();
 			if (force || !CatalogUtil.hasAlias(catFile, name)) {
 				CatalogUtil.addAlias(catFile, name, alias);

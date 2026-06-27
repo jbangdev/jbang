@@ -16,6 +16,7 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
@@ -64,6 +65,7 @@ public class Alias extends CatalogItem {
 	public final List<JavaAgent> javaAgents;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
 	public final List<String> docs;
+	public final Map<String, String> versions;
 
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
@@ -99,7 +101,7 @@ public class Alias extends CatalogItem {
 
 	public Alias() {
 		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -130,6 +132,7 @@ public class Alias extends CatalogItem {
 			Map<String, String> manifestOptions,
 			List<JavaAgent> javaAgents,
 			List<String> docs,
+			Map<String, String> versions,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
@@ -160,6 +163,7 @@ public class Alias extends CatalogItem {
 		this.manifestOptions = manifestOptions;
 		this.javaAgents = javaAgents;
 		this.docs = docs;
+		this.versions = versions;
 	}
 
 	/**
@@ -167,7 +171,7 @@ public class Alias extends CatalogItem {
 	 * like baseRefs and current working directories applied.
 	 */
 	public String resolve() {
-		return resolve(scriptRef);
+		return scriptRef != null ? resolve(PropertiesValueResolver.replaceProperties(scriptRef)) : null;
 	}
 
 	/**
@@ -209,20 +213,77 @@ public class Alias extends CatalogItem {
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
-		String[] parts = name.split("@", 2);
-		if (parts[0].isEmpty()) {
-			throw new RuntimeException("Invalid alias name '" + name + "'");
-		}
-		Alias a2;
-		if (parts.length == 1) {
-			a2 = findUnqualifiedAlias.apply(name);
-		} else {
-			if (parts[1].isEmpty()) {
+		String aliasName = name;
+		String catalogName = null;
+		String version = null;
+
+		if (name.contains("@")) {
+			String[] parts = name.split("@");
+			if (parts.length == 2) {
+				String arg = parts[1];
+				if (parts[0].isEmpty() || arg.isEmpty()) {
+					throw new RuntimeException("Invalid alias name '" + name + "'");
+				}
+				Alias a = findUnqualifiedAlias.apply(parts[0]);
+				boolean isCatalog = false;
+				try {
+					Catalog.getByName(arg);
+					isCatalog = true;
+				} catch (Exception e) {
+					// Not a catalog
+				}
+				boolean isVersion = false;
+				if (!isCatalog && a != null) {
+					if (a.versions != null && !a.versions.isEmpty()) {
+						isVersion = a.versions.containsKey(arg) || isVersionLike(arg);
+					} else {
+						isVersion = isVersionLike(arg);
+					}
+				}
+				if (isVersion) {
+					aliasName = parts[0];
+					version = arg;
+				} else {
+					aliasName = parts[0];
+					catalogName = arg;
+				}
+			} else if (parts.length == 3) {
+				aliasName = parts[0];
+				version = parts[1];
+				catalogName = parts[2];
+				if (aliasName.isEmpty() || version.isEmpty() || catalogName.isEmpty()) {
+					throw new RuntimeException("Invalid alias name '" + name + "'");
+				}
+			} else {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
 			}
-			a2 = fromCatalog(parts[1], parts[0]);
 		}
+
+		Alias a2;
+		if (catalogName == null) {
+			a2 = findUnqualifiedAlias.apply(aliasName);
+		} else {
+			a2 = fromCatalog(catalogName, aliasName);
+		}
+
 		if (a2 != null) {
+			if (version != null) {
+				if (a2.versions != null && !a2.versions.isEmpty()) {
+					if (a2.versions.containsKey(version)) {
+						System.setProperty("jbang.app.version", version);
+					} else {
+						throw new ExitException(EXIT_INVALID_INPUT,
+								"Invalid version '" + version + "' for alias '" + aliasName + "'"
+										+ (catalogName != null ? " in catalog '" + catalogName + "'" : "")
+										+ ". Available versions: " + String.join(", ", a2.versions.keySet()));
+					}
+				} else {
+					throw new ExitException(EXIT_INVALID_INPUT,
+							"Alias '" + aliasName + "'"
+									+ (catalogName != null ? " in catalog '" + catalogName + "'" : "")
+									+ " does not support versioning.");
+				}
+			}
 			names.add(name);
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			String desc = a1.description != null ? a1.description : a2.description;
@@ -262,10 +323,11 @@ public class Alias extends CatalogItem {
 					: a2.manifestOptions;
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			List<String> docs = a1.docs != null && !a1.docs.isEmpty() ? a1.docs : a2.docs;
+			Map<String, String> versions = a1.versions != null && !a1.versions.isEmpty() ? a1.versions : a2.versions;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
 					mainClass, moduleName, copts, nimg, nopts, forceType, ints, jfr, debug, cds, inter, ep, ea, esa,
-					mopts, jags, docs, catalog);
+					mopts, jags, docs, versions, catalog);
 		} else {
 			return a1;
 		}
@@ -310,20 +372,34 @@ public class Alias extends CatalogItem {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
 				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
-				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
+				enableSystemAssertions, manifestOptions, javaAgents, docs, versions, catalog);
 	}
 
 	public Alias withScriptRef(String scriptRef) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
 				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
-				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
+				enableSystemAssertions, manifestOptions, javaAgents, docs, versions, catalog);
 	}
 
 	public Alias withForceType(String forceType) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
 				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
-				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
+				enableSystemAssertions, manifestOptions, javaAgents, docs, versions, catalog);
+	}
+
+	private static boolean isVersionLike(String s) {
+		if (s == null || s.isEmpty()) {
+			return false;
+		}
+		char c = s.charAt(0);
+		if (Character.isDigit(c)) {
+			return true;
+		}
+		if ((c == 'v' || c == 'V') && s.length() > 1 && Character.isDigit(s.charAt(1))) {
+			return true;
+		}
+		return false;
 	}
 }

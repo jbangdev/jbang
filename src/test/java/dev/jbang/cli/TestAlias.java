@@ -108,12 +108,24 @@ public class TestAlias extends BaseTest {
 			"    },\n" +
 			"    \"gav\": {\n" +
 			"      \"script-ref\": \"org.example:artifact:version\"\n" +
+			"    },\n" +
+			"    \"camel\": {\n" +
+			"      \"script-ref\": \"./camel/${jbang.app.version:4.18.1}/CamelJBang.java\",\n" +
+			"      \"versions\": {\n" +
+			"        \"4.18.1\": \"Recommended stable version\",\n" +
+			"        \"4.17.0\": \"Previous stable version\",\n" +
+			"        \"4.9.0\": \"Legacy version\"\n" +
+			"      }\n" +
+			"    },\n" +
+			"    \"no-version-alias\": {\n" +
+			"      \"script-ref\": \"./no-version.java\"\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";
 
 	@BeforeEach
 	void initCatalog() throws IOException {
+		System.clearProperty("jbang.app.version");
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}
@@ -551,6 +563,39 @@ public class TestAlias extends BaseTest {
 			assertThat(ex.getMessage(), containsString("seven"));
 		}
 
+	}
+
+	@Test
+	void testGetAliasWithDefaultVersion() throws IOException {
+		Alias alias = Alias.get("camel");
+		assertThat(alias, notNullValue());
+		assertThat(alias.versions, notNullValue());
+		assertThat(alias.versions, aMapWithSize(3));
+		assertThat(alias.versions, hasEntry("4.18.1", "Recommended stable version"));
+		// without specifying a version, resolve should fall back to default
+		assertThat(alias.resolve().replace('\\', '/'), containsString("camel/4.18.1/CamelJBang.java"));
+	}
+
+	@Test
+	void testGetAliasWithSpecifiedValidVersion() throws IOException {
+		Alias alias = Alias.get("camel@4.17.0");
+		assertThat(alias, notNullValue());
+		assertThat(alias.resolve().replace('\\', '/'), containsString("camel/4.17.0/CamelJBang.java"));
+		assertThat(System.getProperty("jbang.app.version"), equalTo("4.17.0"));
+	}
+
+	@Test
+	void testGetAliasWithInvalidVersion() {
+		ExitException e = assertThrows(ExitException.class, () -> Alias.get("camel@4.17.9"));
+		assertThat(e.getMessage(), containsString("Invalid version '4.17.9' for alias 'camel'"));
+		assertThat(e.getMessage(), containsString("Available versions:"));
+		assertThat(e.getMessage(), containsString("4.18.1"));
+	}
+
+	@Test
+	void testGetAliasVersionWhenVersioningNotSupported() {
+		ExitException e = assertThrows(ExitException.class, () -> Alias.get("no-version-alias@1.0"));
+		assertThat(e.getMessage(), containsString("Alias 'no-version-alias' does not support versioning."));
 	}
 
 }

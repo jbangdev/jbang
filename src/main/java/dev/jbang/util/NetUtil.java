@@ -44,21 +44,22 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import org.jspecify.annotations.NonNull;
 
 public class NetUtil {
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 
 	/**
-	 * Whenever the HTTP(S) resource being downloaded has a known extension,
-	 * the corresponding {@code Accept} header will be additionally sent.
+	 * Whenever the HTTP(S) resource being downloaded has a known extension, the
+	 * corresponding {@code Accept} header will be additionally sent.
 	 * <p>
 	 * This is useful in case a remote server (e.g.: GitHub) may serve different
 	 * content types for the same URL (e.g. both JSON and the HTML view of JSON
@@ -261,13 +262,12 @@ public class NetUtil {
 		}
 
 		/**
-		 * Returns a configurator that sets the {@code Accept} header for an
-		 * HTTP connection based on the file extension of the URL path.
-		 * The header value is determined from a predefined mapping of known
-		 * content types.
+		 * Returns a configurator that sets the {@code Accept} header for an HTTP
+		 * connection based on the file extension of the URL path. The header value is
+		 * determined from a predefined mapping of known content types.
 		 *
-		 * @return a configurator that optionally sets the {@code Accept} header
-		 *   on an HTTP(S) connection.
+		 * @return a configurator that optionally sets the {@code Accept} header on an
+		 *         HTTP(S) connection.
 		 * @see #KNOWN_CONTENT_TYPES
 		 */
 		static @NonNull ConnectionConfigurator accept() {
