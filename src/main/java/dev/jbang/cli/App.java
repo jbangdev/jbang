@@ -464,7 +464,8 @@ public class App extends BaseCommand {
 				Util.infoMsg("JBang environment setup completed...");
 			} else if (chatty) {
 				Util.infoMsg("JBang is already available in PATH.");
-				Util.infoMsg("(You can use --force to perform the setup anyway)");
+				Util.infoMsg("You can use --force to update your shell environment files anyway.");
+				Util.infoMsg("To update JBang itself, run: jbang version --update");
 			}
 			if (Util.getShell() == Util.Shell.bash) {
 				if (changed) {
