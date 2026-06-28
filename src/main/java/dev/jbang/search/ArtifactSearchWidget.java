@@ -13,11 +13,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.aesh.terminal.Connection;
 import org.eclipse.aether.artifact.Artifact;
 
 import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.util.Util;
 
+import dev.tamboui.backend.aesh.AeshBackend;
 import dev.tamboui.style.Color;
 import dev.tamboui.style.Modifier;
 import dev.tamboui.style.Style;
@@ -25,6 +27,7 @@ import dev.tamboui.toolkit.app.ToolkitRunner;
 import dev.tamboui.toolkit.element.Element;
 import dev.tamboui.toolkit.element.StyledElement;
 import dev.tamboui.toolkit.event.EventResult;
+import dev.tamboui.tui.TuiConfig;
 import dev.tamboui.tui.bindings.Actions;
 import dev.tamboui.tui.bindings.BindingSets;
 import dev.tamboui.tui.bindings.Bindings;
@@ -86,6 +89,10 @@ public class ArtifactSearchWidget {
 	 * @return the selected Artifacts (one or more)
 	 */
 	public Artifact search(String initialQuery) {
+		return search(null, initialQuery);
+	}
+
+	public Artifact search(Connection connection, String initialQuery) {
 		if (initialQuery != null && !initialQuery.isEmpty()) {
 			searchInput.setText(initialQuery);
 			searchInput.moveCursorToEnd();
@@ -101,7 +108,19 @@ public class ArtifactSearchWidget {
 			.bind(KeyTrigger.key(KeyCode.TAB), ACTION_SEARCH_CENTRAL)
 			.bind(KeyTrigger.key(KeyCode.F5), ACTION_SEARCH_CENTRAL)
 			.build();
-		try (ToolkitRunner r = ToolkitRunner.builder().bindings(bindings).build()) {
+
+		ToolkitRunner.Builder builder = ToolkitRunner.builder().bindings(bindings);
+		if (connection != null) {
+			try {
+				AeshBackend backend = new AeshBackend(connection);
+				TuiConfig config = TuiConfig.defaults().toBuilder().backend(backend).build();
+				builder.config(config);
+			} catch (Exception e) {
+				Util.verboseMsg("Failed to reuse Aesh connection for TUI, falling back to default: " + e.getMessage());
+			}
+		}
+
+		try (ToolkitRunner r = builder.build()) {
 			this.runner = r;
 			r.run(this::render);
 		} catch (Exception e) {
