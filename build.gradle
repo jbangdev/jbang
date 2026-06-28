@@ -318,6 +318,10 @@ def commonSpec = project.copySpec {
 	}
 }
 
+tasks.named('installDist') {
+	mustRunAfter('nativeImage')
+}
+
 distributions {
 	main {
 		contents {
