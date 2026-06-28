@@ -6,6 +6,7 @@ import static dev.jbang.util.Util.getStableID;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.isBlankString;
 import static dev.jbang.util.Util.isFresh;
+import static dev.jbang.util.Util.isNullOrBlankString;
 import static dev.jbang.util.Util.isOffline;
 import static dev.jbang.util.Util.readString;
 import static dev.jbang.util.Util.swizzleURL;
@@ -36,7 +37,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -44,21 +47,22 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import org.jspecify.annotations.NonNull;
 
 public class NetUtil {
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 
 	/**
-	 * Whenever the HTTP(S) resource being downloaded has a known extension,
-	 * the corresponding {@code Accept} header will be additionally sent.
+	 * Whenever the HTTP(S) resource being downloaded has a known extension, the
+	 * corresponding {@code Accept} header will be additionally sent.
 	 * <p>
 	 * This is useful in case a remote server (e.g.: GitHub) may serve different
 	 * content types for the same URL (e.g. both JSON and the HTML view of JSON
@@ -202,7 +206,7 @@ public class NetUtil {
 		if (urlConnection instanceof HttpURLConnection) {
 			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
 			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
-			verboseMsg(String.format("Headers %s", httpConn.getRequestProperties()));
+			verboseMsg(String.format("Headers %s", redactAuthHeaders(httpConn.getRequestProperties())));
 		} else {
 			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
 		}
@@ -261,13 +265,12 @@ public class NetUtil {
 		}
 
 		/**
-		 * Returns a configurator that sets the {@code Accept} header for an
-		 * HTTP connection based on the file extension of the URL path.
-		 * The header value is determined from a predefined mapping of known
-		 * content types.
+		 * Returns a configurator that sets the {@code Accept} header for an HTTP
+		 * connection based on the file extension of the URL path. The header value is
+		 * determined from a predefined mapping of known content types.
 		 *
-		 * @return a configurator that optionally sets the {@code Accept} header
-		 *   on an HTTP(S) connection.
+		 * @return a configurator that optionally sets the {@code Accept} header on an
+		 *         HTTP(S) connection.
 		 * @see #KNOWN_CONTENT_TYPES
 		 */
 		static @NonNull ConnectionConfigurator accept() {
@@ -542,17 +545,32 @@ public class NetUtil {
 	}
 
 	private static volatile NetrcParser cachedNetrc;
+	private static volatile Path netrcFile;
 
 	static NetrcParser getNetrc() {
 		if (cachedNetrc == null) {
-			cachedNetrc = NetrcParser.parseDefault();
+			if (netrcFile != null) {
+				cachedNetrc = NetrcParser.parse(netrcFile);
+			} else {
+				cachedNetrc = NetrcParser.parseDefault();
+			}
 		}
 		return cachedNetrc;
+	}
+
+	/**
+	 * Sets a custom .netrc file path, overriding the platform default. Resets the
+	 * cache so the new file is picked up on next access.
+	 */
+	public static void setNetrcFile(Path path) {
+		netrcFile = path;
+		cachedNetrc = null;
 	}
 
 	// Visible for testing
 	static void resetNetrcCache() {
 		cachedNetrc = null;
+		netrcFile = null;
 	}
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
@@ -560,11 +578,13 @@ public class NetUtil {
 		String host = urlConnection.getURL().getHost();
 
 		// 1. Check well-known env vars for specific hosts
-		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
-			auth = "token " + System.getenv("GITHUB_TOKEN");
+		String githubToken = System.getenv("GITHUB_TOKEN");
+		String gitlabToken = System.getenv("GITLAB_TOKEN");
+		if (isAGithubUrl(urlConnection) && !isNullOrBlankString(githubToken)) {
+			auth = "token " + githubToken;
 			verboseMsg("Using GITHUB_TOKEN environment variable for host: " + host);
-		} else if (isAGitlabUrl(urlConnection) && System.getenv().containsKey("GITLAB_TOKEN")) {
-			auth = "Bearer " + System.getenv("GITLAB_TOKEN");
+		} else if (isAGitlabUrl(urlConnection) && !isNullOrBlankString(gitlabToken)) {
+			auth = "Bearer " + gitlabToken;
 			verboseMsg("Using GITLAB_TOKEN environment variable for host: " + host);
 		}
 
@@ -586,8 +606,8 @@ public class NetUtil {
 		// 3. Check .netrc / _netrc file
 		if (auth == null) {
 			NetrcParser.NetrcEntry entry = getNetrc().getEntry(host).orElse(null);
-			if (entry != null && entry.getPassword() != null) {
-				String login = entry.getLogin() != null ? entry.getLogin() : "";
+			if (entry != null && !isNullOrBlankString(entry.getLogin()) && !isNullOrBlankString(entry.getPassword())) {
+				String login = entry.getLogin();
 				String id = login + ":" + entry.getPassword();
 				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
 				auth = "Basic " + encodedId;
@@ -599,7 +619,7 @@ public class NetUtil {
 		if (auth == null) {
 			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
 			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
-			if (username != null && password != null) {
+			if (!isNullOrBlankString(username) && !isNullOrBlankString(password)) {
 				String id = username + ":" + password;
 				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
 				auth = "Basic " + encodedId;
@@ -612,15 +632,23 @@ public class NetUtil {
 		}
 	}
 
+	private static Map<String, List<String>> redactAuthHeaders(Map<String, List<String>> headers) {
+		LinkedHashMap<String, List<String>> redacted = new LinkedHashMap<>(headers);
+		if (redacted.containsKey("Authorization")) {
+			redacted.put("Authorization", Collections.singletonList("[REDACTED]"));
+		}
+		return redacted;
+	}
+
 	private static boolean isAGithubUrl(URLConnection urlConnection) {
 		String host = urlConnection.getURL().getHost();
-		return host.endsWith("github.com")
-				|| host.endsWith("githubusercontent.com");
+		return host.equals("github.com") || host.endsWith(".github.com")
+				|| host.equals("githubusercontent.com") || host.endsWith(".githubusercontent.com");
 	}
 
 	private static boolean isAGitlabUrl(URLConnection urlConnection) {
 		String host = urlConnection.getURL().getHost();
-		return host.endsWith("gitlab.com");
+		return host.equals("gitlab.com") || host.endsWith(".gitlab.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {

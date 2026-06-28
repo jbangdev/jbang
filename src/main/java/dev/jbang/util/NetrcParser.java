@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringTokenizer;
 
 /**
  * Parser for {@code .netrc} / {@code _netrc} credential files.
@@ -189,18 +188,6 @@ public class NetrcParser {
 					}
 				}
 				entries.add(new NetrcEntry(null, login, password, true));
-			} else if ("macdef".equals(token)) {
-				// Skip macro definitions — skip until blank line
-				i += 2;
-				// macdef content ends at a blank line but since we tokenize
-				// by whitespace we just skip until next keyword
-				while (i < tokens.size()) {
-					String key = tokens.get(i);
-					if ("machine".equals(key) || "default".equals(key) || "macdef".equals(key)) {
-						break;
-					}
-					i++;
-				}
 			} else {
 				i++;
 			}
@@ -211,20 +198,74 @@ public class NetrcParser {
 
 	private static List<String> tokenize(Path path) throws IOException {
 		List<String> tokens = new ArrayList<>();
+		boolean inMacdef = false;
 		try (BufferedReader reader = Files.newBufferedReader(path)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				// Skip comments
+				if (inMacdef) {
+					// macdef body ends at the first blank line
+					if (line.trim().isEmpty()) {
+						inMacdef = false;
+					}
+					continue;
+				}
 				line = line.trim();
+				// Skip comments
 				if (line.startsWith("#")) {
 					continue;
 				}
-				StringTokenizer st = new StringTokenizer(line);
-				while (st.hasMoreTokens()) {
-					tokens.add(st.nextToken());
+				// Detect macdef — consume name token, then skip body
+				if (line.startsWith("macdef") && (line.length() == 6 || Character.isWhitespace(line.charAt(6)))) {
+					inMacdef = true;
+					continue;
 				}
+				tokenizeLine(line, tokens);
 			}
 		}
 		return tokens;
+	}
+
+	/**
+	 * Tokenizes a single line, supporting wget/curl-style double-quoted strings
+	 * with backslash escaping. Inside a quoted token, {@code \"} produces a literal
+	 * double-quote, {@code \\} a literal backslash, and any other {@code \X}
+	 * produces literal {@code X} (including {@code \ } for space). Unquoted tokens
+	 * are split on whitespace as before.
+	 */
+	private static void tokenizeLine(String line, List<String> tokens) {
+		int len = line.length();
+		int i = 0;
+		while (i < len) {
+			// Skip whitespace
+			while (i < len && Character.isWhitespace(line.charAt(i))) {
+				i++;
+			}
+			if (i >= len) {
+				break;
+			}
+			if (line.charAt(i) == '"') {
+				// Quoted token — consume until closing quote, handling escapes
+				i++; // skip opening quote
+				StringBuilder sb = new StringBuilder();
+				while (i < len && line.charAt(i) != '"') {
+					if (line.charAt(i) == '\\' && i + 1 < len) {
+						i++; // skip backslash, take next char literally
+					}
+					sb.append(line.charAt(i));
+					i++;
+				}
+				if (i < len) {
+					i++; // skip closing quote
+				}
+				tokens.add(sb.toString());
+			} else {
+				// Unquoted token — consume until whitespace
+				int start = i;
+				while (i < len && !Character.isWhitespace(line.charAt(i))) {
+					i++;
+				}
+				tokens.add(line.substring(start, i));
+			}
+		}
 	}
 }

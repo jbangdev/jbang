@@ -35,17 +35,7 @@ public class TestNetrcAuth extends BaseTest {
 	private void setNetrc(String content) throws IOException {
 		Path netrc = tempDir.resolve(".netrc");
 		Files.writeString(netrc, content);
-		// Point the parser to our temp file by pre-caching
-		NetUtil.resetNetrcCache();
-		// We need to inject our parsed netrc; use the package-private setter
-		java.lang.reflect.Field field;
-		try {
-			field = NetUtil.class.getDeclaredField("cachedNetrc");
-			field.setAccessible(true);
-			field.set(null, NetrcParser.parseContent(netrc));
-		} catch (ReflectiveOperationException e) {
-			throw new RuntimeException(e);
-		}
+		NetUtil.setNetrcFile(netrc);
 	}
 
 	@Test
@@ -64,6 +54,13 @@ public class TestNetrcAuth extends BaseTest {
 
 	@Test
 	void testNetrcNoMatchNoAuth() throws IOException {
+		// Skip if global fallback auth env vars are set — they'd add auth
+		// independent of .netrc and make this assertion meaningless
+		org.junit.jupiter.api.Assumptions.assumeTrue(
+				System.getenv(NetUtil.JBANG_AUTH_BASIC_USERNAME) == null
+						|| System.getenv(NetUtil.JBANG_AUTH_BASIC_PASSWORD) == null,
+				"Skipping: JBANG_AUTH_BASIC_* env vars are set");
+
 		setNetrc("machine gitlab.com\nlogin __token__\npassword glpat-xxxx\n");
 
 		URLConnection connection = new NoOpUrlConnection(

@@ -1,6 +1,9 @@
 package dev.jbang.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -197,5 +200,124 @@ public class TestNetrcParser {
 		Optional<NetrcEntry> github = parser.getEntry("github.com");
 		assertTrue(github.isPresent());
 		assertEquals("ghp-bbbb", github.get().getPassword());
+	}
+
+	@Test
+	void testQuotedPasswordWithSpaces() throws IOException {
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login myuser\n" +
+						"password \"my secret password\"\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("myuser", entry.get().getLogin());
+		assertEquals("my secret password", entry.get().getPassword());
+	}
+
+	@Test
+	void testQuotedPasswordWithEscapedBackslash() throws IOException {
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login myuser\n" +
+						"password \"pass\\\\word\"\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("pass\\word", entry.get().getPassword());
+	}
+
+	@Test
+	void testQuotedPasswordWithEscapedQuote() throws IOException {
+		// wget-style: backslash-escaped double quote inside double-quoted string
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login myuser\n" +
+						"password \"pass\\\"word\"\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("pass\"word", entry.get().getPassword());
+	}
+
+	@Test
+	void testQuotedLoginAndPassword() throws IOException {
+		NetrcParser parser = parseString(
+				"machine example.com login \"my user\" password \"my pass\"\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("my user", entry.get().getLogin());
+		assertEquals("my pass", entry.get().getPassword());
+	}
+
+	@Test
+	void testQuotedPasswordOnSingleLineEntry() throws IOException {
+		NetrcParser parser = parseString(
+				"machine host1.com login user1 password \"p a s s\"\n" +
+						"machine host2.com login user2 password plain\n");
+
+		Optional<NetrcEntry> h1 = parser.getEntry("host1.com");
+		assertTrue(h1.isPresent());
+		assertEquals("p a s s", h1.get().getPassword());
+
+		Optional<NetrcEntry> h2 = parser.getEntry("host2.com");
+		assertTrue(h2.isPresent());
+		assertEquals("plain", h2.get().getPassword());
+	}
+
+	@Test
+	void testMacdefIsSkipped() throws IOException {
+		NetrcParser parser = parseString(
+				"macdef init\n" +
+						"cd /pub\n" +
+						"get README\n" +
+						"quit\n" +
+						"\n" +
+						"machine ftp.example.com\n" +
+						"login myuser\n" +
+						"password mypass\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("ftp.example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("myuser", entry.get().getLogin());
+		assertEquals("mypass", entry.get().getPassword());
+	}
+
+	@Test
+	void testMacdefBodyWithKeywordWords() throws IOException {
+		// macro body contains words like "machine" and "login" that
+		// must not confuse the parser
+		NetrcParser parser = parseString(
+				"macdef upload\n" +
+						"machine is a keyword\n" +
+						"login should be ignored\n" +
+						"password also ignored\n" +
+						"\n" +
+						"machine real.example.com\n" +
+						"login realuser\n" +
+						"password realpass\n");
+
+		// The "machine" inside macdef body must not create an entry
+		Optional<NetrcEntry> fake = parser.getEntry("is");
+		assertFalse(fake.isPresent());
+
+		Optional<NetrcEntry> real = parser.getEntry("real.example.com");
+		assertTrue(real.isPresent());
+		assertEquals("realuser", real.get().getLogin());
+		assertEquals("realpass", real.get().getPassword());
+	}
+
+	@Test
+	void testQuotedPasswordWithEscapedSpace() throws IOException {
+		// wget-style: backslash-space inside quoted string
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login myuser\n" +
+						"password \"hello\\ world\"\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("hello world", entry.get().getPassword());
 	}
 }
