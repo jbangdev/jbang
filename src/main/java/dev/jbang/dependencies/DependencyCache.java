@@ -140,6 +140,22 @@ public class DependencyCache {
 
 	public static void clear() {
 		depCache = null;
+		// Also clear the dependency cache JSON file from disk
+		try {
+			Path cacheFile = Settings.getCacheDependencyFile();
+			if (Files.exists(cacheFile)) {
+				Util.verboseMsg("Deleting dependency cache file: " + cacheFile);
+				Files.deleteIfExists(cacheFile);
+			}
+			// Also clear the depcache directory containing actual JARs
+			Path depCacheDir = Settings.getCacheDir(dev.jbang.Cache.CacheClass.deps);
+			if (Files.exists(depCacheDir)) {
+				Util.verboseMsg("Deleting dependency cache dir: " + depCacheDir);
+				Util.deletePath(depCacheDir, true);
+			}
+		} catch (IOException e) {
+			Util.errorMsg("Could not clear dependency cache files", e);
+		}
 	}
 
 }
