@@ -1919,6 +1919,51 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testJVMOptsShortAttached() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R-Xmx4G", "-R-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
+	void testJVMOptsShortSpace() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R", "-Xmx4G", "-R", "-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
+	void testJVMOptsShortEquals() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R=-Xmx4G", "-R=-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
 	void testJavaFXViaFileDeps() throws IOException {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTestWithDeps.java").toAbsolutePath();
 
