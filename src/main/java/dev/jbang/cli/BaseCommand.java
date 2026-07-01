@@ -197,7 +197,8 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		if (netrc != null) {
 			Path netrcPath = Paths.get(netrc);
 			if (!Files.isReadable(netrcPath)) {
-				warn("Netrc file does not exist or is not readable: " + netrcPath);
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Netrc file does not exist or is not readable: " + netrcPath);
 			}
 			NetUtil.setNetrcFile(netrcPath);
 		}
