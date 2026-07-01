@@ -6,6 +6,7 @@ import static dev.jbang.util.Util.getStableID;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.isBlankString;
 import static dev.jbang.util.Util.isFresh;
+import static dev.jbang.util.Util.isNullOrBlankString;
 import static dev.jbang.util.Util.isOffline;
 import static dev.jbang.util.Util.readString;
 import static dev.jbang.util.Util.swizzleURL;
@@ -36,11 +37,17 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -52,6 +59,23 @@ import dev.jbang.Settings;
 public class NetUtil {
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
+
+	/**
+	 * Whenever the HTTP(S) resource being downloaded has a known extension, the
+	 * corresponding {@code Accept} header will be additionally sent.
+	 * <p>
+	 * This is useful in case a remote server (e.g.: GitHub) may serve different
+	 * content types for the same URL (e.g. both JSON and the HTML view of JSON
+	 * source code), and a proxy server has one of them already cached.
+	 *
+	 * @see ConnectionConfigurator#accept()
+	 */
+	private static final @NonNull Map<@NonNull String, @NonNull String> KNOWN_CONTENT_TYPES;
+
+	static {
+		KNOWN_CONTENT_TYPES = new LinkedHashMap<>();
+		KNOWN_CONTENT_TYPES.put(".json", "application/json");
+	}
 
 	/**
 	 * Either retrieves a previously downloaded file from the cache or downloads a
@@ -109,6 +133,7 @@ public class NetUtil {
 				ConnectionConfigurator.userAgent(),
 				ConnectionConfigurator.authentication(),
 				ConnectionConfigurator.timeout(null),
+				ConnectionConfigurator.accept(),
 				ConnectionConfigurator.cacheControl(cachedFile, metaSaveDir));
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.handleUnmodified(cachedFile,
@@ -144,7 +169,8 @@ public class NetUtil {
 		ConnectionConfigurator cfg = ConnectionConfigurator.all(
 				ConnectionConfigurator.userAgent(),
 				ConnectionConfigurator.authentication(),
-				ConnectionConfigurator.timeout(timeOut));
+				ConnectionConfigurator.timeout(timeOut),
+				ConnectionConfigurator.accept());
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.throwOnError(
 						ResultHandler.downloadTo(saveDir, saveDir)));
@@ -180,7 +206,7 @@ public class NetUtil {
 		if (urlConnection instanceof HttpURLConnection) {
 			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
 			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
-			verboseMsg(String.format("Headers %s", httpConn.getRequestProperties()));
+			verboseMsg(String.format("Headers %s", redactAuthHeaders(httpConn.getRequestProperties())));
 		} else {
 			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
 		}
@@ -234,6 +260,27 @@ public class NetUtil {
 				if (t >= 0) {
 					conn.setConnectTimeout(t);
 					conn.setReadTimeout(t);
+				}
+			});
+		}
+
+		/**
+		 * Returns a configurator that sets the {@code Accept} header for an HTTP
+		 * connection based on the file extension of the URL path. The header value is
+		 * determined from a predefined mapping of known content types.
+		 *
+		 * @return a configurator that optionally sets the {@code Accept} header on an
+		 *         HTTP(S) connection.
+		 * @see #KNOWN_CONTENT_TYPES
+		 */
+		static @NonNull ConnectionConfigurator accept() {
+			return forHttp(conn -> {
+				final String path = conn.getURL().getPath();
+				for (final Entry<String, String> entry : KNOWN_CONTENT_TYPES.entrySet()) {
+					if (path.endsWith(entry.getKey())) {
+						conn.setRequestProperty("Accept", entry.getValue());
+						break;
+					}
 				}
 			});
 		}
@@ -497,37 +544,157 @@ public class NetUtil {
 		return httpConn;
 	}
 
+	private static volatile NetrcParser cachedNetrc;
+	private static volatile Path netrcFile;
+
+	static NetrcParser getNetrc() {
+		if (cachedNetrc == null) {
+			if (netrcFile != null) {
+				cachedNetrc = NetrcParser.parse(netrcFile);
+			} else {
+				cachedNetrc = NetrcParser.parseDefault();
+			}
+		}
+		return cachedNetrc;
+	}
+
+	/**
+	 * Sets a custom .netrc file path, overriding the platform default. Resets the
+	 * cache so the new file is picked up on next access.
+	 */
+	public static void setNetrcFile(Path path) {
+		netrcFile = path;
+		cachedNetrc = null;
+	}
+
+	// Visible for testing
+	static void resetNetrcCache() {
+		cachedNetrc = null;
+		netrcFile = null;
+	}
+
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
 		String auth = null;
-		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
-			auth = "token " + System.getenv("GITHUB_TOKEN");
-		} else {
+		String host = urlConnection.getURL().getHost();
+
+		// 1. Check well-known env vars for specific hosts
+		String githubToken = System.getenv("GITHUB_TOKEN");
+		String gitlabToken = System.getenv("GITLAB_TOKEN");
+		if (isAGithubUrl(urlConnection) && !isNullOrBlankString(githubToken)) {
+			auth = "token " + githubToken;
+			verboseMsg("Using GITHUB_TOKEN environment variable for host: " + host);
+		} else if (isAGitlabUrl(urlConnection) && !isNullOrBlankString(gitlabToken)) {
+			auth = "Bearer " + gitlabToken;
+			verboseMsg("Using GITLAB_TOKEN environment variable for host: " + host);
+		}
+
+		// 2. Check URL userinfo (https://user:pass@host/...)
+		if (auth == null) {
 			URL url = urlConnection.getURL();
-			String username;
-			String password;
 			if (url.getUserInfo() != null) {
 				String[] credentials = url.getUserInfo().split(":", 2);
-				username = PropertiesValueResolver.replaceProperties(credentials[0]);
-				password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1]) : "";
-			} else {
-				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
-				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
-			}
-			if (username != null && password != null) {
+				String username = PropertiesValueResolver.replaceProperties(credentials[0]);
+				String password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1])
+						: "";
 				String id = username + ":" + password;
 				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
 				auth = "Basic " + encodedId;
+				verboseMsg("Using URL credentials for host: " + host);
 			}
 		}
+
+		// 3. Check .netrc / _netrc file
+		if (auth == null) {
+			NetrcParser.NetrcEntry entry = getNetrc().getEntry(host).orElse(null);
+			if (entry != null && !isNullOrBlankString(entry.getLogin()) && !isNullOrBlankString(entry.getPassword())) {
+				String login = entry.getLogin();
+				String id = login + ":" + entry.getPassword();
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+				verboseMsg("Using .netrc credentials for host: " + host);
+			}
+		}
+
+		// 4. Fall back to global basic auth env vars
+		if (auth == null) {
+			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+			if (!isNullOrBlankString(username) && !isNullOrBlankString(password)) {
+				String id = username + ":" + password;
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+				verboseMsg("Using JBANG_AUTH_BASIC environment variables for host: " + host);
+			}
+		}
+
 		if (auth != null) {
 			urlConnection.setRequestProperty("Authorization", auth);
 		}
 	}
 
+	private static Map<String, List<String>> redactAuthHeaders(Map<String, List<String>> headers) {
+		LinkedHashMap<String, List<String>> redacted = new LinkedHashMap<>(headers);
+		if (redacted.containsKey("Authorization")) {
+			redacted.put("Authorization", Collections.singletonList("[REDACTED]"));
+		}
+		return redacted;
+	}
+
 	private static boolean isAGithubUrl(URLConnection urlConnection) {
-		String host = urlConnection.getURL().getHost();
-		return host.endsWith("github.com")
-				|| host.endsWith("githubusercontent.com");
+		return isAGithubHost(urlConnection.getURL().getHost());
+	}
+
+	private static boolean isAGithubHost(String host) {
+		return host.equals("github.com") || host.endsWith(".github.com")
+				|| host.equals("githubusercontent.com") || host.endsWith(".githubusercontent.com");
+	}
+
+	private static boolean isAGitlabUrl(URLConnection urlConnection) {
+		return isAGitlabHost(urlConnection.getURL().getHost());
+	}
+
+	private static boolean isAGitlabHost(String host) {
+		return host.equals("gitlab.com") || host.endsWith(".gitlab.com");
+	}
+
+	/**
+	 * Returns a human-readable description of the authentication method that would
+	 * be used for the given URL, or {@code null} if no authentication is
+	 * configured.
+	 */
+	public static String describeAuthMethod(String url) {
+		try {
+			URL u = new URL(url);
+			String host = u.getHost();
+
+			// 1. Well-known env vars for specific hosts
+			if (isAGithubHost(host) && !isNullOrBlankString(System.getenv("GITHUB_TOKEN"))) {
+				return "GITHUB_TOKEN";
+			}
+			if (isAGitlabHost(host) && !isNullOrBlankString(System.getenv("GITLAB_TOKEN"))) {
+				return "GITLAB_TOKEN";
+			}
+
+			// 2. URL userinfo
+			if (u.getUserInfo() != null) {
+				return "URL credentials";
+			}
+
+			// 3. .netrc
+			NetrcParser.NetrcEntry entry = getNetrc().getEntry(host).orElse(null);
+			if (entry != null && !isNullOrBlankString(entry.getLogin()) && !isNullOrBlankString(entry.getPassword())) {
+				return ".netrc";
+			}
+
+			// 4. Global basic auth env vars
+			if (!isNullOrBlankString(System.getenv(JBANG_AUTH_BASIC_USERNAME))
+					&& !isNullOrBlankString(System.getenv(JBANG_AUTH_BASIC_PASSWORD))) {
+				return "JBANG_AUTH_BASIC_USERNAME/PASSWORD";
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+		return null;
 	}
 
 	public static String getDispositionFilename(String disposition) {

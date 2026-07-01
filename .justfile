@@ -33,11 +33,19 @@ itest *args:
 jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
-# open interactive shell with jbang completion (zsh, bash, or fish)
+# open interactive shell with jbang completion (zsh, bash, fish, or pwsh)
 [no-exit-message]
 shell sh="zsh":
     {{preitest}}
     @"{{justfile_directory()}}/misc/dev-shell.sh" "{{sh}}" "{{justfile_directory()}}/build/install/jbang/bin"
+
+# build native image and install
+build-native *args:
+    ./gradlew spotlessApply nativeImage installDist -x test {{args}}
+
+# run using native image
+jbang-native *args:
+    JBANG_USE_NATIVE=true PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
 jbangdebug *args:
     JBANG_JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044 PATH="build/install/jbang/bin:$PATH" jbang {{args}}

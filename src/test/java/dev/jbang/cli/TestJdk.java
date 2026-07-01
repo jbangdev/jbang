@@ -369,10 +369,20 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingAndIntegerId() {
-		assertThrows(IllegalArgumentException.class,
-				() -> checkedRun("install", "--force", "11", "/non-existent-path"),
-				"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+	void testJdkInstallWithLinkingAndIntegerIdGeneratesUserId(
+			@TempDir File javaDir) throws Exception {
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "--force", "11", javaDir.toPath().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				containsString("Numeric id detected, using '11-user' as id"));
+		assertThat(result.normalizedErr(),
+				containsString("JDK 11-user-linked has been linked to: " + javaDir.toPath().toString()));
+		assertTrue(Util.isLink(jdkPath.resolve("11-user-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11-user-linked").toRealPath()));
 	}
 
 	@Test
@@ -386,12 +396,18 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir) {
+	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(
+			@TempDir File javaDir) throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 
-		assertThrows(Exception.class,
-				() -> checkedRun(withProviders(
-						"jdk", "install", "--force", "13", javaDir.toPath().toString())));
+		CaptureResult<Integer> result = checkedRun(withProviders(
+				"jdk", "install", "--force", "13", javaDir.toPath().toString()));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				containsString("Numeric id detected, using '13-user' as id"));
+		assertTrue(Util.isLink(jdkPath.resolve("13-user-linked")));
 	}
 
 	@Test

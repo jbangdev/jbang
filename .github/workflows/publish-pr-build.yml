@@ -1,0 +1,181 @@
+name: publish-pr-build
+
+# Triggered when ci-build completes. Runs in base-branch context so it has
+# access to secrets, which lets us push artifacts to the jbang-pr-builds repo.
+on:
+  workflow_run:
+    workflows: [ci-build]
+    types: [completed]
+
+permissions:
+  actions: read          # to download artifacts from the triggering run
+  pull-requests: write   # to comment on the PR
+
+jobs:
+  publish:
+    # Only publish for successful PR builds (not workflow_dispatch or pushes)
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            // workflow_run.pull_requests may be empty for cross-fork PRs,
+            // so fall back to searching by head SHA
+            const prs = context.payload.workflow_run.pull_requests;
+            if (prs && prs.length > 0) {
+              core.setOutput('number', prs[0].number);
+              return;
+            }
+            // Fallback: search for PR by head SHA
+            const headSha = context.payload.workflow_run.head_sha;
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 10,
+            });
+            const match = pulls.find(p => p.head.sha === headSha);
+            if (match) {
+              core.setOutput('number', match.number);
+            } else {
+              core.setFailed(`Could not determine PR number for SHA ${headSha}`);
+            }
+
+      - name: Download jbang artifact from CI run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: '*-shared-build-jbang'
+          path: jbang-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+
+      - name: Package as jbang.tar and jbang.zip
+        run: |
+          # The artifact contains the jbang install directory contents.
+          # We need to wrap it in a jbang/ directory for the tar/zip.
+          mkdir -p staging/jbang
+          cp -r jbang-artifact/* staging/jbang/
+          chmod +x staging/jbang/bin/jbang
+          cd staging
+          tar cf ../jbang.tar jbang
+          zip -r ../jbang.zip jbang
+
+      - name: Create or update release in jbang-pr-builds
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_BUILDS_TOKEN: ${{ secrets.PR_BUILDS_TOKEN }}
+        with:
+          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = 'jbang-pr-builds';
+            const tag = `pr-${process.env.PR_NUMBER}`;
+            const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${process.env.PR_NUMBER}`;
+            const headSha = context.payload.workflow_run.head_sha;
+            const shortSha = headSha.substring(0, 7);
+
+            const releaseName = `PR #${process.env.PR_NUMBER} (${shortSha})`;
+            const releaseBody = [
+              `Build from ${prUrl}`,
+              `Commit: ${headSha}`,
+              `Built: ${new Date().toISOString()}`,
+              '',
+              '### Install',
+              '```bash',
+              `JBANG_DOWNLOAD_URL=https://github.com/${owner}/${repo}/releases/download/${tag}/jbang.tar jbang version`,
+              '```',
+            ].join('\n');
+
+            // Delete existing release if present
+            try {
+              const { data: existing } = await github.rest.repos.getReleaseByTag({
+                owner, repo, tag
+              });
+              // Delete all existing assets
+              for (const asset of existing.assets) {
+                await github.rest.repos.deleteReleaseAsset({
+                  owner, repo, asset_id: asset.id
+                });
+              }
+              // Update the release
+              await github.rest.repos.updateRelease({
+                owner, repo,
+                release_id: existing.id,
+                name: releaseName,
+                body: releaseBody,
+              });
+              var releaseId = existing.id;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              // Create tag and release
+              const { data: release } = await github.rest.repos.createRelease({
+                owner, repo, tag_name: tag,
+                name: releaseName,
+                body: releaseBody,
+                prerelease: true,
+              });
+              var releaseId = release.id;
+            }
+
+            // Upload assets
+            for (const file of ['jbang.tar', 'jbang.zip']) {
+              await github.rest.repos.uploadReleaseAsset({
+                owner, repo,
+                release_id: releaseId,
+                name: file,
+                data: fs.readFileSync(file),
+              });
+            }
+
+            core.info(`Published ${tag} to ${owner}/${repo}`);
+
+      - name: Comment on PR
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const buildsRepo = 'jbang-pr-builds';
+            const tag = `pr-${prNumber}`;
+            const downloadUrl = `https://github.com/${owner}/${buildsRepo}/releases/download/${tag}/jbang.tar`;
+            const marker = '<!-- jbang-pr-build -->';
+
+            const body = [
+              marker,
+              `### 📦 PR Build Available`,
+              '',
+              'Install this PR build:',
+              '```bash',
+              `JBANG_DOWNLOAD_URL=${downloadUrl} jbang version`,
+              '```',
+              '',
+              `[Release](https://github.com/${owner}/${buildsRepo}/releases/tag/${tag})`,
+              `| Built from ${context.payload.workflow_run.head_sha.substring(0, 7)}`,
+            ].join('\n');
+
+            // Update existing comment or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: prNumber, body,
+              });
+            }

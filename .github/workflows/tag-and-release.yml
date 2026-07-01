@@ -38,10 +38,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          STATUS=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/status --jq '.state')
-          echo "Commit CI status: $STATUS"
-          if [ "$STATUS" != "success" ]; then
-            echo "::error::CI has not passed for this commit (status: $STATUS). Aborting release."
+          # GitHub Actions reports results as check runs, not commit statuses.
+          # Find the ci-build check suite and verify its conclusion.
+          echo "Querying check runs for ${{ github.sha }}..."
+          # Look for the ci-build workflow runs on this commit
+          CONCLUSION=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+            --jq '[.check_runs[] | select(.name | startswith("ci-build"))] | if length == 0 then "not_found" elif all(.conclusion == "success") then "success" else map(select(.conclusion != "success")) | first | .conclusion // .status end')
+          echo "CI check conclusion: $CONCLUSION"
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "::error::CI has not passed for this commit (conclusion: $CONCLUSION). Aborting release."
+            echo "Check run details:"
+            gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+              --jq '.check_runs[] | select(.name | startswith("ci-build")) | "\(.name): \(.conclusion // .status)"'
             exit 1
           fi
 

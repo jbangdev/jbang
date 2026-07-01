@@ -25,7 +25,7 @@ plugins {
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
-def aeshVersion = '3.14.3'
+def aeshVersion = '3.16'
 def devkitmanVersion = '0.4.9'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
@@ -46,6 +46,7 @@ javadoc {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	//maven { url 'https://jitpack.io' }
 }
@@ -159,7 +160,7 @@ dependencies {
 	implementation("org.aesh:aesh:${aeshVersion}") {
 		exclude group: 'org.aesh', module: 'readline'
 	}
-	implementation 'org.aesh:readline-api:3.14.1'
+	implementation 'org.aesh:readline-api:3.16'
 	annotationProcessor "org.aesh:aesh-processor:${aeshVersion}"
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
@@ -316,6 +317,10 @@ def commonSpec = project.copySpec {
 		rename nativeExecName, platformNativeExecName
 		into 'bin'
 	}
+}
+
+tasks.named('installDist') {
+	mustRunAfter('nativeImage')
 }
 
 distributions {

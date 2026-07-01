@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 public class ImplicitCatalogRef {
@@ -88,6 +89,12 @@ public class ImplicitCatalogRef {
 			return Optional.of(url);
 		} catch (Exception ex) {
 			Util.verboseMsg("No catalog found at " + url, ex);
+			String authMethod = NetUtil.describeAuthMethod(url);
+			if (authMethod != null) {
+				Util.warnMsg("Could not download catalog from " + url
+						+ ". Authentication via " + authMethod + " was used but may be expired or invalid."
+						+ " Try updating or removing the credentials.");
+			}
 			return Optional.empty();
 		}
 	}

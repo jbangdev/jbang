@@ -75,6 +75,10 @@ Print exceptions stacktraces to stderr (even when quiet).
 * xref:jbang:cli:jbang-version.adoc[*version*] - Display version info.
 * xref:jbang:cli:jbang-wrapper.adoc[*wrapper*] - Manage jbang wrapper for a folder.
 
+== EXTERNAL
+
+*mac-aarch64*
+
 ---
 
 

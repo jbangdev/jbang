@@ -21,15 +21,23 @@ JDK version to use for running the script.
 
 *--ai-provider*=<ai-provider>::
 Provider to use (openai, openrouter, etc.) when using init with a prompt
++
+Default: `${env:JBANG_AI_PROVIDER:-}`
 
 *--ai-api-key*=<ai-api-key>::
 API Key/token to use for the AI Provider
++
+Default: `${env:JBANG_AI_API_KEY:-}`
 
 *--ai-endpoint*=<ai-endpoint>::
 OpenAI compatible Endpoint to use for the AI Provider when using init with a prompt
++
+Default: `${env:JBANG_AI_ENDPOINT:-}`
 
 *--ai-model*=<ai-model>::
 Model string to use for init prompting
++
+Default: `${env:JBANG_AI_MODEL:-}`
 
 *-t*, *--template*=<template>::
 Init script with a java class useful for scripting
