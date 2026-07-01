@@ -15,7 +15,7 @@ Run the following to enable TAB completion in the current shell:
 
   bash/zsh:  source <(jbang completion)
   fish:      jbang completion | source
-  pwsh:      (jbang completion) -join "`n" | Invoke-Expression
+  pwsh:      (jbang completion) -join "`n" | Invoke-Expression  (experimental)
 
 The shell is auto-detected. To make it permanent, see the
 comments at the end of the generated script.
@@ -26,7 +26,7 @@ comments at the end of the generated script.
 Display this help and exit
 
 *-s*, *--shell*=<shell>::
-The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh. Default: auto-detected from current shell.
+The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -52,7 +52,7 @@ Print exceptions stacktraces to stderr (even when quiet).
 == ARGUMENTS
 
 *<shell>*::
-Shell name (bash, zsh, fish, pwsh). Overrides auto-detection.
+Shell name (bash, zsh, fish, pwsh (experimental)). Overrides auto-detection.
 
 == EXTERNAL
 

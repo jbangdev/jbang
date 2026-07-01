@@ -20,7 +20,7 @@ public class Completion extends BaseCommand {
 					+ "\n"
 					+ "  bash/zsh:  source <(jbang completion)\n"
 					+ "  fish:      jbang completion | source\n"
-					+ "  pwsh:      (jbang completion) -join \"`n\" | Invoke-Expression\n"
+					+ "  pwsh:      (jbang completion) -join \"`n\" | Invoke-Expression  (experimental)\n"
 					+ "\n"
 					+ "The shell is auto-detected. To make it permanent, see the\n"
 					+ "comments at the end of the generated script.";
@@ -32,10 +32,10 @@ public class Completion extends BaseCommand {
 		return completion();
 	}
 
-	@Option(shortName = 's', name = "shell", description = "The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh. Default: auto-detected from current shell.")
+	@Option(shortName = 's', name = "shell", description = "The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.")
 	ShellType shellOption;
 
-	@Argument(paramLabel = "shell", index = "0", arity = "0..1", description = "Shell name (bash, zsh, fish, pwsh). Overrides auto-detection.")
+	@Argument(paramLabel = "shell", index = "0", arity = "0..1", description = "Shell name (bash, zsh, fish, pwsh (experimental)). Overrides auto-detection.")
 	ShellType shellArg;
 
 	public int completion() throws IOException {
@@ -97,7 +97,7 @@ public class Completion extends BaseCommand {
 					+ "# Make it permanent:\n"
 					+ "#   jbang completion fish > ~/.config/fish/completions/jbang.fish\n";
 		case PWSH:
-			return "\n# --- How to enable jbang completions for PowerShell ---\n"
+			return "\n# --- How to enable jbang completions for PowerShell (experimental) ---\n"
 					+ "#\n"
 					+ "# Try it now (current session only, no config change):\n"
 					+ "#   (jbang completion pwsh) -join \"`n\" | Invoke-Expression\n"
@@ -116,22 +116,29 @@ public class Completion extends BaseCommand {
 	}
 
 	static ShellType detectShell() {
-		// Check shell-specific environment variables first
-		if (System.getenv("FISH_VERSION") != null)
+		return detectShell(System.getenv()::get);
+	}
+
+	static ShellType detectShell(java.util.function.Function<String, String> envLookup) {
+		// PSModulePath is set by PowerShell on all platforms \u2014 check it first.
+		// On macOS/Linux, CLI tools are typically launched via a bash wrapper
+		// script which sets BASH_VERSION in the environment. If we checked
+		// BASH_VERSION first, we'd misdetect PowerShell as bash.
+		if (envLookup.apply("PSModulePath") != null)
+			return ShellType.PWSH;
+
+		// Check shell-specific environment variables
+		if (envLookup.apply("FISH_VERSION") != null)
 			return ShellType.FISH;
-		if (System.getenv("ZSH_VERSION") != null)
+		if (envLookup.apply("ZSH_VERSION") != null)
 			return ShellType.ZSH;
-		if (System.getenv("BASH_VERSION") != null)
+		if (envLookup.apply("BASH_VERSION") != null)
 			return ShellType.BASH;
 
 		// Fall back to $SHELL
-		String shell = System.getenv("SHELL");
-		if (shell == null || shell.isEmpty()) {
-			// No $SHELL \u2014 check if running inside PowerShell (last resort)
-			if (System.getenv("PSModulePath") != null)
-				return ShellType.PWSH;
+		String shell = envLookup.apply("SHELL");
+		if (shell == null || shell.isEmpty())
 			return null;
-		}
 		if (shell.contains("fish"))
 			return ShellType.FISH;
 		if (shell.contains("zsh"))

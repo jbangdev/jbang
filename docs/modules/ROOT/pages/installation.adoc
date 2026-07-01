@@ -483,7 +483,7 @@ jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
 
 == Tab Completion
 
-JBang provides tab completion for bash, zsh, fish, and PowerShell.
+JBang provides tab completion for bash, zsh, fish, and PowerShell (experimental).
 The shell is auto-detected, so in most cases you just need to run:
 
 [source,bash]
@@ -534,7 +534,7 @@ jbang completion zsh > ~/.zsh/completions/_jbang
 jbang completion fish > ~/.config/fish/completions/jbang.fish
 ----
 
-=== PowerShell
+=== PowerShell (experimental)
 
 Add to your `$PROFILE`:
 
