@@ -52,5 +52,5 @@ Print exceptions stacktraces to stderr (even when quiet).
 The version or id to install
 
 *<existingJdkPath>*::
-Pre installed JDK path
+Pre installed JDK path, local `.zip`/`.tar.gz` archive path, or HTTP(S) URL to a `.zip`/`.tar.gz` JDK archive (`file:` URLs are treated as local paths)
 

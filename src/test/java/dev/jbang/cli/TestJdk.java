@@ -1,5 +1,8 @@
 package dev.jbang.cli;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -7,14 +10,18 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -336,6 +343,99 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkInstallFromArchiveUrlUsesReleaseVersionForIntegerId() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchive("11.0.14"))));
+
+		CaptureResult<Integer> result = checkedRun("install", "17",
+				"http://localhost:" + globalwms.port() + "/jdk.zip");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("11.0.14-unknown-jbang")));
+		assertFalse(Files.exists(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("17-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallFromNonArchiveUrlFails() {
+		globalwms.stubFor(get(urlEqualTo("/jdk.txt"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("not an archive")));
+
+		Exception e = assertThrows(Exception.class,
+				() -> checkedRun("install", "17", "http://localhost:" + globalwms.port() + "/jdk.txt"));
+		Throwable target = e.getCause() != null ? e.getCause() : e;
+		assertInstanceOf(IllegalArgumentException.class, target);
+		assertThat(target.getMessage(), containsString("must be a .zip or .tar.gz archive"));
+	}
+
+	@Test
+	void testJdkInstallFromArchiveUrlWithIntegerIdFailsIfReleaseMissing() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk-no-release.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchiveWithoutRelease())));
+
+		Exception e = assertThrows(Exception.class,
+				() -> checkedRun("install", "17", "http://localhost:" + globalwms.port() + "/jdk-no-release.zip"));
+		Throwable target = e.getCause() != null ? e.getCause() : e;
+		assertInstanceOf(IllegalArgumentException.class, target);
+		assertThat(target.getMessage(), containsString("Unable to determine JDK version from the 'release' file"));
+	}
+
+	@Test
+	void testJdkInstallFromArchiveUrlUsesVersionOrIdForNonIntegerId() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk-custom.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchiveWithoutRelease())));
+
+		CaptureResult<Integer> result = checkedRun("install", "custom17",
+				"http://localhost:" + globalwms.port() + "/jdk-custom.zip");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("custom17-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallWithFileUrlTreatsArgumentAsLocalPath(@TempDir File javaDir) throws Exception {
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "11", javaDir.toPath().toUri().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Numeric id detected, using '11-user' as id"));
+		assertTrue(Util.isLink(jdkPath.resolve("11-user-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11-user-linked").toRealPath()));
+	}
+
+	@Test
+	void testJdkInstallFromLocalArchivePathUsesReleaseVersionForIntegerId(@TempDir Path tempDir) throws Exception {
+		Path archive = tempDir.resolve("jdk-local.zip");
+		Files.write(archive, createMockJdkZipArchive("21.0.6"));
+
+		CaptureResult<Integer> result = checkedRun("install", "21", archive.toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("21.0.6-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallFromFileUrlArchiveUsesVersionOrIdForNonIntegerId(@TempDir Path tempDir) throws Exception {
+		Path archive = tempDir.resolve("jdk-local-no-release.zip");
+		Files.write(archive, createMockJdkZipArchiveWithoutRelease());
+
+		CaptureResult<Integer> result = checkedRun("install", "custom-local", archive.toUri().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(
+				Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("custom-local-unknown-jbang")));
+	}
+
+	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
@@ -574,5 +674,35 @@ public class TestJdk extends BaseTest {
 			.filter(line -> !line.trim().isEmpty())
 			.mapToInt(line -> 1)
 			.sum();
+	}
+
+	private static byte[] createMockJdkZipArchive(String version) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		String root = mockJdkArchiveRoot();
+		try (ZipOutputStream zip = new ZipOutputStream(baos)) {
+			zip.putNextEntry(new ZipEntry(root + "/release"));
+			zip.write(("JAVA_VERSION=\"" + version + "\"").getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+
+			zip.putNextEntry(new ZipEntry(root + "/bin/javac"));
+			zip.write("dummy".getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+		}
+		return baos.toByteArray();
+	}
+
+	private static byte[] createMockJdkZipArchiveWithoutRelease() throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		String root = mockJdkArchiveRoot();
+		try (ZipOutputStream zip = new ZipOutputStream(baos)) {
+			zip.putNextEntry(new ZipEntry(root + "/bin/javac"));
+			zip.write("dummy".getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+		}
+		return baos.toByteArray();
+	}
+
+	private static String mockJdkArchiveRoot() {
+		return Util.isMac() ? "jdk/Contents/Home" : "jdk";
 	}
 }
