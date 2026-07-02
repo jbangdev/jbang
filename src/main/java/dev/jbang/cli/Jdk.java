@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
@@ -494,17 +493,22 @@ public class Jdk extends BaseCommand {
 			}
 			if (jdk.isInstalled()) {
 				Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
+				String homeStr = Util.pathToString(home);
+				String homeOsStr = Util.pathToOsString(home);
 				String fullCmd = CommandBuffer.of(args).asCommandLine();
-				if (Util.getShell() == Util.Shell.bash) {
-					fullCmd = "env PATH=\"" + home + File.separator + "bin:$PATH\" JAVA_HOME='" + home + "' "
-							+ fullCmd;
-				} else if (Util.getShell() == Util.Shell.powershell) {
-					fullCmd = "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + home
-							+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + home + "' ; " + fullCmd
+				switch (Util.getShell()) {
+				case bash:
+					fullCmd = "env PATH=\"" + homeStr + "/bin:$PATH\" JAVA_HOME='" + homeOsStr + "' " + fullCmd;
+					break;
+				case cmd:
+					fullCmd = "set \"PATH=" + homeStr + "\\bin;%PATH%\" && set \"JAVA_HOME=" + homeOsStr
+							+ "\" && " + fullCmd;
+					break;
+				case powershell:
+					fullCmd = "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + homeStr
+							+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + homeOsStr + "' ; " + fullCmd
 							+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
-				} else {
-					String path = home + "\\bin;" + System.getenv("PATH");
-					fullCmd = "set \"PATH=" + path + "\" && set \"JAVA_HOME=" + home + "\" && " + fullCmd;
+					break;
 				}
 				Util.verboseMsg("Executing in Java environment: " + fullCmd);
 				System.out.println(fullCmd);

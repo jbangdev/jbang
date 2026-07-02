@@ -314,6 +314,42 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkExec() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.getShell(), Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
+	}
+
+	@Test
+	void testJdkExecBashUsesConvertedPaths() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "bash");
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.Shell.bash, Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
+	}
+
+	@Test
+	void testJdkExecPowershellUsesConvertedPaths() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.Shell.powershell, Settings.getDefaultJdkDir(), "java", "-version")
+						+ "\n"));
+	}
+
+	@Test
 	void testDefaultWithJavaHome() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(TestJdk::createMockJdk);
 
@@ -674,6 +710,52 @@ public class TestJdk extends BaseTest {
 			.filter(line -> !line.trim().isEmpty())
 			.mapToInt(line -> 1)
 			.sum();
+	}
+
+	private String expectedExecCommand(Util.Shell shell, Path home, String... command) {
+		String homeStr = execPathToString(shell, home);
+		String homeOsStr = execPathToOsString(shell, home);
+		String fullCmd = String.join(" ", command);
+		switch (shell) {
+		case bash:
+			return "env PATH=\"" + homeStr + "/bin:$PATH\" JAVA_HOME='" + homeOsStr + "' " + fullCmd;
+		case cmd:
+			return "set \"PATH=" + homeStr + "\\bin;%PATH%\" && set \"JAVA_HOME=" + homeOsStr + "\" && "
+					+ fullCmd;
+		case powershell:
+			return "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + homeStr
+					+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + homeOsStr + "' ; " + fullCmd
+					+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
+		}
+		throw new IllegalStateException("Unsupported shell: " + shell);
+	}
+
+	private String execPathToString(Util.Shell shell, Path path) {
+		if (Util.isWindows() && shell == Util.Shell.bash) {
+			StringBuilder str = new StringBuilder();
+			if (path.isAbsolute()) {
+				if (path.getRoot().toString().endsWith(":\\")) {
+					str.append("/").append(path.getRoot().toString().charAt(0)).append("/");
+				} else {
+					str.append(path.getRoot().toString().replace("\\", "/"));
+				}
+				for (int i = 0; i < path.getNameCount(); i++) {
+					if (i > 0) {
+						str.append("/");
+					}
+					str.append(path.getName(i).toString());
+				}
+			}
+			return str.toString();
+		}
+		return path.toString();
+	}
+
+	private String execPathToOsString(Util.Shell shell, Path path) {
+		if (Util.isWindows() && shell == Util.Shell.bash) {
+			return path.toString().replace("\\", "\\\\");
+		}
+		return path.toString();
 	}
 
 	private static byte[] createMockJdkZipArchive(String version) throws IOException {
