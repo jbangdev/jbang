@@ -1,10 +1,10 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.*;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -25,8 +25,11 @@ import dev.jbang.Settings;
 import dev.jbang.devkitman.JdkDistroQuery;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
+import dev.jbang.devkitman.jdkproviders.JBangJdkProvider;
+import dev.jbang.devkitman.util.UnpackUtils;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "jdk", description = "Manage Java Development Kits installed by jbang.", groupCommands = {
@@ -107,8 +110,8 @@ public class Jdk extends BaseCommand {
 		@Argument(paramLabel = "versionOrId", index = "0", arity = "1", description = "The version or id to install", required = true)
 		String versionOrId;
 
-		@Argument(paramLabel = "existingJdkPath", index = "1", arity = "0..1", description = "Pre installed JDK path")
-		String path;
+		@Argument(paramLabel = "pathOrUrl", index = "1", arity = "0..1", description = "Pre installed JDK path or URL/path to installable archive")
+		String pathOrUrl;
 
 		@Override
 		public Integer doCall() throws IOException {
@@ -118,17 +121,26 @@ public class Jdk extends BaseCommand {
 				if (jdk != null) {
 					((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).uninstall();
 				}
-				if (!Util.isNullOrBlankString(path)) {
-					if (isValidInteger(versionOrId)) {
-						versionOrId = generateUserId(versionOrId);
-						Util.infoMsg("Numeric id detected, using '" + versionOrId + "' as id");
+				if (!Util.isNullOrBlankString(pathOrUrl)) {
+					if (isRemoteUrl(pathOrUrl)) {
+						installJdkFromUrl(pathOrUrl);
+					} else {
+						Path jdkPath = parseLocalPath(pathOrUrl);
+						if (Files.isRegularFile(jdkPath)) {
+							installJdkFromArchive(jdkPath);
+						} else {
+							if (isValidInteger(versionOrId)) {
+								versionOrId = generateUserId(versionOrId);
+								Util.infoMsg("Numeric id detected, using '" + versionOrId + "' as id");
+							}
+							Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
+							if (jdkPath.toAbsolutePath().startsWith(jdkCacheDir.toAbsolutePath())) {
+								throw new IllegalArgumentException(
+										"The provided path cannot point to a JBang managed JDK");
+							}
+							jdkMan.linkToExistingJdk(jdkPath, versionOrId);
+						}
 					}
-					Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
-					Path jdkPath = Paths.get(path);
-					if (jdkPath.toAbsolutePath().startsWith(jdkCacheDir.toAbsolutePath())) {
-						throw new IllegalArgumentException("The provided path cannot point to a JBang managed JDK");
-					}
-					jdkMan.linkToExistingJdk(jdkPath, versionOrId);
 				} else {
 					jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
 					if (jdk == null) {
@@ -154,6 +166,66 @@ public class Jdk extends BaseCommand {
 
 		private String generateUserId(String version) {
 			return version + "-user";
+		}
+
+		private boolean isRemoteUrl(String value) {
+			try {
+				String scheme = new URI(value).getScheme();
+				return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+			} catch (URISyntaxException e) {
+				return false;
+			}
+		}
+
+		private Path parseLocalPath(String value) {
+			try {
+				URI uri = new URI(value);
+				if ("file".equalsIgnoreCase(uri.getScheme())) {
+					return Paths.get(uri);
+				}
+			} catch (URISyntaxException | IllegalArgumentException e) {
+				// Fall back to treating the value as a normal filesystem path.
+			}
+			return Paths.get(value);
+		}
+
+		private boolean isSupportedArchive(Path archivePath) {
+			String name = archivePath.getFileName().toString().toLowerCase(Locale.ENGLISH);
+			return name.endsWith(".zip") || name.endsWith(".tar.gz") || name.endsWith(".tgz");
+		}
+
+		private void installJdkFromUrl(String jdkUrl) throws IOException {
+			Path archivePath = NetUtil.downloadAndCacheFile(jdkUrl);
+			installJdkFromArchive(archivePath);
+		}
+
+		private void installJdkFromArchive(Path archivePath) throws IOException {
+			if (!isSupportedArchive(archivePath)) {
+				throw new IllegalArgumentException(
+						"The provided file must be a .zip or .tar.gz archive: " + archivePath);
+			}
+
+			Path jdkInstallDir = JBangJdkProvider.getJBangJdkDir();
+			Files.createDirectories(jdkInstallDir);
+			Path tempExtractedDir = Files.createTempDirectory(jdkInstallDir, "jdk-install-");
+			try {
+				UnpackUtils.unpackJdk(archivePath, tempExtractedDir);
+
+				String installVersion = versionOrId;
+				if (isValidInteger(versionOrId)) {
+					installVersion = JavaUtil.readJavaVersionStringFromReleaseFile(tempExtractedDir)
+						.orElseThrow(() -> new IllegalArgumentException(
+								"Unable to determine JDK version from the 'release' file in " + tempExtractedDir));
+				}
+
+				Path installPath = jdkInstallDir.resolve(installVersion + "-unknown-jbang");
+				Util.deletePath(installPath, true);
+				Files.move(tempExtractedDir, installPath);
+				Util.infoMsg("JDK has been installed from URL to: " + installPath);
+			} catch (IOException | RuntimeException e) {
+				Util.deletePath(tempExtractedDir, true);
+				throw e;
+			}
 		}
 	}
 
@@ -421,17 +493,22 @@ public class Jdk extends BaseCommand {
 			}
 			if (jdk.isInstalled()) {
 				Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
+				String homeStr = Util.pathToString(home);
+				String homeOsStr = Util.pathToOsString(home);
 				String fullCmd = CommandBuffer.of(args).asCommandLine();
-				if (Util.getShell() == Util.Shell.bash) {
-					fullCmd = "env PATH=\"" + home + File.separator + "bin:$PATH\" JAVA_HOME='" + home + "' "
-							+ fullCmd;
-				} else if (Util.getShell() == Util.Shell.powershell) {
-					fullCmd = "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + home
-							+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + home + "' ; " + fullCmd
+				switch (Util.getShell()) {
+				case bash:
+					fullCmd = "env PATH=\"" + homeStr + "/bin:$PATH\" JAVA_HOME='" + homeOsStr + "' " + fullCmd;
+					break;
+				case cmd:
+					fullCmd = "set \"PATH=" + homeStr + "\\bin;%PATH%\" && set \"JAVA_HOME=" + homeOsStr
+							+ "\" && " + fullCmd;
+					break;
+				case powershell:
+					fullCmd = "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + homeStr
+							+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + homeOsStr + "' ; " + fullCmd
 							+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
-				} else {
-					String path = home + "\\bin;" + System.getenv("PATH");
-					fullCmd = "set \"PATH=" + path + "\" && set \"JAVA_HOME=" + home + "\" && " + fullCmd;
+					break;
 				}
 				Util.verboseMsg("Executing in Java environment: " + fullCmd);
 				System.out.println(fullCmd);
