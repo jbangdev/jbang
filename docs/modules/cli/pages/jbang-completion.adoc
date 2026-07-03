@@ -8,8 +8,17 @@ jbang completion -- Generate bash/zsh or fish completion script for jbang.
 
 [source]
 ----
-jbang completion [-h] [-s=<shell>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
+jbang completion [-h] [-s=<shell>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<shell>]
 ----
+
+Run the following to enable TAB completion in the current shell:
+
+  bash/zsh:  source <(jbang completion)
+  fish:      jbang completion | source
+  pwsh:      (jbang completion) -join "`n" | Invoke-Expression  (experimental)
+
+The shell is auto-detected. To make it permanent, see the
+comments at the end of the generated script.
 
 == OPTIONS
 
@@ -17,7 +26,7 @@ jbang completion [-h] [-s=<shell>] [--config=<config>] [--insecure] [--[no-]verb
 Display this help and exit
 
 *-s*, *--shell*=<shell>::
-The shell to generate the completion script for. Supported shells: bash, zsh, and fish
+The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -40,3 +49,18 @@ Make sure we use fresh (i.e. non-cached) resources.
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
+== ARGUMENTS
+
+*<shell>*::
+Shell name (bash, zsh, fish, pwsh (experimental)). Overrides auto-detection.
+
+== EXTERNAL
+
+*mac-aarch64*
+
+---
+
+
+   JBang ❤️  Commonhaus Foundation, MIT License
+🏡 https://www.commonhaus.org/community
+🚀 https://jbang.dev

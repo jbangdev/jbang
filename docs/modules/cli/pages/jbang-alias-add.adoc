@@ -8,7 +8,7 @@ jbang alias add -- Add alias for script reference.
 
 [source]
 ----
-jbang alias add [-hnig] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [-R=<runtime-option>] [--jfr] [-d=<debug>] [--enableassertions] [--enablesystemassertions] [--javaagent=<javaagent>] [--[no-]cds] [-f=<file>] [--description=<description>] [--name=<name>] [--force] [--enable-preview] [--docs=<docs>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>] [<params>]
+jbang alias add [-hnig] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [-R=<runtime-option>] [--jfr] [-d] [--enableassertions] [--enablesystemassertions] [--javaagent<key>=<value>] [--[no-]cds] [-f=<file>] [--description=<description>] [--name=<name>] [--force] [--enable-preview] [--docs=<docs>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>] [<params>]
 ----
 
 == OPTIONS
@@ -30,6 +30,12 @@ Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type js
 
 *--catalog*=<catalog>::
 Path to catalog file to be used instead of the default
+
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *-j*, *--java*=<java>::
 JDK version to use for running the script.
@@ -97,7 +103,10 @@ Enable system assertions
 +
 Aliases: `--esa`
 
-*--javaagent*=<javaagent>::
+*--javaagent*=<key>=<value>::
+Java agent to use
++
+Default: ``
 
 *--[no-]cds*::
 If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)

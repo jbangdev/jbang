@@ -57,6 +57,8 @@ Open directory in IDE's that support JBang or generate temporary project with op
 
 *--open*=<open>::
 Opens editor/IDE on the temporary project.
++
+Default: `${env:JBANG_EDITOR:-}`
 
 *--no-open*::
 Explicitly prevent JBang from opening an editor/IDE

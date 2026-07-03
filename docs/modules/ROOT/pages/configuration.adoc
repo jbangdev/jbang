@@ -51,6 +51,90 @@ classpath:/jbang.properties
    wrapper.install.dir = .
 ----
 
+== HTTP Authentication
+
+When JBang fetches scripts, catalogs, or other resources over HTTPS, it can authenticate using several credential sources. They are checked in the following order — the first match wins:
+
+1. **`GITHUB_TOKEN`** environment variable — used for `github.com`, `*.github.com`, `githubusercontent.com`, and `*.githubusercontent.com` hosts. Sent as `Authorization: token <value>`.
+2. **`GITLAB_TOKEN`** environment variable — used for `gitlab.com` and `*.gitlab.com` hosts. Sent as `Authorization: Bearer <value>`.
+3. **URL userinfo** — credentials embedded in the URL itself, e.g. `\https://user:pass@host/path`. Sent as Basic auth.
+4. **`.netrc` file** — per-host credentials from `~/.netrc` (Unix/macOS) or `~/_netrc` (Windows). Sent as Basic auth.
+5. **`JBANG_AUTH_BASIC_USERNAME` / `JBANG_AUTH_BASIC_PASSWORD`** environment variables — global fallback, applied to all hosts. Sent as Basic auth.
+
+=== .netrc support
+
+The `.netrc` file is the same credential file used by `curl`, `wget`, `git`, and other tools. If you already have one, JBang picks it up automatically.
+
+Example `~/.netrc`:
+
+```
+machine gitlab.mycompany.com
+login __token__
+password glpat-xxxxxxxxxxxx
+
+machine github.com
+login __token__
+password ghp_xxxxxxxxxxxx
+```
+
+Single-line entries are also supported:
+
+```
+machine gitlab.mycompany.com login __token__ password glpat-xxxxxxxxxxxx
+```
+
+A `default` entry acts as a fallback for any host without a specific match:
+
+```
+default
+login anonymous
+password user@example.com
+```
+
+Passwords containing spaces can be double-quoted using wget/curl-style quoting:
+
+```
+machine example.com
+login myuser
+password "my secret password"
+```
+
+Backslash escapes work inside quoted strings: `\"` for a literal double-quote, `\\` for a literal backslash.
+
+=== Custom .netrc file path
+
+By default JBang reads `~/.netrc` (or `~/_netrc` on Windows). To use a different file:
+
+```bash
+# Via command-line option
+jbang --netrc /path/to/my-netrc run script.java
+
+# Via jbang.properties (applies to all runs)
+jbang config set netrc /path/to/my-netrc
+```
+
+=== GitLab token
+
+For `gitlab.com` specifically, you can set the `GITLAB_TOKEN` environment variable as a quick alternative to `.netrc`:
+
+```bash
+export GITLAB_TOKEN=glpat-xxxxxxxxxxxx
+```
+
+This sends `Authorization: Bearer <token>` for all requests to `gitlab.com` and its subdomains.
+
+NOTE: For self-hosted GitLab instances, use `.netrc` instead — `GITLAB_TOKEN` only applies to `gitlab.com`.
+
+=== Debugging authentication
+
+Use `--verbose` to see which credential source JBang selected for each request:
+
+```bash
+jbang --verbose run https://gitlab.mycompany.com/group/project/-/raw/main/script.java
+```
+
+The output will include lines like `Using .netrc credentials for host: gitlab.mycompany.com` or `Using GITHUB_TOKEN environment variable for host: github.com`.
+
 == Proxy configuration
 
 If you use proxies there are a few settings to apply to make JBang *fully* work with proxies. Unfortunately Java treats proxy setup a little bit different based on OS and environment.

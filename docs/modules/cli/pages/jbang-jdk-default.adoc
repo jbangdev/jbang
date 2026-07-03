@@ -8,13 +8,19 @@ jbang jdk default -- Sets the default JDK to be used by JBang.
 
 [source]
 ----
-jbang jdk default [-hvd] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
+jbang jdk default [-hvd] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
 ----
 
 == OPTIONS
 
 *-h*, *--help*::
 Display this help and exit
+
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *-v*, *--for-version*::
 Sets the default for the specified major version

@@ -1,5 +1,8 @@
 package dev.jbang.cli;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -7,14 +10,18 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,6 +127,25 @@ public class TestJdk extends BaseTest {
 		Pattern p = Pattern.compile("^ {3}\\d+ \\(.+?\\)$", Pattern.MULTILINE);
 		Matcher m = p.matcher(result.normalizedOut());
 		assertThat(m.find(), equalTo(true));
+	}
+
+	@Test
+	void testJdkListDistros() throws Exception {
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "list", "--distros"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		Pattern p = Pattern.compile("^ {3}[a-z0-9_]+?$", Pattern.MULTILINE);
+		Matcher m = p.matcher(result.normalizedOut());
+		assertThat(m.find(), equalTo(true));
+	}
+
+	@Test
+	void testJdkListProviders() throws Exception {
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "list", "--providers"));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), equalTo("Available JDK Providers:\n" +
+				"   default\n" +
+				"   jbang\n" +
+				"   linked\n"));
 	}
 
 	@Test
@@ -288,6 +314,42 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkExec() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.getShell(), Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
+	}
+
+	@Test
+	void testJdkExecBashUsesConvertedPaths() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "bash");
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.Shell.bash, Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
+	}
+
+	@Test
+	void testJdkExecPowershellUsesConvertedPaths() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(TestJdk::createMockJdk);
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+
+		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
+
+		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.normalizedOut(),
+				equalTo(expectedExecCommand(Util.Shell.powershell, Settings.getDefaultJdkDir(), "java", "-version")
+						+ "\n"));
+	}
+
+	@Test
 	void testDefaultWithJavaHome() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(TestJdk::createMockJdk);
 
@@ -314,6 +376,99 @@ public class TestJdk extends BaseTest {
 				() -> checkedRun(withProviders("jdk", "install", "11", "/non-existent-path")));
 		Throwable target = e.getCause() != null ? e.getCause() : e;
 		assertInstanceOf(IllegalArgumentException.class, target);
+	}
+
+	@Test
+	void testJdkInstallFromArchiveUrlUsesReleaseVersionForIntegerId() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchive("11.0.14"))));
+
+		CaptureResult<Integer> result = checkedRun("install", "17",
+				"http://localhost:" + globalwms.port() + "/jdk.zip");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("11.0.14-unknown-jbang")));
+		assertFalse(Files.exists(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("17-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallFromNonArchiveUrlFails() {
+		globalwms.stubFor(get(urlEqualTo("/jdk.txt"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("not an archive")));
+
+		Exception e = assertThrows(Exception.class,
+				() -> checkedRun("install", "17", "http://localhost:" + globalwms.port() + "/jdk.txt"));
+		Throwable target = e.getCause() != null ? e.getCause() : e;
+		assertInstanceOf(IllegalArgumentException.class, target);
+		assertThat(target.getMessage(), containsString("must be a .zip or .tar.gz archive"));
+	}
+
+	@Test
+	void testJdkInstallFromArchiveUrlWithIntegerIdFailsIfReleaseMissing() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk-no-release.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchiveWithoutRelease())));
+
+		Exception e = assertThrows(Exception.class,
+				() -> checkedRun("install", "17", "http://localhost:" + globalwms.port() + "/jdk-no-release.zip"));
+		Throwable target = e.getCause() != null ? e.getCause() : e;
+		assertInstanceOf(IllegalArgumentException.class, target);
+		assertThat(target.getMessage(), containsString("Unable to determine JDK version from the 'release' file"));
+	}
+
+	@Test
+	void testJdkInstallFromArchiveUrlUsesVersionOrIdForNonIntegerId() throws Exception {
+		globalwms.stubFor(get(urlEqualTo("/jdk-custom.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "application/zip")
+				.withBody(createMockJdkZipArchiveWithoutRelease())));
+
+		CaptureResult<Integer> result = checkedRun("install", "custom17",
+				"http://localhost:" + globalwms.port() + "/jdk-custom.zip");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("custom17-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallWithFileUrlTreatsArgumentAsLocalPath(@TempDir File javaDir) throws Exception {
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "11", javaDir.toPath().toUri().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Numeric id detected, using '11-user' as id"));
+		assertTrue(Util.isLink(jdkPath.resolve("11-user-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11-user-linked").toRealPath()));
+	}
+
+	@Test
+	void testJdkInstallFromLocalArchivePathUsesReleaseVersionForIntegerId(@TempDir Path tempDir) throws Exception {
+		Path archive = tempDir.resolve("jdk-local.zip");
+		Files.write(archive, createMockJdkZipArchive("21.0.6"));
+
+		CaptureResult<Integer> result = checkedRun("install", "21", archive.toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("21.0.6-unknown-jbang")));
+	}
+
+	@Test
+	void testJdkInstallFromFileUrlArchiveUsesVersionOrIdForNonIntegerId(@TempDir Path tempDir) throws Exception {
+		Path archive = tempDir.resolve("jdk-local-no-release.zip");
+		Files.write(archive, createMockJdkZipArchiveWithoutRelease());
+
+		CaptureResult<Integer> result = checkedRun("install", "custom-local", archive.toUri().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertTrue(
+				Files.isDirectory(Settings.getCacheDir(Cache.CacheClass.jdks).resolve("custom-local-unknown-jbang")));
 	}
 
 	@Test
@@ -350,10 +505,20 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingAndIntegerId() {
-		assertThrows(IllegalArgumentException.class,
-				() -> checkedRun("install", "--force", "11", "/non-existent-path"),
-				"When providing an existing JDK path, the versionOrId parameter must be a non-integer id");
+	void testJdkInstallWithLinkingAndIntegerIdGeneratesUserId(
+			@TempDir File javaDir) throws Exception {
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
+
+		CaptureResult<Integer> result = checkedRun("install", "--force", "11", javaDir.toPath().toString());
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				containsString("Numeric id detected, using '11-user' as id"));
+		assertThat(result.normalizedErr(),
+				containsString("JDK 11-user-linked has been linked to: " + javaDir.toPath().toString()));
+		assertTrue(Util.isLink(jdkPath.resolve("11-user-linked")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11-user-linked").toRealPath()));
 	}
 
 	@Test
@@ -367,12 +532,18 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir) {
+	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(
+			@TempDir File javaDir) throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 
-		assertThrows(Exception.class,
-				() -> checkedRun(withProviders(
-						"jdk", "install", "--force", "13", javaDir.toPath().toString())));
+		CaptureResult<Integer> result = checkedRun(withProviders(
+				"jdk", "install", "--force", "13", javaDir.toPath().toString()));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				containsString("Numeric id detected, using '13-user' as id"));
+		assertTrue(Util.isLink(jdkPath.resolve("13-user-linked")));
 	}
 
 	@Test
@@ -539,5 +710,81 @@ public class TestJdk extends BaseTest {
 			.filter(line -> !line.trim().isEmpty())
 			.mapToInt(line -> 1)
 			.sum();
+	}
+
+	private String expectedExecCommand(Util.Shell shell, Path home, String... command) {
+		String homeStr = execPathToString(shell, home);
+		String homeOsStr = execPathToOsString(shell, home);
+		String fullCmd = String.join(" ", command);
+		switch (shell) {
+		case bash:
+			return "env PATH=\"" + homeStr + "/bin:$PATH\" JAVA_HOME='" + homeOsStr + "' " + fullCmd;
+		case cmd:
+			return "set \"PATH=" + homeStr + "\\bin;%PATH%\" && set \"JAVA_HOME=" + homeOsStr + "\" && "
+					+ fullCmd;
+		case powershell:
+			return "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + homeStr
+					+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + homeOsStr + "' ; " + fullCmd
+					+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
+		}
+		throw new IllegalStateException("Unsupported shell: " + shell);
+	}
+
+	private String execPathToString(Util.Shell shell, Path path) {
+		if (Util.isWindows() && shell == Util.Shell.bash) {
+			StringBuilder str = new StringBuilder();
+			if (path.isAbsolute()) {
+				if (path.getRoot().toString().endsWith(":\\")) {
+					str.append("/").append(path.getRoot().toString().charAt(0)).append("/");
+				} else {
+					str.append(path.getRoot().toString().replace("\\", "/"));
+				}
+				for (int i = 0; i < path.getNameCount(); i++) {
+					if (i > 0) {
+						str.append("/");
+					}
+					str.append(path.getName(i).toString());
+				}
+			}
+			return str.toString();
+		}
+		return path.toString();
+	}
+
+	private String execPathToOsString(Util.Shell shell, Path path) {
+		if (Util.isWindows() && shell == Util.Shell.bash) {
+			return path.toString().replace("\\", "\\\\");
+		}
+		return path.toString();
+	}
+
+	private static byte[] createMockJdkZipArchive(String version) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		String root = mockJdkArchiveRoot();
+		try (ZipOutputStream zip = new ZipOutputStream(baos)) {
+			zip.putNextEntry(new ZipEntry(root + "/release"));
+			zip.write(("JAVA_VERSION=\"" + version + "\"").getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+
+			zip.putNextEntry(new ZipEntry(root + "/bin/javac"));
+			zip.write("dummy".getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+		}
+		return baos.toByteArray();
+	}
+
+	private static byte[] createMockJdkZipArchiveWithoutRelease() throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		String root = mockJdkArchiveRoot();
+		try (ZipOutputStream zip = new ZipOutputStream(baos)) {
+			zip.putNextEntry(new ZipEntry(root + "/bin/javac"));
+			zip.write("dummy".getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+		}
+		return baos.toByteArray();
+	}
+
+	private static String mockJdkArchiveRoot() {
+		return Util.isMac() ? "jdk/Contents/Home" : "jdk";
 	}
 }

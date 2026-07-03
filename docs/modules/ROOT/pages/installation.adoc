@@ -481,6 +481,79 @@ export JBANG_NO_VERSION_CHECK
 jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
 ----
 
+== Tab Completion
+
+JBang provides tab completion for bash, zsh, fish, and PowerShell (experimental).
+The shell is auto-detected, so in most cases you just need to run:
+
+[source,bash]
+----
+source <(jbang completion)     # bash/zsh
+jbang completion | source       # fish
+(jbang completion) -join "`n" | Invoke-Expression  # pwsh
+----
+
+To make it permanent, pick the approach for your shell:
+
+=== Bash
+
+Add to `~/.bashrc`:
+
+[source,bash]
+----
+source <(jbang completion)
+----
+
+Or install system-wide:
+
+[source,bash]
+----
+jbang completion | sudo tee /etc/bash_completion.d/jbang > /dev/null
+----
+
+=== Zsh
+
+Add to `~/.zshrc`:
+
+[source,zsh]
+----
+source <(jbang completion)
+----
+
+Or save to your fpath (ensure the directory is in `fpath` before `compinit`):
+
+[source,zsh]
+----
+jbang completion zsh > ~/.zsh/completions/_jbang
+----
+
+=== Fish
+
+[source,fish]
+----
+jbang completion fish > ~/.config/fish/completions/jbang.fish
+----
+
+=== PowerShell (experimental)
+
+Add to your `$PROFILE`:
+
+[source,powershell]
+----
+(jbang completion) -join "`n" | Invoke-Expression
+----
+
+Or save to a file and dot-source it from `$PROFILE`:
+
+[source,powershell]
+----
+jbang completion pwsh | Out-File -Encoding utf8 ~/jbang-completion.ps1
+# Add to $PROFILE:
+. ~/jbang-completion.ps1
+----
+
+TIP: You can explicitly specify the shell with `jbang completion <shell>` (e.g., `jbang completion fish`) if auto-detection does not work.
+
 == Startup Script Environment Variables
 
 The JBang startup scripts (`jbang`, `jbang.cmd`, `jbang.ps1`) use the following environment variables.
