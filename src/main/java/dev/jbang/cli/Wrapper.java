@@ -49,8 +49,8 @@ public class Wrapper extends BaseCommand {
 			}
 			try {
 				Path jar = Util.getJarLocation();
-				String binSuffix = Util.isWindows() ? ".bin.exe" : ".bin";
-				if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith(binSuffix)) {
+				String jarName = jar.getFileName().toString();
+				if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
 					throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang install location via " + jar);
 				}
 				Path parent = jar.getParent();

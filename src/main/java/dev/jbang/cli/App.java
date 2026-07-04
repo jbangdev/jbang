@@ -236,8 +236,8 @@ public class App extends BaseCommand {
 				} else {
 					Path jar = Util.getJarLocation();
 					// TODO: this is duplicated in Wrapper.java - should be more shared.
-					if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith(".bin")
-							&& !jar.toString().endsWith(".bin.exe")) {
+					String jarName = jar.getFileName().toString();
+					if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
 						throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location from " + jar);
 					}
 					Path fromDir = jar.getParent();
