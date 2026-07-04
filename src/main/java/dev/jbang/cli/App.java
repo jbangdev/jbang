@@ -234,17 +234,8 @@ public class App extends BaseCommand {
 						return 0;
 					});
 				} else {
-					Path jar = Util.getJarLocation();
-					// TODO: this is duplicated in Wrapper.java - should be more shared.
-					String jarName = jar.getFileName().toString();
-					if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location from " + jar);
-					}
-					Path fromDir = jar.getParent();
-					if (fromDir.endsWith(".jbang")) {
-						fromDir = fromDir.getParent();
-					}
-					copyJBangFiles(fromDir, binDir);
+					JBangInstallation installation = JBangInstallation.find(Util.getJarLocation());
+					copyJBangFiles(installation.getScriptsDir(), installation.getJarDir(), binDir);
 				}
 			} else {
 				Util.infoMsg("jbang is already installed.");
@@ -253,16 +244,21 @@ public class App extends BaseCommand {
 		}
 
 		private static void copyJBangFiles(Path from, Path to) throws IOException {
+			copyJBangFiles(from, from, to);
+		}
+
+		private static void copyJBangFiles(Path scriptsFrom, Path jarFrom, Path to) throws IOException {
 			to.toFile().mkdirs();
 			Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
 				.map(Paths::get)
 				.forEach(f -> {
 					try {
-						Path fromp = from.resolve(f);
+						Path fromp = f.endsWith("jbang.jar") ? jarFrom.resolve(f) : scriptsFrom.resolve(f);
 						Path top = to.resolve(f);
 						if (f.endsWith("jbang.jar")) {
 							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
+								fromp = scriptsFrom.resolve(JBangInstallation.DIR_NAME)
+									.resolve(JBangInstallation.JAR_NAME);
 							}
 							if (Util.isWindows() && Files.isRegularFile(top)) {
 								top = to.resolve("jbang.jar.new");

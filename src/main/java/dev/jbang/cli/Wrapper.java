@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 import org.aesh.command.CommandDefinition;
@@ -19,9 +18,9 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {
 		Wrapper.WrapperInstall.class }, generateHelp = true)
 public class Wrapper extends BaseCommand {
-	public static final String DIR_NAME = ".jbang";
-	public static final String JAR_NAME = "jbang.jar";
-	public static final List<String> SCRIPT_NAMES = Arrays.asList("jbang", "jbang.cmd", "jbang.ps1");
+	public static final String DIR_NAME = JBangInstallation.DIR_NAME;
+	public static final String JAR_NAME = JBangInstallation.JAR_NAME;
+	public static final List<String> SCRIPT_NAMES = JBangInstallation.SCRIPT_NAMES;
 
 	@Override
 	public Integer doCall() {
@@ -48,23 +47,9 @@ public class Wrapper extends BaseCommand {
 				return EXIT_OK;
 			}
 			try {
-				Path jar = Util.getJarLocation();
-				String jarName = jar.getFileName().toString();
-				if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang install location via " + jar);
-				}
-				Path parent = jar.getParent();
-				if (checkScripts(parent) && checkJar(parent)) {
-					copyScripts(parent, destPath);
-					copyJar(parent, destPath);
-				} else if (parent.getFileName().toString().equals(DIR_NAME)
-						&& checkScripts(parent.getParent())
-						&& checkJar(parent)) {
-					copyScripts(parent.getParent(), destPath);
-					copyJar(parent, destPath);
-				} else {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang wrapper files");
-				}
+				JBangInstallation installation = JBangInstallation.find(Util.getJarLocation());
+				copyScripts(installation.getScriptsDir(), destPath);
+				copyJar(installation.getJarDir(), destPath);
 				return EXIT_OK;
 			} catch (IOException e) {
 				throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't copy JBang wrapper scripts", e);
