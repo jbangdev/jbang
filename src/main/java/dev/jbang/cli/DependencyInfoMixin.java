@@ -54,8 +54,7 @@ public class DependencyInfoMixin {
 		List<String> opts = new ArrayList<>();
 		if (properties != null) {
 			for (Map.Entry<String, String> e : properties.entrySet()) {
-				opts.add("-D");
-				opts.add(e.getKey() + "=" + e.getValue());
+				opts.add("-D" + e.getKey() + "=" + e.getValue());
 			}
 		}
 		if (dependencies != null) {
