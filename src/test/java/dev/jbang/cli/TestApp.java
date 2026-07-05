@@ -145,6 +145,33 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testAppInstallWithSystemProperty() throws Exception {
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
+		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "--force",
+				"--name=helloprops", "-Djavafx.preview=true", "-Dcamel.jbang.version=4.21.0-SNAPSHOT", src);
+		assertThat(result.err, containsString("Command installed: helloprops"));
+
+		String cwd = examplesTestFolder.getParent().toString();
+		Path shFile = Settings.getConfigBinDir().resolve(Util.isWindows() ? "helloprops.cmd" : "helloprops");
+		String content = String.join("\n", Files.readAllLines(shFile));
+		// -D must be joined with the property key (no space)
+		assertThat(content, containsString("-Djavafx.preview=true"));
+		assertThat(content, containsString("-Dcamel.jbang.version=4.21.0-SNAPSHOT"));
+		assertThat(content, not(containsString("-D javafx.preview")));
+		assertThat(content, not(containsString("-D camel.jbang.version")));
+
+		if (Util.isWindows()) {
+			// Also check ps1 script
+			Path ps1File = Settings.getConfigBinDir().resolve("helloprops.ps1");
+			String ps1Content = String.join("\n", Files.readAllLines(ps1File));
+			assertThat(ps1Content, containsString("-Djavafx.preview=true"));
+			assertThat(ps1Content, containsString("-Dcamel.jbang.version=4.21.0-SNAPSHOT"));
+			assertThat(ps1Content, not(containsString("-D javafx.preview")));
+			assertThat(ps1Content, not(containsString("-D camel.jbang.version")));
+		}
+	}
+
+	@Test
 	void testAppInstallFileExists() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
