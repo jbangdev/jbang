@@ -133,12 +133,12 @@ $binaryPath=""
 $jarPath=""
 if ($env:JBANG_USE_NATIVE -eq "true") {
   # Look for platform-specific native binary first, then fall back to jbang.bin.exe
-  if (Test-Path "$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe") {
-    $binaryPath="$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe"
+  if (Test-Path "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe") {
+    $binaryPath="$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe"
   } elseif (Test-Path "$PSScriptRoot\jbang.bin.exe") {
     $binaryPath="$PSScriptRoot\jbang.bin.exe"
   } else {
-    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang-windows-${jbang_arch}.bin.exe or jbang.bin.exe) not found in $PSScriptRoot")
+    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang.bin-windows-${jbang_arch}.exe or jbang.bin.exe) not found in $PSScriptRoot")
   }
 }
 if (-not $binaryPath) {
