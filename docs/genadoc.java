@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS org.aesh:aesh:3.12.1
+//DEPS org.aesh:aesh:3.16.4
 ///COMPILE_OPTIONS -proc:none
 //JAVA 17+
 
