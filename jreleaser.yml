@@ -92,10 +92,9 @@ deploy:
     mavenCentral:
       jbang:
         # workaround jreleaser bug around maven central credentials
-        username: "Vjuu+gNF"
-        # TODO: re-enable once maven central deployment is fixed
-        active: NEVER
-        #active: RELEASE
+        # see https://github.com/jreleaser/jreleaser/issues/1923
+        username: "8VhcNv"
+        active: RELEASE
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
         authorization: BEARER
