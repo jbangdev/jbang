@@ -104,7 +104,7 @@ assert "jbang quote.java -fix 42=universe -other one" "other: [one] fix: {42=uni
 
 
 ### Cleanup
-rm -f RESULTS
+rm RESULTS
 assert_end jbang > RESULTS
 
 ## work around to get error code happening
