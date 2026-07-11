@@ -53,17 +53,24 @@ classpath:/jbang.properties
 
 == HTTP Authentication
 
-When JBang fetches scripts, catalogs, or other resources over HTTPS, it can authenticate using several credential sources. They are checked in the following order — the first match wins:
+When JBang fetches scripts, catalogs, or other resources over HTTPS, it can authenticate using several credential sources. These credentials are applied both to direct HTTP downloads (scripts, catalogs) and to Maven repository access (dependency resolution via `--repos`).
 
-1. **`GITHUB_TOKEN`** environment variable — used for `github.com`, `*.github.com`, `githubusercontent.com`, and `*.githubusercontent.com` hosts. Sent as `Authorization: token <value>`.
-2. **`GITLAB_TOKEN`** environment variable — used for `gitlab.com` and `*.gitlab.com` hosts. Sent as `Authorization: Bearer <value>`.
-3. **URL userinfo** — credentials embedded in the URL itself, e.g. `\https://user:pass@host/path`. Sent as Basic auth.
-4. **`.netrc` file** — per-host credentials from `~/.netrc` (Unix/macOS) or `~/_netrc` (Windows). Sent as Basic auth.
-5. **`JBANG_AUTH_BASIC_USERNAME` / `JBANG_AUTH_BASIC_PASSWORD`** environment variables — global fallback, applied to all hosts. Sent as Basic auth.
+The credential sources are checked in the following order — the first match wins (most specific first):
+
+1. **URL userinfo** — credentials embedded in the URL itself, e.g. `\https://user:pass@host/path`. Sent as Basic auth. (HTTP downloads only — not applicable to `--repos` URLs.)
+2. **`.netrc` exact host match** — per-host credentials from `~/.netrc`. Sent as Basic auth by default. Also supports delegating to external credential helpers via `jbang-auth` and changing the HTTP auth scheme via `jbang-auth-scheme` (see <<Credential helpers>> below). An explicit `.netrc` entry for a host takes priority over environment variables.
+3. **`GITHUB_TOKEN`** environment variable — used for `github.com`, `*.github.com`, `githubusercontent.com`, and `*.githubusercontent.com` hosts. Sent as `Authorization: Bearer <value>` for HTTP downloads, or as Basic auth for Maven repositories.
+4. **`GITLAB_TOKEN`** environment variable — used for `gitlab.com` and `*.gitlab.com` hosts. Sent as `Authorization: Bearer <value>` for HTTP downloads, or as Basic auth for Maven repositories.
+5. **`.netrc` `default` entry** — catch-all fallback from `.netrc`, used when no exact host match or environment variable applies.
+6. **`JBANG_AUTH_BASIC_USERNAME` / `JBANG_AUTH_BASIC_PASSWORD`** environment variables — global fallback, applied to all hosts. Sent as Basic auth.
+
+For Maven repositories, `~/.m2/settings.xml` `<server>` entries are also honored and take precedence over the sources above when the server `<id>` matches the repository ID.
 
 === .netrc support
 
 The `.netrc` file is the same credential file used by `curl`, `wget`, `git`, and other tools. If you already have one, JBang picks it up automatically.
+
+On POSIX file systems, JBang ignores `.netrc` if it is readable, writable, or executable by group or others. Use `chmod 600 ~/.netrc`.
 
 Example `~/.netrc`:
 
@@ -103,11 +110,14 @@ Backslash escapes work inside quoted strings: `\"` for a literal double-quote, `
 
 === Custom .netrc file path
 
-By default JBang reads `~/.netrc` (or `~/_netrc` on Windows). To use a different file:
+By default JBang reads `~/.netrc`. To use a different file:
 
 ```bash
 # Via command-line option
 jbang --netrc /path/to/my-netrc run script.java
+
+# Disable .netrc lookup for one run
+jbang --no-netrc run script.java
 
 # Via jbang.properties (applies to all runs)
 jbang config set netrc /path/to/my-netrc
@@ -124,6 +134,116 @@ export GITLAB_TOKEN=glpat-xxxxxxxxxxxx
 This sends `Authorization: Bearer <token>` for all requests to `gitlab.com` and its subdomains.
 
 NOTE: For self-hosted GitLab instances, use `.netrc` instead — `GITLAB_TOKEN` only applies to `gitlab.com`.
+
+=== Credential helpers
+
+If you already have credentials stored in your OS keychain, the GitHub CLI, or the GitLab CLI, JBang can use them directly via the `jbang-auth` key in `.netrc`:
+
+```
+machine github.com
+login myuser
+jbang-auth gh-auth
+```
+
+The value is a comma-separated list of auth methods, tried in order. Available methods:
+
+* **`gh-auth`** — runs `gh auth token --hostname <host>` to get a token from the GitHub CLI. Works for any host where `gh auth login` has been run. Uses `login` from the `.netrc` entry as the username if present.
+* **`glab-auth`** — runs `glab config get token --host <host>` to get a token from the GitLab CLI. Works for any host where `glab auth login --hostname <host>` has been run. Uses `login` from the `.netrc` entry as the username if present, otherwise `__token__`.
+* **`env.PASSWORD`** — reads a token/password from the `PASSWORD` environment variable. The name is uppercased, so `env.github_token` reads `GITHUB_TOKEN`. Uses `login` from the `.netrc` entry as the username if present.
+* **`env.USERNAME-PASSWORD`** — reads both username and password from environment variables, for example `env.github_user-github_token` reads `GITHUB_USER` and `GITHUB_TOKEN`.
+* **`git-credential`** — runs `git credential fill` to obtain credentials from whatever credential backend git is configured to use (macOS Keychain, Windows Credential Manager, GNOME Keyring, credential-store, etc.). JBang sets `GIT_TERMINAL_PROMPT=0` so git will never prompt for a username/password interactively — if no stored credential is found, it fails immediately and JBang moves on to the next method.
+
+By default `.netrc` credentials are sent using Basic auth for HTTP downloads. To use another HTTP header style, add `jbang-auth-scheme`:
+
+```
+machine gitlab.mycompany.com
+jbang-auth glab-auth
+jbang-auth-scheme bearer
+```
+
+Supported values are `basic` (default) and `bearer`. This only affects direct HTTP downloads; Maven repository authentication still uses Maven username/password credentials.
+
+You can chain multiple methods — the first one that returns credentials wins:
+
+```
+machine gitlab.mycompany.com
+jbang-auth env.gitlab_token,glab-auth,git-credential
+```
+
+You can also combine `jbang-auth` with regular `login`/`password` as a final fallback — if all auth methods fail, JBang falls back to the `login`/`password` values:
+
+```
+machine ci.example.com
+login deploy
+password s3cret
+jbang-auth glab-auth,git-credential
+```
+
+When the credential helper needs to look up a different host than the one in the `machine` line (e.g., `maven.pkg.github.com` needs credentials from `github.com`), use `jbang-auth-host` to specify the lookup host:
+
+```
+machine maven.pkg.github.com
+login maxandersen
+jbang-auth gh-auth
+jbang-auth-host github.com
+```
+
+This calls `gh auth token --hostname github.com` and uses the resulting token for requests to `maven.pkg.github.com`.
+
+Credential results are cached per-host for the lifetime of the JBang process, so the subprocess is only invoked once per host.
+
+NOTE: `jbang-auth`, `jbang-auth-host`, and `jbang-auth-scheme` are JBang-specific extensions to the `.netrc` format. They are silently ignored by `curl`, `wget`, `git`, and other tools that read `.netrc`.
+
+=== Maven repository authentication
+
+Credentials from `.netrc`, environment variables, and git credential helpers are automatically applied to Maven repositories specified via `--repos` or `//REPOS` directives. For example:
+
+```bash
+# Credentials for maven.pkg.github.com will be looked up from
+# GITHUB_TOKEN, .netrc, or jbang git-credential automatically
+jbang --repos "ghp=https://maven.pkg.github.com/myorg/myrepo/" \
+     com.example:my-artifact:1.0.0
+```
+
+If you also have `~/.m2/settings.xml` with a `<server>` entry whose `<id>` matches the repository ID (e.g. `ghp` in the example above), the `settings.xml` credentials take precedence.
+
+==== Example: GitHub Packages without secrets in .netrc
+
+Using `gh-auth` with `jbang-auth-host`, you can access GitHub Packages Maven repositories without storing any tokens or passwords in `.netrc`. The GitHub CLI (`gh`) manages the credentials for you:
+
+```
+machine maven.pkg.github.com
+jbang-auth gh-auth
+jbang-auth-host github.com
+```
+
+Then resolve artifacts directly:
+
+```bash
+gh auth refresh -s read:packages
+jbang --repos "myrepo=https://maven.pkg.github.com/myorg/myrepo/" \
+     com.example:my-artifact:1.0.0
+```
+
+JBang calls `gh auth token --hostname github.com`, uses the returned token as the password, and authenticates to `maven.pkg.github.com`.
+
+NOTE: GitHub Packages Maven repositories require authentication even for public packages. Make sure the GitHub token has package read access:
++
+```bash
+gh auth status
+gh auth refresh -s read:packages
+```
+
+This also works for GitHub Enterprise Server instances — just point `jbang-auth-host` to your GHES hostname and add `login` with your enterprise username:
+
+```
+machine maven.pkg.github.mycompany.com
+login myuser
+jbang-auth gh-auth
+jbang-auth-host github.mycompany.com
+```
+
+As long as `gh auth login --hostname github.mycompany.com` has been run, JBang will use the stored token.
 
 === Debugging authentication
 

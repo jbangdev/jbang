@@ -11,7 +11,9 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Base64;
+import java.util.EnumSet;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,20 @@ public class TestNetrcAuth extends BaseTest {
 	private void setNetrc(String content) throws IOException {
 		Path netrc = tempDir.resolve(".netrc");
 		Files.writeString(netrc, content);
+		try {
+			Files.setPosixFilePermissions(netrc,
+					EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+		} catch (UnsupportedOperationException ignored) {
+		}
 		NetUtil.setNetrcFile(netrc);
+	}
+
+	@Test
+	void testNetrcDisabledIgnoresConfiguredFile() throws IOException {
+		setNetrc("machine gitlab.mycompany.com\nlogin __token__\npassword glpat-testtoken123\n");
+		NetUtil.setNetrcDisabled(true);
+
+		assertThat(NetUtil.getCredentialsForHost("gitlab.mycompany.com"), nullValue());
 	}
 
 	@Test
@@ -53,14 +68,35 @@ public class TestNetrcAuth extends BaseTest {
 	}
 
 	@Test
-	void testNetrcNoMatchNoAuth() throws IOException {
-		// Skip if global fallback auth env vars are set — they'd add auth
-		// independent of .netrc and make this assertion meaningless
-		org.junit.jupiter.api.Assumptions.assumeTrue(
-				System.getenv(NetUtil.JBANG_AUTH_BASIC_USERNAME) == null
-						|| System.getenv(NetUtil.JBANG_AUTH_BASIC_PASSWORD) == null,
-				"Skipping: JBANG_AUTH_BASIC_* env vars are set");
+	void testNetrcBearerScheme() throws IOException {
+		setNetrc("machine gitlab.mycompany.com\n"
+				+ "login __token__\n"
+				+ "password glpat-testtoken123\n"
+				+ "jbang-auth-scheme bearer\n");
 
+		URLConnection connection = new NoOpUrlConnection(
+				new URL("https://gitlab.mycompany.com/group/project/-/raw/main/script.java"));
+
+		authentication().configure(connection);
+
+		assertThat(connection.getRequestProperty("Authorization"), equalTo("Bearer glpat-testtoken123"));
+	}
+
+	@Test
+	void testGithubTokenUsesBearerForHttp() throws IOException {
+		environmentVariables.set("GITHUB_TOKEN", "ghp-testtoken123");
+		setNetrc("");
+
+		URLConnection connection = new NoOpUrlConnection(
+				new URL("https://github.com/org/repo/raw/main/script.java"));
+
+		authentication().configure(connection);
+
+		assertThat(connection.getRequestProperty("Authorization"), equalTo("Bearer ghp-testtoken123"));
+	}
+
+	@Test
+	void testNetrcNoMatchNoAuth() throws IOException {
 		setNetrc("machine gitlab.com\nlogin __token__\npassword glpat-xxxx\n");
 
 		URLConnection connection = new NoOpUrlConnection(
