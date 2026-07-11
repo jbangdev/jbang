@@ -64,8 +64,13 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
 	Boolean printExceptions;
 
-	@Option(name = "netrc", inherited = true, description = "Path to a .netrc file for HTTP authentication credentials.")
+	@Option(name = "netrc", inherited = true, exclusiveWith = {
+			"no-netrc" }, description = "Path to a .netrc file for HTTP authentication credentials.")
 	String netrc;
+
+	@Option(name = "no-netrc", hasValue = false, inherited = true, exclusiveWith = {
+			"netrc" }, description = "Disable .netrc authentication lookup.")
+	boolean noNetrc;
 
 	protected CommandInvocation commandInvocation;
 
@@ -194,7 +199,9 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			}
 		}
 
-		if (netrc != null) {
+		if (noNetrc) {
+			NetUtil.setNetrcDisabled(true);
+		} else if (netrc != null) {
 			Path netrcPath = Paths.get(netrc);
 			if (!Files.isReadable(netrcPath)) {
 				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
