@@ -241,6 +241,34 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMarkdownWithMainMethod() throws IOException {
+		Path readme = jbangTempDir.resolve("readme.md");
+		writeString(readme,
+				"```java\nclass Readme {\n    public static void main(String... args) {\n        System.out.println(\"Hello\");\n    }\n}\n```\n");
+
+		Run run = JBang.parseCommand("run", readme.toString());
+		Project prj = run.createProjectBuilderForRun().build(readme.toString());
+		CmdGeneratorBuilder genb = Project.codeBuilder(BuildContext.forProject(prj)).build();
+
+		String result = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\\\")?)? .*$"));
+		assertThat(result, containsString("Readme"));
+	}
+
+	@Test
+	void testMarkdownWithUnnamedMainMethod() throws Exception {
+		assumeTrue(JavaUtil.getCurrentMajorJavaVersion() >= 25);
+		Path readme = jbangTempDir.resolve("readme.md");
+		writeString(readme,
+				"```java\nvoid main() {\n    System.out.println(\"Hello unnamed\");\n}\n```\n");
+
+		CaptureResult<Integer> result = checkedRun(readme.toString());
+
+		assertThat(result.out, containsString("Hello unnamed"));
+	}
+
+	@Test
 	void testMarkdownWindows() throws IOException {
 		Path readmeFileOrg = examplesTestFolder.resolve("readme.md");
 		String readmeText = Util.readString(readmeFileOrg);
