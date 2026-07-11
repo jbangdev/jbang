@@ -16,6 +16,7 @@ concurrency:
 jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml
+    secrets: inherit
 
   earlyaccess:
     needs: ci-build
