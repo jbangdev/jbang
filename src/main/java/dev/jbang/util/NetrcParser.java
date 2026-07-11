@@ -7,13 +7,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
- * Parser for {@code .netrc} / {@code _netrc} credential files.
+ * Parser for {@code .netrc} credential files.
  * <p>
  * Supports the standard format used by curl, wget, git, and others:
  *
@@ -46,12 +48,19 @@ public class NetrcParser {
 		private final String machine;
 		private final String login;
 		private final String password;
+		private final String jbangAuth;
+		private final String jbangAuthHost;
+		private final String jbangAuthScheme;
 		private final boolean isDefault;
 
-		NetrcEntry(String machine, String login, String password, boolean isDefault) {
+		NetrcEntry(String machine, String login, String password, String jbangAuth, String jbangAuthHost,
+				String jbangAuthScheme, boolean isDefault) {
 			this.machine = machine;
 			this.login = login;
 			this.password = password;
+			this.jbangAuth = jbangAuth;
+			this.jbangAuthHost = jbangAuthHost;
+			this.jbangAuthScheme = jbangAuthScheme;
 			this.isDefault = isDefault;
 		}
 
@@ -67,6 +76,37 @@ public class NetrcParser {
 			return password;
 		}
 
+		/**
+		 * Returns the value of the JBang-specific {@code jbang-auth} key, or
+		 * {@code null} if not present. The value is a comma-separated list of auth
+		 * methods tried in order. Recognised methods:
+		 * <ul>
+		 * <li>{@code git-credential} — delegate to {@code git credential fill}</li>
+		 * <li>{@code gh-auth} — delegate to {@code gh auth token}</li>
+		 * <li>{@code glab-auth} — delegate to {@code glab config get token}</li>
+		 * <li>{@code env.NAME} — read the {@code NAME} environment variable</li>
+		 * </ul>
+		 */
+		public String getJbangAuth() {
+			return jbangAuth;
+		}
+
+		/**
+		 * Returns the value of the JBang-specific {@code jbang-auth-host} key, or
+		 * {@code null} if not present. When set, auth methods use this host instead of
+		 * the entry's {@code machine} for credential lookups.
+		 */
+		public String getJbangAuthHost() {
+			return jbangAuthHost;
+		}
+
+		/**
+		 * Returns the HTTP auth scheme for this entry. Defaults to Basic auth.
+		 */
+		public String getJbangAuthScheme() {
+			return jbangAuthScheme;
+		}
+
 		public boolean isDefault() {
 			return isDefault;
 		}
@@ -76,6 +116,10 @@ public class NetrcParser {
 
 	NetrcParser(List<NetrcEntry> entries) {
 		this.entries = Collections.unmodifiableList(entries);
+	}
+
+	static NetrcParser empty() {
+		return new NetrcParser(Collections.emptyList());
 	}
 
 	/**
@@ -98,15 +142,10 @@ public class NetrcParser {
 	}
 
 	/**
-	 * Returns the default netrc file path for the current platform.
-	 * {@code ~/.netrc} on Unix/macOS, {@code ~/_netrc} on Windows.
+	 * Returns the default netrc file path: {@code ~/.netrc}.
 	 */
 	public static Path getDefaultNetrcPath() {
-		Path home = Paths.get(System.getProperty("user.home"));
-		if (Util.isWindows()) {
-			return home.resolve("_netrc");
-		}
-		return home.resolve(".netrc");
+		return Paths.get(System.getProperty("user.home")).resolve(".netrc");
 	}
 
 	/**
@@ -123,13 +162,33 @@ public class NetrcParser {
 	 */
 	public static NetrcParser parse(Path path) {
 		if (!Files.isRegularFile(path)) {
-			return new NetrcParser(Collections.emptyList());
+			verboseMsg("No netrc file found at: " + path);
+			return empty();
 		}
 		try {
+			if (!hasSafePermissions(path)) {
+				verboseMsg("Ignoring netrc file with unsafe permissions: " + path);
+				return empty();
+			}
 			return parseContent(path);
 		} catch (IOException e) {
 			verboseMsg("Failed to read netrc file: " + path, e);
-			return new NetrcParser(Collections.emptyList());
+			return empty();
+		}
+	}
+
+	private static boolean hasSafePermissions(Path path) throws IOException {
+		try {
+			Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+			return !permissions.contains(PosixFilePermission.GROUP_READ)
+					&& !permissions.contains(PosixFilePermission.GROUP_WRITE)
+					&& !permissions.contains(PosixFilePermission.GROUP_EXECUTE)
+					&& !permissions.contains(PosixFilePermission.OTHERS_READ)
+					&& !permissions.contains(PosixFilePermission.OTHERS_WRITE)
+					&& !permissions.contains(PosixFilePermission.OTHERS_EXECUTE);
+		} catch (UnsupportedOperationException e) {
+			verboseMsg("Netrc permission check not supported on this file system: " + path);
+			return true;
 		}
 	}
 
@@ -145,55 +204,51 @@ public class NetrcParser {
 					break;
 				}
 				String machine = tokens.get(i + 1);
-				i += 2;
-				String login = null;
-				String password = null;
-				while (i < tokens.size()) {
-					String key = tokens.get(i);
-					if ("login".equals(key) && i + 1 < tokens.size()) {
-						login = tokens.get(i + 1);
-						i += 2;
-					} else if ("password".equals(key) && i + 1 < tokens.size()) {
-						password = tokens.get(i + 1);
-						i += 2;
-					} else if ("account".equals(key) && i + 1 < tokens.size()) {
-						// account is part of the spec but we don't use it
-						i += 2;
-					} else if ("machine".equals(key) || "default".equals(key) || "macdef".equals(key)) {
-						// Start of next entry
-						break;
-					} else {
-						i++;
-					}
-				}
-				entries.add(new NetrcEntry(machine, login, password, false));
+				i = parseEntryFields(tokens, i + 2, entries, machine, false);
 			} else if ("default".equals(token)) {
-				i++;
-				String login = null;
-				String password = null;
-				while (i < tokens.size()) {
-					String key = tokens.get(i);
-					if ("login".equals(key) && i + 1 < tokens.size()) {
-						login = tokens.get(i + 1);
-						i += 2;
-					} else if ("password".equals(key) && i + 1 < tokens.size()) {
-						password = tokens.get(i + 1);
-						i += 2;
-					} else if ("account".equals(key) && i + 1 < tokens.size()) {
-						i += 2;
-					} else if ("machine".equals(key) || "default".equals(key) || "macdef".equals(key)) {
-						break;
-					} else {
-						i++;
-					}
-				}
-				entries.add(new NetrcEntry(null, login, password, true));
+				i = parseEntryFields(tokens, i + 1, entries, null, true);
 			} else {
 				i++;
 			}
 		}
 
 		return new NetrcParser(entries);
+	}
+
+	private static int parseEntryFields(List<String> tokens, int i,
+			List<NetrcEntry> entries, String machine, boolean isDefault) {
+		String login = null;
+		String password = null;
+		String jbangAuth = null;
+		String jbangAuthHost = null;
+		String jbangAuthScheme = null;
+		while (i < tokens.size()) {
+			String key = tokens.get(i);
+			if ("login".equals(key) && i + 1 < tokens.size()) {
+				login = tokens.get(i + 1);
+				i += 2;
+			} else if ("password".equals(key) && i + 1 < tokens.size()) {
+				password = tokens.get(i + 1);
+				i += 2;
+			} else if ("jbang-auth".equals(key) && i + 1 < tokens.size()) {
+				jbangAuth = tokens.get(i + 1);
+				i += 2;
+			} else if ("jbang-auth-host".equals(key) && i + 1 < tokens.size()) {
+				jbangAuthHost = tokens.get(i + 1);
+				i += 2;
+			} else if ("jbang-auth-scheme".equals(key) && i + 1 < tokens.size()) {
+				jbangAuthScheme = tokens.get(i + 1);
+				i += 2;
+			} else if ("account".equals(key) && i + 1 < tokens.size()) {
+				i += 2; // account is part of the spec but we don't use it
+			} else if ("machine".equals(key) || "default".equals(key) || "macdef".equals(key)) {
+				break;
+			} else {
+				i++;
+			}
+		}
+		entries.add(new NetrcEntry(machine, login, password, jbangAuth, jbangAuthHost, jbangAuthScheme, isDefault));
+		return i;
 	}
 
 	private static List<String> tokenize(Path path) throws IOException {

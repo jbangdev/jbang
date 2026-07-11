@@ -235,8 +235,9 @@ If you add any `//REPOS` lines `jbang` will no longer consult `mavencentral` thu
 
 [TIP]
 ====
-For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for configuring
-username/passwords.
+For secure authentication `jbang` will honor `~/.m2/settings.xml` and `~/.m2/settings-security.xml` for configuring
+username/passwords. Credentials from `~/.netrc`, `GITHUB_TOKEN`, `GITLAB_TOKEN`, and git credential helpers
+are also applied automatically — see xref:configuration.adoc#_http_authentication[HTTP Authentication] for details.
 ====
 
 By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.

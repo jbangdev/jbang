@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.nullValue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,11 @@ public class TestDescribeAuthMethod extends BaseTest {
 	private void setNetrc(String content) throws IOException {
 		Path netrc = tempDir.resolve(".netrc");
 		Files.writeString(netrc, content);
+		try {
+			Files.setPosixFilePermissions(netrc,
+					EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+		} catch (UnsupportedOperationException ignored) {
+		}
 		NetUtil.setNetrcFile(netrc);
 	}
 
@@ -81,5 +88,21 @@ public class TestDescribeAuthMethod extends BaseTest {
 		// URL credentials (step 2) should win over .netrc (step 3)
 		assertThat(NetUtil.describeAuthMethod("https://user:pass@example.com/file.java"),
 				equalTo("URL credentials"));
+	}
+
+	@Test
+	void testGitCredentialDetected() throws IOException {
+		setNetrc("machine ci.example.com\njbang-auth git-credential\n");
+		assertThat(NetUtil.describeAuthMethod("https://ci.example.com/path/file.java"),
+				equalTo("git-credential (via .netrc)"));
+	}
+
+	@Test
+	void testGitCredentialTakesPriorityOverLoginPassword() throws IOException {
+		// When both jbang-auth git-credential and login/password are present,
+		// git-credential should be reported
+		setNetrc("machine ci.example.com\nlogin user\npassword pass\njbang-auth git-credential\n");
+		assertThat(NetUtil.describeAuthMethod("https://ci.example.com/path/file.java"),
+				equalTo("git-credential (via .netrc)"));
 	}
 }
