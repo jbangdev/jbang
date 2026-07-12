@@ -12,6 +12,9 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.source.BuildContext;
+import dev.jbang.source.Builder;
+import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
@@ -24,6 +27,11 @@ public class MarkdownSource extends JshSource {
 	@Override
 	public @NonNull Type getType() {
 		return Type.markdown;
+	}
+
+	@Override
+	public Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
+		return ctx.getProject().isJShell() ? super.getBuilder(ctx) : new JavaAppBuilder(ctx);
 	}
 
 	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {

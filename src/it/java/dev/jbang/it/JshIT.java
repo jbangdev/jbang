@@ -5,6 +5,7 @@ import static java.lang.System.lineSeparator;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -93,6 +94,7 @@ public class JshIT extends BaseIT {
 	// Scenario: jsh with deps 1
 	@Test
 	@Description("jsh with deps")
+	@Disabled("jitpack is having issues, disabling temporarily")
 	public void shouldHandleJshWithDeps() {
 		assertThat(shell("jbang deps.jsh"))
 			.succeeded()

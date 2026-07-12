@@ -8,7 +8,7 @@ plugins {
 	id "com.github.breadmoirai.github-release" version "2.4.1"
 
 	id 'org.gradle.crypto.checksum' version '1.4.0'
-	id "com.diffplug.spotless" version "7.2.1"
+	id "com.diffplug.spotless" version "8.6.0"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.dorongold.task-tree" version "4.0.1"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
@@ -25,10 +25,11 @@ plugins {
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
-def devkitmanVersion = '0.4.6'
+def aeshVersion = '3.16.4'
+def devkitmanVersion = '0.4.9'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
-def jlineVersion = '3.30.5'
+def tambouiVersion = '0.4.0'
 def wiremockVersion = '3.13.2'
 
 configurations {
@@ -45,8 +46,8 @@ javadoc {
 }
 
 repositories {
-	mavenCentral()
 	mavenLocal()
+	mavenCentral()
 	//maven { url 'https://jitpack.io' }
 }
 
@@ -156,8 +157,11 @@ dependencies {
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.15.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation 'info.picocli:picocli:4.7.7'
-	annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
+	implementation("org.aesh:aesh:${aeshVersion}") {
+		exclude group: 'org.aesh', module: 'readline'
+	}
+	implementation 'org.aesh:readline-api:3.16.2'
+	annotationProcessor "org.aesh:aesh-processor:${aeshVersion}"
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.13.2'
@@ -172,8 +176,8 @@ dependencies {
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
 	implementation "org.apache.maven:maven-model:3.9.11"
 
-	implementation "org.jline:jline-console-ui:$jlineVersion"
-	implementation "org.jline:jline-terminal-jni:$jlineVersion"
+	implementation "dev.tamboui:tamboui-toolkit:$tambouiVersion"
+	implementation "dev.tamboui:tamboui-aesh-backend:$tambouiVersion"
 
 	// used in JBang as well (aside of nisse plugin in the build)
 	implementation "eu.maveniverse.maven.nisse:core:0.9.2"
@@ -191,7 +195,13 @@ dependencies {
 	// only for test running
 	agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
-	allureRawResultElements(files("$buildDir/allure-results"))
+	if (project.hasProperty('allureMergeDirs')) {
+		project.property('allureMergeDirs').toString().split(',').each { dir ->
+			allureRawResultElements(files(dir.trim()))
+		}
+	} else {
+		allureRawResultElements(files("$buildDir/allure-results"))
+	}
 
 }
 
@@ -205,7 +215,7 @@ buildConfig {
 tasks.withType(Test).configureEach {
 	//environment "JAVA_HOME", "/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1"
 	//executable = new File("/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1/bin/java")
-	//maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+	maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }
 
 // to enable reproducible builds
@@ -298,7 +308,7 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
-	// Include native image binary renamed to platform-specific name (e.g. jbang-linux-x64.bin)
+	// Include native image binary renamed to platform-specific name (e.g. jbang.bin-linux-x64)
 	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
@@ -307,6 +317,10 @@ def commonSpec = project.copySpec {
 		rename nativeExecName, platformNativeExecName
 		into 'bin'
 	}
+}
+
+tasks.named('installDist') {
+	mustRunAfter('nativeImage')
 }
 
 distributions {
@@ -332,26 +346,34 @@ latestDistTar {
 
 tasks.register('nativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('nativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.tar" })
 }
 
 tasks.register('latestNativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('latestNativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.tar" })
 }
@@ -413,7 +435,9 @@ shadowJar {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnitPlatform() {
+		excludeTags 'benchmark'
+	}
 	javaLauncher = testExecutionToolchain
 	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
 	if (testJavaVersion.asInt() >= 9) {
@@ -436,6 +460,25 @@ test {
 	}
 
 	// Allow disabling WireMock via project property -PdisableWiremock=true
+	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
+}
+
+task benchmark(type: Test) {
+	description = 'Run startup benchmark tests'
+	group = 'verification'
+	useJUnitPlatform() {
+		includeTags 'benchmark'
+	}
+	javaLauncher = testExecutionToolchain
+	def jvmArgsList = []
+	if (testJavaVersion.asInt() >= 9) {
+		jvmArgsList.addAll([
+			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+		])
+	}
+	jvmArgs = jvmArgsList
+	testLogging.showStandardStreams = true
 	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
 }
 
@@ -632,7 +675,7 @@ asciidoctor {
 task clidoc(type: Exec) {
 	doFirst {
 		println 'Generating cli man pages'
-		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', '--deps','org.eclipse.sisu:org.eclipse.sisu.inject:0.3.5', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
+		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
 	}
 }
 
@@ -706,9 +749,9 @@ String getPlatformNativeExecutableName() {
 	def os = getNativeBundleOs()
 	def arch = getNativeBundleArch()
 	if (os == 'windows') {
-		return "jbang-${os}-${arch}.bin.exe"
+		return "jbang.bin-${os}-${arch}.exe"
 	} else {
-		return "jbang-${os}-${arch}.bin"
+		return "jbang.bin-${os}-${arch}"
 	}
 }
 
@@ -887,6 +930,23 @@ task generateAllureEnvironment {
 		new File(allureDir, 'environment.properties').withOutputStream { os ->
 			props.store(os, 'Generated by Gradle')
 		}
+
+		def osKey = (env['RUNNER_OS'] ?: System.getProperty('os.name')).replaceAll(/\s+/, '_')
+		def javaMajor = System.getProperty('java.version').split('\\.')[0] == '1'
+			? System.getProperty('java.version').split('\\.')[1]
+			: System.getProperty('java.version').split('\\.')[0]
+		def runnerName = env['RUNNER_OS'] ? "${env['RUNNER_OS']}-latest java${javaMajor}" : "local"
+		def executor = [
+			name      : runnerName,
+			type      : 'github',
+			reportName: "Allure Report (${osKey})",
+			buildName : env['GITHUB_RUN_NUMBER'] ? "ci-build #${env['GITHUB_RUN_NUMBER']} ${osKey}" : 'local',
+			buildUrl  : (env['GITHUB_SERVER_URL'] && env['GITHUB_REPOSITORY'] && env['GITHUB_RUN_ID'])
+				? "${env['GITHUB_SERVER_URL']}/${env['GITHUB_REPOSITORY']}/actions/runs/${env['GITHUB_RUN_ID']}"
+				: '',
+			buildOrder: (env['GITHUB_RUN_NUMBER'] ?: '0') as Integer,
+		]
+		new File(allureDir, 'executor.json').text = groovy.json.JsonOutput.toJson(executor)
 	}
 }
 

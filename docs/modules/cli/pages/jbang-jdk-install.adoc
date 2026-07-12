@@ -1,74 +1,56 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-jdk-install(1)
+= JBANG-JDK-INSTALL
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang jdk install -- Installs a JDK.
 
-jbang-jdk-install - Installs a JDK.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang jdk install [-hf] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <versionOrId> [<existingJdkPath>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+== OPTIONS
 
-*jbang jdk install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* _versionOrId_
-                  [_existingJdkPath_]
+*-h*, *--help*::
+Display this help and exit
 
-// end::picocli-generated-man-section-synopsis[]
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
 
-// tag::picocli-generated-man-section-description[]
-== Description
-
-Installs a JDK.
-
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *-f*, *--force*::
-  Force installation even when already installed
+Force installation even when already installed
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--[no-]verbose*::
+jbang will be verbose on what it does.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
 
-// end::picocli-generated-man-section-options[]
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-_versionOrId_::
-  The version or id to install
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-[_existingJdkPath_]::
-  Pre installed JDK path
+== ARGUMENTS
 
-// end::picocli-generated-man-section-arguments[]
+*<versionOrId>*::
+The version or id to install
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+*<existingJdkPath>*::
+Pre installed JDK path, local `.zip`/`.tar.gz` archive path, or HTTP(S) URL to a `.zip`/`.tar.gz` JDK archive (`file:` URLs are treated as local paths)
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]
