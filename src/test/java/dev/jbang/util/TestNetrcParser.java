@@ -4,10 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -157,6 +161,32 @@ public class TestNetrcParser {
 
 		Optional<NetrcEntry> entry = parser.getEntry("gitlab.com");
 		assertFalse(entry.isPresent());
+	}
+
+	@Test
+	void testUnsafePermissionsAreIgnored() throws IOException {
+		assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+		Path netrc = tempDir.resolve("unsafe.netrc");
+		Files.writeString(netrc, "machine gitlab.com\nlogin user\npassword pass\n");
+		Files.setPosixFilePermissions(netrc, EnumSet.of(
+				PosixFilePermission.OWNER_READ,
+				PosixFilePermission.OWNER_WRITE,
+				PosixFilePermission.GROUP_READ));
+
+		NetrcParser parser = NetrcParser.parse(netrc);
+
+		assertFalse(parser.getEntry("gitlab.com").isPresent());
+	}
+
+	@Test
+	void testDefaultNetrcPathUsesDotNetrc() {
+		String oldHome = System.getProperty("user.home");
+		try {
+			System.setProperty("user.home", tempDir.toString());
+			assertEquals(tempDir.resolve(".netrc"), NetrcParser.getDefaultNetrcPath());
+		} finally {
+			System.setProperty("user.home", oldHome);
+		}
 	}
 
 	@Test
@@ -319,5 +349,71 @@ public class TestNetrcParser {
 		Optional<NetrcEntry> entry = parser.getEntry("example.com");
 		assertTrue(entry.isPresent());
 		assertEquals("hello world", entry.get().getPassword());
+	}
+
+	@Test
+	void testJbangKeyParsed() throws IOException {
+		NetrcParser parser = parseString(
+				"machine gitlab.mycompany.com\n" +
+						"jbang-auth git-credential\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("gitlab.mycompany.com");
+		assertTrue(entry.isPresent());
+		assertEquals("git-credential", entry.get().getJbangAuth());
+		assertNull(entry.get().getLogin());
+		assertNull(entry.get().getPassword());
+	}
+
+	@Test
+	void testJbangKeyWithLoginPassword() throws IOException {
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login user\n" +
+						"password pass\n" +
+						"jbang-auth git-credential\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("git-credential", entry.get().getJbangAuth());
+		// login/password are still parsed alongside jbang-auth key
+		assertEquals("user", entry.get().getLogin());
+		assertEquals("pass", entry.get().getPassword());
+	}
+
+	@Test
+	void testJbangKeySingleLine() throws IOException {
+		NetrcParser parser = parseString(
+				"machine ci.example.com jbang-auth git-credential\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("ci.example.com");
+		assertTrue(entry.isPresent());
+		assertEquals("git-credential", entry.get().getJbangAuth());
+	}
+
+	@Test
+	void testEntryWithoutJbangKeyReturnsNull() throws IOException {
+		NetrcParser parser = parseString(
+				"machine example.com\n" +
+						"login user\n" +
+						"password pass\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("example.com");
+		assertTrue(entry.isPresent());
+		assertNull(entry.get().getJbangAuth());
+	}
+
+	@Test
+	void testJbangAuthHostParsed() throws IOException {
+		NetrcParser parser = parseString(
+				"machine maven.pkg.github.com\n" +
+						"login myuser\n" +
+						"jbang-auth gh-auth\n" +
+						"jbang-auth-host github.com\n");
+
+		Optional<NetrcEntry> entry = parser.getEntry("maven.pkg.github.com");
+		assertTrue(entry.isPresent());
+		assertEquals("gh-auth", entry.get().getJbangAuth());
+		assertEquals("github.com", entry.get().getJbangAuthHost());
+		assertEquals("myuser", entry.get().getLogin());
 	}
 }
