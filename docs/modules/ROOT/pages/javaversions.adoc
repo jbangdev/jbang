@@ -111,6 +111,23 @@ So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] y
 jbang jdk install 17 `sdk home java 17.0.4.1-tem`
 ----
 
+You can also provide an HTTP(S) URL to a JDK archive (`.zip` or `.tar.gz`):
+
+[source,bash]
+----
+jbang jdk install 17 https://example.org/jdk-17.0.14.zip
+----
+
+You can also use local archive files directly, either by path or by `file:` URL:
+
+[source,bash]
+----
+jbang jdk install 17 /path/to/jdk-17.0.14.tar.gz
+jbang jdk install 17 file:///path/to/jdk-17.0.14.zip
+----
+
+For archive inputs, JBang unpacks the archive into the managed JDK folder. The installed folder name is `<version>-unknown-jbang`: for numeric `versionOrId` values the version is read from the extracted `release` file, otherwise the provided `versionOrId` is used.
+
 
 For setting up your current command line environment there's something simpler. You can run:
 

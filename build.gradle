@@ -25,7 +25,7 @@ plugins {
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
-def aeshVersion = '3.16'
+def aeshVersion = '3.16.4'
 def devkitmanVersion = '0.4.9'
 def junitBomVersion = '6.1.1'
 def testcontainersVersion = '2.0.2'
@@ -46,6 +46,7 @@ javadoc {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	//maven { url 'https://jitpack.io' }
 }
@@ -159,7 +160,7 @@ dependencies {
 	implementation("org.aesh:aesh:${aeshVersion}") {
 		exclude group: 'org.aesh', module: 'readline'
 	}
-	implementation 'org.aesh:readline-api:3.16'
+	implementation 'org.aesh:readline-api:3.16.2'
 	annotationProcessor "org.aesh:aesh-processor:${aeshVersion}"
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
@@ -307,7 +308,7 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
-	// Include native image binary renamed to platform-specific name (e.g. jbang-linux-x64.bin)
+	// Include native image binary renamed to platform-specific name (e.g. jbang.bin-linux-x64)
 	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
@@ -748,9 +749,9 @@ String getPlatformNativeExecutableName() {
 	def os = getNativeBundleOs()
 	def arch = getNativeBundleArch()
 	if (os == 'windows') {
-		return "jbang-${os}-${arch}.bin.exe"
+		return "jbang.bin-${os}-${arch}.exe"
 	} else {
-		return "jbang-${os}-${arch}.bin"
+		return "jbang.bin-${os}-${arch}"
 	}
 }
 

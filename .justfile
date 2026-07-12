@@ -33,7 +33,7 @@ itest *args:
 jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
-# open interactive shell with jbang completion (zsh, bash, or fish)
+# open interactive shell with jbang completion (zsh, bash, fish, or pwsh)
 [no-exit-message]
 shell sh="zsh":
     {{preitest}}
