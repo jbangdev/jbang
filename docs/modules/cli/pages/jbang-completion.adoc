@@ -1,74 +1,66 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-completion(1)
+= JBANG-COMPLETION
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang completion -- Generate bash/zsh or fish completion script for jbang.
 
-jbang-completion - Output auto-completion script for bash/zsh.
-Usage: source <(jbang completion)
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang completion [-h] [-s=<shell>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<shell>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+Run the following to enable TAB completion in the current shell:
 
-*jbang completion* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                 [*--config*=_<config>_]
+  bash/zsh:  source <(jbang completion)
+  fish:      jbang completion | source
+  pwsh:      (jbang completion) -join "`n" | Invoke-Expression  (experimental)
 
-// end::picocli-generated-man-section-synopsis[]
+The shell is auto-detected. To make it permanent, see the
+comments at the end of the generated script.
 
-// tag::picocli-generated-man-section-description[]
-== Description
-
-Output auto-completion script for bash/zsh.
-Usage: source <(jbang completion)
-
-// end::picocli-generated-man-section-description[]
-
-// tag::picocli-generated-man-section-options[]
-== Options
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+== OPTIONS
 
 *-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
+Display this help and exit
+
+*-s*, *--shell*=<shell>::
+The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.
+
+*--config*=<config>::
+Path to config file to be used instead of the default
 
 *--insecure*::
-  Enable insecure trust of all SSL certificates.
+Enable insecure trust of all SSL certificates.
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--[no-]verbose*::
+jbang will be verbose on what it does.
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// end::picocli-generated-man-section-options[]
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-// tag::picocli-generated-man-section-arguments[]
-// end::picocli-generated-man-section-arguments[]
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
+*<shell>*::
+Shell name (bash, zsh, fish, pwsh (experimental)). Overrides auto-detection.
 
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
+== EXTERNAL
 
-// end::picocli-generated-full-manpage[]
+*mac-aarch64*
+
+---
+
+
+   JBang ❤️  Commonhaus Foundation, MIT License
+🏡 https://www.commonhaus.org/community
+🚀 https://jbang.dev

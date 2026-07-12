@@ -14,9 +14,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -31,6 +33,7 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.util.Util;
+import dev.jbang.util.WarTestFixtures;
 
 public class TestProjectBuilder extends BaseTest {
 
@@ -387,5 +390,19 @@ public class TestProjectBuilder extends BaseTest {
 				ResourceRef.forFile(dirs.resolve("Foo.java")),
 				ResourceRef.forFile(dirs.resolve("Bar.java")),
 				ResourceRef.forFile(dirs.resolve("baz/Baz.java"))));
+	}
+
+	@Test
+	void testBuildWarFile() throws IOException {
+		Path warPath = Files.createTempFile("test", ".war");
+		try {
+			WarTestFixtures.createExecutableWar(warPath, "TestMain");
+			ProjectBuilder pb = Project.builder();
+			Project project = pb.build(warPath);
+			assertTrue(project.isExecutableArchive());
+			assertThat(project.getMainClass(), equalTo("TestMain"));
+		} finally {
+			Files.deleteIfExists(warPath);
+		}
 	}
 }

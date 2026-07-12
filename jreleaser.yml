@@ -36,6 +36,10 @@ project:
     version: 8
   inceptionYear: 2020
   stereotype: CLI
+  snapshot:
+    pattern: '^\d+\.\d+\.\d+\.\d+(?:-SNAPSHOT)?$'
+    label: early-access
+    fullChangelog: true
 
 release:
   github:
@@ -50,6 +54,31 @@ release:
       formatted: always
       preset: "conventional-commits"
       format: '- {{commitShortHash}} {{commitTitle}}'
+      content: |
+        {{#Model.project.snapshot.enabled}}
+        WARNING: This is an early-access release directly from `main` branch, not intended for production use. 
+
+        To enable experimental native-image jbang set JBANG_USE_NATIVE to true, i.e. `export JBANG_USE_NATIVE=true`
+
+        If you want to try the latest and greatest, please give it a spin and report any issues you find.
+
+        Here is how to install it:
+
+        Linux / macOS / WSL (bash):
+        ```
+        curl -Ls https://sh.jbang.dev | JBANG_DOWNLOAD_VERSION=early-access bash -s - app setup
+        ```
+
+        Windows PowerShell:
+        ```
+        $env:JBANG_DOWNLOAD_VERSION='early-access'; iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+        ```
+        {{/Model.project.snapshot.enabled}}
+
+        ## Changelog
+
+        {{changelogChanges}}
+        {{changelogContributors}}
 
 checksum:
   individual: true
@@ -63,11 +92,12 @@ deploy:
     mavenCentral:
       jbang:
         # workaround jreleaser bug around maven central credentials
-        username: "Vjuu+gNF"
-        active: ALWAYS
+        # see https://github.com/jreleaser/jreleaser/issues/1923
+        username: "8VhcNv"
+        active: RELEASE
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
-        authorization: BEARER
+        authorization: BASIC
         stagingRepositories:
           - build/staging-deploy
 
@@ -92,6 +122,9 @@ files:
     - path: build/tmp/version.txt
     - path: build/distributions/jbang.zip
     - path: build/distributions/jbang.tar
+  globs:
+    - pattern: build/distributions/jbang-*-*.zip
+    - pattern: build/distributions/jbang-*-*.tar
 
 distributions:
   jbang:

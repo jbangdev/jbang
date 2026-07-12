@@ -192,4 +192,38 @@ public class TestUtil extends BaseTest {
 		assertThat(Util.toJavaIdentifier("my.package.Class"), equalTo("_my_package_Class"));
 		assertThat(Util.toJavaIdentifier("test+plus"), equalTo("_test_plus"));
 	}
+
+	@Test
+	void testHasExecutableExtension() {
+		// Should recognize .jar files
+		assertTrue(Util.hasExecutableExtension("myapp.jar"));
+		assertTrue(Util.hasExecutableExtension("MyApp.JAR"));
+		assertTrue(Util.hasExecutableExtension("/path/to/app.jar"));
+
+		// Should recognize .war files
+		assertTrue(Util.hasExecutableExtension("myapp.war"));
+		assertTrue(Util.hasExecutableExtension("MyApp.WAR"));
+		assertTrue(Util.hasExecutableExtension("/path/to/app.war"));
+
+		// Should not recognize other files
+		assertFalse(Util.hasExecutableExtension("script.java"));
+		assertFalse(Util.hasExecutableExtension("script.jsh"));
+		assertFalse(Util.hasExecutableExtension("script.kt"));
+		assertFalse(Util.hasExecutableExtension("script"));
+		assertFalse(Util.hasExecutableExtension((String) null));
+	}
+
+	@Test
+	void testUnkebabify() {
+		// Executable archives should not be renamed
+		assertThat(Util.unkebabify("myapp.jar"), equalTo("myapp.jar"));
+		assertThat(Util.unkebabify("myapp.war"), equalTo("myapp.war"));
+		assertThat(Util.unkebabify("script.jsh"), equalTo("script.jsh"));
+
+		// Java source files should remain unchanged
+		assertThat(Util.unkebabify("MyClass.java"), equalTo("MyClass.java"));
+
+		// Extension-less files should get .java added
+		assertThat(Util.unkebabify("my-script"), equalTo("MyScript.java"));
+	}
 }

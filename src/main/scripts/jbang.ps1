@@ -60,6 +60,42 @@ if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { 
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
 if (-not (Test-Path env:JBANG_USE_NATIVE)) { $env:JBANG_USE_NATIVE="false" }
 
+# Base URL for downloading JBang releases.
+# Override for testing or corporate mirrors.
+# Example: $env:JBANG_DOWNLOAD_BASEURL='http://localhost:18080'
+if (-not (Test-Path env:JBANG_DOWNLOAD_BASEURL)) { $jbangDownloadBaseUrl='https://github.com/jbangdev/jbang/releases' } else { $jbangDownloadBaseUrl=$env:JBANG_DOWNLOAD_BASEURL }
+
+# Number of retry attempts for downloads
+if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY)) { $downloadRetry=5 } else { $downloadRetry=[int]$env:JBANG_DOWNLOAD_RETRY }
+if (-not (Test-Path env:JBANG_DOWNLOAD_RETRY_DELAY)) { $downloadRetryDelay=0 } else { $downloadRetryDelay=[int]$env:JBANG_DOWNLOAD_RETRY_DELAY }
+
+function Invoke-Download {
+    param([string]$url, [string]$outFile)
+    $attempt=0
+    while ($true) {
+        $attempt++
+        try {
+            Invoke-WebRequest "$url" -OutFile "$outFile"
+            return $true
+        } catch {
+            if ($attempt -gt $downloadRetry) {
+                return $false
+            }
+            if ($downloadRetryDelay -gt 0) {
+                $sleepSeconds = $downloadRetryDelay
+            } else {
+                # Exponential backoff: 1, 2, 4, 8, ...
+                $sleepSeconds = [Math]::Pow(2, $attempt - 1)
+            }
+            [Console]::Error.WriteLine("Download $attempt/$($downloadRetry + 1) failed. Retry in $sleepSeconds second(s)...")
+            if ($attempt -eq 1) {
+                [Console]::Error.WriteLine("(Set JBANG_DOWNLOAD_RETRY=0 to disable retries)")
+            }
+            Start-Sleep -Seconds $sleepSeconds
+        }
+    }
+}
+
 # Function to execute jbang (either native binary or JAR) and handle output
 function Invoke-JBang {
     param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
@@ -89,15 +125,20 @@ function Invoke-JBang {
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
 }
 
-# resolve jbang.bin binary or jar path from script location
+# detect architecture for platform-specific binary lookup
+$jbang_arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "aarch64" } else { "x64" }
+
+# resolve native binary or jar path from script location
 $binaryPath=""
 $jarPath=""
 if ($env:JBANG_USE_NATIVE -eq "true") {
-  # Look for native binary first if enabled
-  if (Test-Path "$PSScriptRoot\jbang.bin.exe") {
+  # Look for platform-specific native binary first, then fall back to jbang.bin.exe
+  if (Test-Path "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe") {
+    $binaryPath="$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe"
+  } elseif (Test-Path "$PSScriptRoot\jbang.bin.exe") {
     $binaryPath="$PSScriptRoot\jbang.bin.exe"
   } else {
-    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang.bin.exe) not found in $PSScriptRoot")
+    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang.bin-windows-${jbang_arch}.exe or jbang.bin.exe) not found in $PSScriptRoot")
   }
 }
 if (-not $binaryPath) {
@@ -110,21 +151,32 @@ if (-not $binaryPath) {
 }
 if (-not $binaryPath -and -not $jarPath) {
   if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
-    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
-    if (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
-        $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+    if ($env:JBANG_USE_NATIVE -eq "true") {
+      $bundleName = "jbang-windows-${jbang_arch}.zip"
     } else {
-        $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
+      $bundleName = "jbang.zip"
     }
-    [Console]::Error.WriteLine("Downloading JBang $env:JBANG_DOWNLOAD_VERSION...")
-    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
-      $ok=$false
-      $err=$_
+    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
+    if (Test-Path env:JBANG_DOWNLOAD_URL) {
+        $jburl=$env:JBANG_DOWNLOAD_URL
+    } elseif (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
+        $jburl="$jbangDownloadBaseUrl/latest/download/$bundleName"
+    } else {
+        # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
+        # release tags (e.g. 'early-access', '1.0.0-rc1') are used as-is.
+        if ($env:JBANG_DOWNLOAD_VERSION -match '^[0-9]+(\.[0-9]+)*$') {
+            $jbtag = "v$env:JBANG_DOWNLOAD_VERSION"
+        } else {
+            $jbtag = $env:JBANG_DOWNLOAD_VERSION
+        }
+        $jburl="$jbangDownloadBaseUrl/download/$jbtag/$bundleName";
     }
+    $dlVersion = if ($env:JBANG_DOWNLOAD_VERSION) { $env:JBANG_DOWNLOAD_VERSION } else { 'latest' }
+    [Console]::Error.WriteLine("Downloading JBang $dlVersion from $jburl...")
+    $ok = Invoke-Download "$jburl" "$TDIR\urls\jbang.zip"
     if (-not ($ok)) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
-      [Console]::Error.WriteLine($err)
-      break
+      exit 1
     }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
@@ -180,8 +232,8 @@ if (-not $binaryPath) {
         New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
         [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
         $jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
-        try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
-        if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
+        $ok = Invoke-Download "$jdkurl" "$TDIR\bootstrap-jdk.zip"
+        if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); exit 1 }
         [Console]::Error.WriteLine("Installing JDK $javaVersion...")
         Remove-Item -LiteralPath "$TDIR\jdks\$javaVersion.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
         try { Expand-Archive -Path "$TDIR\bootstrap-jdk.zip" -DestinationPath "$TDIR\jdks\$javaVersion.tmp"; $ok=$? } catch { $ok=$false }

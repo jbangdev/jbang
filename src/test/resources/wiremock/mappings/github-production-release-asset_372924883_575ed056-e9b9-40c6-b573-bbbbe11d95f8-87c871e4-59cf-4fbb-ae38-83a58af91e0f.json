@@ -1,0 +1,115 @@
+{
+  "id" : "87c871e4-59cf-4fbb-ae38-83a58af91e0f",
+  "name" : "github-production-release-asset_372924883_575ed056-e9b9-40c6-b573-bbbbe11d95f8",
+  "request" : {
+    "urlPath" : "/github-production-release-asset/372924883/575ed056-e9b9-40c6-b573-bbbbe11d95f8",
+    "method" : "GET",
+    "queryParameters" : {
+      "sp" : {
+        "hasExactly" : [ {
+          "equalTo" : "r"
+        } ]
+      },
+      "sv" : {
+        "hasExactly" : [ {
+          "equalTo" : "2018-11-09"
+        } ]
+      },
+      "sr" : {
+        "hasExactly" : [ {
+          "equalTo" : "b"
+        } ]
+      },
+      "spr" : {
+        "hasExactly" : [ {
+          "equalTo" : "https"
+        } ]
+      },
+      "se" : {
+        "hasExactly" : [ {
+          "equalTo" : "2026-04-13T16:48:10Z"
+        } ]
+      },
+      "rscd" : {
+        "hasExactly" : [ {
+          "equalTo" : "attachment; filename=OpenJDK11U-jdk_x64_windows_hotspot_11.0.30_7.zip"
+        } ]
+      },
+      "rsct" : {
+        "hasExactly" : [ {
+          "equalTo" : "application/octet-stream"
+        } ]
+      },
+      "skoid" : {
+        "hasExactly" : [ {
+          "equalTo" : "96c2d410-5711-43a1-aedd-ab1947aa7ab0"
+        } ]
+      },
+      "sktid" : {
+        "hasExactly" : [ {
+          "equalTo" : "398a6654-997b-47e9-b12b-9515b896b4de"
+        } ]
+      },
+      "skt" : {
+        "hasExactly" : [ {
+          "equalTo" : "2026-04-13T15:47:50Z"
+        } ]
+      },
+      "ske" : {
+        "hasExactly" : [ {
+          "equalTo" : "2026-04-13T16:48:10Z"
+        } ]
+      },
+      "sks" : {
+        "hasExactly" : [ {
+          "equalTo" : "b"
+        } ]
+      },
+      "skv" : {
+        "hasExactly" : [ {
+          "equalTo" : "2018-11-09"
+        } ]
+      },
+      "sig" : {
+        "hasExactly" : [ {
+          "equalTo" : "BuPsADIsunXRlz09RsBne5GTQ58+V1ZEsJURM14pPE8="
+        } ]
+      },
+      "jwt" : {
+        "hasExactly" : [ {
+          "equalTo" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3NjA5OTM2NCwibmJmIjoxNzc2MDk1NzY0LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.fy6TB5Z27V92VO1nOy-vvGfXcXaPkuAhbzmH2fL9d2k"
+        } ]
+      },
+      "response-content-disposition" : {
+        "hasExactly" : [ {
+          "equalTo" : "attachment; filename=OpenJDK11U-jdk_x64_windows_hotspot_11.0.30_7.zip"
+        } ]
+      },
+      "response-content-type" : {
+        "hasExactly" : [ {
+          "equalTo" : "application/octet-stream"
+        } ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 618,
+    "bodyFileName" : "github-production-release-asset_372924883_575ed056-e9b9-40c6-b573-bbbbe11d95f8-87c871e4-59cf-4fbb-ae38-83a58af91e0f.txt",
+    "headers" : {
+      "Accept-Ranges" : "bytes",
+      "X-Cache" : "MISS, MISS",
+      "Retry-After" : "0",
+      "Server" : "Varnish",
+      "X-Served-By" : "cache-iad-kjyo7100119-IAD, cache-mad2200115-MAD",
+      "Content-Disposition" : "attachment; filename=OpenJDK11U-jdk_x64_windows_hotspot_11.0.30_7.zip",
+      "X-Cache-Hits" : "0, 0",
+      "Date" : "Tue, 21 Apr 2026 08:58:51 GMT",
+      "Content-Type" : "application/octet-stream",
+      "X-Timer" : "S1776761931.077454,VS0,VE87",
+      "Via" : "1.1 varnish, 1.1 varnish"
+    }
+  },
+  "uuid" : "87c871e4-59cf-4fbb-ae38-83a58af91e0f",
+  "persistent" : true,
+  "insertionIndex" : 61
+}

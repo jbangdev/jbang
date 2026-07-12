@@ -116,6 +116,17 @@ jbang eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar
 
 Without `@fatjar` it would resolve dependencies which would be redundant.
 
+== Dependencies with WAR Files
+
+You can add dependencies to WAR files just like JAR files:
+
+[source, bash]
+----
+$ jbang --deps org.postgresql:postgresql:42.3.1 app.war
+----
+
+WAR files support all dependency-related features including `//DEPS` directives, BOM POMs, and custom repositories.
+
 == Managed dependencies ("BOM POM"'s) [Experimental]
 
 When using libraries and frameworks it can get tedious to manage and update multiple versions.
@@ -224,8 +235,9 @@ If you add any `//REPOS` lines `jbang` will no longer consult `mavencentral` thu
 
 [TIP]
 ====
-For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for configuring
-username/passwords.
+For secure authentication `jbang` will honor `~/.m2/settings.xml` and `~/.m2/settings-security.xml` for configuring
+username/passwords. Credentials from `~/.netrc`, `GITHUB_TOKEN`, `GITLAB_TOKEN`, and git credential helpers
+are also applied automatically — see xref:configuration.adoc#_http_authentication[HTTP Authentication] for details.
 ====
 
 By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.

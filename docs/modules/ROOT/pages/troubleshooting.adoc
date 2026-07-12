@@ -280,12 +280,20 @@ jbang --verbose script.java
 
 === Network Issues
 
-**Problem**: Slow dependency resolution
+**Problem**: Slow dependency resolution or transient download failures (especially in CI)
 
 **Solutions**:
 1. **Use local repository**: Set `JBANG_REPO` to local cache
 2. **Mirror repositories**: Use repository mirrors
 3. **Offline mode**: `jbang --offline` for cached dependencies
+4. **Increase download retries**: Set `JBANG_DOWNLOAD_RETRY` to a higher value (default: 5)
++
+[source,bash]
+----
+export JBANG_DOWNLOAD_RETRY=10
+----
++
+This applies to JDK and JBang bootstrap downloads on all platforms (curl, wget, and PowerShell).
 
 == Platform-Specific Issues
 

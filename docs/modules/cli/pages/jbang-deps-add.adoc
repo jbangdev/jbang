@@ -1,0 +1,44 @@
+= JBANG-DEPS-ADD
+
+== NAME
+
+jbang deps add -- Add dependencies to a jbang file.
+
+== SYNOPSIS
+
+[source]
+----
+jbang deps add [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<deps target>]
+----
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--[no-]verbose*::
+jbang will be verbose on what it does.
+
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+== ARGUMENTS
+
+*<deps target>*::
+Dependencies to add (groupId:artifactId:version) and target file (.java or build.jbang)
+

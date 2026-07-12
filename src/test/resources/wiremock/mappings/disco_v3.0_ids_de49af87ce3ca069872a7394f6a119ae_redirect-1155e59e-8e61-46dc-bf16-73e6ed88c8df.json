@@ -1,0 +1,18 @@
+{
+  "id" : "1155e59e-8e61-46dc-bf16-73e6ed88c8df",
+  "name" : "disco_v3.0_ids_de49af87ce3ca069872a7394f6a119ae_redirect",
+  "request" : {
+    "url" : "/disco/v3.0/ids/de49af87ce3ca069872a7394f6a119ae/redirect",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 301,
+    "headers" : {
+      "location" : "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.30%2B7/OpenJDK11U-jdk_x64_windows_hotspot_11.0.30_7.zip",
+      "Date" : "Mon, 13 Apr 2026 15:56:04 GMT"
+    }
+  },
+  "uuid" : "1155e59e-8e61-46dc-bf16-73e6ed88c8df",
+  "persistent" : true,
+  "insertionIndex" : 59
+}

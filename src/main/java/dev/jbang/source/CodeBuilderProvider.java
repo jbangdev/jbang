@@ -76,7 +76,7 @@ public class CodeBuilderProvider implements Supplier<Builder<CmdGeneratorBuilder
 		if (prj.getMainSource() != null) {
 			return prj.getMainSource().getBuilder(ctx);
 		} else {
-			if (prj.isJar() && prj.isNativeImage()) {
+			if (prj.isExecutableArchive() && prj.isNativeImage()) {
 				// JARs normally don't need building unless a native image
 				// was requested
 				return new JavaSource.JavaAppBuilder(ctx);

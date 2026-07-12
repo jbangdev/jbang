@@ -9,6 +9,15 @@
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
+# Base URL for downloading JBang releases.
+# Override for testing or corporate mirrors.
+# Example: JBANG_DOWNLOAD_BASEURL=http://localhost:18080
+jbangDownloadBaseUrl=${JBANG_DOWNLOAD_BASEURL:-https://github.com/jbangdev/jbang/releases}
+
+# Number of retry attempts for downloads (curl/wget)
+downloadRetry=${JBANG_DOWNLOAD_RETRY:-5}
+downloadRetryDelay=${JBANG_DOWNLOAD_RETRY_DELAY:-0}
+
 script_dir() {
   script=${BASH_SOURCE[0]}
   while [ -L "$script" ]; do
@@ -21,16 +30,35 @@ script_dir() {
 }
 
 download() {
-  if [ -x "$(command -v curl)" ]; then
-    curl -sLf -o "$2" "$1"
-    retval=$?
-  elif [ -x "$(command -v wget)" ]; then
-    wget -q -O "$2" "$1"
-    retval=$?
-  else
-    echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
-    exit 1
-  fi
+  local attempt=0
+  local maxAttempts=$((downloadRetry + 1))
+  while true; do
+    attempt=$((attempt + 1))
+    if [ -x "$(command -v curl)" ]; then
+      curl -sLf -o "$2" "$1"
+      retval=$?
+    elif [ -x "$(command -v wget)" ]; then
+      wget -q -O "$2" "$1"
+      retval=$?
+    else
+      echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
+      exit 1
+    fi
+    if [ $retval -eq 0 ] || [ $attempt -ge $maxAttempts ]; then
+      break
+    fi
+    if [ "$downloadRetryDelay" -gt 0 ] 2>/dev/null; then
+      sleepSeconds=$downloadRetryDelay
+    else
+      # Exponential backoff: 1, 2, 4, 8, ...
+      sleepSeconds=$((1 << (attempt - 1)))
+    fi
+    echo "Download $attempt/$maxAttempts failed. Retry in $sleepSeconds second(s)..." 1>&2
+    if [ $attempt -eq 1 ]; then
+      echo "(Set JBANG_DOWNLOAD_RETRY=0 to disable retries)" 1>&2
+    fi
+    sleep $sleepSeconds
+  done
 }
 
 unpack() {
@@ -179,7 +207,7 @@ case "$(uname -m)" in
     arch=x32;;
   x86_64|amd64)
     arch=x64;;
-  aarch64)
+  aarch64|arm64)
     arch=aarch64;;
   armv7l)
     arch=arm;;
@@ -187,8 +215,6 @@ case "$(uname -m)" in
     arch=ppc64le;;
   s390x)
     arch=s390x;;
-  arm64)
-    arch=arm64;;
   riscv64)
     arch=riscv64
     ;;
@@ -221,22 +247,27 @@ if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 if [[ -z "$JBANG_USE_NATIVE" ]]; then JBANG_USE_NATIVE="false"; fi
 
-## resolve jbang.bin binary or jar path from script location
+## resolve native binary or jar path from script location
 binaryPath=""
 jarPath=""
 if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
-  # Look for native binary first if enabled
+  # Look for platform-specific native binary first (e.g. jbang.bin-linux-x64),
+  # then fall back to generic jbang.bin for manually placed binaries
   if [[ "$os" == "windows" ]]; then
-    if [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
+    if [ -f "$abs_jbang_dir/jbang.bin-${os}-${arch}.exe" ] && [ -x "$abs_jbang_dir/jbang.bin-${os}-${arch}.exe" ]; then
+      binaryPath="$abs_jbang_dir/jbang.bin-${os}-${arch}.exe"
+    elif [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin.exe"
     else
-      echo "WARNING: JBang native binary (jbang.bin.exe) not found in $abs_jbang_dir" 1>&2
+      echo "WARNING: JBang native binary (jbang.bin-${os}-${arch}.exe or jbang.bin.exe) not found in $abs_jbang_dir" 1>&2
     fi
   else
-    if [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
+    if [ -f "$abs_jbang_dir/jbang.bin-${os}-${arch}" ] && [ -x "$abs_jbang_dir/jbang.bin-${os}-${arch}" ]; then
+      binaryPath="$abs_jbang_dir/jbang.bin-${os}-${arch}"
+    elif [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin"
     else
-      echo "WARNING: JBang native binary (jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
+      echo "WARNING: JBang native binary (jbang.bin-${os}-${arch} or jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
     fi
   fi
 fi
@@ -250,13 +281,26 @@ if [[ -z "$binaryPath" ]]; then
 fi
 if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
-    echo "Downloading JBang $JBANG_DOWNLOAD_VERSION..." 1>&2
-    mkdir -p "$TDIR/urls"
-    if [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
-      jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
+    if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
+      bundleName="jbang-${os}-${arch}.tar"
     else
-      jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
+      bundleName="jbang.tar"
     fi
+    mkdir -p "$TDIR/urls"
+    if [ -n "$JBANG_DOWNLOAD_URL" ]; then
+      jburl="$JBANG_DOWNLOAD_URL";
+    elif [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
+      jburl="${jbangDownloadBaseUrl}/latest/download/$bundleName";
+    else
+      # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
+      # release tags (e.g. 'early-access', '1.0.0-rc1') are used as-is.
+      case "$JBANG_DOWNLOAD_VERSION" in
+        *[!0-9.]*) jbtag="$JBANG_DOWNLOAD_VERSION" ;;
+        *)         jbtag="v$JBANG_DOWNLOAD_VERSION" ;;
+      esac
+      jburl="${jbangDownloadBaseUrl}/download/$jbtag/$bundleName";
+    fi
+    echo "Downloading JBang ${JBANG_DOWNLOAD_VERSION:-latest} from $jburl..." 1>&2
     download "$jburl" "$TDIR/urls/jbang.tar"
     if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
     echo "Installing JBang..." 1>&2
