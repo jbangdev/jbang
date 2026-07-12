@@ -56,12 +56,7 @@ public class Settings {
 		if (jd != null) {
 			dir = Paths.get(jd);
 		} else {
-			// On Windows, USERPROFILE is more reliable than user.home for non-ASCII
-			// usernames
-			String home = Util.isWindows()
-					? System.getenv().getOrDefault("USERPROFILE", System.getProperty("user.home"))
-					: System.getProperty("user.home");
-			dir = Paths.get(home).resolve(".jbang");
+			dir = Util.getUserHomeDir().resolve(".jbang");
 		}
 
 		if (init)
@@ -101,7 +96,7 @@ public class Settings {
 		if (jlr != null) {
 			dir = Paths.get(jlr);
 		} else {
-			dir = Paths.get(System.getProperty("user.home"));
+			dir = Util.getUserHomeDir();
 		}
 		return dir;
 	}

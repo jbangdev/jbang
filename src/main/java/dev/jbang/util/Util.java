@@ -614,6 +614,21 @@ public class Util {
 		return OsUtils.isWindows();
 	}
 
+	/**
+	 * Returns the user's home directory. On Windows, prefers the USERPROFILE
+	 * environment variable over Java's user.home property because user.home can
+	 * return a corrupted path when the username contains non-ASCII characters.
+	 */
+	public static Path getUserHomeDir() {
+		if (isWindows()) {
+			String up = System.getenv("USERPROFILE");
+			if (up != null && !up.isEmpty()) {
+				return Paths.get(up);
+			}
+		}
+		return Paths.get(System.getProperty("user.home"));
+	}
+
 	public static Shell getShell() {
 		try {
 			return Shell.valueOf(System.getenv(JBANG_RUNTIME_SHELL));

@@ -3,7 +3,6 @@ package dev.jbang.cli;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -481,18 +480,7 @@ class AppSetup extends BaseCommand {
 			}
 		}
 		if (!cmd.isEmpty()) {
-			if (Util.isWindows() && Util.getShell() == Util.Shell.powershell) {
-				try {
-					Path tmpFile = Files.createTempFile("jbang-setup-", ".ps1");
-					tmpFile.toFile().deleteOnExit();
-					Files.write(tmpFile, cmd.getBytes(StandardCharsets.UTF_8));
-					System.out.println(tmpFile.toAbsolutePath().toString());
-				} catch (IOException e) {
-					System.out.println(cmd);
-				}
-			} else {
-				System.out.println(cmd);
-			}
+			System.out.println(cmd);
 			return EXIT_EXECUTE;
 		} else {
 			return EXIT_OK;
@@ -550,7 +538,7 @@ class AppSetup extends BaseCommand {
 	}
 
 	private static Path getHome() {
-		return Paths.get(System.getProperty("user.home"));
+		return Util.getUserHomeDir();
 	}
 
 	private static String toHomePath(Path path) {
