@@ -172,9 +172,9 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.36"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
-	implementation "org.apache.maven:maven-model:3.9.11"
+	implementation "eu.maveniverse.maven.mima:context:2.5.0-SNAPSHOT"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.5.0-SNAPSHOT"
+	implementation "eu.maveniverse.maven.domtrip:domtrip-maven:1.5.2"
 
 	implementation "dev.tamboui:tamboui-toolkit:$tambouiVersion"
 	implementation "dev.tamboui:tamboui-aesh-backend:$tambouiVersion"
