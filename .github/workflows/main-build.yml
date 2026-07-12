@@ -16,11 +16,13 @@ concurrency:
 jobs:
   ci-build:
     uses: ./.github/workflows/step-ci-build.yml
+    secrets: inherit
 
   earlyaccess:
     needs: ci-build
     runs-on: ubuntu-latest
     env:
+      JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
       JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
@@ -74,6 +76,28 @@ jobs:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: full-release --yolo
           setup-java: false
+      - name: Mark release as pre-release (not draft)
+        if: steps.version.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete any older early-access releases (JReleaser creates a new draft each run)
+          gh api repos/${{ github.repository }}/releases \
+            --jq '[.[] | select(.tag_name=="early-access")] | sort_by(.created_at) | reverse | .[1:] | .[].id' \
+          | while read id; do
+            echo "Deleting old early-access release $id"
+            gh api --method DELETE repos/${{ github.repository }}/releases/$id || true
+          done
+          # Un-draft the latest one
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases \
+            --jq '[.[] | select(.tag_name=="early-access")] | sort_by(.created_at) | last | .id')
+          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+            echo "Marking release $RELEASE_ID as published pre-release"
+            gh api --method PATCH repos/${{ github.repository }}/releases/$RELEASE_ID \
+              -F draft=false -F prerelease=true
+          else
+            echo "::warning::Could not find early-access release to un-draft"
+          fi
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

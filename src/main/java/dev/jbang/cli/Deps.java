@@ -12,9 +12,8 @@ import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Arguments;
 import org.aesh.command.option.Option;
+import org.aesh.terminal.Connection;
 import org.eclipse.aether.artifact.Artifact;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.search.ArtifactSearchWidget;
@@ -86,20 +85,22 @@ public class Deps extends BaseCommand {
 				throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + targetPath);
 			}
 
-			try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
-				try {
-					Artifact artifact = new ArtifactSearchWidget(terminal).search(query != null ? query : "");
-					if (targetPath != null) {
-						DepsAdd.updateFile(targetPath, Collections.singletonList(artifactGav(artifact)));
-						info("Added " + artifactGav(artifact) + " to " + targetPath);
-					} else {
-						System.out.printf("%s:%s:%s%n", artifact.getGroupId(), artifact.getArtifactId(),
-								artifact.getVersion());
-					}
-					return EXIT_OK;
-				} catch (IOError e) {
-					return EXIT_INVALID_INPUT;
+			try {
+				Connection connection = null;
+				if (commandInvocation != null && commandInvocation.getShell() != null) {
+					connection = commandInvocation.getShell().connection();
 				}
+				Artifact artifact = new ArtifactSearchWidget().search(connection, query != null ? query : "");
+				if (targetPath != null) {
+					DepsAdd.updateFile(targetPath, Collections.singletonList(artifactGav(artifact)));
+					info("Added " + artifactGav(artifact) + " to " + targetPath);
+				} else {
+					System.out.printf("%s:%s:%s%n", artifact.getGroupId(), artifact.getArtifactId(),
+							artifact.getVersion());
+				}
+				return EXIT_OK;
+			} catch (IOError e) {
+				return EXIT_INVALID_INPUT;
 			}
 		}
 

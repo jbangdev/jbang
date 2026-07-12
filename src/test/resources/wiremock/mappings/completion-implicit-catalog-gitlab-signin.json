@@ -1,0 +1,18 @@
+{
+  "id" : "e6d1b9c0-9ff8-4ddf-8bd5-b0650f25ce61",
+  "name" : "completion_implicit_catalog_gitlab_signin",
+  "request" : {
+    "url" : "/users/sign_in",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 302,
+    "headers" : {
+      "Location" : "https://gitlab.com/users/sign_in",
+      "Content-Type" : "text/html"
+    }
+  },
+  "uuid" : "e6d1b9c0-9ff8-4ddf-8bd5-b0650f25ce61",
+  "persistent" : true,
+  "priority" : 10
+}

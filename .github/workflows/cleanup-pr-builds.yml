@@ -1,0 +1,94 @@
+name: cleanup-pr-builds
+
+on:
+  # Immediate cleanup when a PR is closed or merged.
+  # Uses pull_request_target (not pull_request) so it runs in the base
+  # branch context and has access to secrets for cross-repo operations.
+  pull_request_target:
+    types: [closed]
+
+  # Weekly safety-net: remove stale releases older than 30 days
+  schedule:
+    - cron: '0 3 * * 0'  # Sunday 03:00 UTC
+
+jobs:
+  cleanup-closed-pr:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete PR build release
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = 'jbang-pr-builds';
+            const tag = `pr-${context.payload.pull_request.number}`;
+
+            try {
+              const { data: release } = await github.rest.repos.getReleaseByTag({
+                owner, repo, tag
+              });
+              await github.rest.repos.deleteRelease({
+                owner, repo, release_id: release.id
+              });
+              core.info(`Deleted release ${tag}`);
+            } catch (e) {
+              if (e.status === 404) {
+                core.info(`No release found for ${tag}, nothing to clean up`);
+              } else {
+                throw e;
+              }
+            }
+
+            // Also delete the tag
+            try {
+              await github.rest.git.deleteRef({
+                owner, repo, ref: `tags/${tag}`
+              });
+              core.info(`Deleted tag ${tag}`);
+            } catch (e) {
+              if (e.status !== 422 && e.status !== 404) throw e;
+            }
+
+  cleanup-stale:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete releases older than 30 days
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = 'jbang-pr-builds';
+            const maxAgeDays = 30;
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - maxAgeDays);
+
+            // Paginate through all releases
+            const releases = await github.paginate(
+              github.rest.repos.listReleases,
+              { owner, repo, per_page: 100 }
+            );
+
+            let deleted = 0;
+            for (const release of releases) {
+              const createdAt = new Date(release.created_at);
+              if (createdAt < cutoff) {
+                const tag = release.tag_name;
+                await github.rest.repos.deleteRelease({
+                  owner, repo, release_id: release.id
+                });
+                try {
+                  await github.rest.git.deleteRef({
+                    owner, repo, ref: `tags/${tag}`
+                  });
+                } catch (e) {
+                  if (e.status !== 422 && e.status !== 404) throw e;
+                }
+                core.info(`Deleted stale release ${tag} (created ${createdAt.toISOString()})`);
+                deleted++;
+              }
+            }
+            core.info(`Cleaned up ${deleted} stale release(s)`);

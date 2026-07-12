@@ -281,7 +281,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 				String[] mainClassOptions = filteredMains.map(m -> m.name().toString()).toArray(String[]::new);
 				int result = Util.askInput(
-						"No main class deduced, specified nor found in a manifest, but found these candidates:", 30, 0,
+						"No main class deduced, specified nor found in a manifest, but found these candidates:",
+						Util.getAskInputTimeout(), 0,
 						mainClassOptions);
 
 				if (result <= 0) {

@@ -77,16 +77,7 @@ public class App extends BaseCommand {
 		String name;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-		public List<String> userParams;
-
-		@Override
-		public void afterParse() {
-			super.afterParse();
-			if (userParams == null) {
-				userParams = new ArrayList<>();
-			}
-			runMixin.resolveAfterParse();
-		}
+		public List<String> userParams = new ArrayList<>();
 
 		@Override
 		public Integer doCall() throws IOException {
@@ -245,8 +236,8 @@ public class App extends BaseCommand {
 				} else {
 					Path jar = Util.getJarLocation();
 					// TODO: this is duplicated in Wrapper.java - should be more shared.
-					if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith(".bin")
-							&& !jar.toString().endsWith(".bin.exe")) {
+					String jarName = jar.getFileName().toString();
+					if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
 						throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location from " + jar);
 					}
 					Path fromDir = jar.getParent();
@@ -473,7 +464,8 @@ public class App extends BaseCommand {
 				Util.infoMsg("JBang environment setup completed...");
 			} else if (chatty) {
 				Util.infoMsg("JBang is already available in PATH.");
-				Util.infoMsg("(You can use --force to perform the setup anyway)");
+				Util.infoMsg("You can use --force to update your shell environment files anyway.");
+				Util.infoMsg("To update JBang itself, run: jbang version --update");
 			}
 			if (Util.getShell() == Util.Shell.bash) {
 				if (changed) {
@@ -525,9 +517,7 @@ public class App extends BaseCommand {
 		private static boolean changeBashOrZshRcScript(Path binDir, Path javaHome, Path rcFile) {
 			try {
 				// Detect if JBang has already been set up before
-				boolean jbangFound = Files.exists(rcFile)
-						&& Files.lines(rcFile)
-							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+				boolean jbangFound = hasJBangSetup(rcFile);
 				if (!jbangFound) {
 					// Add lines to add JBang to PATH
 					String lines = "\n# Add JBang to environment\n" +
@@ -549,6 +539,15 @@ public class App extends BaseCommand {
 				Util.verboseMsg("Couldn't change script: " + rcFile, e);
 			}
 			return false;
+		}
+
+		static boolean hasJBangSetup(Path rcFile) throws IOException {
+			if (!Files.exists(rcFile)) {
+				return false;
+			}
+			try (Stream<String> lines = Files.lines(rcFile)) {
+				return lines.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+			}
 		}
 
 		private static Path getHome() {

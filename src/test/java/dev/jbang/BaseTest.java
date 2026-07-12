@@ -61,6 +61,7 @@ public abstract class BaseTest {
 	void initEnv(@TempDir Path tempPath) throws IOException {
 		Util.setQuiet(false);
 		Util.setOffline(false);
+		Util.setAskInputTimeout(0);
 		Util.setFresh(false);
 		Util.setPreview(false);
 		Util.setVerbose(true);

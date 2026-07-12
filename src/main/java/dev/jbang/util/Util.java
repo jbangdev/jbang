@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -45,6 +46,8 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -117,6 +120,7 @@ public class Util {
 	private static Boolean downloadSources;
 	private static Instant startTime = Instant.now();
 	private static boolean printExceptions = false;
+	private static int askInputTimeout = 30;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -151,6 +155,14 @@ public class Util {
 
 	public static boolean printExceptions() {
 		return printExceptions;
+	}
+
+	public static int getAskInputTimeout() {
+		return askInputTimeout;
+	}
+
+	public static void setAskInputTimeout(int askInputTimeout) {
+		Util.askInputTimeout = askInputTimeout;
 	}
 
 	public static void setOffline(boolean offline) {
@@ -948,20 +960,72 @@ public class Util {
 	 * @return The output of the command or null if anything went wrong
 	 */
 	public static String runCommand(String... cmd) {
+		return runCommand(null, null, cmd);
+	}
+
+	/**
+	 * Runs a command and returns its stdout, or {@code null} on failure.
+	 *
+	 * @param stdin Content to write to the process's stdin, or {@code null}
+	 * @param env   Extra environment variables to add to the process, or
+	 *              {@code null}
+	 * @param cmd   The command and arguments to execute
+	 * @return The stdout output of the command or {@code null} if the command
+	 *         failed or could not be run
+	 */
+	public static String runCommand(String stdin, Map<String, String> env, String... cmd) {
+		return runCommand(stdin, env, 0, true, cmd);
+	}
+
+	public static String runCommandQuietly(String stdin, Map<String, String> env, int timeoutSeconds, String... cmd) {
+		return runCommand(stdin, env, timeoutSeconds, false, cmd);
+	}
+
+	private static String runCommand(String stdin, Map<String, String> env, int timeoutSeconds, boolean logOutput,
+			String... cmd) {
 		try {
 			ProcessBuilder pb = CommandBuffer.of(cmd).asProcessBuilder();
+			if (env != null) {
+				pb.environment().putAll(env);
+			}
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
+			if (stdin != null) {
+				try (OutputStream os = p.getOutputStream()) {
+					os.write(stdin.getBytes(StandardCharsets.UTF_8));
+					os.flush();
+				}
+			}
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String cmdOutput = br.lines().collect(Collectors.joining("\n"));
-			int exitCode = p.waitFor();
+			CompletableFuture<String> output = CompletableFuture.supplyAsync(
+					() -> br.lines().collect(Collectors.joining("\n")));
+			int exitCode;
+			if (timeoutSeconds <= 0) {
+				exitCode = p.waitFor();
+			} else {
+				boolean finished = p.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+				if (!finished) {
+					p.destroyForcibly();
+					verboseMsg("Command timed out: " + String.join(" ", cmd));
+					return null;
+				}
+				exitCode = p.exitValue();
+			}
+			String cmdOutput = output.join();
 			if (exitCode == 0) {
 				return cmdOutput;
-			} else {
+			} else if (logOutput) {
 				verboseMsg(String.format("Command failed: #%d - %s", exitCode, cmdOutput));
+			} else {
+				verboseMsg(String.format("Command failed: #%d - %s", exitCode, String.join(" ", cmd)));
 			}
-		} catch (IOException | InterruptedException ex) {
+		} catch (CompletionException ex) {
+			verboseMsg("Error reading output from: " + String.join(" ", cmd), ex);
+		} catch (IOException ex) {
 			verboseMsg("Error running: " + String.join(" ", cmd), ex);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			verboseMsg("Interrupted running: " + String.join(" ", cmd), ex);
 		}
 		return null;
 	}

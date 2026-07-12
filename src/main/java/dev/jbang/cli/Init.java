@@ -35,7 +35,7 @@ import io.quarkus.qute.TemplateInstance;
 @CommandDefinition(name = "init", description = "Initialize a script.", generateHelp = true, helpGroup = "Editing")
 public class Init extends BaseCommand {
 
-	@Option(shortName = 'j', name = "java", description = "JDK version to use for running the script.")
+	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
 	String javaVersion;
 
 	@Mixin
@@ -61,23 +61,6 @@ public class Init extends BaseCommand {
 
 	@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
 	List<String> params;
-
-	@Override
-	public void afterParse() {
-		super.afterParse();
-		if (aiOptions.provider == null) {
-			aiOptions.provider = System.getenv("JBANG_AI_PROVIDER");
-		}
-		if (aiOptions.apiKey == null) {
-			aiOptions.apiKey = System.getenv("JBANG_AI_API_KEY");
-		}
-		if (aiOptions.endpoint == null) {
-			aiOptions.endpoint = System.getenv("JBANG_AI_ENDPOINT");
-		}
-		if (aiOptions.model == null) {
-			aiOptions.model = System.getenv("JBANG_AI_MODEL");
-		}
-	}
 
 	public void requireScriptArgument() {
 		if (scriptOrFile == null) {

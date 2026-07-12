@@ -8,12 +8,8 @@ jbang info docs -- Open the documentation file in the default browser.
 
 [source]
 ----
-jbang info docs [-hox] [--[no-]open] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [--build-dir=<build-dir>] [--module] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<scriptOrFile>]
+jbang info docs [-h] [--[no-]open] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [--build-dir=<build-dir>] [--module] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
 ----
-
-== DESCRIPTION
-
-Open the documentation file in the default browser.
 
 == OPTIONS
 
@@ -71,19 +67,19 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == ARGUMENTS
