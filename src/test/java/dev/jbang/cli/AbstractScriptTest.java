@@ -169,6 +169,20 @@ abstract class AbstractScriptTest {
 		return baos.toByteArray();
 	}
 
+	protected byte[] createNativeJbangTar(String version, String os, String arch) throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try (TarArchiveOutputStream tar = new TarArchiveOutputStream(baos)) {
+			byte[] binary = "#!/bin/bash\necho native-companion\n".getBytes(StandardCharsets.UTF_8);
+			TarArchiveEntry entry = new TarArchiveEntry("jbang-" + version + "/bin/jbang.bin-" + os + "-" + arch);
+			entry.setSize(binary.length);
+			entry.setMode(0755);
+			tar.putArchiveEntry(entry);
+			tar.write(binary);
+			tar.closeArchiveEntry();
+		}
+		return baos.toByteArray();
+	}
+
 	/**
 	 * Creates a minimal jbang.zip containing jbang/bin/jbang.ps1 (a dummy script
 	 * that just exits 0), an empty jbang/bin/jbang.jar, and jbang/bin/jbang.cmd.

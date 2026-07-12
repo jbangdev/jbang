@@ -267,8 +267,46 @@ if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
     elif [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin"
     else
-      echo "WARNING: JBang native binary (jbang.bin-${os}-${arch} or jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
+      if [[ ! -f "$abs_jbang_dir/jbang.jar" || ! -f "$abs_jbang_dir/../version.txt" ]]; then
+        echo "WARNING: JBang native binary (jbang.bin-${os}-${arch} or jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
+      fi
     fi
+  fi
+fi
+if [[ "$JBANG_USE_NATIVE" == "true" && -z "$binaryPath" && -f "$abs_jbang_dir/jbang.jar" && -f "$abs_jbang_dir/../version.txt" ]]; then
+  bundledVersion=$(cat "$abs_jbang_dir/../version.txt")
+  nativeDir="$TDIR/native/$bundledVersion/$os-$arch"
+  nativePath="$nativeDir/jbang.bin-${os}-${arch}"
+  if [ -f "$nativePath" ] && [ -x "$nativePath" ]; then
+    binaryPath="$nativePath"
+  else
+    bundleName="jbang-${bundledVersion}-${os}-${arch}.tar"
+    case "$bundledVersion" in
+      *[!0-9.]*) jbtag="$bundledVersion" ;;
+      *)         jbtag="v$bundledVersion" ;;
+    esac
+    if [ -n "$JBANG_DOWNLOAD_URL" ]; then
+      jburl="$JBANG_DOWNLOAD_URL"
+    else
+      jburl="${jbangDownloadBaseUrl}/download/$jbtag/$bundleName"
+    fi
+    rm -rf "$nativeDir.tmp"
+    mkdir -p "$nativeDir.tmp"
+    echo "Downloading JBang native binary $bundledVersion from $jburl..." 1>&2
+    download "$jburl" "$nativeDir.tmp/jbang.tar"
+    if [ $retval -eq 0 ]; then
+      tar xf "$nativeDir.tmp/jbang.tar" -C "$nativeDir.tmp"
+      retval=$?
+    fi
+    if [ $retval -eq 0 ] && [ -f "$nativeDir.tmp/jbang-$bundledVersion/bin/jbang.bin-${os}-${arch}" ]; then
+      mkdir -p "$nativeDir"
+      cp -f "$nativeDir.tmp/jbang-$bundledVersion/bin/jbang.bin-${os}-${arch}" "$nativePath"
+      chmod +x "$nativePath"
+      binaryPath="$nativePath"
+    else
+      echo "WARNING: Unable to install JBang native binary; falling back to the JAR" 1>&2
+    fi
+    rm -rf "$nativeDir.tmp"
   fi
 fi
 if [[ -z "$binaryPath" ]]; then
