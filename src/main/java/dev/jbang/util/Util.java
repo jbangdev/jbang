@@ -953,7 +953,7 @@ public class Util {
 	}
 
 	public static Process run(ProcessBuilder pb) throws IOException {
-		infoMsg(String.join(" ", pb.command()));
+		verboseMsg(String.join(" ", pb.command()));
 		return pb.start();
 	}
 
