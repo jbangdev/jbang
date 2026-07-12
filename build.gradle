@@ -1,3 +1,5 @@
+import org.ajoberstar.grgit.Grgit
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.crypto.checksum.Checksum
 
 plugins {
@@ -78,7 +80,7 @@ def testExecutionToolchain = project.javaToolchains.launcherFor {
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
 reporting {
-	baseDir = "$buildDir/reports"
+	baseDirectory = layout.buildDirectory.dir("reports")
 }
 
 allure {
@@ -200,7 +202,7 @@ dependencies {
 			allureRawResultElements(files(dir.trim()))
 		}
 	} else {
-		allureRawResultElements(files("$buildDir/allure-results"))
+		allureRawResultElements(files(layout.buildDirectory.dir("allure-results")))
 	}
 
 }
@@ -208,7 +210,7 @@ dependencies {
 buildConfig {
 	packageName("dev.jbang.util")
 	buildConfigField('String', 'NAME', "\"${project.name}\"")
-	buildConfigField('String', 'VERSION', provider { "\"${project.version}\"" })
+	buildConfigField('String', 'VERSION', provider { "\"${project.version}\"" } as Provider<String>)
 }
 
 // to enable parallel test execution
@@ -233,7 +235,7 @@ sonarqube {
 }
 
 spotless {
-	lineEndings 'UNIX'
+	lineEndings = 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
 		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
@@ -287,7 +289,7 @@ task printVersion {
 
 task versionTxt() {
 	doLast {
-		new File(project.buildDir, "tmp/version.txt").text = project.version
+		new File(layout.buildDirectory.dir("tmp").get().asFile, "version.txt").text = project.version
 	}
 }
 
@@ -299,7 +301,7 @@ def commonSpec = project.copySpec {
 	from(shadowJar) {
 		into 'bin'
 	}
-	from(project.buildDir.toPath().resolve('tmp')) {
+	from(layout.buildDirectory.dir("tmp").get().asFile.toPath()) {
 		include 'version.txt'
 	}
 	from('src/main/scripts') {
@@ -312,7 +314,7 @@ def commonSpec = project.copySpec {
 	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
-	from(project.buildDir.toPath().resolve('native-image')) {
+	from(layout.buildDirectory.dir("native-image").get().asFile.toPath()) {
 		include nativeExecName
 		rename nativeExecName, platformNativeExecName
 		into 'bin'
@@ -444,7 +446,7 @@ test {
 		jvmArgsList.addAll([
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
 			"--add-opens", "java.base/java.util=ALL-UNNAMED"
-		])
+		] as Collection<? extends GString>)
 	}
 	jvmArgs = jvmArgsList
 	//testLogging.showStandardStreams = true
@@ -506,7 +508,7 @@ testing {
 
 		integrationTest(JvmTestSuite) {
 			dependencies {
-				implementation project()  // todo: shouldn't even need to depend on main code?
+				implementation project(':')  // todo: shouldn't even need to depend on main code?
 				implementation platform("org.junit:junit-bom:${junitBomVersion}")
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
@@ -554,14 +556,14 @@ task karateExecute(type: JavaExec) {
 
 task copyResources(type: Copy) {
 	from "${projectDir}/src/main/resources"
-	into "${buildDir}/classes/java/main"
+	into layout.buildDirectory.dir("classes/java/main")
 }
 processResources.dependsOn copyResources
 
 
 task copyTestResources(type: Copy) {
 	from "${projectDir}/itests"
-	into "${buildDir}/classes/java/test/itests"
+	into layout.buildDirectory.dir("classes/java/test/itests")
 }
 processTestResources.dependsOn copyTestResources
 
@@ -577,7 +579,7 @@ task container(type: Copy) {
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/container/')
 	include('*')
-	into(buildDir.toString() + '/container')
+	into(layout.buildDirectory.dir("container").get().asFile)
 	doFirst { t ->
 		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
 				tokens: [
@@ -592,9 +594,9 @@ task spec(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/spec/jbang.spec')
-	into(buildDir.toString() + '/spec')
+	into(layout.buildDirectory.dir("spec").get().asFile)
 	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+		t.filter(ReplaceTokens,
 				tokens: [
 						projectVersion: project.version,
 						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
@@ -607,9 +609,9 @@ task chocolatey(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/choco')
-	into(buildDir.toString() + '/choco')
+	into(layout.buildDirectory.dir("choco").get().asFile)
 	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+		t.filter(ReplaceTokens,
 				tokens: [
 						projectVersion: project.version,
 						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
@@ -620,7 +622,7 @@ task chocolatey(type: Copy) {
 
 task copyITests(type: Copy) {
 	from "${projectDir}/itests"
-	into "${buildDir}/itests"
+	into layout.buildDirectory.dir("itests")
 }
 
 task tagVersion {
@@ -701,7 +703,7 @@ compileTestJava.dependsOn(compileJava9Java);
 shadowJar.dependsOn(copyTestResources);
 
 // Function to generate parentSuite value based on environment
-def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolchain.JavaLanguageVersion testJavaVersion) {
+def generateParentSuite(boolean isIntegrationTest = false, JavaLanguageVersion testJavaVersion) {
 	def parts = []
 	parts.add(System.getProperty('os.name'))
 	parts.add(System.getProperty('os.arch'))
@@ -722,7 +724,7 @@ def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolch
 	}
 	parts.add(javaVersionStr)
 	try {
-		def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+		def grgit = Grgit.open(dir: project.rootDir)
 		def gitSha = grgit.head().id
 		if (gitSha != null && !gitSha.isEmpty()) {
 			parts.add(gitSha.substring(0, Math.min(7, gitSha.length())))
@@ -735,7 +737,7 @@ def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolch
 
 // Functions to derive native bundle metadata based on the current platform
 // Base native executable name as produced by the nativeImage task
-String getNativeExecutableName() {
+static String getNativeExecutableName() {
 	def osName = System.getProperty('os.name').toLowerCase()
 	if (osName.contains('windows')) {
 		return 'jbang.bin.exe'
@@ -745,7 +747,7 @@ String getNativeExecutableName() {
 }
 
 // Platform-specific native binary name for distribution bundles
-String getPlatformNativeExecutableName() {
+static String getPlatformNativeExecutableName() {
 	def os = getNativeBundleOs()
 	def arch = getNativeBundleArch()
 	if (os == 'windows') {
@@ -755,7 +757,7 @@ String getPlatformNativeExecutableName() {
 	}
 }
 
-String getNativeBundleOs() {
+static String getNativeBundleOs() {
 	def osName = System.getProperty('os.name').toLowerCase()
 	if (osName.contains('mac') || osName.contains('darwin')) {
 		return 'mac'
@@ -766,7 +768,7 @@ String getNativeBundleOs() {
 	}
 }
 
-String getNativeBundleArch() {
+static String getNativeBundleArch() {
 	def arch = System.getProperty('os.arch').toLowerCase()
 	if (arch == 'x86_64' || arch == 'amd64') {
 		return 'x64'
@@ -899,7 +901,7 @@ task generateAllureEnvironment {
 	doLast {
 		def env = System.getenv()
 		def props = new Properties()
-		def allureDir = file("$buildDir/allure-results")
+		def allureDir = layout.buildDirectory.dir("allure-results").get().asFile
 		allureDir.mkdirs()
 
 		if (env['GITHUB_ACTIONS'] == 'true') {
