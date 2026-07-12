@@ -6,11 +6,13 @@ import java.io.IOError;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.aesh.terminal.Connection;
@@ -56,9 +58,11 @@ public class ArtifactSearchWidget {
 
 	// --- State ---
 	private final TextInputState searchInput = new TextInputState();
-	private Set<Artifact> localArtifacts;
+	private final Supplier<Set<Artifact>> localArtifactLoader;
+	private Set<Artifact> localArtifacts = new HashSet<>();
 	private List<Fuzz.SearchFuzzedResult<Artifact>> artifactMatches = Collections.emptyList();
 	private int artifactIndex = 0;
+	private boolean loadingLocalArtifacts = true;
 
 	private Artifact selectedArtifact = null;
 	private List<Artifact> versionList = Collections.emptyList();
@@ -76,7 +80,15 @@ public class ArtifactSearchWidget {
 	private ToolkitRunner.ScheduledAction pendingSearch = null;
 
 	public ArtifactSearchWidget() {
-		localArtifacts = SearchUtil.localMavenArtifacts(ArtifactResolver.getLocalMavenRepo())
+		this(() -> SearchUtil.localMavenArtifacts(ArtifactResolver.getLocalMavenRepo()));
+	}
+
+	ArtifactSearchWidget(Supplier<Set<Artifact>> localArtifactLoader) {
+		this.localArtifactLoader = localArtifactLoader;
+	}
+
+	Set<Artifact> loadLocalArtifacts() {
+		return localArtifactLoader.get()
 			.stream()
 			.filter(p -> !p.getArtifactId().contains("-parent"))
 			.collect(Collectors.toSet());
@@ -122,6 +134,7 @@ public class ArtifactSearchWidget {
 
 		try (ToolkitRunner r = builder.build()) {
 			this.runner = r;
+			loadLocalArtifactsAsync();
 			r.run(this::render);
 		} catch (Exception e) {
 			throw new RuntimeException("Terminal error", e);
@@ -170,11 +183,13 @@ public class ArtifactSearchWidget {
 	@SuppressWarnings("unchecked")
 	private Element renderArtifactResults() {
 		if (artifactMatches.isEmpty()) {
-			String hint = searchInput.text().isEmpty()
-					? "Start typing to search local Maven artifacts"
-					: searchingCentral
-							? "Searching Maven Central..."
-							: "No matches. Tab to search Maven Central.";
+			String hint = loadingLocalArtifacts
+					? "Loading local Maven artifacts..."
+					: searchInput.text().isEmpty()
+							? "Start typing to search local Maven artifacts"
+							: searchingCentral
+									? "Searching Maven Central..."
+									: "No matches. Tab to search Maven Central.";
 			return panel(" Results ", text("  " + hint).dim())
 				.rounded()
 				.borderColor(Color.DARK_GRAY);
@@ -419,6 +434,24 @@ public class ArtifactSearchWidget {
 	// -------------------------------------------------------------------------
 	// Search logic
 	// -------------------------------------------------------------------------
+
+	private void loadLocalArtifactsAsync() {
+		runner.schedule(() -> {
+			try {
+				Set<Artifact> loadedArtifacts = loadLocalArtifacts();
+				runner.runOnRenderThread(() -> {
+					localArtifacts = new HashSet<>(loadedArtifacts);
+					loadingLocalArtifacts = false;
+					refreshArtifactMatches();
+				});
+			} catch (Exception e) {
+				runner.runOnRenderThread(() -> {
+					loadingLocalArtifacts = false;
+					statusMessage = "Local artifact scan failed: " + e.getMessage();
+				});
+			}
+		}, Duration.ZERO);
+	}
 
 	private void refreshArtifactMatches() {
 		String query = searchInput.text();

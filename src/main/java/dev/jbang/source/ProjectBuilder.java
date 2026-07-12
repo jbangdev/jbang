@@ -23,9 +23,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Settings;
@@ -58,6 +55,12 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
+
+import eu.maveniverse.domtrip.Document;
+import eu.maveniverse.domtrip.DomTripException;
+import eu.maveniverse.domtrip.Element;
+import eu.maveniverse.domtrip.maven.MavenPomElements;
+import eu.maveniverse.domtrip.maven.PomEditor;
 
 /**
  * This class constructs a <code>Project</code>. It uses the options given by
@@ -453,19 +456,44 @@ public class ProjectBuilder {
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
 				if (pom.isPresent()) {
 					try (InputStream is = jf.getInputStream(pom.get())) {
-						MavenXpp3Reader reader = new MavenXpp3Reader();
-						Model model = reader.read(is);
+						Document document = Document.of(is);
+						PomEditor pomEditor = new PomEditor(document);
+						Element root = pomEditor.root();
+
+						String groupId = root.childTextOr(MavenPomElements.Elements.GROUP_ID, null);
+						String artifactId = root.childTextOr(MavenPomElements.Elements.ARTIFACT_ID, null);
+						String version = root.childTextOr(MavenPomElements.Elements.VERSION, null);
+
+						// ArtifactId is always required
+						if (artifactId == null) {
+							throw new DomTripException("Malformed POM: artifactId is required but not found");
+						}
+
+						// Try to get groupId and version from parent if not present
+						if (groupId == null || version == null) {
+							Element parent = pomEditor.findChildElement(root, MavenPomElements.Elements.PARENT);
+							if (parent != null) {
+								if (groupId == null) {
+									groupId = parent.childTextOr(MavenPomElements.Elements.GROUP_ID, null);
+								}
+								if (version == null) {
+									version = parent.childTextOr(MavenPomElements.Elements.VERSION, null);
+								}
+							}
+							// Note: We don't throw if groupId or version is still null - Maven 4 can infer
+							// these
+						}
 						// GAVS of the form "group:xxxx:999-SNAPSHOT" are skipped
-						if (!MavenCoordinate.DUMMY_GROUP.equals(model.getGroupId())
-								|| !MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
-							String gav = model.getGroupId() + ":" + model.getArtifactId();
+						if (!MavenCoordinate.DUMMY_GROUP.equals(groupId)
+								|| !MavenCoordinate.DEFAULT_VERSION.equals(version)) {
+							String gav = groupId + ":" + artifactId;
 							// The version "999-SNAPSHOT" is ignored
-							if (!MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
-								gav += ":" + model.getVersion();
+							if (!MavenCoordinate.DEFAULT_VERSION.equals(version)) {
+								gav += ":" + version;
 							}
 							prj.setGav(gav);
 						}
-					} catch (XmlPullParserException e) {
+					} catch (DomTripException e) {
 						Util.verboseMsg("Unable to read the JAR's pom.xml file", e);
 					}
 				}

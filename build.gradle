@@ -27,7 +27,7 @@ def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
 def aeshVersion = '3.16.4'
 def devkitmanVersion = '0.4.9'
-def junitBomVersion = '5.14.1'
+def junitBomVersion = '5.14.4'
 def testcontainersVersion = '2.0.2'
 def tambouiVersion = '0.4.0'
 def wiremockVersion = '3.13.2'
@@ -163,18 +163,19 @@ dependencies {
 	implementation 'org.aesh:readline-api:3.16.2'
 	annotationProcessor "org.aesh:aesh-processor:${aeshVersion}"
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
-	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
+	implementation 'org.codehaus.plexus:plexus-java:1.5.2'
 	implementation 'com.google.code.gson:gson:2.13.2'
 	implementation 'org.jsoup:jsoup:1.17.1'
 	implementation 'org.codejive:java-properties:0.0.7'
 
-	implementation "org.slf4j:slf4j-nop:1.7.36"
-	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
+	implementation "org.slf4j:slf4j-nop:2.0.18"
+	implementation "org.slf4j:jcl-over-slf4j:2.0.18"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.36"
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
-	implementation "org.apache.maven:maven-model:3.9.11"
+	implementation "eu.maveniverse.maven.domtrip:domtrip-core:1.5.2"
+	implementation "eu.maveniverse.maven.domtrip:domtrip-maven:1.5.2"
 
 	implementation "dev.tamboui:tamboui-toolkit:$tambouiVersion"
 	implementation "dev.tamboui:tamboui-aesh-backend:$tambouiVersion"
@@ -188,7 +189,7 @@ dependencies {
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.assertj:assertj-core:${assertjVersion}"
-	testImplementation "org.hamcrest:hamcrest-library:2.2"
+	testImplementation "org.hamcrest:hamcrest:3.0"
 	testImplementation "org.wiremock:wiremock:${wiremockVersion}"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
