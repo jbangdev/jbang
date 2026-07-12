@@ -1,0 +1,41 @@
+= Build-file dependency integration tests
+
+Minimal but realistic project fixtures exercising `//DEPS <build-file>` for
+each supported build system:
+
+[cols="1,2,2", options="header"]
+|===
+| Tool   | Fixture root       | Layout
+
+| Maven  | `maven/`           | `pom.xml`, `src/main/java/example/Greeter.java`
+| Gradle | `gradle/`          | `build.gradle`, `src/main/java/example/Greeter.java`
+| sbt    | `sbt/`             | `build.sbt`, `src/main/java/example/Greeter.java`
+| Mill   | `mill/`            | `build.mill`, `.mill-version`, `./mill` bootstrap, `src/example/Greeter.java`
+|===
+
+Each fixture is a real, self-contained project that compiles with its own
+build tool. `Greeter.java` uses `commons-lang3` — the same dependency
+declared in the build file — so it exercises the project's real dependency
+graph, not just a token declaration.
+
+`App.java` at the fixture root is the JBang script under test. It uses
+`//DEPS <build-file>` to borrow the project's declared compile
+dependencies and prints `<tool>-classpath:olleh`. `App.java` does **not**
+reference `Greeter` because the current implementation only reuses
+dependencies — the project's own compiled classes are not included on the
+JBang classpath.
+
+== Running
+
+Each folder declares the tool it needs in a `mise.toml`. If you have
+https://mise.jdx.dev/[mise] installed:
+
+[source, shell]
+----
+cd itests/builddeps/maven && mise install   # installs java + maven
+mise exec -- jbang App.java                 # verifies the fixture
+----
+
+The `BuildSystemClassPathsIT` integration test runs `mise install`
+automatically for each fixture and skips the whole test class if mise
+itself is missing.
