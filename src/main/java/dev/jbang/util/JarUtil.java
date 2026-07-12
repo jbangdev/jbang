@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Manifest;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.devkitman.Jdk;
 
 public final class JarUtil {

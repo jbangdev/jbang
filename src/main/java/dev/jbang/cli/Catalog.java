@@ -16,6 +16,7 @@ import org.aesh.command.option.Option;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.jbang.ExitException;
 import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.resources.ResourceRef;

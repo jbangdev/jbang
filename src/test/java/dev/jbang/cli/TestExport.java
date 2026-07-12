@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 public class TestExport extends BaseTest {

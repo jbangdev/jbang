@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.devkitman.JdkDistroQuery;
 import dev.jbang.devkitman.JdkManager;

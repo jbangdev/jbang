@@ -1,6 +1,6 @@
 package dev.jbang.net;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import static dev.jbang.ExitException.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,8 +9,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.ExitException;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;

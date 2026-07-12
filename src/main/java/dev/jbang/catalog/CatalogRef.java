@@ -1,6 +1,6 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,8 +8,8 @@ import java.util.Optional;
 
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
 public class CatalogRef extends CatalogItem {

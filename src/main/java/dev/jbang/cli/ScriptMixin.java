@@ -8,6 +8,7 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.aesh.command.option.OptionList;
 
+import dev.jbang.ExitException;
 import dev.jbang.cli.completion.ScriptRefCompleter;
 import dev.jbang.source.Source;
 

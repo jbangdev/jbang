@@ -29,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;

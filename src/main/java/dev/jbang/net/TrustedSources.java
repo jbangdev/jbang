@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.JsonPrimitive;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
