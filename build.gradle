@@ -25,10 +25,11 @@ plugins {
 def allureVersion = '2.29.1'
 def aspectJVersion = '1.9.25'
 def assertjVersion = '3.27.7'
-def devkitmanVersion = '0.4.6'
+def aeshVersion = '3.16.4'
+def devkitmanVersion = '0.4.9'
 def junitBomVersion = '5.14.1'
 def testcontainersVersion = '2.0.2'
-def jlineVersion = '3.30.5'
+def tambouiVersion = '0.4.0'
 def wiremockVersion = '3.13.2'
 
 configurations {
@@ -45,8 +46,8 @@ javadoc {
 }
 
 repositories {
-	mavenCentral()
 	mavenLocal()
+	mavenCentral()
 	//maven { url 'https://jitpack.io' }
 }
 
@@ -156,11 +157,11 @@ dependencies {
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.15.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation('org.aesh:aesh:3.14.2') {
+	implementation("org.aesh:aesh:${aeshVersion}") {
 		exclude group: 'org.aesh', module: 'readline'
 	}
-	implementation 'org.aesh:readline-api:3.14'
-	annotationProcessor 'org.aesh:aesh-processor:3.14.2'
+	implementation 'org.aesh:readline-api:3.16.2'
+	annotationProcessor "org.aesh:aesh-processor:${aeshVersion}"
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.13.2'
@@ -176,8 +177,8 @@ dependencies {
 	implementation "eu.maveniverse.maven.domtrip:domtrip-core:1.5.2"
 	implementation "eu.maveniverse.maven.domtrip:domtrip-maven:1.5.2"
 
-	implementation "org.jline:jline-console-ui:$jlineVersion"
-	implementation "org.jline:jline-terminal-jni:$jlineVersion"
+	implementation "dev.tamboui:tamboui-toolkit:$tambouiVersion"
+	implementation "dev.tamboui:tamboui-aesh-backend:$tambouiVersion"
 
 	// used in JBang as well (aside of nisse plugin in the build)
 	implementation "eu.maveniverse.maven.nisse:core:0.9.2"
@@ -308,7 +309,7 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
-	// Include native image binary renamed to platform-specific name (e.g. jbang-linux-x64.bin)
+	// Include native image binary renamed to platform-specific name (e.g. jbang.bin-linux-x64)
 	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
@@ -317,6 +318,10 @@ def commonSpec = project.copySpec {
 		rename nativeExecName, platformNativeExecName
 		into 'bin'
 	}
+}
+
+tasks.named('installDist') {
+	mustRunAfter('nativeImage')
 }
 
 distributions {
@@ -342,26 +347,34 @@ latestDistTar {
 
 tasks.register('nativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('nativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into(provider { "jbang-${project.version}" }) {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getNativeBundleBaseName()}.tar" })
 }
 
 tasks.register('latestNativeDistZip', Zip) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.zip" })
 }
 
 tasks.register('latestNativeDistTar', Tar) {
 	dependsOn('nativeImage')
-	with commonSpec
+	into("jbang") {
+		with commonSpec
+	}
 	compression = Compression.NONE
 	archiveFileName.set(provider { "${getLatestNativeBundleBaseName()}.tar" })
 }
@@ -737,9 +750,9 @@ String getPlatformNativeExecutableName() {
 	def os = getNativeBundleOs()
 	def arch = getNativeBundleArch()
 	if (os == 'windows') {
-		return "jbang-${os}-${arch}.bin.exe"
+		return "jbang.bin-${os}-${arch}.exe"
 	} else {
-		return "jbang-${os}-${arch}.bin"
+		return "jbang.bin-${os}-${arch}"
 	}
 }
 

@@ -8,17 +8,19 @@ jbang jdk default -- Sets the default JDK to be used by JBang.
 
 [source]
 ----
-jbang jdk default [-hvdox] [--format=<format>] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<versionOrId>]
+jbang jdk default [-hvd] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
 ----
-
-== DESCRIPTION
-
-Sets the default JDK to be used by JBang.
 
 == OPTIONS
 
 *-h*, *--help*::
 Display this help and exit
+
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
 *-v*, *--for-version*::
 Sets the default for the specified major version
@@ -37,19 +39,19 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == ARGUMENTS

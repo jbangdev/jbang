@@ -133,12 +133,12 @@ $binaryPath=""
 $jarPath=""
 if ($env:JBANG_USE_NATIVE -eq "true") {
   # Look for platform-specific native binary first, then fall back to jbang.bin.exe
-  if (Test-Path "$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe") {
-    $binaryPath="$PSScriptRoot\jbang-windows-${jbang_arch}.bin.exe"
+  if (Test-Path "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe") {
+    $binaryPath="$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe"
   } elseif (Test-Path "$PSScriptRoot\jbang.bin.exe") {
     $binaryPath="$PSScriptRoot\jbang.bin.exe"
   } else {
-    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang-windows-${jbang_arch}.bin.exe or jbang.bin.exe) not found in $PSScriptRoot")
+    [Console]::Error.WriteLine("WARNING: JBang native binary (jbang.bin-windows-${jbang_arch}.exe or jbang.bin.exe) not found in $PSScriptRoot")
   }
 }
 if (-not $binaryPath) {
@@ -151,11 +151,16 @@ if (-not $binaryPath) {
 }
 if (-not $binaryPath -and -not $jarPath) {
   if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
+    if ($env:JBANG_USE_NATIVE -eq "true") {
+      $bundleName = "jbang-windows-${jbang_arch}.zip"
+    } else {
+      $bundleName = "jbang.zip"
+    }
     New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     if (Test-Path env:JBANG_DOWNLOAD_URL) {
         $jburl=$env:JBANG_DOWNLOAD_URL
     } elseif (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
-        $jburl="$jbangDownloadBaseUrl/latest/download/jbang.zip"
+        $jburl="$jbangDownloadBaseUrl/latest/download/$bundleName"
     } else {
         # Numeric versions get a 'v' prefix (e.g. 0.120.0 -> v0.120.0); named
         # release tags (e.g. 'early-access', '1.0.0-rc1') are used as-is.
@@ -164,7 +169,7 @@ if (-not $binaryPath -and -not $jarPath) {
         } else {
             $jbtag = $env:JBANG_DOWNLOAD_VERSION
         }
-        $jburl="$jbangDownloadBaseUrl/download/$jbtag/jbang.zip";
+        $jburl="$jbangDownloadBaseUrl/download/$jbtag/$bundleName";
     }
     $dlVersion = if ($env:JBANG_DOWNLOAD_VERSION) { $env:JBANG_DOWNLOAD_VERSION } else { 'latest' }
     [Console]::Error.WriteLine("Downloading JBang $dlVersion from $jburl...")

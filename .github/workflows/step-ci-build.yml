@@ -157,6 +157,36 @@ jobs:
       - name: test
         run: |
           ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }}
+      - name: Add artifact.ci links
+        if: failure()
+        shell: bash
+        run: |
+          SHA="${{ steps.shared-build.outputs.github-short-sha }}"
+          ARTIFACT="${SHA}-unit-test-jvm-allure-report-${{ matrix.os }}-${{ matrix.java-version }}"
+          BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt }}"
+          REPORT_URL="${BASE}/${ARTIFACT}/index.html"
+          echo "### Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "1. **First** open the [artifact.ci report page](${BASE}/${ARTIFACT}) to activate it" >> $GITHUB_STEP_SUMMARY
+          echo "2. Then use the direct links below" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[Full Report](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          # Emit per-test deep links for failed tests
+          if [ -d build/allure-results ]; then
+            echo "#### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            for f in build/allure-results/*-result.json; do
+              [ -f "$f" ] || continue
+              status=$(python3 -c "import json; d=json.load(open('$f')); print(d.get('status',''))" 2>/dev/null)
+              if [ "$status" = "failed" ] || [ "$status" = "broken" ]; then
+                info=$(python3 -c "import json; d=json.load(open('$f')); print(d.get('fullName','unknown') + ' ' + d.get('uuid',''))" 2>/dev/null)
+                name=$(echo "$info" | awk '{print $1}')
+                uuid=$(echo "$info" | awk '{print $2}')
+                if [ -n "$uuid" ]; then
+                  echo "- ❌ [${name}](${REPORT_URL}#testresult/${uuid})" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+          fi
       - name: Arcive test results
         uses: ./.github/actions/shared-test-archiving
         if: always()
@@ -175,12 +205,6 @@ jobs:
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
-      - name: Add artifact.ci links
-        if: failure()
-        shell: bash
-        run: |
-          BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}"
-          echo "View [Allure Report](${BASE}/allure-report-${{ matrix.os }}) [direct link (available after first view)](${BASE}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
   integration-test-jvm:
     if: ${{ !inputs.skip_tests }}
@@ -223,6 +247,36 @@ jobs:
           _JBANG_TEST_JAVA_VERSION: ${{ matrix.java-version }}
         run: |
           ./gradlew --no-daemon integrationTest
+      - name: Add artifact.ci links
+        if: failure()
+        shell: bash
+        run: |
+          SHA="${{ steps.shared-build.outputs.github-short-sha }}"
+          ARTIFACT="${SHA}-integration-test-jvm-allure-report-${{ matrix.os }}-${{ matrix.java-version }}"
+          BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt }}"
+          REPORT_URL="${BASE}/${ARTIFACT}/index.html"
+          echo "### Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "1. **First** open the [artifact.ci report page](${BASE}/${ARTIFACT}) to activate it" >> $GITHUB_STEP_SUMMARY
+          echo "2. Then use the direct links below" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[Full Report](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          # Emit per-test deep links for failed tests
+          if [ -d build/allure-results ]; then
+            echo "#### Failed Tests" >> $GITHUB_STEP_SUMMARY
+            for f in build/allure-results/*-result.json; do
+              [ -f "$f" ] || continue
+              status=$(python3 -c "import json; d=json.load(open('$f')); print(d.get('status',''))" 2>/dev/null)
+              if [ "$status" = "failed" ] || [ "$status" = "broken" ]; then
+                info=$(python3 -c "import json; d=json.load(open('$f')); print(d.get('fullName','unknown') + ' ' + d.get('uuid',''))" 2>/dev/null)
+                name=$(echo "$info" | awk '{print $1}')
+                uuid=$(echo "$info" | awk '{print $2}')
+                if [ -n "$uuid" ]; then
+                  echo "- ❌ [${name}](${REPORT_URL}#testresult/${uuid})" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+          fi
       - name: Arcive test results
         uses: ./.github/actions/shared-test-archiving
         if: always()
@@ -235,19 +289,12 @@ jobs:
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
-
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
         uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
         with:
-          report_paths: 'build/test-results/test/TEST-*.xml'
+          report_paths: 'build/test-results/integrationTest/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
-      - name: Add artifact.ci links
-        if: failure()
-        shell: bash
-        run: |
-          BASE="https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}"
-          echo "View [Allure Report](${BASE}/allure-report-${{ matrix.os }}) [direct link (available after first view)](${BASE}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
   smoke-test:
     if: ${{ !inputs.skip_tests }}
@@ -307,6 +354,7 @@ jobs:
     if: always() && needs.build-shared.result == 'success' && !inputs.skip_jreleaser_dry_run
     runs-on: ubuntu-latest
     env:
+      JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -367,9 +415,16 @@ jobs:
         # so shared-test-archiving's internal `gradle allureReport` will use
         # all per-OS launch dirs instead of the (non-existent) build/allure-results.
         run: |
-          DIRS=$(find build/allure-inputs -mindepth 1 -maxdepth 1 -type d | tr '\n' ',' | sed 's/,$//')
+          if [ -d build/allure-inputs ] && [ -n "$(find build/allure-inputs -mindepth 1 -maxdepth 1 -type d)" ]; then
+            DIRS=$(find build/allure-inputs -mindepth 1 -maxdepth 1 -type d | tr '\n' ',' | sed 's/,$//')
+          else
+            echo "::warning::No allure-inputs artifacts found; skipping merge"
+            DIRS=""
+          fi
           echo "ORG_GRADLE_PROJECT_allureMergeDirs=$DIRS" >> $GITHUB_ENV
+          echo "ALLURE_MERGE_DIRS=$DIRS" >> $GITHUB_ENV
       - name: Archive test results
+        if: env.ALLURE_MERGE_DIRS != ''
         uses: ./.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-

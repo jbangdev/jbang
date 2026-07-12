@@ -8,12 +8,8 @@ jbang export local -- Exports jar with classpath referring to local machine depe
 
 [source]
 ----
-jbang export local [-hnox] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [<scriptOrFile>]
+jbang export local [-hn] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
 ----
-
-== DESCRIPTION
-
-Exports jar with classpath referring to local machine dependent locations
 
 == OPTIONS
 
@@ -41,6 +37,12 @@ Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type js
 *--catalog*=<catalog>::
 Path to catalog file to be used instead of the default
 
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
+
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
+
 *-j*, *--java*=<java>::
 JDK version to use for running the script.
 
@@ -54,6 +56,7 @@ Treat resource as a module. Optionally with the given module name
 Options to pass to the compiler
 
 *--manifest*=<key>=<value>::
+Add entry to the JAR manifest (e.g. --manifest=Main-Class=com.example.Main)
 
 *--[no-]integrations*::
 Enable or disable integration execution (default: true)
@@ -97,19 +100,19 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == ARGUMENTS

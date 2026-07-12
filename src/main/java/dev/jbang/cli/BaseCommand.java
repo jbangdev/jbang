@@ -19,6 +19,7 @@ import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.option.Option;
 
 import dev.jbang.Configuration;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 public abstract class BaseCommand implements Command<CommandInvocation>, CommandLifecycle {
@@ -62,6 +63,14 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 
 	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
 	Boolean printExceptions;
+
+	@Option(name = "netrc", inherited = true, exclusiveWith = {
+			"no-netrc" }, description = "Path to a .netrc file for HTTP authentication credentials.")
+	String netrc;
+
+	@Option(name = "no-netrc", hasValue = false, inherited = true, exclusiveWith = {
+			"netrc" }, description = "Disable .netrc authentication lookup.")
+	boolean noNetrc;
 
 	protected CommandInvocation commandInvocation;
 
@@ -188,6 +197,17 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			} else {
 				warn("Configuration file does not exist or could not be read: " + config);
 			}
+		}
+
+		if (noNetrc) {
+			NetUtil.setNetrcDisabled(true);
+		} else if (netrc != null) {
+			Path netrcPath = Paths.get(netrc);
+			if (!Files.isReadable(netrcPath)) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Netrc file does not exist or is not readable: " + netrcPath);
+			}
+			NetUtil.setNetrcFile(netrcPath);
 		}
 
 		if (Boolean.TRUE.equals(insecure)) {

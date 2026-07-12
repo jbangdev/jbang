@@ -109,7 +109,7 @@ public class BaseIT {
 			// We want to make sure the "multihome" is added for when we run in GH CI
 			JdkManager jdkMan = JavaUtil.defaultJdkManagerBuilder().provider("multihome").build();
 			// if env not avail it is null and will use default jdk
-			// to use same jdk as what tets run with to make it more
+			// to use same jdk as what tests run with to make it more
 			// deterministic.
 
 			System.err.println("Requested Java version: " + javaMajorVersion);

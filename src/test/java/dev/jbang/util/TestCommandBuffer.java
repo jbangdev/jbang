@@ -39,6 +39,28 @@ public class TestCommandBuffer extends BaseTest {
 	}
 
 	@Test
+	void testCmdDoesNotEscapeDotAndComma() {
+		assertThat(CommandBuffer.escapeShellArgument("-Djavafx.preview=true", Util.Shell.cmd),
+				equalTo("-Djavafx.preview=true"));
+		assertThat(CommandBuffer.escapeShellArgument("abc,def", Util.Shell.cmd),
+				equalTo("abc,def"));
+	}
+
+	@Test
+	void testPowershellEscapesUnsafeChars() {
+		assertThat(CommandBuffer.escapeShellArgument("-Djavafx.preview=true", Util.Shell.powershell),
+				equalTo("'-Djavafx.preview=true'"));
+		assertThat(CommandBuffer.escapeShellArgument("abc,def", Util.Shell.powershell),
+				equalTo("'abc,def'"));
+		assertThat(CommandBuffer.escapeShellArgument("foo:bar", Util.Shell.powershell),
+				equalTo("'foo:bar'"));
+		assertThat(CommandBuffer.escapeShellArgument("foo;bar", Util.Shell.powershell),
+				equalTo("'foo;bar'"));
+		assertThat(CommandBuffer.escapeShellArgument("foo(bar)", Util.Shell.powershell),
+				equalTo("'foo(bar)'"));
+	}
+
+	@Test
 	@EnabledOnOs(OS.WINDOWS)
 	void testRunWinPS1() {
 		String out = CommandBuffer.of("abc def", "abc;def").shell(Util.Shell.powershell).asCommandLine();
