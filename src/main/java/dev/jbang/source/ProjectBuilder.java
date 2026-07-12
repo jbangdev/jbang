@@ -33,6 +33,7 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.BuildSystemClassPaths;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;
@@ -363,8 +364,13 @@ public class ProjectBuilder {
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
 		for (String srcDep : directives.sourceDependencies()) {
-			ResourceRef subRef = resolver.resolve(srcDep, true);
-			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+			if (BuildSystemClassPaths.isBuildFileDependency(srcDep)) {
+				ss.addClassPaths(BuildSystemClassPaths.classPaths(
+						Collections.singletonList(srcDep), resourceRef.getFile()));
+			} else {
+				ResourceRef subRef = resolver.resolve(srcDep, true);
+				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+			}
 		}
 
 		boolean first = true;
@@ -487,7 +493,9 @@ public class ProjectBuilder {
 	private Project updateProject(Project prj) {
 		SourceSet ss = prj.getMainSourceSet();
 		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
-		ss.addDependencies(replaceAllProps(additionalDeps));
+		List<String> deps = replaceAllProps(additionalDeps);
+		ss.addDependencies(BuildSystemClassPaths.dependencies(deps));
+		ss.addClassPaths(BuildSystemClassPaths.classPaths(deps, prj.getResourceRef().getFile()));
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(
@@ -682,8 +690,13 @@ public class ProjectBuilder {
 				}
 			}
 			for (String srcDep : src.collectSourceDependencies()) {
-				ResourceRef subRef = sibRes1.resolve(srcDep, true);
-				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+				if (BuildSystemClassPaths.isBuildFileDependency(srcDep)) {
+					ss.addClassPaths(BuildSystemClassPaths.classPaths(
+							Collections.singletonList(srcDep), srcRef.getFile()));
+				} else {
+					ResourceRef subRef = sibRes1.resolve(srcDep, true);
+					prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+				}
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
 			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
@@ -726,7 +739,7 @@ public class ProjectBuilder {
 				.addDependency(dep)
 				.addRepositories(allToMavenRepo(
 						replaceAllProps(additionalRepos)))
-				.addDependencies(replaceAllProps(additionalDeps))
+				.addDependencies(BuildSystemClassPaths.dependencies(replaceAllProps(additionalDeps)))
 				.addClassPaths(
 						replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
