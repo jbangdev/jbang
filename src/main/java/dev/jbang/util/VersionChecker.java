@@ -172,7 +172,11 @@ public class VersionChecker {
 
 	private static Future<String> retrieveLatestVersionAsync() {
 		if (versionCheckResult == null) {
-			versionCheckResult = Executors.newSingleThreadExecutor().submit(VersionChecker::retrieveLatestVersion);
+			versionCheckResult = Executors.newSingleThreadExecutor(r -> {
+				Thread t = new Thread(r, "jbang-version-check");
+				t.setDaemon(true);
+				return t;
+			}).submit(VersionChecker::retrieveLatestVersion);
 		}
 		return versionCheckResult;
 	}

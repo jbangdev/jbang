@@ -327,7 +327,7 @@ public class Catalog {
 					if (result != null)
 						return result;
 				} catch (Exception e) {
-					Util.verboseMsg("Unable to read catalog " + cr.catalogRef + " because " + e);
+					Util.verboseMsg("Unable to read catalog " + cr.catalogRef + ": " + e.getMessage(), e);
 				}
 			}
 		}

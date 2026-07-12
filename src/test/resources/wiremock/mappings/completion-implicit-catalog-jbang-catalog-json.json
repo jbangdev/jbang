@@ -1,0 +1,18 @@
+{
+  "id" : "706d1f96-cd25-45b1-be69-3cb431dafdba",
+  "name" : "completion_implicit_catalog_jbang_catalog_json",
+  "request" : {
+    "urlPathPattern" : "/.+/jbang-catalog/.*jbang-catalog\\.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "body" : "Not Found",
+    "headers" : {
+      "Content-Type" : "text/plain"
+    }
+  },
+  "uuid" : "706d1f96-cd25-45b1-be69-3cb431dafdba",
+  "persistent" : true,
+  "priority" : 10
+}

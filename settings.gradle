@@ -25,3 +25,5 @@ develocity {
 		publishing.onlyIf { false }
 	}
 }
+
+rootProject.name = 'jbang'

@@ -25,6 +25,9 @@ import dev.jbang.util.Util;
 
 public class ModularClassPath {
 	static final String JAVAFX_PREFIX = "javafx";
+	// Required by `javafx.web`; removed from the JDK in 26 and now shipped as
+	// `org.openjfx:jdk-jsobject`.
+	static final String JDK_JSOBJECT_MODULE = "jdk.jsobject";
 
 	private final List<ArtifactInfo> artifacts;
 
@@ -94,8 +97,15 @@ public class ModularClassPath {
 				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
 
 				pathElements.forEach((k, v) -> {
-					if (v != null && v.name() != null && v.name().startsWith(JAVAFX_PREFIX)) {
-						// only JavaFX jars are required in the module-path
+					if (v != null && v.name() != null
+							&& (v.name().startsWith(JAVAFX_PREFIX) || v.name().equals(JDK_JSOBJECT_MODULE))) {
+						// JavaFX jars belong on the module-path. So does `jdk.jsobject`, which is
+						// required by `javafx.web`: until JDK 25 it was part of the JDK, but JDK 26
+						// removed it and openjfx now ships it as the separate
+						// `org.openjfx:jdk-jsobject`
+						// artifact. Left on the class-path the boot layer cannot find it and fails with
+						// `Module jdk.jsobject not found, required by javafx.web`.
+						// See https://github.com/jbangdev/jbang/issues/559
 						modulePaths.add(k);
 					} else {
 						// classpathElements.add(k);

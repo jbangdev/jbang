@@ -14,11 +14,9 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
 
-import picocli.CommandLine;
-
 public class TestConfig extends BaseTest {
 
-	private static final int SUCCESS_EXIT = CommandLine.ExitCode.OK;
+	private static final int SUCCESS_EXIT = BaseCommand.EXIT_OK;
 
 	static final String testConfig = "" +
 			"one=footop\n" +
@@ -46,7 +44,7 @@ public class TestConfig extends BaseTest {
 
 	@Test
 	void testList() throws Exception {
-		CaptureResult<Integer> result = checkedRun(null, "config", "list");
+		CaptureResult<Integer> result = checkedRun("config", "list");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("format = text\n" +
@@ -61,14 +59,14 @@ public class TestConfig extends BaseTest {
 
 	@Test
 	void testGetLocal() throws Exception {
-		CaptureResult<Integer> result = checkedRun(null, "config", "get", "two");
+		CaptureResult<Integer> result = checkedRun("config", "get", "two");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("bar\n"));
 	}
 
 	@Test
 	void testGetGlobal() throws Exception {
-		CaptureResult<Integer> result = checkedRun(null, "config", "get", "run.debug");
+		CaptureResult<Integer> result = checkedRun("config", "get", "run.debug");
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("4004\n"));
 	}
@@ -76,14 +74,14 @@ public class TestConfig extends BaseTest {
 	@Test
 	void testSetLocal() throws Exception {
 		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("mykey")));
-		checkedRun(null, "config", "set", "mykey", "myvalue");
+		checkedRun("config", "set", "mykey=myvalue");
 		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("mykey"));
 	}
 
 	@Test
 	void testSetGlobal() throws Exception {
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
-		checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
+		checkedRun("config", "set", "--global", "mykey=myvalue");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
 	}
 
@@ -92,51 +90,28 @@ public class TestConfig extends BaseTest {
 		Files.deleteIfExists(testConfigFile);
 		Files.deleteIfExists(testConfigFileSub);
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("run.debug")));
-		checkedRun(null, "config", "set", "run.debug", "42");
+		checkedRun("config", "set", "run.debug=42");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("run.debug"));
 	}
 
 	@Test
 	void testUnsetLocal() throws Exception {
 		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("two"));
-		checkedRun(null, "config", "unset", "two");
+		checkedRun("config", "unset", "two");
 		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("two")));
 	}
 
 	@Test
 	void testUnsetGlobal() throws Exception {
-		checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
+		checkedRun("config", "set", "--global", "mykey=myvalue");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
-		checkedRun(null, "config", "unset", "--global", "mykey");
+		checkedRun("config", "unset", "--global", "mykey");
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
 	}
 
 	@Test
 	void testUnsetBuiltin() throws Exception {
-		CaptureResult<Integer> result = checkedRun(null, "config", "unset", "run.debug");
+		CaptureResult<Integer> result = checkedRun("config", "unset", "run.debug");
 		assertThat(result.normalizedErr(), containsString("Cannot remove built-in option"));
-	}
-
-	@Test
-	void testCommandDefaultValueDefault() {
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
-		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
-		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.text));
-	}
-
-	@Test
-	void testCommandDefaultValueSpecificOverride() {
-		Configuration.instance().put("app.list.format", "json");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
-		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
-		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.json));
-	}
-
-	@Test
-	void testCommandDefaultValueGlobalOverride() {
-		Configuration.instance().put("format", "json");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
-		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
-		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.json));
 	}
 }

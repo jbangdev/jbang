@@ -16,16 +16,13 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.util.WarTestFixtures;
 
-import picocli.CommandLine;
-
 public class TestInfo extends BaseTest {
 
 	@Test
 	void testInfoToolsSimple() {
 		String src = examplesTestFolder.resolve("quote.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
@@ -43,10 +40,9 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoToolsBuilt() {
 		String src = examplesTestFolder.resolve("quote.java").toString();
-		JBang.getCommandLine().execute("build", src);
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		JBang.execute("build", src);
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
@@ -60,13 +56,11 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoToolsWithDeps() {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-			.parseArgs("info", "tools",
-					"--deps", "info.picocli:picocli:4.6.3,commons-io:commons-io:2.8.0",
-					"--deps", "org.apache.commons:commons-lang3:3.12.0",
-					src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools",
+				"--deps", "info.picocli:picocli:4.6.3,commons-io:commons-io:2.8.0",
+				"--deps", "org.apache.commons:commons-lang3:3.12.0",
+				src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
@@ -85,9 +79,8 @@ public class TestInfo extends BaseTest {
 	void testInfoToolsWithClasspath() {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String jar = examplesTestFolder.resolve("hellojar.jar").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", "--cp", jar, src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", "--cp", jar, src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
@@ -104,9 +97,8 @@ public class TestInfo extends BaseTest {
 	void testInfoClasspathNested() {
 		String src = examplesTestFolder.resolve("sources.java").toString();
 		String quote = examplesTestFolder.resolve("quote.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("sources.java."),
@@ -127,9 +119,8 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoJShell() {
 		String src = examplesTestFolder.resolve("basic.jsh").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, equalTo(null));
 		assertThat(info.backingResource, equalTo(src));
@@ -143,9 +134,8 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoHelloJar() {
 		String jar = examplesTestFolder.resolve("hellojar.jar").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", jar);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", jar);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(jar));
 		assertThat(info.applicationJar, equalTo(jar));
 		assertThat(info.backingResource, equalTo(jar));
@@ -157,49 +147,41 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoStarSources() {
 		String src = examplesTestFolder.resolve("sources/ying.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
-		// assertThat(info.applicationJar, equalTo(src));
 		assertThat(info.backingResource, equalTo(src));
-		// assertThat(info.javaVersion, not(nullValue()));
-		// assertThat(info.mainClass, equalTo("helloworld"));
 		assertThat(info.resolvedDependencies, empty());
 	}
 
 	@Test
 	void testInfoDocsFile() {
 		String src = examplesTestFolder.resolve("docstest1.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
-		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
+		Info.Docs docs = JBang.parseCommand("info", "docs", src);
+		Info.BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
 		assertThat(pf.originalResource, endsWith(File.separator + "itests" + File.separator + "readme.md"));
 	}
 
 	@Test
 	void testInfoDocsUrl() {
 		String src = examplesTestFolder.resolve("docstest2.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
-		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
+		Info.Docs docs = JBang.parseCommand("info", "docs", src);
+		Info.BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
 		assertThat(pf.originalResource, equalTo("https://www.jbang.dev/documentation/guide/latest/faq.html"));
 	}
 
 	@Test
 	void givenScriptWithoutDocsDirectiveWhenInfoDocsCommandIsInvokedThenReturnEmptyResult() {
 		String src = examplesTestFolder.resolve("docstest_nodocs.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
-		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		Info.Docs docs = JBang.parseCommand("info", "docs", src);
 		assertThat(docs.getInfo(false).docs.isEmpty(), is(true));
 	}
 
 	@Test
 	void testInfoToolsWithDocs() throws IOException {
 		String src = examplesTestFolder.resolve("docsexample.java").toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
-		Tools docs = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		docs.call();
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		tools.doCall();
 	}
 
 	@Test
@@ -208,9 +190,8 @@ public class TestInfo extends BaseTest {
 		try {
 			WarTestFixtures.createExecutableWar(warPath, "TestMain");
 			String war = warPath.toString();
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", war);
-			Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-			BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+			Info.Tools tools = JBang.parseCommand("info", "tools", war);
+			Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 			assertThat(info.originalResource, equalTo(war));
 			assertThat(info.applicationJar, equalTo(war));
 			assertThat(info.backingResource, equalTo(war));
