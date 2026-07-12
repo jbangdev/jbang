@@ -43,10 +43,12 @@ public class TestPlugins extends BaseTest {
 
 	@Test
 	void testListPlugins() throws Exception {
-		CaptureResult<Integer> result = checkedRun(null, "--help");
-		Pattern p = Pattern.compile(".*External:\\R\\s+one\\s+plugin\\sone\\R\\s+two\\s+plugin\\stwo\\R.*",
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("--help"));
+		String ansi = "(\\u001b\\[\\d+m)?";
+		Pattern p = Pattern.compile(".*External:\\R\\s+" + ansi + "one" + ansi + "\\s+plugin\\sone\\R\\s+" + ansi
+				+ "two" + ansi + "\\s+plugin\\stwo\\R.*",
 				Pattern.DOTALL | Pattern.MULTILINE);
-		assertThat(result.err, matchesPattern(p));
+		assertThat(result.out, matchesPattern(p));
 	}
 
 	@Test

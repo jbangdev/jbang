@@ -1,67 +1,44 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-trust-remove(1)
+= JBANG-TRUST-REMOVE
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang trust remove -- Remove trust domains.
 
-jbang-trust-remove - Remove trust domains.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang trust remove [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <rules>
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+== OPTIONS
 
-*jbang trust remove* *-o* *--fresh* *--quiet* *--verbose* _<rules>_...
+*-h*, *--help*::
+Display this help and exit
 
-// end::picocli-generated-man-section-synopsis[]
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-// tag::picocli-generated-man-section-description[]
-== Description
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
-Remove trust domains.
+*--[no-]verbose*::
+jbang will be verbose on what it does.
 
-// end::picocli-generated-man-section-description[]
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
 
-// tag::picocli-generated-man-section-options[]
-== Options
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+== ARGUMENTS
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*<rules>*::
+Rules for trusted sources
 
-// end::picocli-generated-man-section-options[]
-
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
-
-_<rules>_...::
-  Rules for trusted sources
-
-// end::picocli-generated-man-section-arguments[]
-
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
-
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

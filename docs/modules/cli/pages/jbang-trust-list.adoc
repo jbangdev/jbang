@@ -1,65 +1,42 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-trust-list(1)
+= JBANG-TRUST-LIST
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang trust list -- Show defined trust domains.
 
-jbang-trust-list - Show defined trust domains.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang trust list [-h] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+== OPTIONS
 
-*jbang trust list* *-o* *--fresh* *--quiet* *--verbose* [*--format*=_<format>_]
+*-h*, *--help*::
+Display this help and exit
 
-// end::picocli-generated-man-section-synopsis[]
+*--format*=<format>::
+Specify output format ('text' or 'json')
 
-// tag::picocli-generated-man-section-description[]
-== Description
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-Show defined trust domains.
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
-// end::picocli-generated-man-section-description[]
+*--[no-]verbose*::
+jbang will be verbose on what it does.
 
-// tag::picocli-generated-man-section-options[]
-== Options
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
 
-*--format*=_<format>_::
-  Specify output format ('text' or 'json')
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
-
-*--verbose*::
-  jbang will be verbose on what it does.
-
-// end::picocli-generated-man-section-options[]
-
-// tag::picocli-generated-man-section-arguments[]
-// end::picocli-generated-man-section-arguments[]
-
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
-
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

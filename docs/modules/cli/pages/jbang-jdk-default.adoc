@@ -1,67 +1,61 @@
-// This is a generated documentation file based on picocli
-// To change it update the picocli code or the genrator
-// tag::picocli-generated-full-manpage[]
-// tag::picocli-generated-man-section-header[]
-:doctype: manpage
-:manmanual: jbang Manual
-:man-linkstyle: pass:[blue R < >]
-= jbang-jdk-default(1)
+= JBANG-JDK-DEFAULT
 
-// end::picocli-generated-man-section-header[]
+== NAME
 
-// tag::picocli-generated-man-section-name[]
-== Name
+jbang jdk default -- Sets the default JDK to be used by JBang.
 
-jbang-jdk-default - Sets the default JDK to be used by JBang.
+== SYNOPSIS
 
-// end::picocli-generated-man-section-name[]
+[source]
+----
+jbang jdk default [-hvd] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<versionOrId>]
+----
 
-// tag::picocli-generated-man-section-synopsis[]
-== Synopsis
+== OPTIONS
 
-*jbang jdk default* *-o* *--fresh* *--quiet* *--verbose* [_version_]
+*-h*, *--help*::
+Display this help and exit
 
-// end::picocli-generated-man-section-synopsis[]
+*--jdk-providers*=<jdk-providers>::
+Use the given providers to manage JDKs
 
-// tag::picocli-generated-man-section-description[]
-== Description
+*--jdk-distros*=<jdk-distros>::
+Use the given distributions to install new JDKs
 
-Sets the default JDK to be used by JBang.
+*-v*, *--for-version*::
+Sets the default for the specified major version
 
-// end::picocli-generated-man-section-description[]
+*-d*, *--show-details*::
+Shows detailed information for each JDK (only when format=text)
++
+Aliases: `--details`
 
-// tag::picocli-generated-man-section-options[]
-== Options
+*--format*=<format>::
+Specify output format ('text' or 'json')
 
-*--fresh*::
-  Make sure we use fresh (i.e. non-cached) resources.
+*--config*=<config>::
+Path to config file to be used instead of the default
 
-*-o*, *--offline*::
-  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+*--insecure*::
+Enable insecure trust of all SSL certificates.
 
-*--quiet*::
-  jbang will be quiet, only print when error occurs.
+*--[no-]verbose*::
+jbang will be verbose on what it does.
 
-*--verbose*::
-  jbang will be verbose on what it does.
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
 
-// end::picocli-generated-man-section-options[]
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
 
-// tag::picocli-generated-man-section-arguments[]
-== Arguments
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
 
-[_version_]::
-  The version of the JDK to select
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
 
-// end::picocli-generated-man-section-arguments[]
+== ARGUMENTS
 
-// tag::picocli-generated-man-section-commands[]
-// end::picocli-generated-man-section-commands[]
+*<versionOrId>*::
+The version of the JDK to select
 
-// tag::picocli-generated-man-section-exit-status[]
-// end::picocli-generated-man-section-exit-status[]
-
-// tag::picocli-generated-man-section-footer[]
-// end::picocli-generated-man-section-footer[]
-
-// end::picocli-generated-full-manpage[]

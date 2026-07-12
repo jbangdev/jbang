@@ -37,4 +37,34 @@ public class VersionIT extends BaseIT {
 			.errContains("Repository");
 	}
 
+	// Scenario: verbose version via config
+	// * command('jbang config set verbose true')
+	// * command('jbang version')
+	// * match out == '#regex (?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?.*'
+	// * match err contains 'Repository'
+	// * match exit == 0
+	@Test
+	public void shouldVerboseVersionConfig() {
+		assertThat(shell("jbang config set verbose true")).succeeded();
+		assertThat(shell("jbang version")).succeeded()
+			.outMatches(Pattern.compile(
+					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?(-SNAPSHOT)?" + lineSeparator()))
+			.errContains("Repository");
+	}
+
+	// Scenario: verbose config overridden by --no-verbose
+	// * command('jbang config set verbose true')
+	// * command('jbang --no-verbose version')
+	// * match out == '#regex (?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?.*'
+	// * match err !contains 'Repository'
+	// * match exit == 0
+	@Test
+	public void shouldVerboseVersionConfigOverride() {
+		assertThat(shell("jbang config set verbose true")).succeeded();
+		assertThat(shell("jbang --no-verbose version")).succeeded()
+			.outMatches(Pattern.compile(
+					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?(-SNAPSHOT)?" + lineSeparator()))
+			.errNotContains("Repository");
+	}
+
 }
