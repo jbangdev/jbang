@@ -241,6 +241,34 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMarkdownWithMainMethod() throws IOException {
+		Path readme = jbangTempDir.resolve("readme.md");
+		writeString(readme,
+				"```java\nclass Readme {\n    public static void main(String... args) {\n        System.out.println(\"Hello\");\n    }\n}\n```\n");
+
+		Run run = JBang.parseCommand("run", readme.toString());
+		Project prj = run.createProjectBuilderForRun().build(readme.toString());
+		CmdGeneratorBuilder genb = Project.codeBuilder(BuildContext.forProject(prj)).build();
+
+		String result = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe(\\^\\\")?)? .*$"));
+		assertThat(result, containsString("Readme"));
+	}
+
+	@Test
+	void testMarkdownWithUnnamedMainMethod() throws Exception {
+		assumeTrue(JavaUtil.getCurrentMajorJavaVersion() >= 25);
+		Path readme = jbangTempDir.resolve("readme.md");
+		writeString(readme,
+				"```java\nvoid main() {\n    System.out.println(\"Hello unnamed\");\n}\n```\n");
+
+		CaptureResult<Integer> result = checkedRun(readme.toString());
+
+		assertThat(result.out, containsString("Hello unnamed"));
+	}
+
+	@Test
 	void testMarkdownWindows() throws IOException {
 		Path readmeFileOrg = examplesTestFolder.resolve("readme.md");
 		String readmeText = Util.readString(readmeFileOrg);
@@ -1299,8 +1327,8 @@ public class TestRun extends BaseTest {
 				"--javaagent=org.jboss.byteman:byteman:4.0.13",
 				mainFile.toAbsolutePath().toString());
 
-		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
-		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
+		assertThat(run.runMixin.getJavaAgentSlots().containsKey(agentFile.toAbsolutePath().toString()), is(true));
+		assertThat(run.runMixin.getJavaAgentSlots().get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
 
 		ProjectBuilder pb = run.createProjectBuilderForRun().mainClass("fakemain");
 		Project prj = pb.build(mainFile);
@@ -1324,7 +1352,7 @@ public class TestRun extends BaseTest {
 	void testJavaAgentParsing() {
 		Run run = JBang.parseCommand("run", "--javaagent=xyz.jar", "wonka.java");
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("xyz.jar"));
+		assertThat(run.runMixin.getJavaAgentSlots(), hasKey("xyz.jar"));
 	}
 
 	@Test
@@ -1332,7 +1360,7 @@ public class TestRun extends BaseTest {
 		Run run = JBang.parseCommand("run",
 				"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
+		assertThat(run.runMixin.getJavaAgentSlots(), hasKey("org.jboss.byteman:byteman:4.0.13"));
 	}
 
 	@Test
@@ -1919,6 +1947,51 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testJVMOptsShortAttached() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R-Xmx4G", "-R-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
+	void testJVMOptsShortSpace() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R", "-Xmx4G", "-R", "-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
+	void testJVMOptsShortEquals() throws IOException {
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		Run run = JBang.parseCommand("run", "-R=-Xmx4G", "-R=-Xms2G", arg);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(arg);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("-Xmx4G"));
+		assertThat(line, containsString("-Xms2G"));
+	}
+
+	@Test
 	void testJavaFXViaFileDeps() throws IOException {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTestWithDeps.java").toAbsolutePath();
 
@@ -2103,10 +2176,11 @@ public class TestRun extends BaseTest {
 			run.updateGeneratorForRun(code.codeBuilder().build()).build().generate();
 			fail("Should have thrown exception");
 		} catch (ExitException e) {
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString("in acme"));
-			assertThat(sw.toString(), not(containsString("in mavencentral=")));
+			// Walk the full cause chain for the repo name — the message may
+			// appear at different nesting levels depending on the resolver
+			String fullMessage = collectMessages(e);
+			assertThat(fullMessage, containsString("acme"));
+			assertThat(fullMessage, not(containsString("mavencentral=")));
 		}
 	}
 
@@ -2713,5 +2787,16 @@ public class TestRun extends BaseTest {
 			// Manifest-only JAR is enough for command generation tests.
 		}
 		return jar;
+	}
+
+	private static String collectMessages(Throwable t) {
+		StringBuilder sb = new StringBuilder();
+		while (t != null) {
+			if (t.getMessage() != null) {
+				sb.append(t.getMessage()).append('\n');
+			}
+			t = t.getCause();
+		}
+		return sb.toString();
 	}
 }

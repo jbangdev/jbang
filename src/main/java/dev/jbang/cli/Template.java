@@ -255,9 +255,11 @@ public class Template extends BaseCommand {
 				catalog = Catalog.getMerged(true, false);
 			}
 			if (showOrigin) {
-				printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, format);
+				printTemplatesWithOrigin(out, catalogName, catalog, showFiles,
+						showProperties, format);
 			} else {
-				printTemplates(out, catalogName, catalog, showFiles, showProperties, format);
+				printTemplates(out, catalogName, catalog, showFiles,
+						showProperties, format);
 			}
 			return EXIT_OK;
 		}

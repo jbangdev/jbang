@@ -34,12 +34,6 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@Override
 	public void afterParse() {
 		super.afterParse();
-		if (buildMixin.javaVersion != null && !buildMixin.javaVersion.matches("\\d+[+]?")) {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					String.format(
-							"Invalid value for '--java': '%s' should be a number optionally followed by a plus sign",
-							buildMixin.javaVersion));
-		}
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
 	}
 

@@ -4,7 +4,11 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.aesh.command.CommandDefinition;
@@ -38,16 +42,7 @@ public class Run extends BaseBuildCommand {
 	public String literalScript;
 
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
-	public List<String> userParams;
-
-	@Override
-	public void afterParse() {
-		super.afterParse();
-		runMixin.resolveAfterParse();
-		if (userParams == null) {
-			userParams = new ArrayList<>();
-		}
-	}
+	public List<String> userParams = new ArrayList<>();
 
 	protected void requireScriptArgument() {
 		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && literalScript == null)
@@ -122,7 +117,7 @@ public class Run extends BaseBuildCommand {
 
 	void buildAgents(BuildContext ctx) throws IOException {
 		Project prj = ctx.getProject();
-		Map<String, String> agents = runMixin.javaAgentSlots;
+		Map<String, String> agents = runMixin.getJavaAgentSlots();
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj
 				.getResourceRef();
@@ -151,7 +146,8 @@ public class Run extends BaseBuildCommand {
 
 	private List<String> javaAgentOptions(BuildContext agentCtx, String agentOptions) {
 		return Collections.singletonList(
-				"-javaagent:" + agentCtx.getJarFile() + (agentOptions != null ? "=" + agentOptions : ""));
+				"-javaagent:" + agentCtx.getJarFile()
+						+ (agentOptions != null && !agentOptions.isEmpty() ? "=" + agentOptions : ""));
 	}
 
 	ProjectBuilder createProjectBuilderForRun() {

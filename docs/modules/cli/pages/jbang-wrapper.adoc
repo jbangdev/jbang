@@ -8,12 +8,8 @@ jbang wrapper -- Manage jbang wrapper for a folder.
 
 [source]
 ----
-jbang wrapper [-hox] [--config=<config>] [--insecure] [--verbose] [--quiet] [--fresh] [COMMAND]
+jbang wrapper [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
 ----
-
-== DESCRIPTION
-
-Manage jbang wrapper for a folder.
 
 == OPTIONS
 
@@ -26,19 +22,19 @@ Path to config file to be used instead of the default
 *--insecure*::
 Enable insecure trust of all SSL certificates.
 
-*--verbose*::
+*--[no-]verbose*::
 jbang will be verbose on what it does.
 
-*--quiet*::
+*--[no-]quiet*::
 jbang will be quiet, only print when error occurs.
 
-*-o*, *--offline*::
+*-o*, *--[no-]offline*::
 Work offline. Fail-fast if dependencies are missing.
 
-*--fresh*::
+*--[no-]fresh*::
 Make sure we use fresh (i.e. non-cached) resources.
 
-*-x*, *--stacktrace*::
+*-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
 == COMMANDS

@@ -50,7 +50,8 @@ public class DebugOptionParser implements OptionParser {
 			}
 		}
 
-		addOptionValue(option, "");
+		// Don't call addValue — let aesh's fallback chain handle it:
+		// provider fallbackValue() -> annotation fallbackValue -> default
 	}
 
 	private void addOptionValue(ProcessedOption option, String value) {
