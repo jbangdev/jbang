@@ -91,6 +91,31 @@ Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-
 
 For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS`.
 
+=== Classpath from build files (EXPERIMENTAL)
+
+You can use a Maven or Gradle build file as a dependency. JBang asks that build tool for its runtime classpath and adds the returned entries.
+
+In source:
+
+[source, java]
+----
+//DEPS pom.xml
+//DEPS build.gradle
+//DEPS ^pom.xml
+----
+
+Or from the command line:
+
+[source, bash]
+----
+jbang run --deps pom.xml app.java
+jbang run --deps ^pom.xml src/main/java/app.java
+----
+
+The `^` form searches upward from the script location, so `^pom.xml` means "use the nearest parent `pom.xml`".
+
+NOTE: Maven and Gradle build files can execute code. Only use this with build files you trust.
+
 == Preview
 
 The example above can alternatively also be written with `PREVIEW` instead of `--enable-preview`, like this:
