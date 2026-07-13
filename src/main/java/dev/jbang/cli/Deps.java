@@ -15,6 +15,7 @@ import org.aesh.command.option.Option;
 import org.aesh.terminal.Connection;
 import org.eclipse.aether.artifact.Artifact;
 
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.search.ArtifactSearchWidget;
 import dev.jbang.source.update.FileUpdateStrategy;

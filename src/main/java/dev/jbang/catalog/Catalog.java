@@ -1,7 +1,7 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
+import static dev.jbang.ExitException.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +27,8 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 

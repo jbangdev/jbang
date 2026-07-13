@@ -1,6 +1,6 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -14,7 +14,7 @@ import org.jspecify.annotations.NonNull;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 

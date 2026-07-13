@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.util.JavaUtil;
