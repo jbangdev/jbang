@@ -14,6 +14,7 @@ import java.util.List;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 
+import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {

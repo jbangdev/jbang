@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import dev.jbang.Configuration;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.util.ConfigUtil;
 import dev.jbang.util.ConsoleOutput;

@@ -1,6 +1,6 @@
 package dev.jbang.source;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import static dev.jbang.ExitException.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,7 +11,7 @@ import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;

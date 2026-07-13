@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import org.aesh.command.option.Option;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 

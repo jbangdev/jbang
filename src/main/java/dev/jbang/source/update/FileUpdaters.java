@@ -4,8 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 
 public class FileUpdaters {
 
@@ -24,7 +23,7 @@ public class FileUpdaters {
 		return strategies.stream()
 			.filter(strategy -> strategy.canHandle(file))
 			.findFirst()
-			.orElseThrow(() -> new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+			.orElseThrow(() -> new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Unsupported file type: " + file.getFileName()));
 	}
 }

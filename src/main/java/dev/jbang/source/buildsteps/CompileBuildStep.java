@@ -19,8 +19,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
@@ -89,7 +88,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		if (project.getModuleName().isPresent()) {
 			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Module code cannot work with the default package, adding a 'package' statement is required");
 			}
 			if (!hasModuleInfoFile()) {

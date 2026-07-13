@@ -63,6 +63,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;

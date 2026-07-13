@@ -25,11 +25,10 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NonNull;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;
@@ -275,7 +274,7 @@ public class ProjectBuilder {
 		try {
 			ref = resolver.resolve(resource);
 		} catch (ExitException ee) {
-			if (ee.getStatus() != BaseCommand.EXIT_INVALID_INPUT || !retryCandidate) {
+			if (ee.getStatus() != ExitException.EXIT_INVALID_INPUT || !retryCandidate) {
 				throw ee;
 			}
 		}
@@ -288,7 +287,7 @@ public class ProjectBuilder {
 			ref = Util.withCacheEvict(() -> resolver.resolve(resource));
 		}
 		if (ref == null || !Files.isReadable(ref.getFile())) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
 		}
 		Util.verboseMsg("Resolved resource ref as: " + ref);
@@ -303,7 +302,7 @@ public class ProjectBuilder {
 
 	public Project build(ResourceRef resourceRef) {
 		if (!buildRefs.add(resourceRef)) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Self-referencing project dependency found for: '" + resourceRef.getOriginalResource() + "'");
 		}
 

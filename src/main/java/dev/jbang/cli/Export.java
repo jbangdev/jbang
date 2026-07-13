@@ -19,6 +19,7 @@ import org.aesh.command.option.Option;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
+import dev.jbang.ExitException;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.*;
