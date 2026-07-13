@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
+        os: [ubuntu-latest,windows-latest,macos-latest,macos-15-intel]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -143,7 +143,7 @@ jobs:
       fail-fast: false
       matrix:
         java-version: [11]
-        os: *os_matrix
+        os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
         with:
@@ -483,5 +483,4 @@ jobs:
           ---
           *Note: Visit the artifact.ci link first, then the direct link will work*
           EOF
-
 

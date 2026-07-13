@@ -149,6 +149,8 @@ Once Java is installed you can use brew with https://github.com/jbangdev/homebre
 brew install jbangdev/tap/jbang
 ----
 
+The Homebrew package includes the native executable for the host architecture. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
+
 To upgrade to latest version:
 
 [source,bash]
@@ -243,6 +245,8 @@ Once Java is installed you can use brew with https://github.com/jbangdev/homebre
 ----
 brew install jbangdev/tap/jbang
 ----
+
+The Homebrew package includes the native executable for the host architecture. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
 
 To upgrade to latest version:
 
@@ -600,7 +604,7 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 
 | `JBANG_USE_NATIVE`
 | `false`
-| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR. If a Unix package installation contains only the JAR, the startup script downloads the matching platform-native binary for the installed JBang version and caches it under `JBANG_CACHE_DIR`.
+| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR.
 
 | `JBANG_NO_VERSION_CHECK`
 | _(unset)_

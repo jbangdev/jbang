@@ -188,10 +188,7 @@ distributions:
       active: RELEASE
       continueOnError: true
     brew:
-      active: RELEASE
-      continueOnError: true
-      extraProperties:
-        skipJava: true
+      active: NEVER
     scoop:
       active: RELEASE
       continueOnError: true
@@ -211,6 +208,21 @@ distributions:
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
+  jbang-native:
+    type: BINARY
+    executable:
+      name: jbang
+    brew:
+      active: RELEASE
+      continueOnError: true
+      multiPlatform: true
+      formulaName: Jbang
+      templateDirectory: src/jreleaser/distributions/jbang/brew
+    artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}-mac-x64.zip
+        platform: osx-x86_64
+      - path: build/distributions/jbang-{{projectVersion}}-mac-aarch64.zip
+        platform: osx-aarch_64
   jbang-action:
     docker:  
       active: RELEASE

@@ -2,12 +2,6 @@ package dev.jbang.cli;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -196,35 +190,6 @@ class TestScriptNativeDownload extends AbstractScriptTest {
 			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/custom/my-jbang.tar")));
 			assertTrue(!result.stderr.contains("Error downloading JBang"),
 					"download should have succeeded, stderr: " + result.stderr);
-		}
-
-		@Test
-		void packagedJarDownloadsMatchingNativeCompanion() throws Exception {
-			String version = "0.120.0";
-			String os = detectOs();
-			String arch = detectArch();
-			String expectedPath = "/download/v" + version + "/jbang-" + version + "-" + os + "-" + arch + ".tar";
-			wm.stubFor(WireMock.get(WireMock.urlEqualTo(expectedPath))
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(createNativeJbangTar(version, os, arch))));
-
-			Path install = tempSubDir("packaged-native");
-			Path bin = Files.createDirectories(install.resolve("bin"));
-			Path script = bin.resolve("jbang");
-			Files.copy(BASH_SCRIPT, script, StandardCopyOption.REPLACE_EXISTING);
-			Files.createFile(bin.resolve("jbang.jar"));
-			Files.write(install.resolve("version.txt"), version.getBytes(StandardCharsets.UTF_8));
-
-			Map<String, String> env = bashEnv(true);
-			List<String> command = new ArrayList<>();
-			command.add("bash");
-			command.add(script.toString());
-			command.add("version");
-			RunResult result = runProcess(command, env);
-
-			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo(expectedPath)));
-			assertTrue(result.stdout.contains("native-companion"), "native companion should run: " + result.stderr);
-			assertTrue(!result.stderr.contains("not found or not executable"),
-					"missing-binary warning should be suppressed: " + result.stderr);
 		}
 	}
 
