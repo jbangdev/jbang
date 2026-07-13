@@ -341,6 +341,76 @@ class TestAeshParsing extends BaseTest {
 		assertThat(run.runMixin.debugString, is(nullValue()));
 	}
 
+	// --- #2587: --runtime-option with space separator ---
+
+	@Test
+	void testRuntimeOptionWithSpaceSeparator() {
+		// --runtime-option -Dstdout.encoding=UTF-8 should work (space between option
+		// and value)
+		Run run = JBang.parseCommand("run", "--runtime-option", "-Dstdout.encoding=UTF-8", "test.java");
+		assertThat(run.runMixin.javaRuntimeOptions, hasSize(1));
+		assertThat(run.runMixin.javaRuntimeOptions, contains("-Dstdout.encoding=UTF-8"));
+	}
+
+	@Test
+	void testMultipleRuntimeOptionsWithSpaceSeparator() {
+		// Multiple --runtime-option with space should all be parsed
+		Run run = JBang.parseCommand("run",
+				"--runtime-option", "-Dstdout.encoding=UTF-8",
+				"--runtime-option", "-Dpython.console.encoding=UTF-8",
+				"test.java");
+		assertThat(run.runMixin.javaRuntimeOptions, hasSize(2));
+		assertThat(run.runMixin.javaRuntimeOptions,
+				contains("-Dstdout.encoding=UTF-8", "-Dpython.console.encoding=UTF-8"));
+	}
+
+	@Test
+	void testRuntimeOptionShortWithSpaceSeparator() {
+		// -R -Dkey=value (space between -R and value) should work
+		Run run = JBang.parseCommand("run", "-R", "-Dstdout.encoding=UTF-8", "test.java");
+		assertThat(run.runMixin.javaRuntimeOptions, hasSize(1));
+		assertThat(run.runMixin.javaRuntimeOptions, contains("-Dstdout.encoding=UTF-8"));
+	}
+
+	// --- #2589: --deps comma-separated via DefaultValueProvider ---
+
+	@Test
+	void testDepsDefaultValueProviderCommaSeparated() throws IOException {
+		// When run.deps is set in config with comma-delimited deps,
+		// they should be split into separate list items (not treated as one GAV)
+		String config = "run.deps = org.foo:bar:1.0,org.baz:qux:2.0\n";
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
+		Configuration.instance(null);
+
+		Run run = JBang.parseCommand("run", "test.java");
+		assertThat(run.dependencyInfoMixin.dependencies, hasSize(2));
+		assertThat(run.dependencyInfoMixin.dependencies,
+				contains("org.foo:bar:1.0", "org.baz:qux:2.0"));
+	}
+
+	@Test
+	void testDepsDefaultValueProviderSingleDep() throws IOException {
+		// Single dep from config should still work
+		String config = "run.deps = org.foo:bar:1.0\n";
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
+		Configuration.instance(null);
+
+		Run run = JBang.parseCommand("run", "test.java");
+		assertThat(run.dependencyInfoMixin.dependencies, hasSize(1));
+		assertThat(run.dependencyInfoMixin.dependencies, contains("org.foo:bar:1.0"));
+	}
+
+	@Test
+	void testDepsExplicitOverridesDefaultValueProvider() throws IOException {
+		// Explicit --deps should override config defaults
+		String config = "run.deps = org.foo:bar:1.0,org.baz:qux:2.0\n";
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
+		Configuration.instance(null);
+
+		Run run = JBang.parseCommand("run", "--deps", "org.other:lib:3.0", "test.java");
+		assertThat(run.dependencyInfoMixin.dependencies, hasItem("org.other:lib:3.0"));
+	}
+
 	// --- Subcommand list consistency ---
 
 	@Test
