@@ -109,7 +109,7 @@ function Invoke-JBang {
         $err=$LASTEXITCODE
     } else {
         # Run JAR
-        $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
+        $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
         $err=$LASTEXITCODE
     }
     
@@ -249,7 +249,7 @@ if (-not $binaryPath) {
         # Activate the downloaded JDK giving it its proper name
         Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
         # Set the current JDK
-        & "$JAVA_EXEC" -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
+        & "$JAVA_EXEC" -jar "$jarPath" jdk default $javaVersion
       }
     }
   }
