@@ -41,8 +41,8 @@ import org.eclipse.aether.util.artifact.SubArtifact;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.SimpleArtifactDescriptorPolicy;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.ExitException;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 

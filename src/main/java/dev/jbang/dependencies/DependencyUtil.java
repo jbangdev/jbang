@@ -19,7 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 
 public class DependencyUtil {
 

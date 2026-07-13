@@ -17,7 +17,7 @@ import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;

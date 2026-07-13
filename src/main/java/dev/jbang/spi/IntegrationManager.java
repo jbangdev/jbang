@@ -1,7 +1,7 @@
 package dev.jbang.spi;
 
-import static dev.jbang.cli.BaseCommand.EXIT_GENERIC_ERROR;
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.ExitException.EXIT_GENERIC_ERROR;
+import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.BufferedReader;
@@ -32,7 +32,7 @@ import org.jspecify.annotations.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;

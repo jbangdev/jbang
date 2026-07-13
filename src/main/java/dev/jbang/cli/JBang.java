@@ -13,6 +13,7 @@ import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.option.Option;
 import org.aesh.command.registry.CommandRegistry;
 
+import dev.jbang.ExitException;
 import dev.jbang.Main;
 import dev.jbang.util.Util;
 

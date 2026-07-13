@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;

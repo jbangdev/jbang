@@ -14,8 +14,6 @@ import org.aesh.command.CommandResult;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.cli.JBang;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
@@ -66,7 +64,7 @@ public class Main {
 			if (cause instanceof IllegalArgumentException) {
 				// Converter/validation errors from aesh (e.g. invalid enum values)
 				Util.errorMsg(cause.getMessage());
-				exitCode = BaseCommand.EXIT_INVALID_INPUT;
+				exitCode = ExitException.EXIT_INVALID_INPUT;
 			} else if (cause instanceof ExitException) {
 				exitCode = ((ExitException) cause).getStatus();
 				if (exitCode != 0) {
@@ -78,7 +76,7 @@ public class Main {
 					Util.infoMsg(
 							"If you believe this a bug in jbang, open an issue at https://github.com/jbangdev/jbang/issues");
 				}
-				exitCode = BaseCommand.EXIT_INTERNAL_ERROR;
+				exitCode = ExitException.EXIT_INTERNAL_ERROR;
 			}
 		} finally {
 			VersionChecker.informOrCancel(versionCheckResult);
@@ -186,7 +184,7 @@ public class Main {
 				System.err.printf(
 						"%s is a deprecated and now removed flag. See %s for more details on its replacement.%n",
 						key, replacement);
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						key + " is a deprecated and now removed flag");
 			}
 		}
@@ -220,7 +218,7 @@ public class Main {
 					String cmdLine = String.join(" ", result);
 					Util.verboseMsg("run plugin: " + cmdLine);
 					System.out.println(cmdLine);
-					throw new ExitException(BaseCommand.EXIT_EXECUTE, cmdLine);
+					throw new ExitException(ExitException.EXIT_EXECUTE, cmdLine);
 				}
 				// In all other cases assume it's an implicit "run"
 				List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);

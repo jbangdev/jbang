@@ -20,9 +20,8 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
@@ -268,7 +267,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			}
 
 			if (mains.isEmpty()) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"No main class deduced, specified nor found in a manifest nor jar");
 			} else {
 
@@ -289,7 +288,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 					String mainClasses = mains.stream()
 						.map(m -> "\n - " + m)
 						.collect(Collectors.joining());
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
 									+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
 				} else {

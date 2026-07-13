@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.Project;

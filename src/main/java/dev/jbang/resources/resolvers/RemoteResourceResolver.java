@@ -14,7 +14,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.resources.ResourceNotFoundException;
 import dev.jbang.resources.ResourceRef;

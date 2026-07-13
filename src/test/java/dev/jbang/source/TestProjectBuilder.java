@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.resolvers.AliasResourceResolver;

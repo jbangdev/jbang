@@ -16,6 +16,7 @@ import org.aesh.command.option.Arguments;
 import org.aesh.command.option.Mixin;
 import org.aesh.command.option.Option;
 
+import dev.jbang.ExitException;
 import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.BuildContext;
