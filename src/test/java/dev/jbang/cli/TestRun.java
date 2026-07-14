@@ -3,7 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
+import static dev.jbang.ExitException.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;

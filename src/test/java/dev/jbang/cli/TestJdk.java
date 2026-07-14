@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -319,7 +320,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.getShell(), Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
 	}
@@ -331,7 +332,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.Shell.bash, Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
 	}
@@ -343,7 +344,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.Shell.powershell, Settings.getDefaultJdkDir(), "java", "-version")
 						+ "\n"));

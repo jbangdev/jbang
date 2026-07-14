@@ -113,7 +113,7 @@ public class Run extends BaseBuildCommand {
 		Util.verboseMsg("run: " + cmdline);
 		realOut.println(cmdline);
 
-		return EXIT_EXECUTE;
+		return ExitException.EXIT_EXECUTE;
 	}
 
 	void buildAgents(BuildContext ctx) throws IOException {
