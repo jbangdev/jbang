@@ -66,7 +66,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -90,7 +90,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "--native", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -103,7 +103,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: kubectl-example"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -117,7 +117,7 @@ public class TestApp extends BaseTest {
 				"https://github.com/jbangdev/k8s-cli-java/blob/jbang/kubectl-example");
 		assertThat(result.err, containsString("Command installed: kubectl-example"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -130,7 +130,7 @@ public class TestApp extends BaseTest {
 				"com.h2database:h2:1.4.200");
 		assertThat(result.err, containsString("Command installed: h2"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -178,7 +178,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -193,7 +193,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -239,7 +239,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 			assertThat(Settings.getConfigBinDir().resolve("hello.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("hello.ps1").toFile(), anExistingFile());
 		} else {
@@ -254,7 +254,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -269,7 +269,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
@@ -284,7 +284,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "apptest");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 			assertThat(Settings.getConfigBinDir().resolve("apptest.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("apptest.ps1").toFile(), anExistingFile());
 		} else {
@@ -302,7 +302,7 @@ public class TestApp extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", "apptest@testrepo");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 			assertThat(Settings.getConfigBinDir().resolve("apptest.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("apptest.ps1").toFile(), anExistingFile());
 		} else {

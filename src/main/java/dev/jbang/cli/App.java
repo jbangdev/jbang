@@ -483,7 +483,7 @@ public class App extends BaseCommand {
 			}
 			if (!cmd.isEmpty()) {
 				System.out.println(cmd);
-				return EXIT_EXECUTE;
+				return ExitException.EXIT_EXECUTE;
 			} else {
 				return EXIT_OK;
 			}
