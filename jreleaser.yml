@@ -219,6 +219,10 @@ distributions:
       formulaName: Jbang
       templateDirectory: src/jreleaser/distributions/jbang/brew
     artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}-linux-x64.zip
+        platform: linux-x86_64
+      - path: build/distributions/jbang-{{projectVersion}}-linux-aarch64.zip
+        platform: linux-aarch_64
       - path: build/distributions/jbang-{{projectVersion}}-mac-x64.zip
         platform: osx-x86_64
       - path: build/distributions/jbang-{{projectVersion}}-mac-aarch64.zip

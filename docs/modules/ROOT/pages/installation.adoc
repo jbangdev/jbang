@@ -149,7 +149,7 @@ Once Java is installed you can use brew with https://github.com/jbangdev/homebre
 brew install jbangdev/tap/jbang
 ----
 
-The Homebrew package includes the native executable for the host architecture. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
+The Homebrew package includes the native executable for the host architecture on macOS and Linux. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
 
 To upgrade to latest version:
 
@@ -246,7 +246,7 @@ Once Java is installed you can use brew with https://github.com/jbangdev/homebre
 brew install jbangdev/tap/jbang
 ----
 
-The Homebrew package includes the native executable for the host architecture. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
+The Homebrew package includes the native executable for the host architecture on macOS and Linux. Set `JBANG_USE_NATIVE=true` to use it instead of the JAR-based launcher.
 
 To upgrade to latest version:
 
