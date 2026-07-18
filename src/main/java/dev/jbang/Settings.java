@@ -25,6 +25,7 @@ public class Settings {
 
 	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
 	public static final String ENV_NO_VERSION_CHECK = "JBANG_NO_VERSION_CHECK";
+	public static final String ENV_USE_NATIVE = "JBANG_USE_NATIVE";
 
 	public static final int DEFAULT_JAVA_VERSION = 17;
 	public static final int DEFAULT_ALPINE_JAVA_VERSION = 16;
