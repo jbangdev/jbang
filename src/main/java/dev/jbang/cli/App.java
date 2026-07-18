@@ -253,7 +253,7 @@ public class App extends BaseCommand {
 			return true;
 		}
 
-		private static void copyJBangFiles(Path from, Path to) throws IOException {
+		static void copyJBangFiles(Path from, Path to) throws IOException {
 			to.toFile().mkdirs();
 			Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
 				.map(Paths::get)
@@ -261,6 +261,10 @@ public class App extends BaseCommand {
 					try {
 						Path fromp = from.resolve(f);
 						Path top = to.resolve(f);
+						if (isActiveCmdLauncher(top)) {
+							Util.verboseMsg("Keeping the active Windows command launcher during the update: " + top);
+							return;
+						}
 						if (f.endsWith("jbang.jar")) {
 							if (!Files.isReadable(fromp)) {
 								fromp = from.resolve(".jbang/jbang.jar");
@@ -275,6 +279,17 @@ public class App extends BaseCommand {
 						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
+		}
+
+		static boolean isActiveCmdLauncher(Path target) {
+			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd) {
+				return false;
+			}
+			String launchCmd = System.getenv(Util.JBANG_LAUNCH_CMD);
+			if (launchCmd == null || launchCmd.isEmpty()) {
+				return false;
+			}
+			return target.toAbsolutePath().normalize().equals(Paths.get(launchCmd).toAbsolutePath().normalize());
 		}
 	}
 

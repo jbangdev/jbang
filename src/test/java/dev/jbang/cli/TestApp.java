@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -58,6 +59,50 @@ public class TestApp extends BaseTest {
 
 		Files.write(rcFile, Collections.singletonList("# Add JBang to environment"));
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(true));
+	}
+
+	@Test
+	void testActiveWindowsCmdLauncher() {
+		Assumptions.assumeTrue(Util.isWindows());
+		Path launcher = jbangTempDir.resolve("bin").resolve("jbang.cmd");
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
+		environmentVariables.set(Util.JBANG_LAUNCH_CMD, launcher.toString());
+
+		assertThat(App.AppInstall.isActiveCmdLauncher(launcher), is(true));
+		assertThat(App.AppInstall.isActiveCmdLauncher(launcher.resolveSibling("jbang.ps1")), is(false));
+	}
+
+	@Test
+	void testInactiveWindowsCmdLauncher() {
+		Assumptions.assumeTrue(Util.isWindows());
+		Path launcher = jbangTempDir.resolve("bin").resolve("jbang.cmd");
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+		environmentVariables.set(Util.JBANG_LAUNCH_CMD, launcher.toString());
+
+		assertThat(App.AppInstall.isActiveCmdLauncher(launcher), is(false));
+	}
+
+	@Test
+	void testUpdateKeepsActiveWindowsCmdLauncher(@TempDir Path tempDir) throws IOException {
+		Assumptions.assumeTrue(Util.isWindows());
+		Path source = Files.createDirectory(tempDir.resolve("source"));
+		Path target = Files.createDirectory(tempDir.resolve("target"));
+		Files.writeString(source.resolve("jbang"), "new sh");
+		Files.writeString(source.resolve("jbang.cmd"), "new cmd");
+		Files.writeString(source.resolve("jbang.ps1"), "new ps1");
+		Files.writeString(source.resolve("jbang.jar"), "new jar");
+		Files.writeString(target.resolve("jbang.cmd"), "running cmd");
+		Files.writeString(target.resolve("jbang.jar"), "running jar");
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
+		environmentVariables.set(Util.JBANG_LAUNCH_CMD, target.resolve("jbang.cmd").toString());
+
+		App.AppInstall.copyJBangFiles(source, target);
+
+		assertThat(Files.readString(target.resolve("jbang.cmd")), is("running cmd"));
+		assertThat(Files.readString(target.resolve("jbang")), is("new sh"));
+		assertThat(Files.readString(target.resolve("jbang.ps1")), is("new ps1"));
+		assertThat(Files.readString(target.resolve("jbang.jar")), is("running jar"));
+		assertThat(Files.readString(target.resolve("jbang.jar.new")), is("new jar"));
 	}
 
 	@Test
