@@ -2,6 +2,7 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Settings.getJBangLocalMavenRepoOverride;
+import static dev.jbang.util.Util.VerboseCategory.BUILD;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.isWindows;
@@ -67,7 +68,7 @@ public class DependencyUtil {
 			return new ModularClassPath(Collections.emptyList());
 		}
 
-		verboseMsg(String.format("Resolving artifact(s): %s", String.join(", ", deps)));
+		verboseMsg(BUILD, String.format("Resolving artifact(s): %s", String.join(", ", deps)));
 
 		if (repos.isEmpty()) {
 			repos = new ArrayList<>();
@@ -84,7 +85,7 @@ public class DependencyUtil {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
 
-		verboseMsg(String.format("Repositories: %s",
+		verboseMsg(BUILD, String.format("Repositories: %s",
 				repos.stream().map(MavenRepo::toString).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
@@ -94,7 +95,7 @@ public class DependencyUtil {
 			cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
 			if (cachedDeps != null) {
 				ModularClassPath mcp = new ModularClassPath(cachedDeps);
-				verboseMsg(String.format("Resolved artifact(s) from cache: %s", mcp));
+				verboseMsg(BUILD, String.format("Resolved artifact(s) from cache: %s", mcp));
 				return mcp;
 			}
 		}
@@ -125,7 +126,7 @@ public class DependencyUtil {
 
 			DependencyCache.cache(depsHash, mcp.getArtifacts());
 
-			verboseMsg(String.format("Resolved artifact(s): %s", mcp));
+			verboseMsg(BUILD, String.format("Resolved artifact(s): %s", mcp));
 
 			return mcp;
 		} catch (DependencyException e) { // Probably a wrapped Nullpointer from
@@ -202,7 +203,7 @@ public class DependencyUtil {
 			Path base = Paths.get(".").toAbsolutePath().normalize();
 			Path resolved = base.resolve(reporef).normalize();
 			String resolvedUrl = resolved.toUri().toString();
-			verboseMsg("Maven local path resolved: " + repoReference + " -> " + resolvedUrl);
+			verboseMsg(BUILD, "Maven local path resolved: " + repoReference + " -> " + resolvedUrl);
 			// TODO: should we throw an error if the resolved path is not a child of the
 			// base path?
 			return new MavenRepo(repoid, resolvedUrl);

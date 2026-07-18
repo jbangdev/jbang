@@ -72,7 +72,7 @@ public class Main {
 				}
 			} else {
 				Util.errorMsg(null, e);
-				if (Util.isVerbose()) {
+				if (Util.isVerbose(Util.VerboseCategory.INTERNALS)) {
 					Util.infoMsg(
 							"If you believe this a bug in jbang, open an issue at https://github.com/jbangdev/jbang/issues");
 				}

@@ -38,8 +38,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -109,6 +111,7 @@ public class Util {
 	public static final String MAIN_JAVA = "main.java";
 
 	private static boolean verbose;
+	private static EnumSet<VerboseCategory> verboseCategories = EnumSet.noneOf(VerboseCategory.class);
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
@@ -123,6 +126,9 @@ public class Util {
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
+		verboseCategories = verbose
+				? EnumSet.allOf(VerboseCategory.class)
+				: EnumSet.noneOf(VerboseCategory.class);
 		if (verbose) {
 			setQuiet(false);
 		}
@@ -132,6 +138,84 @@ public class Util {
 
 	public static boolean isVerbose() {
 		return verbose;
+	}
+
+	public enum VerboseCategory {
+		COMMANDS,
+		NETWORK,
+		BUILD,
+		CONFIG,
+		INTERNALS
+	}
+
+	public static void setVerboseCategories(String expression) {
+		if (expression == null) {
+			setVerbose(false);
+			return;
+		}
+		String value = expression.trim();
+		if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
+			setVerbose(true);
+			return;
+		}
+		if ("false".equalsIgnoreCase(value) || value.isEmpty()) {
+			setVerbose(false);
+			return;
+		}
+
+		String[] parts = value.split(",", -1);
+		boolean hasPositive = Arrays.stream(parts).anyMatch(part -> !part.trim().startsWith("-"));
+		EnumSet<VerboseCategory> categories = hasPositive
+				? EnumSet.noneOf(VerboseCategory.class)
+				: EnumSet.allOf(VerboseCategory.class);
+		for (String part : parts) {
+			String categoryName = part.trim();
+			boolean exclude = categoryName.startsWith("-");
+			if (exclude) {
+				categoryName = categoryName.substring(1).trim();
+			}
+			if (categoryName.isEmpty()) {
+				throw new IllegalArgumentException("Empty verbose category. Valid categories: "
+						+ verboseCategoryNames());
+			}
+			if ("all".equalsIgnoreCase(categoryName)) {
+				if (exclude) {
+					categories.clear();
+				} else {
+					categories.addAll(EnumSet.allOf(VerboseCategory.class));
+				}
+				continue;
+			}
+			VerboseCategory category;
+			try {
+				category = VerboseCategory.valueOf(categoryName.toUpperCase(Locale.ROOT));
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Unknown verbose category '" + categoryName
+						+ "'. Valid categories: " + verboseCategoryNames());
+			}
+			if (exclude) {
+				categories.remove(category);
+			} else {
+				categories.add(category);
+			}
+		}
+		verboseCategories = categories;
+		verbose = !categories.isEmpty();
+		if (verbose) {
+			setQuiet(false);
+		}
+		Logger.getLogger("dev.jbang")
+			.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+	}
+
+	private static String verboseCategoryNames() {
+		return Arrays.stream(VerboseCategory.values())
+			.map(category -> category.name().toLowerCase(Locale.ROOT))
+			.collect(Collectors.joining(", ")) + ", all";
+	}
+
+	public static boolean isVerbose(VerboseCategory category) {
+		return verboseCategories.contains(category);
 	}
 
 	public static void setQuiet(boolean quiet) {
@@ -492,17 +576,25 @@ public class Util {
 	}
 
 	static public void verboseMsg(String msg) {
-		if (isVerbose()) {
+		verboseMsg(VerboseCategory.INTERNALS, msg);
+	}
+
+	static public void verboseMsg(VerboseCategory category, String msg) {
+		if (isVerbose(category)) {
 			System.err.print(getMsgHeader());
 			System.err.println(msg);
 		}
 	}
 
 	static public void verboseMsg(String msg, Throwable e) {
-		if (isVerbose()) {
+		verboseMsg(VerboseCategory.INTERNALS, msg, e);
+	}
+
+	static public void verboseMsg(VerboseCategory category, String msg, Throwable e) {
+		if (isVerbose(category)) {
 			System.err.print(getMsgHeader());
 			System.err.println(msg);
-			if (printExceptions() || isVerbose()) {
+			if (printExceptions() || isVerbose(category)) {
 				e.printStackTrace();
 			}
 		}
@@ -550,7 +642,7 @@ public class Util {
 		} else {
 			System.err.println(e.getClass().toGenericString());
 		}
-		if (isVerbose() || printExceptions()) {
+		if (isVerbose(VerboseCategory.INTERNALS) || printExceptions()) {
 			e.printStackTrace();
 		} else {
 			if (msg != null) {
@@ -1005,7 +1097,7 @@ public class Util {
 				boolean finished = p.waitFor(timeoutSeconds, TimeUnit.SECONDS);
 				if (!finished) {
 					p.destroyForcibly();
-					verboseMsg("Command timed out: " + String.join(" ", cmd));
+					verboseMsg(VerboseCategory.COMMANDS, "Command timed out: " + String.join(" ", cmd));
 					return null;
 				}
 				exitCode = p.exitValue();
@@ -1014,17 +1106,18 @@ public class Util {
 			if (exitCode == 0) {
 				return cmdOutput;
 			} else if (logOutput) {
-				verboseMsg(String.format("Command failed: #%d - %s", exitCode, cmdOutput));
+				verboseMsg(VerboseCategory.COMMANDS, String.format("Command failed: #%d - %s", exitCode, cmdOutput));
 			} else {
-				verboseMsg(String.format("Command failed: #%d - %s", exitCode, String.join(" ", cmd)));
+				verboseMsg(VerboseCategory.COMMANDS,
+						String.format("Command failed: #%d - %s", exitCode, String.join(" ", cmd)));
 			}
 		} catch (CompletionException ex) {
-			verboseMsg("Error reading output from: " + String.join(" ", cmd), ex);
+			verboseMsg(VerboseCategory.COMMANDS, "Error reading output from: " + String.join(" ", cmd), ex);
 		} catch (IOException ex) {
-			verboseMsg("Error running: " + String.join(" ", cmd), ex);
+			verboseMsg(VerboseCategory.COMMANDS, "Error running: " + String.join(" ", cmd), ex);
 		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
-			verboseMsg("Interrupted running: " + String.join(" ", cmd), ex);
+			verboseMsg(VerboseCategory.COMMANDS, "Interrupted running: " + String.join(" ", cmd), ex);
 		}
 		return null;
 	}

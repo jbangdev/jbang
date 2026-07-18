@@ -1,5 +1,6 @@
 package dev.jbang;
 
+import static dev.jbang.util.Util.VerboseCategory.CONFIG;
 import static dev.jbang.util.Util.verboseMsg;
 import static dev.jbang.util.Util.warnMsg;
 
@@ -331,7 +332,7 @@ public class Configuration {
 	}
 
 	public static void write(Path configFile, Configuration cfg) throws IOException {
-		verboseMsg(String.format("Writing configuration to %s", configFile));
+		verboseMsg(CONFIG, String.format("Writing configuration to %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
 			cfg.values.store(out);
 		}

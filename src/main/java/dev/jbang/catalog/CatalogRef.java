@@ -73,7 +73,8 @@ public class CatalogRef extends CatalogItem {
 		if (Util.isRemoteRef(catalogRefString) && Util.isURL(catalogRefString)) {
 			url = Optional.of(catalogRefString);
 		} else {
-			Util.verboseMsg("Local catalog '" + catalogRefString + "' not found, trying implicit catalogs...");
+			Util.verboseMsg(Util.VerboseCategory.CONFIG,
+					"Local catalog '" + catalogRefString + "' not found, trying implicit catalogs...");
 			url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRefString);
 		}
 		if (url.isPresent()) {

@@ -64,7 +64,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
 				project.getResourceRef().getFile().getFileName().toString()));
-		Util.verboseMsg("Compile: " + String.join(" ", compileCmd));
+		Util.verboseMsg(Util.VerboseCategory.BUILD, "Compile: " + String.join(" ", compileCmd));
 		runCompiler(compileCmd);
 
 		searchForMain(ctx.getCompileDir());
