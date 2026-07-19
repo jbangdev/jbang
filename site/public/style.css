@@ -1,0 +1,95 @@
+:root {
+    color-scheme: dark;
+    --bg: #111827;
+    --card: rgba(255, 255, 255, 0.08);
+    --text: #fff7ed;
+    --muted: #fed7aa;
+    --accent: #fb923c;
+    --accent-dark: #ea580c;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.28), transparent 32rem),
+        radial-gradient(circle at 80% 15%, rgba(253, 186, 116, 0.18), transparent 28rem),
+        linear-gradient(135deg, #111827 0%, #3b1f14 100%);
+}
+
+main {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 2rem;
+}
+
+.hero {
+    width: min(100%, 48rem);
+    padding: clamp(2rem, 6vw, 5rem);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 2rem;
+    background: var(--card);
+    box-shadow: 0 2rem 6rem rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(3rem, 11vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: -0.07em;
+}
+
+.lede {
+    max-width: 36rem;
+    margin: 1.5rem 0 0;
+    color: rgba(255, 247, 237, 0.82);
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 2.25rem;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.2rem;
+    border-radius: 999px;
+    color: #1f1308;
+    background: var(--accent);
+    font-weight: 800;
+    text-decoration: none;
+    transition: background 160ms ease, transform 160ms ease;
+}
+
+.button:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+}
+
+.note {
+    color: rgba(255, 247, 237, 0.68);
+}
