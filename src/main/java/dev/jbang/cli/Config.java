@@ -17,6 +17,8 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.Configuration;
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
+import dev.jbang.cli.completion.ConfigKeyCompleter;
+import dev.jbang.cli.completion.ConfigUnsetKeyCompleter;
 import dev.jbang.util.ConfigUtil;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
@@ -29,7 +31,7 @@ public class Config extends BaseCommand {
 
 	// IMPORTANT: These options have to be maintained manually! Make sure to add
 	// an option for each configuration key that gets added!
-	static AvailableOption[] extraOptions = {
+	public static AvailableOption[] extraOptions = {
 			new AvailableOption(Settings.CONFIG_CACHE_EVICT,
 					"Time that locally cached files are kept before they are evicted. Can be a simple number in seconds, an ISO8601 Duration or the word 'never'"),
 			new AvailableOption(Settings.CONFIG_CONNECTION_TIMEOUT,
@@ -39,6 +41,63 @@ public class Config extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	/**
+	 * Returns all known configuration keys with descriptions, gathered from the CLI
+	 * command tree and {@link #extraOptions}.
+	 */
+	@SuppressWarnings("unchecked")
+	public static Set<AvailableOption> getAvailableOptions() {
+		Set<AvailableOption> opts = new HashSet<>(Arrays.asList(extraOptions));
+		try {
+			org.aesh.command.registry.CommandRegistry<org.aesh.command.invocation.CommandInvocation> registry = org.aesh.command.impl.registry.AeshCommandRegistryBuilder.<org.aesh.command.invocation.CommandInvocation>builder()
+				.command(
+						(Class<org.aesh.command.Command<org.aesh.command.invocation.CommandInvocation>>) (Class<?>) JBang.class)
+				.create();
+			for (String name : registry.getAllCommandNames()) {
+				org.aesh.command.container.CommandContainer<org.aesh.command.invocation.CommandInvocation> container = registry
+					.getCommand(name, "");
+				gatherFromParser(container.getParser(), Collections.emptyList(), opts);
+			}
+		} catch (Exception e) {
+			Util.verboseMsg("Failed to gather config keys from CLI tree: " + e.getMessage());
+		}
+		return opts;
+	}
+
+	private static void gatherFromParser(
+			org.aesh.command.impl.parser.CommandLineParser<?> parser,
+			List<String> parentPath, Set<AvailableOption> keys) {
+		org.aesh.command.impl.internal.ProcessedCommand<?, ?> cmd = parser.getProcessedCommand();
+		String cmdName = cmd.name();
+		List<String> currentPath = new ArrayList<>(parentPath);
+		if (!"jbang".equals(cmdName)) {
+			currentPath.add(cmdName);
+		}
+		String path = currentPath.isEmpty() ? null : String.join(".", currentPath);
+		for (org.aesh.command.impl.internal.ProcessedOption opt : cmd.getOptions()) {
+			if (opt.name() != null && !opt.name().isEmpty()) {
+				String optName = opt.name().replace("-", "");
+				if (path != null) {
+					keys.add(new AvailableOption(path + "." + optName, opt.description()));
+				} else {
+					// Root command: add both short form (e.g. "fresh") and
+					// qualified form (e.g. "jbang.fresh")
+					keys.add(new AvailableOption(optName, opt.description()));
+					keys.add(new AvailableOption(cmdName + "." + optName, opt.description()));
+				}
+			}
+		}
+		if (parser.isGroupCommand()) {
+			parser.getAllNames();
+			org.aesh.command.impl.parser.AeshCommandLineParser<?> aeshParser = (org.aesh.command.impl.parser.AeshCommandLineParser<?>) parser;
+			if (aeshParser.getChildParsers() != null) {
+				for (org.aesh.command.impl.parser.CommandLineParser<?> child : aeshParser.getChildParsers()) {
+					gatherFromParser(child, currentPath, keys);
+				}
+			}
+		}
 	}
 
 	static abstract class BaseConfigCommand extends BaseCommand {
@@ -86,7 +145,7 @@ public class Config extends BaseCommand {
 
 	@CommandDefinition(name = "get", description = "Get a configuration value", generateHelp = true)
 	public static class ConfigGet extends BaseConfigCommand {
-		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to get", required = true)
+		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to get", required = true, completer = ConfigKeyCompleter.class)
 		String key;
 
 		@Override
@@ -105,7 +164,7 @@ public class Config extends BaseCommand {
 
 	@CommandDefinition(name = "set", description = "Set a configuration value", generateHelp = true)
 	public static class ConfigSet extends BaseConfigCommand {
-		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true)
+		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true, completer = ConfigKeyCompleter.class)
 		String keyOrKeyValue;
 
 		@Argument(paramLabel = "value", index = "1", arity = "0..1", description = "The value to set for the configuration option")
@@ -141,7 +200,7 @@ public class Config extends BaseCommand {
 
 	@CommandDefinition(name = "unset", description = "Remove a configuration value", generateHelp = true)
 	public static class ConfigUnset extends BaseConfigCommand {
-		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to remove", required = true)
+		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to remove", required = true, completer = ConfigUnsetKeyCompleter.class)
 		String key;
 
 		@Override
@@ -186,8 +245,7 @@ public class Config extends BaseCommand {
 						"Options '--show-available' and '--show-origin' cannot be used together");
 			}
 			if (showAvailable) {
-				Set<AvailableOption> opts = new HashSet<>(Arrays.asList(Config.extraOptions));
-				gatherKeys(JBang.class, opts);
+				Set<AvailableOption> opts = Config.getAvailableOptions();
 				if (format == OutputFormat.json) {
 					Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 					parser.toJson(opts.stream().sorted().collect(Collectors.toList()), out);
@@ -207,49 +265,6 @@ public class Config extends BaseCommand {
 				}
 			}
 			return EXIT_OK;
-		}
-
-		@SuppressWarnings("unchecked")
-		private void gatherKeys(Class<?> cmdClass, Set<AvailableOption> keys) {
-			try {
-				org.aesh.command.registry.CommandRegistry<org.aesh.command.invocation.CommandInvocation> registry = org.aesh.command.impl.registry.AeshCommandRegistryBuilder.<org.aesh.command.invocation.CommandInvocation>builder()
-					.command((Class<org.aesh.command.Command<org.aesh.command.invocation.CommandInvocation>>) cmdClass)
-					.create();
-				for (String name : registry.getAllCommandNames()) {
-					org.aesh.command.container.CommandContainer<org.aesh.command.invocation.CommandInvocation> container = registry
-						.getCommand(name, "");
-					gatherFromParser(container.getParser(), Collections.emptyList(), keys);
-				}
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to gather config keys", e);
-			}
-		}
-
-		private void gatherFromParser(
-				org.aesh.command.impl.parser.CommandLineParser<?> parser,
-				List<String> parentPath, Set<AvailableOption> keys) {
-			org.aesh.command.impl.internal.ProcessedCommand<?, ?> cmd = parser.getProcessedCommand();
-			String cmdName = cmd.name();
-			List<String> currentPath = new ArrayList<>(parentPath);
-			if (!"jbang".equals(cmdName)) {
-				currentPath.add(cmdName);
-			}
-			String path = currentPath.isEmpty() ? cmdName : String.join(".", currentPath);
-			for (org.aesh.command.impl.internal.ProcessedOption opt : cmd.getOptions()) {
-				if (opt.name() != null && !opt.name().isEmpty()) {
-					String key = path + "." + opt.name().replace("-", "");
-					keys.add(new AvailableOption(key, opt.description()));
-				}
-			}
-			if (parser.isGroupCommand()) {
-				parser.getAllNames();
-				org.aesh.command.impl.parser.AeshCommandLineParser<?> aeshParser = (org.aesh.command.impl.parser.AeshCommandLineParser<?>) parser;
-				if (aeshParser.getChildParsers() != null) {
-					for (org.aesh.command.impl.parser.CommandLineParser<?> child : aeshParser.getChildParsers()) {
-						gatherFromParser(child, currentPath, keys);
-					}
-				}
-			}
 		}
 
 		private void printConfig(PrintStream out, Configuration cfg, OutputFormat format) {
@@ -301,35 +316,5 @@ public class Config extends BaseCommand {
 				}
 			}
 		}
-	}
-}
-
-class AvailableOption implements Comparable<AvailableOption> {
-	final String key;
-	final String description;
-
-	public AvailableOption(String key, String description) {
-		this.key = key;
-		this.description = description;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
-		AvailableOption that = (AvailableOption) o;
-		return key.equals(that.key);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(key);
-	}
-
-	@Override
-	public int compareTo(AvailableOption o) {
-		return key.compareTo(o.key);
 	}
 }
