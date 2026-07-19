@@ -83,7 +83,7 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
-	void testUpdateKeepsActiveWindowsCmdLauncher(@TempDir Path tempDir) throws IOException {
+	void testUpdateStagesActiveWindowsCmdLauncher(@TempDir Path tempDir) throws IOException, InterruptedException {
 		Assumptions.assumeTrue(Util.isWindows());
 		Path source = Files.createDirectory(tempDir.resolve("source"));
 		Path target = Files.createDirectory(tempDir.resolve("target"));
@@ -99,10 +99,18 @@ public class TestApp extends BaseTest {
 		App.AppInstall.copyJBangFiles(source, target);
 
 		assertThat(Files.readString(target.resolve("jbang.cmd")), is("running cmd"));
+		assertThat(Files.readString(target.resolve("jbang.cmd.new")), is("new cmd"));
 		assertThat(Files.readString(target.resolve("jbang")), is("new sh"));
 		assertThat(Files.readString(target.resolve("jbang.ps1")), is("new ps1"));
 		assertThat(Files.readString(target.resolve("jbang.jar")), is("running jar"));
 		assertThat(Files.readString(target.resolve("jbang.jar.new")), is("new jar"));
+
+		String updateCommand = App.AppInstall.cmdLauncherUpdateCommand();
+		assertThat(updateCommand, notNullValue());
+		Process process = new ProcessBuilder("cmd", "/d", "/c", updateCommand).start();
+		assertThat(process.waitFor(), is(0));
+		assertThat(Files.readString(target.resolve("jbang.cmd")), is("new cmd"));
+		assertThat(target.resolve("jbang.cmd.new").toFile(), not(anExistingFile()));
 	}
 
 	@Test

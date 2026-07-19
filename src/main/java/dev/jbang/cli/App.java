@@ -262,8 +262,8 @@ public class App extends BaseCommand {
 						Path fromp = from.resolve(f);
 						Path top = to.resolve(f);
 						if (isActiveCmdLauncher(top)) {
-							Util.verboseMsg("Keeping the active Windows command launcher during the update: " + top);
-							return;
+							top = top.resolveSibling(top.getFileName() + ".new");
+							Util.verboseMsg("Staging the active Windows command launcher update: " + top);
 						}
 						if (f.endsWith("jbang.jar")) {
 							if (!Files.isReadable(fromp)) {
@@ -290,6 +290,22 @@ public class App extends BaseCommand {
 				return false;
 			}
 			return target.toAbsolutePath().normalize().equals(Paths.get(launchCmd).toAbsolutePath().normalize());
+		}
+
+		static String cmdLauncherUpdateCommand() {
+			String launchCmd = System.getenv(Util.JBANG_LAUNCH_CMD);
+			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd || launchCmd == null || launchCmd.isEmpty()) {
+				return null;
+			}
+			Path launcher = Paths.get(launchCmd).toAbsolutePath().normalize();
+			Path launcherUpdate = launcher.resolveSibling(launcher.getFileName() + ".new");
+			if (!Files.isRegularFile(launcherUpdate)) {
+				return null;
+			}
+			String moveCommand = CommandBuffer.of("move", "/y", launcherUpdate.toString(), launcher.toString())
+				.shell(Util.Shell.cmd)
+				.asCommandLine();
+			return moveCommand + " > nul 2>&1 && exit /b 0 || exit /b 1";
 		}
 	}
 
