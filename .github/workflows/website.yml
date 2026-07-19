@@ -3,7 +3,7 @@ name: Website
 on:
   push:
     branches:
-      - website
+      - main
   workflow_dispatch:
 
 permissions:
