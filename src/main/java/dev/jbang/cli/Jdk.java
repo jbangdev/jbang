@@ -513,7 +513,7 @@ public class Jdk extends BaseCommand {
 				}
 				Util.verboseMsg("Executing in Java environment: " + fullCmd);
 				System.out.println(fullCmd);
-				return EXIT_EXECUTE;
+				return ExitException.EXIT_EXECUTE;
 			}
 			return EXIT_OK;
 		}
