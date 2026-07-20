@@ -1062,7 +1062,7 @@ public class Util {
 
 	public static void createLink(Path link, Path target) {
 		if (!Files.exists(link)) {
-			Path linkTarget = getLinkTarget(link, target);
+			Path linkTarget = relativizeLinkTarget(link, target);
 			if (isWindows() && Files.isDirectory(target)) {
 				// Prefer symbolic links when Windows Developer Mode or sufficient
 				// privileges make them available, but retain junctions as a fallback.
@@ -1082,7 +1082,7 @@ public class Util {
 		}
 	}
 
-	static Path getLinkTarget(Path link, Path target) {
+	static Path relativizeLinkTarget(Path link, Path target) {
 		Path linkParent = link.toAbsolutePath().normalize().getParent();
 		Path absoluteTarget = target.toAbsolutePath().normalize();
 		if (linkParent != null && absoluteTarget.startsWith(linkParent)) {

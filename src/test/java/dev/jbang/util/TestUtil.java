@@ -26,21 +26,21 @@ public class TestUtil extends BaseTest {
 	}
 
 	@Test
-	void testGetLinkTargetWithinLinkParentIsRelative() throws IOException {
+	void testRelativizeLinkTargetWithinLinkParent() throws IOException {
 		Path root = Files.createTempDirectory("jbang-link");
 		Path link = root.resolve("current");
 		Path target = root.resolve("cache").resolve("jdks").resolve("21");
 
-		assertEquals(root.relativize(target), Util.getLinkTarget(link, target));
+		assertEquals(root.relativize(target), Util.relativizeLinkTarget(link, target));
 	}
 
 	@Test
-	void testGetLinkTargetOutsideLinkParentIsAbsolute() throws IOException {
+	void testRelativizeLinkTargetOutsideLinkParent() throws IOException {
 		Path root = Files.createTempDirectory("jbang-link");
 		Path link = root.resolve("links").resolve("current");
 		Path target = root.resolve("targets").resolve("21");
 
-		assertEquals(target.toAbsolutePath(), Util.getLinkTarget(link, target));
+		assertEquals(target.toAbsolutePath(), Util.relativizeLinkTarget(link, target));
 	}
 
 	@Test
