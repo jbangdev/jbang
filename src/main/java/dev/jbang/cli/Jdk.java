@@ -511,7 +511,7 @@ public class Jdk extends BaseCommand {
 							+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
 					break;
 				}
-				Util.verboseMsg("Executing in Java environment: " + fullCmd);
+				Util.verboseMsg(Util.VerboseCategory.COMMANDS, "Executing in Java environment: " + fullCmd);
 				System.out.println(fullCmd);
 				return EXIT_EXECUTE;
 			}

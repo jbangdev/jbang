@@ -85,10 +85,10 @@ public class ImplicitCatalogRef {
 	private static Optional<String> tryDownload(String url) {
 		try {
 			Catalog.getByRef(url);
-			Util.verboseMsg("Catalog found at " + url);
+			Util.verboseMsg(Util.VerboseCategory.CONFIG, "Catalog found at " + url);
 			return Optional.of(url);
 		} catch (Exception ex) {
-			Util.verboseMsg("No catalog found at " + url, ex);
+			Util.verboseMsg(Util.VerboseCategory.CONFIG, "No catalog found at " + url, ex);
 			String authMethod = NetUtil.describeAuthMethod(url);
 			if (authMethod != null) {
 				Util.warnMsg("Could not download catalog from " + url

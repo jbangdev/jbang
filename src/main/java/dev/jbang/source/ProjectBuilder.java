@@ -266,7 +266,7 @@ public class ProjectBuilder {
 	}
 
 	private ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
-		Util.verboseMsg("Resolving resource ref: " + resource);
+		Util.verboseMsg(Util.VerboseCategory.BUILD, "Resolving resource ref: " + resource);
 		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
 						|| Util.isRemoteRef(resource));
@@ -283,14 +283,14 @@ public class ProjectBuilder {
 			// that could be an alias or a remote URL, so we'll try again
 			// with the cache evict set to 0, forcing Jbang to actually check
 			// if all its cached information is up-to-date.
-			Util.verboseMsg("Retry using cache-evict: " + resource);
+			Util.verboseMsg(Util.VerboseCategory.BUILD, "Retry using cache-evict: " + resource);
 			ref = Util.withCacheEvict(() -> resolver.resolve(resource));
 		}
 		if (ref == null || !Files.isReadable(ref.getFile())) {
 			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
 		}
-		Util.verboseMsg("Resolved resource ref as: " + ref);
+		Util.verboseMsg(Util.VerboseCategory.BUILD, "Resolved resource ref as: " + ref);
 		return ref;
 	}
 
@@ -493,7 +493,7 @@ public class ProjectBuilder {
 							prj.setGav(gav);
 						}
 					} catch (DomTripException e) {
-						Util.verboseMsg("Unable to read the JAR's pom.xml file", e);
+						Util.verboseMsg(Util.VerboseCategory.BUILD, "Unable to read the JAR's pom.xml file", e);
 					}
 				}
 
@@ -680,7 +680,7 @@ public class ProjectBuilder {
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(srcRef);
 			if (srcRef instanceof ResourceRef.UnresolvableResourceRef) {
-				Util.verboseMsg("Skipping unresolvable source: " + srcRef);
+				Util.verboseMsg(Util.VerboseCategory.BUILD, "Skipping unresolvable source: " + srcRef);
 				return prj;
 			}
 			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
