@@ -1062,14 +1062,18 @@ public class Util {
 
 	public static void createLink(Path link, Path target) {
 		if (!Files.exists(link)) {
-			// On Windows we use junction for directories because their
-			// creation doesn't require any special privileges.
+			Path linkTarget = relativizeLinkTarget(link, target);
 			if (isWindows() && Files.isDirectory(target)) {
+				// Prefer symbolic links when Windows Developer Mode or sufficient
+				// privileges make them available, but retain junctions as a fallback.
+				if (createSymbolicLink(link, linkTarget, false)) {
+					return;
+				}
 				if (createJunction(link, target.toAbsolutePath())) {
 					return;
 				}
 			} else {
-				if (createSymbolicLink(link, target.toAbsolutePath())) {
+				if (createSymbolicLink(link, linkTarget, true)) {
 					return;
 				}
 			}
@@ -1078,12 +1082,22 @@ public class Util {
 		}
 	}
 
-	private static boolean createSymbolicLink(Path link, Path target) {
+	static Path relativizeLinkTarget(Path link, Path target) {
+		Path linkParent = link.toAbsolutePath().normalize().getParent();
+		Path absoluteTarget = target.toAbsolutePath().normalize();
+		if (linkParent != null && absoluteTarget.startsWith(linkParent)) {
+			return linkParent.relativize(absoluteTarget);
+		}
+		return absoluteTarget;
+	}
+
+	private static boolean createSymbolicLink(Path link, Path target, boolean reportWindowsFailure) {
 		try {
 			Files.createSymbolicLink(link, target);
 			return true;
 		} catch (IOException e) {
-			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")) {
+			if (reportWindowsFailure && isWindows() && e instanceof AccessDeniedException
+					&& e.getMessage().contains("privilege")) {
 				infoMsg(String.format("Creation of symbolic link failed %s -> %s", link, target));
 				infoMsg("This is a known issue with trying to create symbolic links on Windows.");
 				infoMsg("See the information available at the link below for a solution:");
