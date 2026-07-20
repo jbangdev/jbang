@@ -37,6 +37,7 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -214,7 +215,7 @@ public class App extends BaseCommand {
 		public static boolean installJBang(boolean force) throws IOException {
 			Path binDir = Settings.getConfigBinDir();
 			boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
-			boolean useNative = Boolean.parseBoolean(System.getenv(Settings.ENV_USE_NATIVE));
+			boolean useNative = shouldUseNative(JavaUtil.inNativeImage());
 
 			if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
 				Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
@@ -252,6 +253,10 @@ public class App extends BaseCommand {
 				Util.infoMsg("jbang is already installed.");
 			}
 			return true;
+		}
+
+		static boolean shouldUseNative(boolean runningNative) {
+			return runningNative || Boolean.parseBoolean(System.getenv(Settings.ENV_USE_NATIVE));
 		}
 
 		static String getJBangUrl(boolean useNative) {

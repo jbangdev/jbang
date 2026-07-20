@@ -600,7 +600,7 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 
 | `JBANG_USE_NATIVE`
 | `false`
-| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR. The `jbang version --update` command also downloads and installs the native package matching the current platform.
+| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR. The `jbang version --update` command downloads and installs the native package matching the current platform when this variable is `true` or JBang is already running as a native executable.
 
 | `JBANG_NO_VERSION_CHECK`
 | _(unset)_

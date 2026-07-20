@@ -49,6 +49,16 @@ public class TestApp extends BaseTest {
 			"jbang run 'com.h2database:h2:1.4.200' @args");
 
 	@Test
+	void testNativeUpdateSelection() {
+		environmentVariables.clear(Settings.ENV_USE_NATIVE);
+		assertThat(App.AppInstall.shouldUseNative(false), is(false));
+		assertThat(App.AppInstall.shouldUseNative(true), is(true));
+
+		environmentVariables.set(Settings.ENV_USE_NATIVE, "true");
+		assertThat(App.AppInstall.shouldUseNative(false), is(true));
+	}
+
+	@Test
 	void testJBangUpdateUrlMatchesRuntime() {
 		assertThat(App.AppInstall.getJBangUrl(false),
 				equalTo("https://www.jbang.dev/releases/latest/download/jbang.zip"));
