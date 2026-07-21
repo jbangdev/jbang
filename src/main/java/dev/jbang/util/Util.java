@@ -565,7 +565,14 @@ public class Util {
 			Duration d = Duration.between(startTime, Instant.now());
 			long s = d.getSeconds();
 			long n = d.minus(s, ChronoUnit.SECONDS).toMillis();
-			return String.format("[jbang] [%d:%03d] ", s, n);
+			StringBuilder header = new StringBuilder("[jbang] [").append(s).append(':');
+			if (n < 100) {
+				header.append('0');
+			}
+			if (n < 10) {
+				header.append('0');
+			}
+			return header.append(n).append("] ").toString();
 		} else {
 			return "[jbang] ";
 		}

@@ -845,6 +845,7 @@ task nativeImage(type: Exec) {
 
 				"--enable-https",
 				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
+				"-H:+IncludeAllLocales", // JBang binaries run with the user's locale, not necessarily the build locale
 				"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
 				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
 
