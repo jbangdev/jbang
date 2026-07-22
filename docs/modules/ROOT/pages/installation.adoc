@@ -60,16 +60,11 @@ Native bundles exist for these platforms only:
 
 [cols="2,3", options="header"]
 |===
-| Platform | Bundle
+| Platform                      | Bundle
 
-| Linux x64 (glibc)
-| `jbang-linux-x64.tar` / `jbang-linux-x64.zip`
-
-| macOS aarch64 (Apple Silicon)
-| `jbang-mac-aarch64.tar` / `jbang-mac-aarch64.zip`
-
-| Windows x64
-| `jbang-windows-x64.zip`
+| Linux x64 (glibc)             | `jbang-linux-x64.tar` / `jbang-linux-x64.zip`
+| macOS aarch64 (Apple Silicon) | `jbang-mac-aarch64.tar` / `jbang-mac-aarch64.zip`
+| Windows x64                   | `jbang-windows-x64.zip`
 |===
 
 WARNING: On any other platform (macOS x64, Linux aarch64, Windows ARM64, Alpine/musl, AIX) no native bundle is published. The startup script would try to download a non-existing bundle and the installation fails, so leave `JBANG_USE_NATIVE` unset there.
