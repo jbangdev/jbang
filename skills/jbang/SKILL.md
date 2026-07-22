@@ -170,6 +170,8 @@ jbang export native app.java       # standalone binary
 - Pin the version with `JBANG_DOWNLOAD_VERSION=0.141.0`; mirror downloads with `JBANG_DOWNLOAD_URL`; harden flaky networks with `JBANG_DOWNLOAD_RETRY` / `JBANG_DOWNLOAD_RETRY_DELAY`.
 - Isolate installs by pointing `JBANG_DIR` at a scratch directory — useful for testing an install recipe without touching `~/.jbang`.
 - Silence the daily update check with `JBANG_NO_VERSION_CHECK=true`; `--offline` skips it too.
-- GitHub Actions: `uses: jbangdev/setup-jbang@main`. Containers: `jbangdev/jbang-action`.
+- GitHub Actions — two official actions, pick by what the job needs:
+  - `uses: jbangdev/jbang-action@v0.141.0` runs a script in one step, no JBang install of your own: inputs `script`, `scriptargs`, `jbangargs` and `trust` (which pre-trusts a host pattern). It is the JBang container image, released alongside every JBang release, so the same thing works locally: `docker run -v $PWD:/ws --workdir=/ws jbangdev/jbang-action hello.java`. Arguments containing spaces do not survive the Docker argument handling — call `jbang` directly if you need those.
+  - `uses: jbangdev/setup-jbang@main` installs the CLI instead, so any later `run:` step can call `jbang`. Its readme recommends itself over the container action as the faster option; prefer it when the job runs several JBang commands or mixes them with other tooling.
 
 Full reference: [installation](https://jbang.dev/documentation/jbang/latest/installation.html) (including the complete startup-script environment variable table), [running](https://jbang.dev/documentation/jbang/latest/running.html), [troubleshooting](https://jbang.dev/documentation/jbang/latest/troubleshooting.html).
