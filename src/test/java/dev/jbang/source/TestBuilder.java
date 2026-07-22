@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -416,6 +417,30 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 		}, null, null, (ctxx, optionList) -> callCount.incrementAndGet());
 		assertThat(callCount.get(), equalTo(2));
+	}
+
+	@Test
+	void testNativeFromExecutableArchive() throws IOException {
+		// A native build from a pre-built jar skips the jar step that creates the
+		// output dir.
+		Path jar = examplesTestFolder.resolve("hellojar.jar");
+
+		ProjectBuilder pb = Project.builder().nativeImage(true);
+		Project prj = pb.build(jar.toString());
+		assertThat(prj.isExecutableArchive(), is(true));
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		runBuild(ctx, null, null, null, (ctxx, optionList) -> {
+			try {
+				// Copy the input .jar into the executable output file to simulate something was
+				// "built", note that native-image is not executed here.
+				Files.copy(jar, ctxx.getNativeImageFile());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		assertThat(Files.exists(ctx.getNativeImageFile()), is(true));
 	}
 
 	@Test
