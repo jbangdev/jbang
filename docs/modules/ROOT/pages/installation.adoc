@@ -85,8 +85,8 @@ jbang version --update
 
 When JBang was installed using a package manager such as SDKMAN, Homebrew, Chocolatey, or Scoop, use that package manager's upgrade command instead.
 
-On Windows, an update started from Command Prompt stages the new `jbang.cmd` launcher and installs it after the Java process completes.
-This avoids replacing a batch file while it is still being read by Command Prompt.
+On Windows, updates to `jbang.cmd` are staged as `jbang.cmd.new` before being moved into place.
+When an update is started from Command Prompt, the move happens after the Java process completes so the batch file is not replaced while Command Prompt is still reading it.
 
 === Wrapper install
 

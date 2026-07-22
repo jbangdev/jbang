@@ -261,9 +261,9 @@ public class App extends BaseCommand {
 					try {
 						Path fromp = from.resolve(f);
 						Path top = to.resolve(f);
-						if (isActiveCmdLauncher(top)) {
+						if (Util.isWindows() && f.endsWith("jbang.cmd") && Files.isRegularFile(top)) {
 							top = top.resolveSibling(top.getFileName() + ".new");
-							Util.verboseMsg("Staging the active Windows command launcher update: " + top);
+							Util.verboseMsg("Staging the Windows command launcher update: " + top);
 						}
 						if (f.endsWith("jbang.jar")) {
 							if (!Files.isReadable(fromp)) {
@@ -279,25 +279,16 @@ public class App extends BaseCommand {
 						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
-		}
-
-		static boolean isActiveCmdLauncher(Path target) {
-			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd) {
-				return false;
+			if (Util.isWindows() && Util.getShell() != Util.Shell.cmd) {
+				replaceStagedCmdLauncher(to);
 			}
-			String launchCmd = System.getenv(Util.JBANG_LAUNCH_CMD);
-			if (launchCmd == null || launchCmd.isEmpty()) {
-				return false;
-			}
-			return target.toAbsolutePath().normalize().equals(Paths.get(launchCmd).toAbsolutePath().normalize());
 		}
 
 		static String cmdLauncherUpdateCommand() {
-			String launchCmd = System.getenv(Util.JBANG_LAUNCH_CMD);
-			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd || launchCmd == null || launchCmd.isEmpty()) {
+			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd) {
 				return null;
 			}
-			Path launcher = Paths.get(launchCmd).toAbsolutePath().normalize();
+			Path launcher = Settings.getConfigBinDir().resolve("jbang.cmd");
 			Path launcherUpdate = launcher.resolveSibling(launcher.getFileName() + ".new");
 			if (!Files.isRegularFile(launcherUpdate)) {
 				return null;
@@ -306,6 +297,14 @@ public class App extends BaseCommand {
 				.shell(Util.Shell.cmd)
 				.asCommandLine();
 			return moveCommand + " > nul 2>&1 && exit /b 0 || exit /b 1";
+		}
+
+		private static void replaceStagedCmdLauncher(Path binDir) throws IOException {
+			Path launcher = binDir.resolve("jbang.cmd");
+			Path launcherUpdate = launcher.resolveSibling(launcher.getFileName() + ".new");
+			if (Files.isRegularFile(launcherUpdate)) {
+				Files.move(launcherUpdate, launcher, StandardCopyOption.REPLACE_EXISTING);
+			}
 		}
 	}
 
