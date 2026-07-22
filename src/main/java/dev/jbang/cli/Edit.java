@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -267,7 +268,7 @@ public class Edit extends BaseCommand {
 					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + projectPathString + "\n\n");
 		} else {
 			List<String> optionList = new ArrayList<>();
-			optionList.add(editor);
+			optionList.add(resolveEditorCommand(editor));
 			optionList.add(projectPathString);
 			optionList.addAll(additionalFiles);
 
@@ -390,7 +391,25 @@ public class Edit extends BaseCommand {
 	}
 
 	private static List<String> findEditorsOnPath() {
-		return Arrays.stream(knownEditors).filter(e -> Util.searchPath(e) != null).collect(Collectors.toList());
+		return Arrays.stream(knownEditors)
+			.map(Util::searchPath)
+			.filter(Objects::nonNull)
+			.map(p -> p.getFileName().toString())
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Resolves a bare editor command name (e.g. "idea") to the actual executable
+	 * filename (e.g. "idea.bat") so that shells like Git Bash on Windows can
+	 * execute it. If the command is already a path or can't be found, returns it
+	 * unchanged.
+	 */
+	private static String resolveEditorCommand(String editor) {
+		if (editor.contains(File.separator) || editor.contains("/")) {
+			return editor;
+		}
+		Path resolved = Util.searchPath(editor);
+		return resolved != null ? resolved.getFileName().toString() : editor;
 	}
 
 	private static void showStartingMsg(String ed, boolean showConfig) {
