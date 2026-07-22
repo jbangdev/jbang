@@ -10,7 +10,7 @@ license: MIT
 
 ```bash
 jbang init --template=cli hello.java   # scaffold
-jbang hello.java Max!                  # compile + run (run is the default command)
+jbang hello.java World                 # compile + run (run is the default command)
 jbang gavsearch@jbangdev picocli       # run an alias from a catalog
 jbang org.example:app:1.0.0            # run a Maven GAV
 ```
@@ -132,6 +132,27 @@ Do **not** delete the whole `~/.jbang/bin` directory: `jbang app install` puts i
 | `jbang wrapper install` | Commit a `./jbang` wrapper into a repository |
 
 Useful global flags: `--fresh` (bypass caches), `--offline`, `--quiet`, `--verbose`, `--stacktrace`.
+
+## Catalogs and aliases
+
+`<alias>@<name>` resolves through a catalog instead of a file path:
+
+| Reference | Resolves to |
+|---|---|
+| `jbang hello@jbangdev` | `jbang-catalog.json` in `github.com/jbangdev/jbang-catalog` (GitLab and Bitbucket are tried next) |
+| `jbang hello@acme/mycatalog~dev` | `jbang-catalog.json` in repository `acme/mycatalog`, branch `dev` |
+| `jbang tree@jbang.dev` | `https://jbang.dev/jbang-catalog.json` — any name containing a dot is treated as a host |
+
+A `jbang-catalog.json` in the current directory, any parent directory, or `~/.jbang/` is picked up automatically, so a repository can ship its own commands.
+
+```bash
+jbang alias add --name=hello app.java              # define an alias
+jbang catalog add --name=acme https://.../jbang-catalog.json
+jbang alias list; jbang catalog list
+jbang init --template=jbang-catalog mycatalog      # scaffold a publishable catalog repo
+```
+
+Finding catalogs: [JBangHub](https://github.com/jbanghub) ships as a built-in catalog of catalogs — `jbang catalog list` already shows its entries (Quarkus, Camel, Microsoft, JReleaser, …) and it cannot be removed. Background: [Introducing JBangHub](https://www.jbang.dev/learn/introducing-jbanghub/). Community catalogs beyond that are tagged with the [`jbang-catalog` GitHub topic](https://github.com/topics/jbang-catalog).
 
 ## Native executables *of your script* (not the same thing)
 
