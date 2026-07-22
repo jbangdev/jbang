@@ -49,6 +49,44 @@ public class TestApp extends BaseTest {
 			"jbang run 'com.h2database:h2:1.4.200' @args");
 
 	@Test
+	void testNativeUpdateSelection() {
+		environmentVariables.clear(Settings.ENV_USE_NATIVE);
+		assertThat(App.AppInstall.shouldUseNative(), is(false));
+
+		environmentVariables.set(Settings.ENV_USE_NATIVE, "true");
+		assertThat(App.AppInstall.shouldUseNative(), is(true));
+	}
+
+	@Test
+	void testJBangUpdateUrlMatchesRuntime() {
+		assertThat(App.AppInstall.getJBangUrl(false),
+				equalTo("https://www.jbang.dev/releases/latest/download/jbang.zip"));
+		assertThat(App.AppInstall.getJBangUrl(true),
+				equalTo("https://www.jbang.dev/releases/latest/download/jbang-"
+						+ App.AppInstall.getNativeBinaryName().replace("jbang.bin-", "").replace(".exe", "") + ".zip"));
+	}
+
+	@Test
+	void testCopyNativeJBangFiles(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = tempDir.resolve("to");
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar",
+				App.AppInstall.getNativeBinaryName())) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+
+		App.AppInstall.copyJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(to.resolve(App.AppInstall.getNativeBinaryName()).toFile(), anExistingFile());
+		if (Util.isWindows()) {
+			Files.write(from.resolve(App.AppInstall.getNativeBinaryName()), Collections.singletonList("updated"));
+			App.AppInstall.copyJBangFiles(from, to, true);
+			assertThat(to.resolve(App.AppInstall.getNativeBinaryName() + ".new").toFile(), anExistingFile());
+		}
+	}
+
+	@Test
 	void testHasJBangSetup(@TempDir Path tempDir) throws IOException {
 		Path rcFile = tempDir.resolve(".bashrc");
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));

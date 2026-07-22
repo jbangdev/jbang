@@ -128,6 +128,11 @@ function Invoke-JBang {
 # detect architecture for platform-specific binary lookup
 $jbang_arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "aarch64" } else { "x64" }
 
+$nativeUpdatePath = "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe.new"
+if (Test-Path $nativeUpdatePath) {
+  Move-Item -Path $nativeUpdatePath -Destination "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe" -Force
+}
+
 # resolve native binary or jar path from script location
 $binaryPath=""
 $jarPath=""
