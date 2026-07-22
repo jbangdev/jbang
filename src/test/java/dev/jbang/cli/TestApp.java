@@ -51,11 +51,10 @@ public class TestApp extends BaseTest {
 	@Test
 	void testNativeUpdateSelection() {
 		environmentVariables.clear(Settings.ENV_USE_NATIVE);
-		assertThat(App.AppInstall.shouldUseNative(false), is(false));
-		assertThat(App.AppInstall.shouldUseNative(true), is(true));
+		assertThat(App.AppInstall.shouldUseNative(), is(false));
 
 		environmentVariables.set(Settings.ENV_USE_NATIVE, "true");
-		assertThat(App.AppInstall.shouldUseNative(false), is(true));
+		assertThat(App.AppInstall.shouldUseNative(), is(true));
 	}
 
 	@Test
