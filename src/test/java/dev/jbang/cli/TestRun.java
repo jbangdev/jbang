@@ -428,6 +428,21 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testGAVDependenciesAreResolvedOnceWhenFresh() throws Exception {
+		environmentVariables.clear("JAVA_HOME");
+		Util.setFresh(true);
+
+		CaptureResult<Project> result = captureOutput(() -> {
+			Run run = JBang.parseCommand("run", "--fresh", "info.picocli:picocli-codegen:4.6.3");
+			Project project = run.createProjectBuilderForRun().build("info.picocli:picocli-codegen:4.6.3");
+			BuildContext.forProject(project).resolveClassPath();
+			return project;
+		});
+
+		assertThat(result.err.split("Resolving dependencies\\.\\.\\.", -1).length - 1, equalTo(1));
+	}
+
+	@Test
 	void testHelloWorldGAVInteractiveWithNoMain() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
