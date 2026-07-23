@@ -102,7 +102,7 @@ public class CmdGeneratorBuilder {
 		}
 
 		CmdGenerator gen;
-		if (project.isJShell() || interactive == Boolean.TRUE) {
+		if (project.isJShell() || Boolean.TRUE.equals(interactive)) {
 			gen = createJshCmdGenerator();
 		} else {
 			if (Boolean.TRUE.equals(project.isNativeImage())) {
@@ -119,10 +119,10 @@ public class CmdGeneratorBuilder {
 			.arguments(arguments)
 			.runtimeOptions(runtimeOptions)
 			.mainClass(mainClass)
-			.mainRequired(interactive != Boolean.TRUE)
+			.mainRequired(!Boolean.TRUE.equals(interactive))
 			.moduleName(moduleName)
-			.assertions(enableAssertions == Boolean.TRUE)
-			.systemAssertions(enableSystemAssertions == Boolean.TRUE)
+			.assertions(Boolean.TRUE.equals(enableAssertions))
+			.systemAssertions(Boolean.TRUE.equals(enableSystemAssertions))
 			.classDataSharing(
 					Optional.ofNullable(classDataSharing).orElse(false))
 			.debugString(debugString)
@@ -134,7 +134,7 @@ public class CmdGeneratorBuilder {
 			.arguments(arguments)
 			.runtimeOptions(runtimeOptions)
 			.mainClass(mainClass)
-			.interactive(interactive == Boolean.TRUE)
+			.interactive(Boolean.TRUE.equals(interactive))
 			.debugString(debugString)
 			.flightRecorderString(flightRecorderString);
 	}

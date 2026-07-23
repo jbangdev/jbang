@@ -320,7 +320,7 @@ public class Catalog {
 
 	static Catalog findImportedCatalogsWith(Catalog catalog, Function<Catalog, Catalog> accept) {
 		for (CatalogRef cr : catalog.catalogs.values()) {
-			if (cr.importItems == Boolean.TRUE) {
+			if (Boolean.TRUE.equals(cr.importItems)) {
 				try {
 					Catalog cat = Catalog.getByRef(cr.catalogRef);
 					Catalog result = accept.apply(cat);
