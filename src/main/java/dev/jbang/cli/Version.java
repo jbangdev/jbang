@@ -50,6 +50,14 @@ public class Version extends BaseCommand {
 			System.err.println("Native Image: " + JavaUtil.inNativeImage());
 		}
 
+		if (update) {
+			String cmdLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
+			if (cmdLauncherUpdate != null) {
+				System.out.println(cmdLauncherUpdate);
+				return EXIT_EXECUTE;
+			}
+		}
+
 		return EXIT_OK;
 	}
 }
