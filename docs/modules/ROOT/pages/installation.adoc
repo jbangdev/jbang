@@ -50,6 +50,73 @@ Windows Powershell:
 iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 ----
 
+=== Native Binary
+
+Every release also ships a GraalVM native-image build of `jbang` itself.
+It starts faster and needs no JVM to launch `jbang`, which is useful in containers, on CI agents, and on machines without a JDK.
+Set `JBANG_USE_NATIVE=true` to install and use it.
+
+Native bundles exist for these platforms only:
+
+[cols="2,3", options="header"]
+|===
+| Platform                      | Bundle
+
+| Linux x64 (glibc)             | `jbang-linux-x64.tar` / `jbang-linux-x64.zip`
+| macOS aarch64 (Apple Silicon) | `jbang-mac-aarch64.tar` / `jbang-mac-aarch64.zip`
+| Windows x64                   | `jbang-windows-x64.zip`
+|===
+
+WARNING: On any other platform (macOS x64, Linux aarch64, Windows ARM64, Alpine/musl, AIX) no native bundle is published. The startup script would try to download a non-existing bundle and the installation fails, so leave `JBANG_USE_NATIVE` unset there.
+
+Linux/OSX/WSL Bash:
+
+[source, bash]
+----
+export JBANG_USE_NATIVE=true
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+----
+
+Windows Powershell:
+
+[source, powershell]
+----
+$env:JBANG_USE_NATIVE='true'
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+
+# persist for future sessions
+[Environment]::SetEnvironmentVariable('JBANG_USE_NATIVE', 'true', 'User')
+----
+
+IMPORTANT: The startup scripts read `JBANG_USE_NATIVE` on *every* invocation, not just during installation. Add the export to your shell profile (or set it as a user environment variable on Windows); otherwise later runs fall back to the JAR — which is part of the same bundle — and download a JDK to run it.
+
+Verify which one is in use:
+
+[source, bash]
+----
+jbang version --verbose
+...
+Native Image: true
+----
+
+==== Switching an existing installation to native
+
+Setting the variable on an existing JAR installation does not replace it: the startup script finds `$JBANG_DIR/bin/jbang.jar`, skips the download, warns that no native binary was found, and runs the JAR.
+Delete that JAR to trigger a re-download of the native bundle:
+
+[source, bash]
+----
+rm -f ~/.jbang/bin/jbang.jar
+export JBANG_USE_NATIVE=true
+jbang version --verbose
+----
+
+CAUTION: Delete only the `jbang.jar` file, not the whole `$JBANG_DIR/bin` directory — `jbang app install` places installed commands there. The re-download replaces the `jbang*` files only.
+
+NOTE: Installations from package managers (SDKMAN, Homebrew, Chocolatey, Scoop, COPR, npm, pipx) contain no native binary. With `JBANG_USE_NATIVE=true` they warn on every run and use the JAR anyway. Use the bootstrap script or a <<manual-install,manual install>> of a platform bundle instead.
+
+The native binary removes the JVM requirement for `jbang` itself. Building and running Java code still needs a JDK, which `jbang` downloads on demand.
+
 === Zero Install (curl/bash and Powershell)
 
 Linux/OSX/Windows/AIX Bash:
@@ -600,7 +667,7 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 
 | `JBANG_USE_NATIVE`
 | `false`
-| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR.
+| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR. Read on every invocation, not just at install time. See <<native-binary>>.
 
 | `JBANG_NO_VERSION_CHECK`
 | _(unset)_
