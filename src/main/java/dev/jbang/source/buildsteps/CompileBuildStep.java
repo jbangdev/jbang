@@ -123,7 +123,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
-		Process process = processBuilder.start();
+		Process process = Util.run(processBuilder);
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
