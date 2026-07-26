@@ -102,7 +102,7 @@ set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 set CMD=!JAVA_EXEC!
 if "%INTERACTIVE%"=="true" (
   "%CMD%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %*
-  exit /b %ERRORLEVEL%
+  exit /b !ERRORLEVEL!
 )
 SETLOCAL DISABLEDELAYEDEXPANSION
 "%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %* || goto :handleError
