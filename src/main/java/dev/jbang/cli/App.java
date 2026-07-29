@@ -253,7 +253,7 @@ public class App extends BaseCommand {
 			return true;
 		}
 
-		private static void copyJBangFiles(Path from, Path to) throws IOException {
+		static void copyJBangFiles(Path from, Path to) throws IOException {
 			to.toFile().mkdirs();
 			Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
 				.map(Paths::get)
@@ -261,6 +261,10 @@ public class App extends BaseCommand {
 					try {
 						Path fromp = from.resolve(f);
 						Path top = to.resolve(f);
+						if (Util.isWindows() && f.endsWith("jbang.cmd") && Files.isRegularFile(top)) {
+							top = top.resolveSibling(top.getFileName() + ".new");
+							Util.verboseMsg("Staging the Windows command launcher update: " + top);
+						}
 						if (f.endsWith("jbang.jar")) {
 							if (!Files.isReadable(fromp)) {
 								fromp = from.resolve(".jbang/jbang.jar");
@@ -275,6 +279,32 @@ public class App extends BaseCommand {
 						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
+			if (Util.isWindows() && Util.getShell() != Util.Shell.cmd) {
+				replaceStagedCmdLauncher(to);
+			}
+		}
+
+		static String cmdLauncherUpdateCommand() {
+			if (!Util.isWindows() || Util.getShell() != Util.Shell.cmd) {
+				return null;
+			}
+			Path launcher = Settings.getConfigBinDir().resolve("jbang.cmd");
+			Path launcherUpdate = launcher.resolveSibling(launcher.getFileName() + ".new");
+			if (!Files.isRegularFile(launcherUpdate)) {
+				return null;
+			}
+			String moveCommand = CommandBuffer.of("move", "/y", launcherUpdate.toString(), launcher.toString())
+				.shell(Util.Shell.cmd)
+				.asCommandLine();
+			return moveCommand + " > nul 2>&1 && exit /b 0 || exit /b 1";
+		}
+
+		private static void replaceStagedCmdLauncher(Path binDir) throws IOException {
+			Path launcher = binDir.resolve("jbang.cmd");
+			Path launcherUpdate = launcher.resolveSibling(launcher.getFileName() + ".new");
+			if (Files.isRegularFile(launcherUpdate)) {
+				Files.move(launcherUpdate, launcher, StandardCopyOption.REPLACE_EXISTING);
+			}
 		}
 	}
 
