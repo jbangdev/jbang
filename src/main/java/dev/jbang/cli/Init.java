@@ -81,7 +81,8 @@ public class Init extends BaseCommand {
 		requireScriptArgument();
 
 		if (initTemplate == null) {
-			initTemplate = "hello";
+			String extensionTemplate = "hello." + Util.extension(scriptOrFile);
+			initTemplate = dev.jbang.catalog.Template.get(extensionTemplate) != null ? extensionTemplate : "hello";
 		}
 
 		Map<String, Object> propsMap = new HashMap<>();

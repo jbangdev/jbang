@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
@@ -147,6 +148,16 @@ public class TestInit extends BaseTest {
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		assertThat(Util.readString(x), Matchers.containsString("class edit"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "kt, public fun main()", "groovy, println" })
+	void testDefaultLanguageInit(String extension, String expectedContent, @TempDir Path outputDir) throws IOException {
+		Path out = outputDir.resolve("edit." + extension);
+		int result = JBang.execute("init", out.toString());
+		assertThat(result, is(0));
+		assertThat(out.toFile().exists(), is(true));
+		assertThat(Util.readString(out), Matchers.containsString(expectedContent));
 	}
 
 	@Test

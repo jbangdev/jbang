@@ -92,7 +92,7 @@ public class TestConfiguration extends BaseTest {
 	@Test
 	public void testDefaults() {
 		Configuration cfg = Configuration.defaults();
-		assertThat(cfg.get("init.template"), equalTo("hello"));
+		assertThat(cfg.get("init.template"), nullValue());
 		assertThat(cfg.get("run.debug"), equalTo("4004"));
 	}
 
