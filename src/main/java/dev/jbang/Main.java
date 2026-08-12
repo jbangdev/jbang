@@ -15,6 +15,7 @@ import org.aesh.command.CommandResult;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.JBang;
+import dev.jbang.search.SearchScorer;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -220,6 +221,15 @@ public class Main {
 					System.out.println(cmdLine);
 					throw new ExitException(ExitException.EXIT_EXECUTE, cmdLine);
 				}
+				// Before falling through to implicit "run", check if the
+				// command looks like a typo of a known subcommand. Only
+				// suggest if the input doesn't look like a file/script
+				// reference (no path separators, no extensions, no URLs).
+				String suggestion = findClosestSubcommand(cmd);
+				if (suggestion != null && !looksLikeScriptRef(cmd)) {
+					Util.warnMsg("'" + cmd + "' is not a jbang command. Did you mean '" + suggestion + "'?");
+					Util.infoMsg("See 'jbang --help' for available commands.");
+				}
 				// In all other cases assume it's an implicit "run"
 				List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);
 				List<String> result = new ArrayList<>(jbangOpts);
@@ -255,6 +265,40 @@ public class Main {
 		default:
 			return null;
 		}
+	}
+
+	/**
+	 * Finds the closest matching subcommand for a mistyped input using Levenshtein
+	 * distance. Returns the suggestion if the edit distance is small enough (max 2
+	 * for short commands, max 3 for longer ones), or null if no close match.
+	 */
+	public static String findClosestSubcommand(String input) {
+		String bestMatch = null;
+		int bestDistance = Integer.MAX_VALUE;
+		for (String cmd : getSubcommandNames()) {
+			int distance = SearchScorer.calculate(input.toLowerCase(), cmd.toLowerCase()).distance();
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				bestMatch = cmd;
+			}
+		}
+		// Threshold: max distance 2 for short commands (<=5 chars), 3 for longer
+		int maxDistance = input.length() <= 5 ? 2 : 3;
+		if (bestDistance > 0 && bestDistance <= maxDistance) {
+			return bestMatch;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns true if the input looks like a script/file reference rather than a
+	 * mistyped command. Checks for path separators, file extensions, URLs, and GAV
+	 * coordinates.
+	 */
+	private static boolean looksLikeScriptRef(String input) {
+		return input.contains("/") || input.contains("\\")
+				|| input.contains(".") || input.contains(":")
+				|| input.startsWith("http") || input.startsWith("@");
 	}
 
 	private static List<String> stripNonInheritedJBangOpts(List<String> opts) {

@@ -411,6 +411,50 @@ class TestAeshParsing extends BaseTest {
 		assertThat(run.dependencyInfoMixin.dependencies, hasItem("org.other:lib:3.0"));
 	}
 
+	// --- Command typo detection (#2628) ---
+
+	@Test
+	void testFindClosestSubcommand_closeTypo() {
+		assertThat(Main.findClosestSubcommand("alis"), equalTo("alias"));
+	}
+
+	@Test
+	void testFindClosestSubcommand_singleCharOff() {
+		assertThat(Main.findClosestSubcommand("buidl"), equalTo("build"));
+	}
+
+	@Test
+	void testFindClosestSubcommand_transposition() {
+		assertThat(Main.findClosestSubcommand("rnу"), is(notNullValue()));
+	}
+
+	@Test
+	void testFindClosestSubcommand_exactMatch() {
+		// Exact match should return null (distance 0 is excluded)
+		assertThat(Main.findClosestSubcommand("run"), is(nullValue()));
+	}
+
+	@Test
+	void testFindClosestSubcommand_tooFar() {
+		// Completely unrelated input should return null
+		assertThat(Main.findClosestSubcommand("xyz"), is(nullValue()));
+	}
+
+	@Test
+	void testFindClosestSubcommand_longerTypo() {
+		assertThat(Main.findClosestSubcommand("completon"), equalTo("completion"));
+	}
+
+	@Test
+	void testFindClosestSubcommand_missingChar() {
+		assertThat(Main.findClosestSubcommand("edi"), equalTo("edit"));
+	}
+
+	@Test
+	void testFindClosestSubcommand_extraChar() {
+		assertThat(Main.findClosestSubcommand("initt"), equalTo("init"));
+	}
+
 	// --- Subcommand list consistency ---
 
 	@Test
