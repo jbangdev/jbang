@@ -272,4 +272,13 @@ if (-not $binaryPath) {
 }
 
 # Execute jbang
+if (Test-Path env:JBANG_JAR_CHECKSUM) {
+  $checkFile = if ($binaryPath) { $binaryPath } else { $jarPath }
+  $actual = (Get-FileHash "$checkFile" -Algorithm SHA256).Hash.ToLower()
+  if ($actual -ne $env:JBANG_JAR_CHECKSUM) {
+    [Console]::Error.WriteLine("Error: checksum mismatch for $checkFile (expected $env:JBANG_JAR_CHECKSUM, got $actual)")
+    exit 1
+  }
+}
+
 Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args

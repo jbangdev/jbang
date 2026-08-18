@@ -354,4 +354,20 @@ if [[ -z "$binaryPath" ]]; then
   setup_java_exec
 fi
 
+if [ -n "$JBANG_JAR_CHECKSUM" ]; then
+  checkFile="${binaryPath:-$jarPath}"
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
+  elif command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
+  else
+    echo "Error: JBANG_JAR_CHECKSUM is set but neither sha256sum nor shasum is available" 1>&2
+    exit 1
+  fi
+  if [ "$actual" != "$JBANG_JAR_CHECKSUM" ]; then
+    echo "Error: checksum mismatch for $checkFile (expected $JBANG_JAR_CHECKSUM, got $actual)" 1>&2
+    exit 1
+  fi
+fi
+
 execute_jbang "$@"
