@@ -303,6 +303,35 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     echo "Downloading JBang ${JBANG_DOWNLOAD_VERSION:-latest} from $jburl..." 1>&2
     download "$jburl" "$TDIR/urls/jbang.tar"
     if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
+    if command -v sha256sum >/dev/null 2>&1; then
+      actual=$(sha256sum "$TDIR/urls/jbang.tar" | cut -d' ' -f1)
+    elif command -v shasum >/dev/null 2>&1; then
+      actual=$(shasum -a 256 "$TDIR/urls/jbang.tar" | cut -d' ' -f1)
+    else
+      if [ -n "$JBANG_DOWNLOAD_CHECKSUM" ]; then
+        echo "Error: JBANG_DOWNLOAD_CHECKSUM is set but neither sha256sum nor shasum is available" 1>&2
+        exit 1
+      fi
+      echo "Warning: sha256sum/shasum not found, skipping download checksum verification" 1>&2
+      actual=""
+    fi
+    if [ -n "$actual" ]; then
+      if [ -n "$JBANG_DOWNLOAD_CHECKSUM" ]; then
+        expected="$JBANG_DOWNLOAD_CHECKSUM"
+      else
+        download "${jburl}.sha256" "$TDIR/urls/jbang.tar.sha256"
+        if [ $retval -eq 0 ]; then
+          expected=$(tr -d '[:space:]' < "$TDIR/urls/jbang.tar.sha256")
+        else
+          expected=""
+          echo "Warning: could not download checksum file, skipping verification" 1>&2
+        fi
+      fi
+      if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
+        echo "Error: checksum mismatch for jbang.tar (expected $expected, got $actual)" 1>&2
+        exit 1
+      fi
+    fi
     echo "Installing JBang..." 1>&2
     rm -rf "$TDIR/urls/jbang"
     tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"

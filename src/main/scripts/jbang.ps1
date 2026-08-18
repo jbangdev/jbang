@@ -178,6 +178,22 @@ if (-not $binaryPath -and -not $jarPath) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
       exit 1
     }
+    $actual = (Get-FileHash "$TDIR\urls\jbang.zip" -Algorithm SHA256).Hash.ToLower()
+    if (Test-Path env:JBANG_DOWNLOAD_CHECKSUM) {
+      $expected = $env:JBANG_DOWNLOAD_CHECKSUM
+    } else {
+      $shaOk = Invoke-Download "${jburl}.sha256" "$TDIR\urls\jbang.zip.sha256"
+      if ($shaOk) {
+        $expected = (Get-Content "$TDIR\urls\jbang.zip.sha256").Trim()
+      } else {
+        $expected = ''
+        [Console]::Error.WriteLine("Warning: could not download checksum file, skipping verification")
+      }
+    }
+    if ($expected -and $actual -ne $expected) {
+      [Console]::Error.WriteLine("Error: checksum mismatch for jbang.zip (expected $expected, got $actual)")
+      exit 1
+    }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
     try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
