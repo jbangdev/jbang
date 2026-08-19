@@ -457,7 +457,7 @@ export JBANG_DOWNLOAD_URL=https://internal-mirror.example.com/jbang/jbang.tar
 
 JBang automatically verifies the SHA-256 checksum of the downloaded archive against the `.sha256` file published alongside each release.
 If the checksum does not match, the download is rejected.
-If the `.sha256` file cannot be downloaded (e.g. a corporate mirror that does not publish it), a warning is printed and installation continues.
+If the `.sha256` file cannot be downloaded (e.g. a corporate mirror that does not publish it), or if no hash tool is available (`sha256sum`/`shasum` on Linux/macOS), a warning is printed and installation continues.
 
 You can override the expected checksum by setting the `JBANG_DOWNLOAD_CHECKSUM` environment variable.
 When set, the server-side `.sha256` file is not downloaded and the provided value is used instead:

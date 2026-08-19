@@ -96,6 +96,18 @@ function Invoke-Download {
     }
 }
 
+function Assert-JarChecksum {
+  param([string]$checkFile)
+  if ((Test-Path env:JBANG_JAR_CHECKSUM) -and $env:JBANG_JAR_CHECKSUM) {
+    $actual = (Get-FileHash "$checkFile" -Algorithm SHA256).Hash.ToLower()
+    $expected = $env:JBANG_JAR_CHECKSUM.ToLower()
+    if ($actual -ne $expected) {
+      [Console]::Error.WriteLine("Error: checksum mismatch for $checkFile (expected $expected, got $actual)")
+      exit 1
+    }
+  }
+}
+
 # Function to execute jbang (either native binary or JAR) and handle output
 function Invoke-JBang {
     param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
@@ -179,15 +191,17 @@ if (-not $binaryPath -and -not $jarPath) {
       exit 1
     }
     $actual = (Get-FileHash "$TDIR\urls\jbang.zip" -Algorithm SHA256).Hash.ToLower()
-    if (Test-Path env:JBANG_DOWNLOAD_CHECKSUM) {
-      $expected = $env:JBANG_DOWNLOAD_CHECKSUM
+    if ((Test-Path env:JBANG_DOWNLOAD_CHECKSUM) -and $env:JBANG_DOWNLOAD_CHECKSUM) {
+      $expected = $env:JBANG_DOWNLOAD_CHECKSUM.ToLower()
     } else {
       $shaOk = Invoke-Download "${jburl}.sha256" "$TDIR\urls\jbang.zip.sha256"
       if ($shaOk) {
-        $expected = (Get-Content "$TDIR\urls\jbang.zip.sha256").Trim()
+        $expected = (Get-Content "$TDIR\urls\jbang.zip.sha256").Trim().ToLower()
       } else {
         $expected = ''
-        [Console]::Error.WriteLine("Warning: could not download checksum file, skipping verification")
+      }
+      if (-not $expected) {
+        [Console]::Error.WriteLine("Warning: could not obtain checksum from server, skipping verification")
       }
     }
     if ($expected -and $actual -ne $expected) {
@@ -210,6 +224,8 @@ if (-not $binaryPath -and -not $jarPath) {
     Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
     Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
   }
+  $checkFile = if ($env:JBANG_USE_NATIVE -eq 'true') { "$JBDIR\bin\jbang.bin.exe" } else { "$JBDIR\bin\jbang.jar" }
+  Assert-JarChecksum $checkFile
   . "$JBDIR\bin\jbang.ps1" @args
   break
 }
@@ -265,6 +281,7 @@ if (-not $binaryPath) {
         # Activate the downloaded JDK giving it its proper name
         Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
         # Set the current JDK
+        Assert-JarChecksum $jarPath
         & "$JAVA_EXEC" -jar "$jarPath" jdk default $javaVersion
       }
     }
@@ -272,13 +289,7 @@ if (-not $binaryPath) {
 }
 
 # Execute jbang
-if (Test-Path env:JBANG_JAR_CHECKSUM) {
-  $checkFile = if ($binaryPath) { $binaryPath } else { $jarPath }
-  $actual = (Get-FileHash "$checkFile" -Algorithm SHA256).Hash.ToLower()
-  if ($actual -ne $env:JBANG_JAR_CHECKSUM) {
-    [Console]::Error.WriteLine("Error: checksum mismatch for $checkFile (expected $env:JBANG_JAR_CHECKSUM, got $actual)")
-    exit 1
-  }
-}
+$checkFile = if ($binaryPath) { $binaryPath } else { $jarPath }
+Assert-JarChecksum $checkFile
 
 Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args
