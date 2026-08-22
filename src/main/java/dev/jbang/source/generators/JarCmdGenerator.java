@@ -23,6 +23,7 @@ import org.jboss.jandex.Indexer;
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.devkitman.Jdk;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.buildsteps.CompileBuildStep;
@@ -110,6 +111,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 					"--enable-native-access=");
 		}
 
+		addSourceLocationFlags(project, optionalArgs);
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
 		if (debugString != null) {
@@ -330,6 +332,54 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
 		properties.forEach((k, e) -> result.add(def + k + "=" + e));
+	}
+
+	/**
+	 * Tells the running code where its own source is, through {@code jbang.source}
+	 * and {@code jbang.dir}.
+	 *
+	 * <p>
+	 * A script is compiled into the jar cache and run from there, so
+	 * {@code getCodeSource()} points at {@code ~/.jbang/cache/jars/...} and the
+	 * script has no way of finding the project it is checked into. The JDK's own
+	 * single-file launcher ({@code java Foo.java}) does not have that problem, and
+	 * neither do bash, python or perl.
+	 *
+	 * <p>
+	 * These are added before the user's own {@code -D} flags, so an explicit
+	 * {@code -Djbang.source=...} still wins.
+	 *
+	 * @param project the project whose main source is being run
+	 * @param result  the argument list to add the flags to
+	 */
+	private static void addSourceLocationFlags(Project project, List<String> result) {
+		if (project.getMainSource() == null) {
+			// A jar or GAV is not a script: there is no source to point at.
+			return;
+		}
+		ResourceRef ref = project.getResourceRef();
+		String original = ref.getOriginalResource();
+		if (original == null || ref.isStdin() || ref.isURL() || ref.isClasspath()) {
+			// Deliberately limited to sources that exist as a file in a project. Code piped
+			// in or passed with --code has no location at all; a remote source has one, but
+			// reporting it means putting a URL on the command line, and its local copy
+			// lives in the download cache, which is not a project either. Left for a
+			// follow-up.
+			return;
+		}
+		Path source;
+		try {
+			source = ref.getFile().toAbsolutePath().normalize();
+		} catch (RuntimeException e) {
+			// A reference that cannot produce a file is not worth failing a run over.
+			Util.verboseMsg("Not setting jbang.source, no file for " + original + ": " + e.getMessage());
+			return;
+		}
+		result.add("-Djbang.source=" + source);
+		Path dir = source.getParent();
+		if (dir != null) {
+			result.add("-Djbang.dir=" + dir);
+		}
 	}
 
 }
