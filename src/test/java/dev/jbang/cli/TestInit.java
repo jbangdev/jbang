@@ -30,6 +30,7 @@ import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
@@ -218,6 +219,11 @@ public class TestInit extends BaseTest {
 		testFailMultipleFiles("{filename}", "edit.md", "edit.java", true, 2);
 	}
 
+	@Test
+	void testInitMultipleFilesWrongNameBasename() throws IOException {
+		testFailMultipleFiles("{basename}.java", "edit.md", "edit.java", true, 2);
+	}
+
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.execute("init", "-t=name", outFile.toString());
@@ -354,6 +360,114 @@ public class TestInit extends BaseTest {
 
 		assertThat(out.toFile().exists(), not(true));
 
+	}
+
+	@Test
+	void testInitUsingTemplateWithFilenameAndBasename() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello World".getBytes());
+		Path tfFileQute = Files.write(cwd.resolve("file2.tf.qute"), "Hello World from .tf file".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outTf = cwd.resolve("prefixed-result.tf");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
+				"{filename}" + "=" + javaFileQute.toAbsolutePath(),
+				"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath());
+
+		assertThat(outJava.toFile().exists(), not(true));
+
+		int result = JBang.execute("init", "--verbose", "--template=template-with-more-files",
+				outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outTf.toFile().exists(), is(true));
+
+		String javaContent = Util.readString(outJava);
+		String tfContent = Util.readString(outTf);
+
+		assertThat(javaContent, containsString("Hello World"));
+		assertThat(tfContent, containsString("Hello World from .tf file"));
+	}
+
+	@Test
+	void testInitUsingTemplateWithOnlyBasenameEntries() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello Java".getBytes());
+		Path mdFileQute = Files.write(cwd.resolve("file2.md.qute"), "Hello Markdown".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outMd = cwd.resolve("result.md");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=basename-only",
+				"{basename}.java" + "=" + javaFileQute.toAbsolutePath(),
+				"{basename}.md" + "=" + mdFileQute.toAbsolutePath());
+
+		int result = JBang.execute("init", "--template=basename-only",
+				outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outMd.toFile().exists(), is(true));
+	}
+
+	@Test
+	void testInitUsingTemplateWithBasenameWrongExtension() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello Java".getBytes());
+		Path outFile = cwd.resolve("result.py");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=basename-ext-check",
+				"{basename}.java" + "=" + javaFileQute.toAbsolutePath());
+
+		int result = JBang.execute("init", "--template=basename-ext-check",
+				outFile.toAbsolutePath().toString());
+
+		assertThat(result, is(2));
+	}
+
+	@Test
+	void testQuteIncludeResolvesRelativeTemplates() throws IOException {
+		Path cwd = Util.getCwd();
+		Path subDir = Files.createDirectory(cwd.resolve("tpls"));
+		Files.write(subDir.resolve("main.txt.qute"), "{#include tpls/header.txt.qute /}BODY".getBytes());
+		Files.write(subDir.resolve("header.txt.qute"), "HEADER\n".getBytes());
+
+		Path out = cwd.resolve("result.txt");
+		ResourceRef ref = ResourceRef.forFile(subDir.resolve("main.txt.qute"));
+		ResourceResolver resolver = ResourceResolver.forResources();
+		new Init().renderQuteTemplate(out, ref, new HashMap<>(), resolver);
+
+		String content = Util.readString(out);
+		assertThat(content, containsString("HEADER"));
+		assertThat(content, containsString("BODY"));
+	}
+
+	@Test
+	void testQuteIncludeFailsWithoutResolver() throws IOException {
+		Path cwd = Util.getCwd();
+		Path subDir = Files.createDirectory(cwd.resolve("tpls2"));
+		Files.write(subDir.resolve("main.txt.qute"), "{#include nonexistent/missing.qute /}BODY".getBytes());
+
+		Path out = cwd.resolve("result2.txt");
+		ResourceRef ref = ResourceRef.forFile(subDir.resolve("main.txt.qute"));
+		// No resolver — include can't be found, should fail
+		assertThrows(Exception.class,
+				() -> new Init().renderQuteTemplate(out, ref, new HashMap<>(), null));
+	}
+
+	@Test
+	void testResolveBaseNameSubstitution() {
+		// {filename} resolves to full output name
+		Path path = Init.resolveBaseName("{filename}", "template.java", "result.java");
+		assertThat(path.toString(), is("result.java"));
+
+		// {basename} with different extension just substitutes
+		path = Init.resolveBaseName("prefix-{basename}.tf", "template.tf", "result.java");
+		assertThat(path.toString(), is("prefix-result.tf"));
+
+		// no placeholder = passthrough
+		path = Init.resolveBaseName("static-file.txt", "template.txt", "result.java");
+		assertThat(path.toString(), is("static-file.txt"));
 	}
 
 }
