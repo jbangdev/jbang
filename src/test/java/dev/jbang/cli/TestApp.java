@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
@@ -58,6 +60,55 @@ public class TestApp extends BaseTest {
 
 		Files.write(rcFile, Collections.singletonList("# Add JBang to environment"));
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(true));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testUpdateStagesWindowsCmdLauncher(@TempDir Path tempDir) throws IOException, InterruptedException {
+		Path source = Files.createDirectory(tempDir.resolve("source"));
+		Path target = Settings.getConfigBinDir();
+		Files.createDirectories(target);
+		Files.writeString(source.resolve("jbang"), "new sh");
+		Files.writeString(source.resolve("jbang.cmd"), "new cmd");
+		Files.writeString(source.resolve("jbang.ps1"), "new ps1");
+		Files.writeString(source.resolve("jbang.jar"), "new jar");
+		Files.writeString(target.resolve("jbang.cmd"), "running cmd");
+		Files.writeString(target.resolve("jbang.jar"), "running jar");
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
+
+		App.AppInstall.copyJBangFiles(source, target);
+
+		assertThat(Files.readString(target.resolve("jbang.cmd")), is("running cmd"));
+		assertThat(Files.readString(target.resolve("jbang.cmd.new")), is("new cmd"));
+		assertThat(Files.readString(target.resolve("jbang")), is("new sh"));
+		assertThat(Files.readString(target.resolve("jbang.ps1")), is("new ps1"));
+		assertThat(Files.readString(target.resolve("jbang.jar")), is("running jar"));
+		assertThat(Files.readString(target.resolve("jbang.jar.new")), is("new jar"));
+
+		String updateCommand = App.AppInstall.cmdLauncherUpdateCommand();
+		assertThat(updateCommand, notNullValue());
+		Process process = new ProcessBuilder("cmd", "/d", "/c", updateCommand).start();
+		assertThat(process.waitFor(), is(0));
+		assertThat(Files.readString(target.resolve("jbang.cmd")), is("new cmd"));
+		assertThat(target.resolve("jbang.cmd.new").toFile(), not(anExistingFile()));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testUpdateReplacesStagedCmdLauncherOutsideCmd(@TempDir Path tempDir) throws IOException {
+		Path source = Files.createDirectory(tempDir.resolve("source"));
+		Path target = Files.createDirectory(tempDir.resolve("target"));
+		Files.writeString(source.resolve("jbang"), "new sh");
+		Files.writeString(source.resolve("jbang.cmd"), "new cmd");
+		Files.writeString(source.resolve("jbang.ps1"), "new ps1");
+		Files.writeString(source.resolve("jbang.jar"), "new jar");
+		Files.writeString(target.resolve("jbang.cmd"), "old cmd");
+		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+
+		App.AppInstall.copyJBangFiles(source, target);
+
+		assertThat(Files.readString(target.resolve("jbang.cmd")), is("new cmd"));
+		assertThat(target.resolve("jbang.cmd.new").toFile(), not(anExistingFile()));
 	}
 
 	@Test
