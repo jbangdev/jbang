@@ -88,7 +88,7 @@ jobs:
               '',
               '### Install',
               '```bash',
-              `JBANG_DOWNLOAD_URL=https://github.com/${owner}/${repo}/releases/download/${tag}/jbang.tar jbang version`,
+              `JBANG_DIR=$(mktemp -d) JBANG_DOWNLOAD_URL=https://github.com/${owner}/${repo}/releases/download/${tag}/jbang.tar jbang version`,
               '```',
             ].join('\n');
 
@@ -155,7 +155,7 @@ jobs:
               '',
               'Install this PR build:',
               '```bash',
-              `JBANG_DOWNLOAD_URL=${downloadUrl} jbang version`,
+              `JBANG_DIR=$(mktemp -d) JBANG_DOWNLOAD_URL=${downloadUrl} jbang version`,
               '```',
               '',
               `[Release](https://github.com/${owner}/${buildsRepo}/releases/tag/${tag})`,
