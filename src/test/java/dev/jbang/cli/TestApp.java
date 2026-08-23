@@ -119,7 +119,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		testScripts();
 	}
@@ -143,7 +143,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		testNativeScripts();
 	}
@@ -156,7 +156,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 
 	}
@@ -170,7 +170,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 
 	}
@@ -183,7 +183,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 
 		String cwd = examplesTestFolder.getParent().toString();
@@ -231,7 +231,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		result = checkedRun("app", "install", "--no-build", src);
 		assertThat(result.err,
@@ -246,7 +246,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		result = checkedRun("app", "install", "--no-build", "--force", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
@@ -294,7 +294,7 @@ public class TestApp extends BaseTest {
 			assertThat(Settings.getConfigBinDir().resolve("hello.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("hello.ps1").toFile(), anExistingFile());
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 			assertThat(Settings.getConfigBinDir().resolve("hello").toFile(), anExistingFile());
 		}
 	}
@@ -307,7 +307,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		result = checkedRun("app", "install", "--no-build", "--name=hello", src);
 		assertThat(result.err,
@@ -322,7 +322,7 @@ public class TestApp extends BaseTest {
 		if (Util.isWindows()) {
 			assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		}
 		result = checkedRun("app", "install", "--no-build", "--force", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
@@ -339,7 +339,7 @@ public class TestApp extends BaseTest {
 			assertThat(Settings.getConfigBinDir().resolve("apptest.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("apptest.ps1").toFile(), anExistingFile());
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 			assertThat(Settings.getConfigBinDir().resolve("apptest").toFile(), anExistingFile());
 		}
 	}
@@ -357,7 +357,7 @@ public class TestApp extends BaseTest {
 			assertThat(Settings.getConfigBinDir().resolve("apptest.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("apptest.ps1").toFile(), anExistingFile());
 		} else {
-			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+			assertThat(result.result, equalTo(ExitException.EXIT_OK));
 			assertThat(Settings.getConfigBinDir().resolve("apptest").toFile(), anExistingFile());
 		}
 	}
@@ -390,7 +390,7 @@ public class TestApp extends BaseTest {
 		checkedRun("app", "install", "--no-build", "--name=hello2", src);
 		checkedRun("app", "install", "--no-build", "--name=hello3", src);
 		CaptureResult<Integer> result = checkedRun("app", "list");
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(result.normalizedOut(), equalTo("hello1\nhello2\nhello3\n"));
 	}
 
@@ -405,7 +405,7 @@ public class TestApp extends BaseTest {
 			assertThat(Settings.getConfigBinDir().resolve("helloworld").toFile(), anExistingFile());
 		}
 		CaptureResult<Integer> result = checkedRun("app", "uninstall", "helloworld");
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(result.err, containsString("Command removed: helloworld"));
 		assertThat(Settings.getConfigBinDir().resolve("helloworld").toFile(), not(anExistingFile()));
 		assertThat(Settings.getConfigBinDir().resolve("helloworld.cmd").toFile(), not(anExistingFile()));
@@ -415,7 +415,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppUninstallUnknown() throws Exception {
 		CaptureResult<Integer> result = checkedRun("app", "uninstall", "hello");
-		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
 		assertThat(result.err, containsString("Command not found: hello"));
 	}
 

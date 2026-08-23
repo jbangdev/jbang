@@ -385,14 +385,14 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile2, "// Test file 2".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		int exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 		exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(exitCode, equalTo(ExitException.EXIT_INVALID_INPUT));
 		exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", "--force", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test2.java"));
 	}

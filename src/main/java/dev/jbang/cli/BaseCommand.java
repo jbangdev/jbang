@@ -156,13 +156,13 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			return CommandResult.valueOf(e.getStatus());
 		} catch (IOException e) {
 			Util.errorMsg(null, e);
-			return CommandResult.valueOf(EXIT_GENERIC_ERROR);
+			return CommandResult.valueOf(ExitException.EXIT_GENERIC_ERROR);
 		} catch (IllegalArgumentException e) {
 			Util.errorMsg(null, e);
-			return CommandResult.valueOf(EXIT_INVALID_INPUT);
+			return CommandResult.valueOf(ExitException.EXIT_INVALID_INPUT);
 		} catch (Exception e) {
 			Util.errorMsg(null, e);
-			return CommandResult.valueOf(EXIT_INTERNAL_ERROR);
+			return CommandResult.valueOf(ExitException.EXIT_INTERNAL_ERROR);
 		}
 	}
 
@@ -173,7 +173,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		if (commandInvocation != null) {
 			System.err.println(commandInvocation.getHelpInfo());
 		}
-		return EXIT_INVALID_INPUT;
+		return ExitException.EXIT_INVALID_INPUT;
 	}
 
 	@Override

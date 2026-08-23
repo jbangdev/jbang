@@ -132,7 +132,7 @@ public class TestExport extends BaseTest {
 		// outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
 
 	}
 
@@ -142,7 +142,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "mavenrepo", "--force", "-O",
 				outFile.toString(), examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
 		assertThat(result.err, containsString("Add --group=<group id> and run again"));
 	}
 
@@ -151,7 +151,7 @@ public class TestExport extends BaseTest {
 		Path outFile = mavenTempDir;
 		CaptureResult<Integer> result = checkedRun("export", "mavenrepo", "--force",
 				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
@@ -203,7 +203,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -222,7 +222,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/groovy/classpath_log.groovy");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -241,7 +241,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_log.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -260,7 +260,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_main.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -279,7 +279,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -299,7 +299,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve(
 					"src/main/java/classpath_log_bom.java");
@@ -322,7 +322,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/exporttags.java");
@@ -373,7 +373,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -403,7 +403,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/RootOne.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -429,7 +429,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "maven", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -459,7 +459,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve(
 					"src/main/java/classpath_log_bom.java");
@@ -493,7 +493,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult<Integer> result = checkedRun("export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/exporttags.java");
@@ -557,7 +557,7 @@ public class TestExport extends BaseTest {
 		Path src = temp.resolve("test.java");
 		Util.writeString(src, code);
 		CaptureResult<Integer> result = checkedRun("export", "fatjar", src.toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(result.err, containsString("[WARN] Skipping conflicting duplicate file vs directory:"));
 	}
 
@@ -572,7 +572,7 @@ public class TestExport extends BaseTest {
 		Path src = temp.resolve("test.java");
 		Util.writeString(src, code);
 		CaptureResult<Integer> result = checkedRun("export", "fatjar", src.toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(result.err, containsString("[WARN] Skipping conflicting duplicate file vs directory:"));
 	}
 
@@ -588,7 +588,7 @@ public class TestExport extends BaseTest {
 		Path src = temp.resolve("test.java");
 		Util.writeString(src, code2);
 		CaptureResult<Integer> result = checkedRun("--verbose", "export", "fatjar", src.toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 		assertThat(result.err, containsString("Removing signature file:"));
 		assertThat(result.err, containsString("DUMMY.SF"));
 		assertThat(result.err, containsString("DUMMY.DSA"));
@@ -622,7 +622,7 @@ public class TestExport extends BaseTest {
 		Util.writeString(src, code);
 
 		CaptureResult<Integer> result = checkedRun("export", "fatjar", src.toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
 
 		// Verify the merged service file contains both implementations
 		Path fatjar = cwdDir.resolve("svctest-fatjar.jar");

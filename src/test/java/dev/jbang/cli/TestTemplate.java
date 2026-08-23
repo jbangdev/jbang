@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.Template;
@@ -152,7 +153,7 @@ public class TestTemplate extends BaseTest {
 		Files.write(testFile2, "// Test file 2".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		int exitCode = JBang.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("name");
@@ -160,10 +161,10 @@ public class TestTemplate extends BaseTest {
 		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
 		exitCode = JBang.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(exitCode, equalTo(ExitException.EXIT_INVALID_INPUT));
 		exitCode = JBang.execute("template", "add", "-f", cwd.toString(), "--name=name", "--force",
 				testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		name = Template.get("name");
 		assertThat(name.fileRefs, aMapWithSize(1));
 		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));

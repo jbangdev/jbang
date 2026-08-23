@@ -36,7 +36,7 @@ import dev.jbang.util.Util;
 
 public class TestJdk extends BaseTest {
 
-	private static final int SUCCESS_EXIT = BaseCommand.EXIT_OK;
+	private static final int SUCCESS_EXIT = ExitException.EXIT_OK;
 	private static final String[] DEFAULT_PROVIDERS = { "--jdk-providers", "default,jbang,linked" };
 
 	@BeforeEach
