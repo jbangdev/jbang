@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.AliasRef;
 import dev.jbang.catalog.AliasVersionPinner;
@@ -419,6 +420,42 @@ public class TestAliasVersionReplacement extends BaseTest {
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("com.example:artifact:3.0.0"));
 
+	}
+
+	@Test
+	void testCatalogRefVersionPropertyExpansion() throws IOException {
+		// Test that ${jbang.app.version} is expanded in catalog references
+		// before the catalog is looked up.
+		// This verifies the fix for: "Unknown catalog
+		// './apps/${jbang.app.version:1.0.0}/...'"
+
+		String catalog = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"tool\": {\n" +
+				"      \"script-ref\": \"app@./versions/${jbang.app.version:1.0.0}/jbang-catalog.json\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), catalog.getBytes());
+
+		Catalog cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
+
+		// Without version: error should show EXPANDED path (1.0.0), not raw
+		// ${jbang.app.version}
+		AliasRef ref1 = AliasRef.parse("tool");
+		ExitException ex = assertThrows(ExitException.class,
+				() -> Alias.get(cat, ref1.alias, ref1.requestedVersion));
+		// Key assertion: the error contains the expanded version "1.0.0", not
+		// "${jbang.app.version:1.0.0}"
+		assertThat(ex.getMessage(), containsString("1.0.0"));
+		assertThat(ex.getMessage(), not(containsString("${jbang.app.version")));
+
+		// With version: error should show requested version "2.0.0"
+		AliasRef ref2 = AliasRef.parse("tool:2.0.0");
+		ex = assertThrows(ExitException.class,
+				() -> Alias.get(cat, ref2.alias, ref2.requestedVersion));
+		assertThat(ex.getMessage(), containsString("2.0.0"));
+		assertThat(ex.getMessage(), not(containsString("${jbang.app.version")));
 	}
 
 }

@@ -3,10 +3,12 @@ package dev.jbang.catalog;
 import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
@@ -16,6 +18,8 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
@@ -224,7 +228,8 @@ public class Alias extends CatalogItem {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
 
-		// EXISTING: Look up alias (unchanged)
+		// Look up alias, expanding any ${jbang.app.version:default} in catalog
+		// references
 		Alias a2;
 		if (parts.length == 1) {
 			a2 = findUnqualifiedAlias.apply(name);
@@ -232,7 +237,9 @@ public class Alias extends CatalogItem {
 			if (parts[1].isEmpty()) {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
 			}
-			a2 = fromCatalog(parts[1], parts[0]);
+			// Expand ${jbang.app.version:default} in catalog reference before fetching
+			String catalogRef = expandVersionProperty(parts[1], requestedVersion);
+			a2 = fromCatalog(catalogRef, parts[0]);
 		}
 
 		// EXISTING: Merge if found
@@ -323,6 +330,32 @@ public class Alias extends CatalogItem {
 	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
 		return Catalog.findNearestCatalogWith(dir, true, true,
 				catalog -> catalog.aliases.containsKey(aliasName) ? catalog : null);
+	}
+
+	/**
+	 * Expand {@code ${jbang.app.version:default}} in a string.
+	 * <p>
+	 * If {@code requestedVersion} is non-null, it's used as the value for
+	 * {@code jbang.app.version}. Otherwise, the default value after the colon is
+	 * used.
+	 *
+	 * @param value            the string potentially containing property references
+	 * @param requestedVersion the version to use, or null to use defaults
+	 * @return the string with properties expanded
+	 */
+	private static String expandVersionProperty(String value, String requestedVersion) {
+		if (value == null || !value.contains("${jbang.app.version")) {
+			return value;
+		}
+		Properties props = ProjectBuilder.getContextProperties(Collections.emptyMap());
+		if (requestedVersion != null) {
+			props.setProperty("jbang.app.version", requestedVersion);
+		}
+		String expanded = PropertiesValueResolver.replaceProperties(value, props);
+		if (!expanded.equals(value)) {
+			Util.verboseMsg("Expanded catalog reference: " + value + " → " + expanded);
+		}
+		return expanded;
 	}
 
 	/**

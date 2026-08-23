@@ -1,6 +1,6 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.cli.ExitException;
+import dev.jbang.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.PropertiesValueResolver;
