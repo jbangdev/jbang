@@ -31,19 +31,14 @@ jobs:
               core.setOutput('number', prs[0].number);
               return;
             }
-            // Fallback: search for PR by head SHA
+            // Fallback: search for PR by head SHA (works for cross-fork PRs)
             const headSha = context.payload.workflow_run.head_sha;
-            const { data: pulls } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              sort: 'updated',
-              direction: 'desc',
-              per_page: 10,
+            const { data: { items } } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:pr ${headSha}`,
+              per_page: 1,
             });
-            const match = pulls.find(p => p.head.sha === headSha);
-            if (match) {
-              core.setOutput('number', match.number);
+            if (items.length > 0) {
+              core.setOutput('number', items[0].number);
             } else {
               core.setFailed(`Could not determine PR number for SHA ${headSha}`);
             }
@@ -54,12 +49,15 @@ jobs:
           pattern: '*-shared-build-jbang'
           path: jbang-artifact
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           merge-multiple: true
 
       - name: Package as jbang.tar and jbang.zip
         run: |
-          # The artifact contains the jbang install directory contents.
-          # We need to wrap it in a jbang/ directory for the tar/zip.
+          if [ ! -d jbang-artifact ] || [ -z "$(ls -A jbang-artifact)" ]; then
+            echo "::error::No artifact files found in jbang-artifact/. The download step likely failed silently."
+            exit 1
+          fi
           mkdir -p staging/jbang
           cp -r jbang-artifact/* staging/jbang/
           chmod +x staging/jbang/bin/jbang
@@ -71,7 +69,6 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-          PR_BUILDS_TOKEN: ${{ secrets.PR_BUILDS_TOKEN }}
         with:
           github-token: ${{ secrets.PR_BUILDS_TOKEN }}
           script: |
