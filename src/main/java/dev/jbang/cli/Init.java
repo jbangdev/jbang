@@ -168,7 +168,9 @@ public class Init extends BaseCommand {
 			for (RefTarget refTarget : refTargets) {
 				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
 					Path out = refTarget.to(outDir);
-					renderQuteTemplate(out, refTarget.getSource(), propsMap);
+					ResourceResolver includeResolver = ResourceResolver.combined(
+							tpl.catalog.catalogRef, ResourceResolver.forResources());
+					renderQuteTemplate(out, refTarget.getSource(), propsMap, includeResolver);
 				} else {
 					refTarget.copy(outDir);
 				}
@@ -257,6 +259,12 @@ public class Init extends BaseCommand {
 
 	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> propsMap)
 			throws IOException {
+		renderQuteTemplate(outFile, templateRef, propsMap, null);
+	}
+
+	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> propsMap,
+			ResourceResolver includeResolver)
+			throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templateRef);
 		if (template == null) {
 			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
@@ -276,9 +284,13 @@ public class Init extends BaseCommand {
 			TemplateInstance templateWithData = template.instance();
 			propsMap.forEach(templateWithData::data);
 			Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + propsMap);
-			String result = templateWithData.render();
-
-			writer.write(result);
+			TemplateEngine.instance().setIncludeResolver(includeResolver);
+			try {
+				String result = templateWithData.render();
+				writer.write(result);
+			} finally {
+				TemplateEngine.instance().clearIncludeResolver();
+			}
 			outFile.toFile().setExecutable(true);
 		}
 	}

@@ -30,6 +30,7 @@ import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
@@ -422,6 +423,36 @@ public class TestInit extends BaseTest {
 				outFile.toAbsolutePath().toString());
 
 		assertThat(result, is(2));
+	}
+
+	@Test
+	void testQuteIncludeResolvesRelativeTemplates() throws IOException {
+		Path cwd = Util.getCwd();
+		Path subDir = Files.createDirectory(cwd.resolve("tpls"));
+		Files.write(subDir.resolve("main.txt.qute"), "{#include tpls/header.txt.qute /}BODY".getBytes());
+		Files.write(subDir.resolve("header.txt.qute"), "HEADER\n".getBytes());
+
+		Path out = cwd.resolve("result.txt");
+		ResourceRef ref = ResourceRef.forFile(subDir.resolve("main.txt.qute"));
+		ResourceResolver resolver = ResourceResolver.forResources();
+		new Init().renderQuteTemplate(out, ref, new HashMap<>(), resolver);
+
+		String content = Util.readString(out);
+		assertThat(content, containsString("HEADER"));
+		assertThat(content, containsString("BODY"));
+	}
+
+	@Test
+	void testQuteIncludeFailsWithoutResolver() throws IOException {
+		Path cwd = Util.getCwd();
+		Path subDir = Files.createDirectory(cwd.resolve("tpls2"));
+		Files.write(subDir.resolve("main.txt.qute"), "{#include nonexistent/missing.qute /}BODY".getBytes());
+
+		Path out = cwd.resolve("result2.txt");
+		ResourceRef ref = ResourceRef.forFile(subDir.resolve("main.txt.qute"));
+		// No resolver — include can't be found, should fail
+		assertThrows(Exception.class,
+				() -> new Init().renderQuteTemplate(out, ref, new HashMap<>(), null));
 	}
 
 	@Test
