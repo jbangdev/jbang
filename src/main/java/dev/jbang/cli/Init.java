@@ -116,6 +116,8 @@ public class Init extends BaseCommand {
 		propsMap.put("javaVersion", reqVersion);
 		propsMap.put("compactSourceFiles", reqVersion >= 25);
 
+		validateTemplateExtension(tpl.fileRefs, outName);
+
 		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
 			.stream()
 			.map(e -> entry(
@@ -203,24 +205,53 @@ public class Init extends BaseCommand {
 		}
 	}
 
+	/**
+	 * Validates that the user-supplied output name has an extension compatible with
+	 * the template's primary file entry. The primary entry is the first
+	 * {@code {filename}} entry, or if none exists, the first {@code {basename}}
+	 * entry.
+	 */
+	static void validateTemplateExtension(Map<String, String> fileRefs, String outName) {
+		String outExt = Util.extension(outName);
+		if (outExt.isEmpty()) {
+			return;
+		}
+		// Find the primary entry: first {filename}, else first {basename}
+		Map.Entry<String, String> primary = null;
+		for (Map.Entry<String, String> e : fileRefs.entrySet()) {
+			if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(e.getKey()).find()) {
+				primary = e;
+				break;
+			}
+			if (primary == null
+					&& dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(e.getKey()).find()) {
+				primary = e;
+			}
+		}
+		if (primary == null) {
+			return;
+		}
+		String targetExt = Util.extension(primary.getKey());
+		if (targetExt.isEmpty()) {
+			String src = primary.getValue();
+			targetExt = src.endsWith(".qute") ? Util.extension(Util.base(src))
+					: Util.extension(src);
+		}
+		if (!outExt.equals(targetExt)) {
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Template expects " + targetExt + " extension, not " + outExt);
+		}
+	}
+
+	/**
+	 * Substitutes {filename} and {basename} placeholders in a file-ref target name.
+	 * No extension validation — that is handled by
+	 * {@link #validateTemplateExtension}.
+	 */
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
 		String result = refTarget;
-		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()
-				|| dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
-			String baseName = Util.base(outName);
-			String outExt = Util.extension(outName);
-			String targetExt = Util.extension(refTarget);
-			if (targetExt.isEmpty()) {
-				targetExt = refSource.endsWith(".qute") ? Util.extension(Util.base(refSource))
-						: Util.extension(refSource);
-			}
-			if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
-				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
-						"Template expects " + targetExt + " extension, not " + outExt);
-			}
-			result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
-			result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
-		}
+		result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
+		result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(Util.base(outName));
 		return Paths.get(result);
 	}
 

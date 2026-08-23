@@ -218,6 +218,11 @@ public class TestInit extends BaseTest {
 		testFailMultipleFiles("{filename}", "edit.md", "edit.java", true, 2);
 	}
 
+	@Test
+	void testInitMultipleFilesWrongNameBasename() throws IOException {
+		testFailMultipleFiles("{basename}.java", "edit.md", "edit.java", true, 2);
+	}
+
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.execute("init", "-t=name", outFile.toString());
@@ -354,6 +359,84 @@ public class TestInit extends BaseTest {
 
 		assertThat(out.toFile().exists(), not(true));
 
+	}
+
+	@Test
+	void testInitUsingTemplateWithFilenameAndBasename() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello World".getBytes());
+		Path tfFileQute = Files.write(cwd.resolve("file2.tf.qute"), "Hello World from .tf file".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outTf = cwd.resolve("prefixed-result.tf");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
+				"{filename}" + "=" + javaFileQute.toAbsolutePath(),
+				"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath());
+
+		assertThat(outJava.toFile().exists(), not(true));
+
+		int result = JBang.execute("init", "--verbose", "--template=template-with-more-files",
+				outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outTf.toFile().exists(), is(true));
+
+		String javaContent = Util.readString(outJava);
+		String tfContent = Util.readString(outTf);
+
+		assertThat(javaContent, containsString("Hello World"));
+		assertThat(tfContent, containsString("Hello World from .tf file"));
+	}
+
+	@Test
+	void testInitUsingTemplateWithOnlyBasenameEntries() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello Java".getBytes());
+		Path mdFileQute = Files.write(cwd.resolve("file2.md.qute"), "Hello Markdown".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outMd = cwd.resolve("result.md");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=basename-only",
+				"{basename}.java" + "=" + javaFileQute.toAbsolutePath(),
+				"{basename}.md" + "=" + mdFileQute.toAbsolutePath());
+
+		int result = JBang.execute("init", "--template=basename-only",
+				outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outMd.toFile().exists(), is(true));
+	}
+
+	@Test
+	void testInitUsingTemplateWithBasenameWrongExtension() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello Java".getBytes());
+		Path outFile = cwd.resolve("result.py");
+
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=basename-ext-check",
+				"{basename}.java" + "=" + javaFileQute.toAbsolutePath());
+
+		int result = JBang.execute("init", "--template=basename-ext-check",
+				outFile.toAbsolutePath().toString());
+
+		assertThat(result, is(2));
+	}
+
+	@Test
+	void testResolveBaseNameSubstitution() {
+		// {filename} resolves to full output name
+		Path path = Init.resolveBaseName("{filename}", "template.java", "result.java");
+		assertThat(path.toString(), is("result.java"));
+
+		// {basename} with different extension just substitutes
+		path = Init.resolveBaseName("prefix-{basename}.tf", "template.tf", "result.java");
+		assertThat(path.toString(), is("prefix-result.tf"));
+
+		// no placeholder = passthrough
+		path = Init.resolveBaseName("static-file.txt", "template.txt", "result.java");
+		assertThat(path.toString(), is("static-file.txt"));
 	}
 
 }
