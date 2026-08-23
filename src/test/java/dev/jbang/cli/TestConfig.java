@@ -13,10 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
+import dev.jbang.ExitException;
 
 public class TestConfig extends BaseTest {
 
-	private static final int SUCCESS_EXIT = BaseCommand.EXIT_OK;
+	private static final int SUCCESS_EXIT = ExitException.EXIT_OK;
 
 	static final String testConfig = "" +
 			"one=footop\n" +
