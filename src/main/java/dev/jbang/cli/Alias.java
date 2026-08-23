@@ -87,7 +87,7 @@ public class Alias extends BaseCommand {
 		public Integer doCall() throws IOException {
 			scriptMixin.validate();
 			if (name != null && !Catalog.isValidName(name)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 			}
 
@@ -117,10 +117,10 @@ public class Alias extends BaseCommand {
 				CatalogUtil.addAlias(catFile, name, alias);
 			} else {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to add anyway.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			info(String.format("Alias '%s' added to '%s'", name, catFile));
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		ProjectBuilder createAliasProjectBuilder() {
@@ -194,7 +194,7 @@ public class Alias extends BaseCommand {
 			} else {
 				printAliases(out, catalogName, catalog, format);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static void printAliases(PrintStream out, String catalogName, Catalog catalog, OutputFormat format) {
@@ -341,7 +341,7 @@ public class Alias extends BaseCommand {
 			} else {
 				CatalogUtil.removeNearestAlias(name);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 }

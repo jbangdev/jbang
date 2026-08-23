@@ -123,7 +123,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -141,7 +141,7 @@ public class Export extends BaseCommand {
 			}
 
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -160,7 +160,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -189,7 +189,7 @@ public class Export extends BaseCommand {
 						getProjectJdk(prj));
 			}
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -217,13 +217,13 @@ public class Export extends BaseCommand {
 			if (!outPath.toFile().isDirectory()) {
 				if (outPath.toFile().exists()) {
 					Util.errorMsg("Cannot export as maven repository as " + outPath + " is not a directory.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 				if (force) {
 					Util.mkdirs(outPath);
 				} else {
 					Util.errorMsg("Cannot export as " + outPath + " does not exist. Use --force to create.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
@@ -244,7 +244,7 @@ public class Export extends BaseCommand {
 			if (group == null) {
 				Util.errorMsg(
 						"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			Path groupdir = outPath.resolve(Paths.get(group.replace(".", "/")));
 
@@ -267,7 +267,7 @@ public class Export extends BaseCommand {
 					artifactFile.toFile().delete();
 				} else {
 					Util.errorMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 			Util.infoMsg("Writing " + artifactFile);
@@ -297,7 +297,7 @@ public class Export extends BaseCommand {
 			}
 
 			Util.infoMsg("Exported to " + outPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -314,7 +314,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -322,7 +322,7 @@ public class Export extends BaseCommand {
 			Files.copy(source, outputPath);
 
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		@Override
@@ -354,7 +354,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -396,7 +396,7 @@ public class Export extends BaseCommand {
 			Util.infoMsg("Exported to " + outputPath);
 			Util.infoMsg("This is an experimental feature and might not to work for certain applications!");
 			Util.infoMsg("Help us improve by reporting any issue you find at https://github.com/jbangdev/jbang/issues");
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		public static void handleZipFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile, Exception ex)
@@ -479,7 +479,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + relativeOP + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
@@ -517,7 +517,7 @@ public class Export extends BaseCommand {
 			String out = Util.runCommand(args.toArray(new String[] {}));
 			if (out == null) {
 				Util.errorMsg("Unable to export Jdk distribution.");
-				return EXIT_GENERIC_ERROR;
+				return ExitException.EXIT_GENERIC_ERROR;
 			}
 
 			Util.infoMsg("Exported to " + relativeOP);
@@ -525,7 +525,7 @@ public class Export extends BaseCommand {
 				Util.infoMsg(
 						"A launcher has been created which you can run using: " + relativeOP + "/bin/" + launcherName);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private Path getJlinkOutputPath() {
@@ -555,14 +555,14 @@ public class Export extends BaseCommand {
 					Util.deletePath(projectDir, false);
 				} else {
 					Util.errorMsg("Cannot export as " + projectDir + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
 			Project prj = ctx.getProject();
 			if (prj.isExecutableArchive() || prj.getMainSourceSet().getSources().isEmpty()) {
 				Util.errorMsg("You can only export source files");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 
 			if (prj.getGav().isPresent()) {
@@ -591,7 +591,7 @@ public class Export extends BaseCommand {
 			info("Exported as " + getType() + " project to " + projectDir);
 			info("Export to " + getType() + " is a best-effort to try match JBang build.");
 			info("If something can be improved please open issue at open an issue at https://github.com/jbangdev/jbang/issues with reproducer.");
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private void createProjectForExport(BuildContext ctx, Path projectDir) throws IOException {
@@ -694,10 +694,11 @@ public class Export extends BaseCommand {
 			TemplateEngine engine = TemplateEngine.instance();
 			Template template = engine.getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Could not locate template named: '" + templateRef + "'");
 			Source.Type srcType = prj.getMainSource().getType();
 			if (!supportedSourceTypes.contains(srcType)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
 			}
 			String kotlinVersion = srcType == Source.Type.kotlin
 					? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
@@ -791,10 +792,11 @@ public class Export extends BaseCommand {
 			TemplateEngine engine = TemplateEngine.instance();
 			Template template = engine.getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Could not locate template named: '" + templateRef + "'");
 			Source.Type srcType = prj.getMainSource().getType();
 			if (!supportedSourceTypes.contains(srcType)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
 			}
 			String kotlinVersion = srcType == Source.Type.kotlin
 					? ((KotlinSource) prj.getMainSource()).getKotlinVersion()

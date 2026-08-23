@@ -313,16 +313,17 @@ public class Info extends BaseCommand {
 						// any calling scripts can easily detect that
 						// situation instead of having to ambiguously
 						// compare against the string "null"
-						return EXIT_GENERIC_ERROR;
+						return ExitException.EXIT_GENERIC_ERROR;
 					}
 				} catch (NoSuchFieldException | IllegalAccessException e) {
-					throw new ExitException(EXIT_INVALID_INPUT, "Cannot return value of unknown field: " + select, e);
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"Cannot return value of unknown field: " + select, e);
 				}
 			} else {
 				parser.toJson(info, out);
 			}
 
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -346,7 +347,7 @@ public class Info extends BaseCommand {
 			cp.addAll(deps);
 			out.println(String.join(CP_SEPARATOR, cp));
 
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -357,7 +358,7 @@ public class Info extends BaseCommand {
 		public Integer doCall() throws IOException {
 			ScriptInfo info = getInfo(false);
 			out.println(info.applicationJar);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -398,15 +399,15 @@ public class Info extends BaseCommand {
 
 			if (toOpen[0] == null) {
 				Util.infoMsg("No documentation files found");
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 			if (!open) {
 				Util.infoMsg("Use --open to open the documentation file in the default browser.");
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 			if (GraphicsEnvironment.isHeadless()) {
 				Util.infoMsg("Cannot open documentation file in browser in headless mode");
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 			try {
 				Desktop.getDesktop().browse(getDocsUri(toOpen[0]));
@@ -414,7 +415,7 @@ public class Info extends BaseCommand {
 				Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
 			}
 
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		URI getDocsUri(ProjectFile doc) {

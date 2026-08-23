@@ -68,7 +68,7 @@ public class Template extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			if (name != null && !Catalog.isValidName(name)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid template name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 			}
 
@@ -100,7 +100,7 @@ public class Template extends BaseCommand {
 					splitRefs.set(0, entry(target, firstRef.getValue()));
 					warn("No explicit target pattern was set, using first file: " + target + "=" + firstRef.getValue());
 				} else {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"A target pattern is required. Prefix at least one of the files with '{filename}=' or '{basename}.ext='");
 				}
 			}
@@ -124,10 +124,10 @@ public class Template extends BaseCommand {
 				CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 			} else {
 				Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			info(String.format("Template '%s' added to '%s'", name, catFile));
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static Map<String, TemplateProperty> parseProperties(List<String> propStrings) {
@@ -184,11 +184,11 @@ public class Template extends BaseCommand {
 				target = ref[0];
 				Path t = Paths.get(target).normalize();
 				if (t.isAbsolute()) {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Target name may not be absolute: '" + target + "'");
 				}
 				if (t.normalize().startsWith("..")) {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Target may not refer to parent folders: '" + target + "'");
 				}
 			} else {
@@ -202,7 +202,7 @@ public class Template extends BaseCommand {
 			String source = splitRef.getValue();
 			ResourceRef resourceRef = ResourceRef.forResource(source);
 			if (resourceRef == null || !Files.isReadable(resourceRef.getFile())) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"File could not be found or read: '" + source + "'");
 			}
 			return true;
@@ -262,7 +262,7 @@ public class Template extends BaseCommand {
 				printTemplates(out, catalogName, catalog, showFiles,
 						showProperties, format);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
@@ -416,7 +416,7 @@ public class Template extends BaseCommand {
 			} else {
 				CatalogUtil.removeNearestTemplate(name);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 }

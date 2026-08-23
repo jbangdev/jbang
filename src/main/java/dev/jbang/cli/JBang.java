@@ -41,12 +41,12 @@ public class JBang extends BaseCommand {
 	public Integer doCall() throws IOException {
 		if (versionRequested) {
 			System.out.println(Util.getJBangVersion());
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 		if (commandInvocation != null) {
 			System.err.println(commandInvocation.getHelpInfo());
 		}
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	public static int execute(String... args) {
@@ -57,7 +57,7 @@ public class JBang extends BaseCommand {
 				.args(newArgs)
 				.defaultValueProvider(new JBangDefaultValueProvider())
 				.execute();
-			return result != null ? result.getResultValue() : BaseCommand.EXIT_OK;
+			return result != null ? result.getResultValue() : ExitException.EXIT_OK;
 		} catch (ExitException e) {
 			return e.getStatus();
 		} catch (RuntimeException e) {

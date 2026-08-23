@@ -1,13 +1,13 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
-
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
+
+import dev.jbang.ExitException;
 
 @CommandDefinition(name = "cache", description = "Manage compiled scripts in the local cache.", groupCommands = {
 		Cache.CacheClear.class }, generateHelp = true, helpGroup = "Caching")
@@ -88,7 +88,7 @@ public class Cache extends BaseCommand {
 
 			dev.jbang.Cache.CacheClass[] ccs = classes.toArray(new dev.jbang.Cache.CacheClass[0]);
 			dev.jbang.Cache.clearCache(ccs);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private void toggleCache(Boolean b, dev.jbang.Cache.CacheClass cache,

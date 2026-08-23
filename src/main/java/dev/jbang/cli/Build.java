@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.aesh.command.CommandDefinition;
 
+import dev.jbang.ExitException;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
@@ -19,7 +20,7 @@ public class Build extends BaseBuildCommand {
 		Project prj = pb.build(scriptMixin.scriptOrFile);
 		Project.codeBuilder(BuildContext.forProject(prj, getBuildDir())).build();
 
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	ProjectBuilder createProjectBuilderForBuild() {
