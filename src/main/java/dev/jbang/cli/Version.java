@@ -28,7 +28,7 @@ public class Version extends BaseCommand {
 				try {
 					App.AppInstall.installJBang(true);
 				} catch (IOException e) {
-					throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
+					throw new ExitException(ExitException.EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
 			}
 		} else if (checkForUpdate) {
@@ -54,10 +54,10 @@ public class Version extends BaseCommand {
 			String cmdLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
 			if (cmdLauncherUpdate != null) {
 				System.out.println(cmdLauncherUpdate);
-				return EXIT_EXECUTE;
+				return ExitException.EXIT_EXECUTE;
 			}
 		}
 
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 }

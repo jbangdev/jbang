@@ -51,7 +51,7 @@ public class Run extends BaseBuildCommand {
 			if (commandInvocation != null) {
 				System.err.println(commandInvocation.getHelpInfo());
 			}
-			throw new ExitException(EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 

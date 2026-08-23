@@ -41,7 +41,7 @@ public class ScriptMixin {
 
 	public void validate() {
 		if (scriptOrFile == null) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 

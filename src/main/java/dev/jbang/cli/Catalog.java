@@ -61,7 +61,7 @@ public class Catalog extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			if (name != null && !dev.jbang.catalog.Catalog.isValidName(name)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
 			}
 			if (name == null) {
@@ -73,10 +73,10 @@ public class Catalog extends BaseCommand {
 				CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description, importItems);
 			} else {
 				Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			info(String.format("Catalog '%s' added to '%s'", name, catFile));
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -102,7 +102,7 @@ public class Catalog extends BaseCommand {
 						return null;
 					});
 				});
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -181,7 +181,7 @@ public class Catalog extends BaseCommand {
 					}
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
@@ -326,7 +326,7 @@ public class Catalog extends BaseCommand {
 			} else {
 				CatalogUtil.removeNearestCatalogRef(name);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 }

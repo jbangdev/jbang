@@ -179,7 +179,7 @@ public class Edit extends BaseCommand {
 			final Project prj = pb.build(scriptMixin.scriptOrFile);
 
 			if (prj.isExecutableArchive() || prj.getMainSourceSet().getSources().isEmpty()) {
-				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "You can only edit source files");
 			}
 
 			Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
@@ -194,7 +194,7 @@ public class Edit extends BaseCommand {
 			} else {
 				Path orginalFile = prj.getResourceRef().getFile();
 				if (!Files.exists(orginalFile)) {
-					throw new ExitException(EXIT_UNEXPECTED_STATE,
+					throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE,
 							"Cannot live edit " + prj.getResourceRef().getOriginalResource());
 				}
 				watchForChanges(orginalFile, () -> {
@@ -211,7 +211,7 @@ public class Edit extends BaseCommand {
 				});
 			}
 		}
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	private void watchForChanges(Path orginalFile, Callable<Object> action) throws IOException {
@@ -234,7 +234,8 @@ public class Edit extends BaseCommand {
 							warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 									+ ee.getMessage());
 						} catch (Exception e) {
-							throw new ExitException(EXIT_GENERIC_ERROR, "Exception when re-generating project. Exiting",
+							throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+									"Exception when re-generating project. Exiting",
 									e);
 						}
 					}
@@ -327,7 +328,7 @@ public class Edit extends BaseCommand {
 				showStartingMsg(ed, true);
 				return Optional.of(ed);
 			} else {
-				throw new ExitException(EXIT_GENERIC_ERROR,
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
 						"No default editor configured and no other option accepted.\n Please try again making a correct choice or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
 			}
 		}
@@ -381,7 +382,7 @@ public class Edit extends BaseCommand {
 		try {
 			int exit = process.waitFor();
 			if (exit > 0) {
-				throw new ExitException(EXIT_INTERNAL_ERROR,
+				throw new ExitException(ExitException.EXIT_INTERNAL_ERROR,
 						"Could not install and setup extensions into VSCodium. Aborting.");
 			}
 		} catch (InterruptedException e) {
@@ -554,7 +555,8 @@ public class Edit extends BaseCommand {
 			throws IOException {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
-			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Could not locate template named: '" + templateRef + "'");
 		String result = template
 			.data("repositories",
 					repositories.stream()

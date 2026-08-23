@@ -153,7 +153,7 @@ public class Jdk extends BaseCommand {
 				Util.infoMsg("JDK is already installed: " + jdk);
 				Util.infoMsg("Use --force to install anyway");
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private boolean isValidInteger(String str) {
@@ -270,7 +270,7 @@ public class Jdk extends BaseCommand {
 					out.println("Available JDK Providers:");
 					providers.forEach(p -> out.println("   " + p.name()));
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else if (listDistros) {
 				List<JdkDistroQuery.JdkDistro> distros = jdkMan.listDistros();
 				distros.sort(Comparator.comparing(JdkDistroQuery.JdkDistro::name));
@@ -281,7 +281,7 @@ public class Jdk extends BaseCommand {
 					out.println("Available JDK Distributions:");
 					distros.forEach(d -> out.println("   " + d.name()));
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 
 			List<JdkOut> jdkOuts;
@@ -354,7 +354,7 @@ public class Jdk extends BaseCommand {
 					out.printf("No JDKs %s%n", available ? "available" : "installed");
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -378,12 +378,13 @@ public class Jdk extends BaseCommand {
 				// If necessary we select JDKs from providers that can update JDKs
 				jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canUpdate);
 				if (jdk == null) {
-					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"JDK " + versionOrId + " is not installed");
 				}
 			}
 			jdk.uninstall();
 			Util.infoMsg("Uninstalled JDK:\n  " + jdk.id());
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -405,7 +406,7 @@ public class Jdk extends BaseCommand {
 				String homeStr = Util.pathToString(home);
 				System.out.println(homeStr);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -465,7 +466,7 @@ public class Jdk extends BaseCommand {
 					break;
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -515,7 +516,7 @@ public class Jdk extends BaseCommand {
 				System.out.println(fullCmd);
 				return ExitException.EXIT_EXECUTE;
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -543,7 +544,7 @@ public class Jdk extends BaseCommand {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
 			if (!jdkMan.hasDefaultProvider()) {
 				Util.warnMsg("Cannot perform operation, the 'default' provider was not found");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			if (versionOrId != null) {
 				dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
@@ -597,7 +598,7 @@ public class Jdk extends BaseCommand {
 					}
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 }

@@ -45,7 +45,7 @@ public class Completion extends BaseCommand {
 			shellType = detectShell();
 		}
 		if (shellType == null) {
-			throw new ExitException(EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Could not detect your shell. Please specify one, e.g.: jbang completion bash");
 		}
 		try {
@@ -53,11 +53,12 @@ public class Completion extends BaseCommand {
 			System.out.println(script);
 			System.out.println(usageHint(shellType));
 		} catch (Exception e) {
-			throw new ExitException(EXIT_INTERNAL_ERROR, "Failed to generate completion script: " + e.getMessage(),
+			throw new ExitException(ExitException.EXIT_INTERNAL_ERROR,
+					"Failed to generate completion script: " + e.getMessage(),
 					e);
 		}
 
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	private static String usageHint(ShellType type) {

@@ -77,7 +77,8 @@ public class Config extends BaseCommand {
 					cfg = cfgPath;
 				}
 				if (strict && cfg != null && !Files.isRegularFile(cfg)) {
-					throw new ExitException(EXIT_INVALID_INPUT, "Config file not found at: " + configFile);
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"Config file not found at: " + configFile);
 				}
 			}
 			return cfg;
@@ -95,10 +96,10 @@ public class Config extends BaseCommand {
 			if (cfg.containsKey(key)) {
 				String res = Objects.toString(cfg.get(key));
 				System.out.println(res);
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else {
 				Util.infoMsg("No configuration option found with that name: " + key);
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 	}
@@ -124,7 +125,7 @@ public class Config extends BaseCommand {
 					key = keyOrKeyValue.substring(0, eqIdx);
 					val = keyOrKeyValue.substring(eqIdx + 1);
 				} else {
-					throw new ExitException(EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Expected key=value format or separate key and value arguments");
 				}
 			}
@@ -135,7 +136,7 @@ public class Config extends BaseCommand {
 				cfgFile = ConfigUtil.setNearestConfigValue(key, val);
 			}
 			Util.infoMsg("Option '" + key + "' set to '" + val + "' in " + cfgFile);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -159,10 +160,10 @@ public class Config extends BaseCommand {
 				} else {
 					Util.warnMsg("Cannot remove built-in option '" + key + "'");
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else {
 				Util.infoMsg("No configuration option found with that name: " + key);
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 	}
@@ -182,7 +183,7 @@ public class Config extends BaseCommand {
 		public Integer doCall() throws IOException {
 			PrintStream out = System.out;
 			if (showAvailable && showOrigin) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Options '--show-available' and '--show-origin' cannot be used together");
 			}
 			if (showAvailable) {
@@ -206,7 +207,7 @@ public class Config extends BaseCommand {
 					printConfig(out, cfg, format);
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		@SuppressWarnings("unchecked")

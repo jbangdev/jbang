@@ -87,16 +87,17 @@ public class App extends BaseCommand {
 			try {
 				if ("jbang".equals(scriptMixin.scriptOrFile)) {
 					if (name != null && !"jbang".equals(name)) {
-						throw new ExitException(EXIT_INVALID_INPUT,
+						throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 								"It's not possible to install jbang with a different name");
 					}
 					installed = installJBang(force);
 				} else {
 					if ("jbang".equals(name)) {
-						throw new ExitException(EXIT_INVALID_INPUT, "jbang is a reserved name.");
+						throw new ExitException(ExitException.EXIT_INVALID_INPUT, "jbang is a reserved name.");
 					}
 					if (name != null && !CatalogUtil.isValidName(name)) {
-						throw new ExitException(EXIT_INVALID_INPUT, "Not a valid command name: '" + name + "'");
+						throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+								"Not a valid command name: '" + name + "'");
 					}
 					installed = install();
 				}
@@ -106,9 +107,9 @@ public class App extends BaseCommand {
 					}
 				}
 			} catch (IOException e) {
-				throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
+				throw new ExitException(ExitException.EXIT_INTERNAL_ERROR, "Could not install command", e);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private List<String> collectRunOptions() {
@@ -239,7 +240,8 @@ public class App extends BaseCommand {
 					// TODO: this is duplicated in Wrapper.java - should be more shared.
 					String jarName = jar.getFileName().toString();
 					if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location from " + jar);
+						throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+								"Could not determine jbang location from " + jar);
 					}
 					Path fromDir = jar.getParent();
 					if (fromDir.endsWith(".jbang")) {
@@ -276,7 +278,7 @@ public class App extends BaseCommand {
 						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
 								StandardCopyOption.COPY_ATTRIBUTES);
 					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+						throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
 			if (Util.isWindows() && Util.getShell() != Util.Shell.cmd) {
@@ -322,7 +324,7 @@ public class App extends BaseCommand {
 			} else {
 				listCommandFiles().forEach(app -> System.out.println(app.name));
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static class AppOut {
@@ -367,10 +369,10 @@ public class App extends BaseCommand {
 			if (commandFilesExist(name)) {
 				App.deleteCommandFiles(name);
 				Util.infoMsg("Command removed: " + name);
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else {
 				Util.infoMsg("Command not found: " + name);
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 
@@ -434,7 +436,7 @@ public class App extends BaseCommand {
 				Jdk defJdk = defaultJdkManager().getDefaultJdk();
 				if (defJdk == null) {
 					Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
-					return EXIT_UNEXPECTED_STATE;
+					return ExitException.EXIT_UNEXPECTED_STATE;
 				}
 				jdkHome = Settings.getDefaultJdkDir();
 			}
@@ -515,7 +517,7 @@ public class App extends BaseCommand {
 				System.out.println(cmd);
 				return ExitException.EXIT_EXECUTE;
 			} else {
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 		}
 

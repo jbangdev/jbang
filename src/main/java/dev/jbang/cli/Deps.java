@@ -52,7 +52,8 @@ public class Deps extends BaseCommand {
 
 		private void updateTarget(String a0) throws IOException {
 			if (target != null) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Cannot provide both target as as parameter and as option");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Cannot provide both target as as parameter and as option");
 			} else {
 				target = a0;
 			}
@@ -60,7 +61,8 @@ public class Deps extends BaseCommand {
 
 		private void updateQuery(String a0) {
 			if (query != null) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Cannot provide both query as as parameter and as option");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Cannot provide both query as as parameter and as option");
 			} else {
 				query = a0;
 			}
@@ -83,7 +85,7 @@ public class Deps extends BaseCommand {
 
 			Path targetPath = target != null ? Paths.get(target) : null;
 			if (targetPath != null && !Files.exists(targetPath)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + targetPath);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Target file does not exist: " + targetPath);
 			}
 
 			try {
@@ -99,9 +101,9 @@ public class Deps extends BaseCommand {
 					System.out.printf("%s:%s:%s%n", artifact.getGroupId(), artifact.getArtifactId(),
 							artifact.getVersion());
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} catch (IOError e) {
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 
@@ -119,7 +121,8 @@ public class Deps extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			if (parameters.size() < 2) {
-				throw new ExitException(EXIT_INVALID_INPUT, "At least one dependency and target file are required");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"At least one dependency and target file are required");
 			}
 
 			// Last parameter is the target file
@@ -127,24 +130,24 @@ public class Deps extends BaseCommand {
 			List<String> dependencies = parameters.subList(0, parameters.size() - 1);
 
 			if (!Files.exists(targetFile)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + targetFile);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Target file does not exist: " + targetFile);
 			}
 
 			updateFile(targetFile, dependencies);
 
 			info("Added dependencies to " + targetFile);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static public void updateFile(Path file, List<String> dependencies) throws IOException {
 			// Validate dependencies
 			for (String dep : dependencies) {
 				if (!DependencyUtil.looksLikeAGav(dep)) {
-					throw new ExitException(EXIT_INVALID_INPUT, "Invalid dependency format: " + dep);
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Invalid dependency format: " + dep);
 				}
 			}
 			if (!Files.exists(file)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "File does not exist: " + file);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "File does not exist: " + file);
 			}
 
 			FileUpdateStrategy strategy = FileUpdaters.forFile(file);

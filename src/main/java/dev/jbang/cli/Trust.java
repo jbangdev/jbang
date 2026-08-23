@@ -1,7 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -14,6 +12,7 @@ import org.aesh.command.option.Option;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.net.TrustedSources;
 
@@ -36,7 +35,7 @@ public class Trust extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			TrustedSources.instance().add(rules);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -58,7 +57,7 @@ public class Trust extends BaseCommand {
 					out.println(++idx + " = " + src);
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
@@ -74,7 +73,7 @@ public class Trust extends BaseCommand {
 				.map(this::toDomain)
 				.collect(Collectors.toList());
 			TrustedSources.instance().remove(newrules, Settings.getTrustedSourcesFile().toFile());
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private String toDomain(String src) {
