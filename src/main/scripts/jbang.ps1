@@ -96,15 +96,20 @@ function Invoke-Download {
     }
 }
 
-function Assert-JarChecksum {
-  param([string]$checkFile)
-  if ((Test-Path env:JBANG_JAR_CHECKSUM) -and $env:JBANG_JAR_CHECKSUM) {
-    $actual = (Get-FileHash "$checkFile" -Algorithm SHA256).Hash.ToLower()
+function Assert-ArtifactChecksum {
+  param([string]$checkFile, [string]$isBinary = $false)
+  # Use JBANG_BIN_CHECKSUM for native binaries, JBANG_JAR_CHECKSUM for JARs
+  if ($isBinary -and (Test-Path env:JBANG_BIN_CHECKSUM) -and $env:JBANG_BIN_CHECKSUM) {
+    $expected = $env:JBANG_BIN_CHECKSUM.ToLower()
+  } elseif ((Test-Path env:JBANG_JAR_CHECKSUM) -and $env:JBANG_JAR_CHECKSUM) {
     $expected = $env:JBANG_JAR_CHECKSUM.ToLower()
-    if ($actual -ne $expected) {
-      [Console]::Error.WriteLine("Error: checksum mismatch for $checkFile (expected $expected, got $actual)")
-      exit 1
-    }
+  } else {
+    return
+  }
+  $actual = (Get-FileHash "$checkFile" -Algorithm SHA256).Hash.ToLower()
+  if ($actual -ne $expected) {
+    [Console]::Error.WriteLine("Error: checksum mismatch for $checkFile (expected $expected, got $actual)")
+    exit 1
   }
 }
 
@@ -225,8 +230,9 @@ if (-not $binaryPath -and -not $jarPath) {
     Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
     Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
   }
-  $checkFile = if ($env:JBANG_USE_NATIVE -eq 'true') { "$JBDIR\bin\jbang.bin.exe" } else { "$JBDIR\bin\jbang.jar" }
-  Assert-JarChecksum $checkFile
+  $isBin = $env:JBANG_USE_NATIVE -eq 'true'
+  $checkFile = if ($isBin) { "$JBDIR\bin\jbang.bin.exe" } else { "$JBDIR\bin\jbang.jar" }
+  Assert-ArtifactChecksum $checkFile $isBin
   . "$JBDIR\bin\jbang.ps1" @args
   break
 }
@@ -282,7 +288,7 @@ if (-not $binaryPath) {
         # Activate the downloaded JDK giving it its proper name
         Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
         # Set the current JDK
-        Assert-JarChecksum $jarPath
+        Assert-ArtifactChecksum $jarPath $false
         & "$JAVA_EXEC" -jar "$jarPath" jdk default $javaVersion
       }
     }
@@ -290,7 +296,8 @@ if (-not $binaryPath) {
 }
 
 # Execute jbang
+$isBin = [bool]$binaryPath
 $checkFile = if ($binaryPath) { $binaryPath } else { $jarPath }
-Assert-JarChecksum $checkFile
+Assert-ArtifactChecksum $checkFile $isBin
 
 Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args

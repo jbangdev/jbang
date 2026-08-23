@@ -197,7 +197,7 @@ class TestScriptChecksum extends AbstractScriptTest {
 
 			RunResult r = runProcess(bashCmd("version"), bashEnv("empty-sidecar"));
 
-			// The script should at minimum warn when the sidecar is empty
+			assertEquals(0, r.exitCode, "should succeed with empty sidecar, stderr: " + r.stderr);
 			assertTrue(r.stderr.contains("Warning") || r.stderr.contains("skipping"),
 					"should warn about empty sidecar checksum, stderr: " + r.stderr);
 		}
@@ -288,12 +288,24 @@ class TestScriptChecksum extends AbstractScriptTest {
 					"should not fail on checksum, stderr: " + r.stderr);
 		}
 
-		// -- JBANG_JAR_CHECKSUM (CodeRabbit #5) -------------------------------
+		// -- JBANG_JAR_CHECKSUM / JBANG_BIN_CHECKSUM -------------------------
+
+		@Test
+		void jarChecksumMatchPasses() throws Exception {
+			Path jbdir = tempSubDir("jbdir-jar-ok");
+			byte[] jarContent = prePopulateJbdir(jbdir, true);
+
+			Map<String, String> env = baseBashEnv("jar-ok");
+			env.put("JBANG_DIR", jbdir.toString());
+			env.put("JBANG_JAR_CHECKSUM", sha256Hex(jarContent));
+
+			RunResult r = runProcess(bashCmd("version"), env);
+
+			assertEquals(0, r.exitCode, "should pass with correct jar checksum, stderr: " + r.stderr);
+		}
 
 		@Test
 		void jarChecksumMismatchFails() throws Exception {
-			// Verifies jar checksum is checked before delegating to
-			// $JBDIR/bin/jbang on the pre-installed path.
 			Path jbdir = tempSubDir("jbdir-jar-bad");
 			prePopulateJbdir(jbdir, true);
 
@@ -420,7 +432,7 @@ class TestScriptChecksum extends AbstractScriptTest {
 
 			RunResult r = runProcess(psCmd("version"), psEnv("empty-sidecar"));
 
-			// Should NOT crash with InvalidOperation / NullReferenceException
+			assertEquals(0, r.exitCode, "should succeed with empty sidecar, stderr: " + r.stderr);
 			assertTrue(!r.stderr.contains("InvalidOperation"),
 					"should not crash on empty sidecar, stderr: " + r.stderr);
 			assertTrue(r.stderr.contains("Warning") || r.stderr.contains("skipping"),
@@ -477,7 +489,7 @@ class TestScriptChecksum extends AbstractScriptTest {
 			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/jbang.zip.sha256")));
 		}
 
-		// -- JBANG_JAR_CHECKSUM (CodeRabbit #5) -------------------------------
+		// -- JBANG_JAR_CHECKSUM / JBANG_BIN_CHECKSUM -------------------------
 
 		@Test
 		void jarChecksumMatchPasses() throws Exception {

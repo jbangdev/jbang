@@ -82,6 +82,27 @@ javacInPath() {
   [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
+# Verifies SHA-256 checksum of a file against an expected value.
+# Usage: _jbang_verify_checksum <file> <expected_checksum> <var_name>
+_jbang_verify_checksum() {
+  local checkFile="$1" expectedRaw="$2" varName="$3"
+  local actual=""
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
+  elif command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
+  else
+    echo "Error: $varName is set but neither sha256sum nor shasum is available" 1>&2
+    exit 1
+  fi
+  local expected
+  expected=$(echo "$expectedRaw" | tr '[:upper:]' '[:lower:]')
+  if [ "$actual" != "$expected" ]; then
+    echo "Error: checksum mismatch for $checkFile (expected $expected, got $actual)" 1>&2
+    exit 1
+  fi
+}
+
 # Determines the JDK/JAVA_EXEC to use
 setup_java_exec() {
   unset JAVA_EXEC
@@ -348,21 +369,15 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
     cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
   fi
-  if [ -n "$JBANG_JAR_CHECKSUM" ]; then
-    checkFile="$JBDIR/bin/jbang.jar"
-    if command -v sha256sum >/dev/null 2>&1; then
-      actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
-    elif command -v shasum >/dev/null 2>&1; then
-      actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
-    else
-      echo "Error: JBANG_JAR_CHECKSUM is set but neither sha256sum nor shasum is available" 1>&2
-      exit 1
+  # Verify the artifact we are about to execute
+  if [ "$JBANG_USE_NATIVE" == "true" ]; then
+    if [ -n "$JBANG_BIN_CHECKSUM" ]; then
+      _jbang_verify_checksum "$JBDIR/bin/jbang.bin" "$JBANG_BIN_CHECKSUM" "JBANG_BIN_CHECKSUM"
+    elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+      _jbang_verify_checksum "$JBDIR/bin/jbang.bin" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
     fi
-    expected=$(echo "$JBANG_JAR_CHECKSUM" | tr '[:upper:]' '[:lower:]')
-    if [ "$actual" != "$expected" ]; then
-      echo "Error: checksum mismatch for $checkFile (expected $expected, got $actual)" 1>&2
-      exit 1
-    fi
+  elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+    _jbang_verify_checksum "$JBDIR/bin/jbang.jar" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
   fi
   "$JBDIR"/bin/jbang "$@"
   exit $?
@@ -378,21 +393,10 @@ if [[ -z "$binaryPath" ]]; then
   setup_java_exec
 fi
 
-if [ -n "$JBANG_JAR_CHECKSUM" ]; then
-  checkFile="${binaryPath:-$jarPath}"
-  if command -v sha256sum >/dev/null 2>&1; then
-    actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
-  elif command -v shasum >/dev/null 2>&1; then
-    actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
-  else
-    echo "Error: JBANG_JAR_CHECKSUM is set but neither sha256sum nor shasum is available" 1>&2
-    exit 1
-  fi
-  expected=$(echo "$JBANG_JAR_CHECKSUM" | tr '[:upper:]' '[:lower:]')
-  if [ "$actual" != "$expected" ]; then
-    echo "Error: checksum mismatch for $checkFile (expected $expected, got $actual)" 1>&2
-    exit 1
-  fi
+if [ -n "$binaryPath" ] && [ -n "$JBANG_BIN_CHECKSUM" ]; then
+  _jbang_verify_checksum "$binaryPath" "$JBANG_BIN_CHECKSUM" "JBANG_BIN_CHECKSUM"
+elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+  _jbang_verify_checksum "${binaryPath:-$jarPath}" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
 fi
 
 execute_jbang "$@"
