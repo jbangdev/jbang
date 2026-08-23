@@ -292,9 +292,8 @@ class TestScriptChecksum extends AbstractScriptTest {
 
 		@Test
 		void jarChecksumMismatchFails() throws Exception {
-			// BUG: when JBDIR/bin/jbang exists (pre-installed), the script
-			// delegates to $JBDIR/bin/jbang and exits BEFORE the
-			// JBANG_JAR_CHECKSUM check. A bad checksum silently passes.
+			// Verifies jar checksum is checked before delegating to
+			// $JBDIR/bin/jbang on the pre-installed path.
 			Path jbdir = tempSubDir("jbdir-jar-bad");
 			prePopulateJbdir(jbdir, true);
 
@@ -412,9 +411,7 @@ class TestScriptChecksum extends AbstractScriptTest {
 
 		@Test
 		void emptySidecarChecksumShouldWarnNotSilentlyContinue() throws Exception {
-			// BUG: empty .sha256 causes NullReferenceException in PS1 because
-			// Get-Content returns $null for empty file and .Trim() blows up.
-			// Expected: warn "could not obtain checksum" and continue.
+			// Empty .sha256 should be treated as unavailable: warn and continue.
 			byte[] zip = createJbangZip();
 			wm.stubFor(WireMock.get("/jbang.zip")
 				.willReturn(WireMock.aResponse().withStatus(200).withBody(zip)));

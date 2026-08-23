@@ -196,7 +196,8 @@ if (-not $binaryPath -and -not $jarPath) {
     } else {
       $shaOk = Invoke-Download "${jburl}.sha256" "$TDIR\urls\jbang.zip.sha256"
       if ($shaOk) {
-        $expected = (Get-Content "$TDIR\urls\jbang.zip.sha256").Trim().ToLower()
+        $raw = Get-Content "$TDIR\urls\jbang.zip.sha256"
+        $expected = if ($raw) { $raw.Trim().ToLower() } else { '' }
       } else {
         $expected = ''
       }

@@ -348,6 +348,22 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
     cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
   fi
+  if [ -n "$JBANG_JAR_CHECKSUM" ]; then
+    checkFile="$JBDIR/bin/jbang.jar"
+    if command -v sha256sum >/dev/null 2>&1; then
+      actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
+    elif command -v shasum >/dev/null 2>&1; then
+      actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
+    else
+      echo "Error: JBANG_JAR_CHECKSUM is set but neither sha256sum nor shasum is available" 1>&2
+      exit 1
+    fi
+    expected=$(echo "$JBANG_JAR_CHECKSUM" | tr '[:upper:]' '[:lower:]')
+    if [ "$actual" != "$expected" ]; then
+      echo "Error: checksum mismatch for $checkFile (expected $expected, got $actual)" 1>&2
+      exit 1
+    fi
+  fi
   "$JBDIR"/bin/jbang "$@"
   exit $?
 fi
