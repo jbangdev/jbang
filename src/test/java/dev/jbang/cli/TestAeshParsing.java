@@ -37,7 +37,32 @@ class TestAeshParsing extends BaseTest {
 	void testVerboseAloneWorks() {
 		JBang.parseCommand("run", "--verbose", "test.java");
 		assertThat(Util.isVerbose(), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.COMMANDS), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.INTERNALS), is(true));
 		assertThat(Util.isQuiet(), is(false));
+	}
+
+	@Test
+	void testVerboseCategories() {
+		JBang.parseCommand("run", "--verbose=commands,network", "test.java");
+		assertThat(Util.isVerbose(Util.VerboseCategory.COMMANDS), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.NETWORK), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.BUILD), is(false));
+		assertThat(Util.isVerbose(Util.VerboseCategory.INTERNALS), is(false));
+	}
+
+	@Test
+	void testVerboseCategoryExclusion() {
+		JBang.parseCommand("run", "--verbose=-internals", "test.java");
+		assertThat(Util.isVerbose(Util.VerboseCategory.COMMANDS), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.NETWORK), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.INTERNALS), is(false));
+	}
+
+	@Test
+	void testUnknownVerboseCategoryFails() {
+		assertThrows(RuntimeException.class,
+				() -> JBang.parseCommand("run", "--verbose=unknown", "test.java"));
 	}
 
 	@Test
@@ -182,6 +207,18 @@ class TestAeshParsing extends BaseTest {
 	}
 
 	@Test
+	void testVerboseCategoriesFromConfig() throws IOException {
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS),
+				"verbose = commands,network\n".getBytes());
+		Configuration.instance(null);
+
+		JBang.parseCommand("run", "test.java");
+		assertThat(Util.isVerbose(Util.VerboseCategory.COMMANDS), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.NETWORK), is(true));
+		assertThat(Util.isVerbose(Util.VerboseCategory.INTERNALS), is(false));
+	}
+
+	@Test
 	void testDefaultValueProviderSkipsDebug() throws IOException {
 		String config = "run.debug = 5005\n";
 		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
@@ -257,6 +294,20 @@ class TestAeshParsing extends BaseTest {
 		Util.setVerbose(true);
 		JBang.parseCommand("run", "--verbose=false", "test.java");
 		assertThat(Util.isVerbose(), is(false));
+	}
+
+	@Test
+	void testVerboseCategoryFiltersMessages() throws Exception {
+		JBang.parseCommand("run", "--verbose=commands", "test.java");
+		CaptureResult<Void> result = captureOutput(() -> {
+			Util.verboseMsg(Util.VerboseCategory.COMMANDS, "command message");
+			Util.verboseMsg(Util.VerboseCategory.NETWORK, "network message");
+			Util.verboseMsg("internal message");
+			return null;
+		});
+		assertThat(result.normalizedErr(), containsString("command message"));
+		assertThat(result.normalizedErr(), not(containsString("network message")));
+		assertThat(result.normalizedErr(), not(containsString("internal message")));
 	}
 
 	@Test

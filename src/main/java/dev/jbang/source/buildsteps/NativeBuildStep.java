@@ -69,7 +69,7 @@ public class NativeBuildStep implements Builder<Project> {
 	}
 
 	protected void runNativeBuilder(List<String> optionList) throws IOException {
-		Util.verboseMsg("native-image: " + String.join(" ", optionList));
+		Util.verboseMsg(Util.VerboseCategory.BUILD, "native-image: " + String.join(" ", optionList));
 
 		ProcessBuilder pb = CommandBuffer.of(optionList)
 			.applyWindowsMaxProcessLimit()

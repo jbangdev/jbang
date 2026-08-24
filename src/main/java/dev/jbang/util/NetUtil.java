@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import static dev.jbang.util.Util.VerboseCategory.NETWORK;
 import static dev.jbang.util.Util.deletePath;
 import static dev.jbang.util.Util.getAgentString;
 import static dev.jbang.util.Util.getStableID;
@@ -94,7 +95,7 @@ public class NetUtil {
 		if (cachedFile == null || isEvicted(cachedFile)) {
 			return downloadFileAndCache(fileURL, saveDir, metaSaveDir, cachedFile);
 		} else {
-			verboseMsg(String.format("Using cached file %s for remote %s", cachedFile, fileURL));
+			verboseMsg(NETWORK, String.format("Using cached file %s for remote %s", cachedFile, fileURL));
 			return saveDir.resolve(cachedFile);
 		}
 	}
@@ -207,10 +208,10 @@ public class NetUtil {
 
 		if (urlConnection instanceof HttpURLConnection) {
 			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
-			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
-			verboseMsg(String.format("Headers %s", redactAuthHeaders(httpConn.getRequestProperties())));
+			verboseMsg(NETWORK, String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
+			verboseMsg(NETWORK, String.format("Headers %s", redactAuthHeaders(httpConn.getRequestProperties())));
 		} else {
-			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
+			verboseMsg(NETWORK, String.format("Requesting %s", urlConnection.getURL()));
 		}
 
 		try {
@@ -338,7 +339,7 @@ public class NetUtil {
 									.collect(Collectors.joining("\n"))
 									.trim();
 							}
-							verboseMsg("HTTP: " + responseCode + " - " + err);
+							verboseMsg(NETWORK, "HTTP: " + responseCode + " - " + err);
 							if (err.startsWith("{") && err.endsWith("}")) {
 								// Could be JSON, let's try to parse it
 								try {
@@ -385,7 +386,7 @@ public class NetUtil {
 				if (etag != null) {
 					writeString(etagFile(file, metaSaveDir), etag);
 				}
-				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
+				verboseMsg(NETWORK, String.format("Downloaded file %s", conn.getURL().toExternalForm()));
 				return file;
 			};
 		}
@@ -451,8 +452,9 @@ public class NetUtil {
 					if (conn instanceof HttpURLConnection) {
 						HttpURLConnection httpConn = (HttpURLConnection) conn;
 						if (httpConn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
-							verboseMsg(String.format("Not modified, using cached file %s for remote %s", cachedFile,
-									conn.getURL().toExternalForm()));
+							verboseMsg(NETWORK,
+									String.format("Not modified, using cached file %s for remote %s", cachedFile,
+											conn.getURL().toExternalForm()));
 							// Update cached file's last modified time
 							try {
 								Files.setLastModifiedTime(cachedFile, FileTime.from(ZonedDateTime.now().toInstant()));
@@ -464,7 +466,7 @@ public class NetUtil {
 								// that, so we'll just ignore it. It does mean that files affected by this will
 								// be
 								// re-downloaded every time.
-								verboseMsg("Unable to set last-modified time for " + cachedFile, e);
+								verboseMsg(NETWORK, "Unable to set last-modified time for " + cachedFile, e);
 							}
 							return cachedFile;
 						}
@@ -532,7 +534,7 @@ public class NetUtil {
 				// Right now it assumes we're always trying to get Java
 				// source files which just isn't the case (eg //FILES)
 				url = new URL(swizzleURL(url.toString()));
-				verboseMsg("Redirected to: " + url); // Should be debug info
+				verboseMsg(NETWORK, "Redirected to: " + url); // Should be debug info
 				httpConn = (HttpURLConnection) url.openConnection();
 				if (responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
 					// This response code forces the method to GET
@@ -607,7 +609,7 @@ public class NetUtil {
 						password = line.substring(9);
 				}
 				if (!isNullOrBlankString(username) && !isNullOrBlankString(password)) {
-					verboseMsg("Using git credential for host: " + h);
+					verboseMsg(NETWORK, "Using git credential for host: " + h);
 					return new String[] { username, password };
 				}
 			}
@@ -625,7 +627,7 @@ public class NetUtil {
 			String token = Util.runCommandQuietly(null, null, AUTH_HELPER_TIMEOUT_SECONDS,
 					"gh", "auth", "token", "--hostname", host);
 			if (!isNullOrBlankString(token)) {
-				verboseMsg("Using gh auth token for host: " + host);
+				verboseMsg(NETWORK, "Using gh auth token for host: " + host);
 				return new String[] { "", token.trim() };
 			}
 			return null;
@@ -641,7 +643,7 @@ public class NetUtil {
 			String token = Util.runCommandQuietly(null, null, AUTH_HELPER_TIMEOUT_SECONDS,
 					"glab", "config", "get", "token", "--host", host);
 			if (!isNullOrBlankString(token)) {
-				verboseMsg("Using glab auth token for host: " + host);
+				verboseMsg(NETWORK, "Using glab auth token for host: " + host);
 				return new String[] { "", token.trim() };
 			}
 			return null;
@@ -663,9 +665,9 @@ public class NetUtil {
 			if (isNullOrBlankString(username)) {
 				return null;
 			}
-			verboseMsg("Using " + userName + " and " + passName + " environment variables");
+			verboseMsg(NETWORK, "Using " + userName + " and " + passName + " environment variables");
 		} else {
-			verboseMsg("Using " + passName + " environment variable");
+			verboseMsg(NETWORK, "Using " + passName + " environment variable");
 		}
 		return new String[] { username, password };
 	}
@@ -691,7 +693,7 @@ public class NetUtil {
 			String password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1])
 					: "";
 			auth = AuthHeader.authorization(toBasicAuth(username, password));
-			verboseMsg("Using URL credentials for host: " + host);
+			verboseMsg(NETWORK, "Using URL credentials for host: " + host);
 		}
 
 		// 2. .netrc exact host match (more specific than env vars)
@@ -711,10 +713,10 @@ public class NetUtil {
 			String gitlabToken = System.getenv("GITLAB_TOKEN");
 			if (isAGithubUrl(urlConnection) && !isNullOrBlankString(githubToken)) {
 				auth = AuthHeader.authorization("Bearer " + githubToken);
-				verboseMsg("Using GITHUB_TOKEN environment variable for host: " + host);
+				verboseMsg(NETWORK, "Using GITHUB_TOKEN environment variable for host: " + host);
 			} else if (isAGitlabUrl(urlConnection) && !isNullOrBlankString(gitlabToken)) {
 				auth = AuthHeader.authorization("Bearer " + gitlabToken);
-				verboseMsg("Using GITLAB_TOKEN environment variable for host: " + host);
+				verboseMsg(NETWORK, "Using GITLAB_TOKEN environment variable for host: " + host);
 			}
 		}
 
@@ -732,13 +734,13 @@ public class NetUtil {
 			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
 			if (!isNullOrBlankString(username) && !isNullOrBlankString(password)) {
 				auth = AuthHeader.authorization(toBasicAuth(username, password));
-				verboseMsg("Using JBANG_AUTH_BASIC environment variables for host: " + host);
+				verboseMsg(NETWORK, "Using JBANG_AUTH_BASIC environment variables for host: " + host);
 			}
 		}
 
 		if (auth != null) {
 			urlConnection.setRequestProperty(auth.name, auth.value);
-			verboseMsg("Set " + auth.name + " header for host: " + host);
+			verboseMsg(NETWORK, "Set " + auth.name + " header for host: " + host);
 		}
 	}
 
@@ -751,7 +753,7 @@ public class NetUtil {
 		case "bearer":
 			return AuthHeader.authorization("Bearer " + creds[1]);
 		default:
-			verboseMsg("Unknown jbang-auth-scheme: " + scheme + ", using basic");
+			verboseMsg(NETWORK, "Unknown jbang-auth-scheme: " + scheme + ", using basic");
 			return AuthHeader.authorization(toBasicAuth(creds[0], creds[1]));
 		}
 	}
@@ -832,10 +834,10 @@ public class NetUtil {
 		String githubToken = System.getenv("GITHUB_TOKEN");
 		String gitlabToken = System.getenv("GITLAB_TOKEN");
 		if (isAGithubHost(host) && !isNullOrBlankString(githubToken)) {
-			verboseMsg("Using GITHUB_TOKEN for host: " + host);
+			verboseMsg(NETWORK, "Using GITHUB_TOKEN for host: " + host);
 			return new String[] { "", githubToken };
 		} else if (isAGitlabHost(host) && !isNullOrBlankString(gitlabToken)) {
-			verboseMsg("Using GITLAB_TOKEN for host: " + host);
+			verboseMsg(NETWORK, "Using GITLAB_TOKEN for host: " + host);
 			return new String[] { "__token__", gitlabToken };
 		}
 
@@ -851,11 +853,11 @@ public class NetUtil {
 		String envUser = System.getenv(JBANG_AUTH_BASIC_USERNAME);
 		String envPass = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
 		if (!isNullOrBlankString(envUser) && !isNullOrBlankString(envPass)) {
-			verboseMsg("Using JBANG_AUTH_BASIC for host: " + host);
+			verboseMsg(NETWORK, "Using JBANG_AUTH_BASIC for host: " + host);
 			return new String[] { envUser, envPass };
 		}
 
-		verboseMsg("No credentials found for host: " + host);
+		verboseMsg(NETWORK, "No credentials found for host: " + host);
 		return null;
 	}
 
@@ -878,7 +880,7 @@ public class NetUtil {
 			}
 		}
 		if (!isNullOrBlankString(entry.getLogin()) && !isNullOrBlankString(entry.getPassword())) {
-			verboseMsg("Using .netrc credentials for host: " + host);
+			verboseMsg(NETWORK, "Using .netrc credentials for host: " + host);
 			return new String[] { entry.getLogin(), entry.getPassword() };
 		}
 		return null;
@@ -896,7 +898,7 @@ public class NetUtil {
 			if (method.startsWith("env.") && method.length() > 4) {
 				return getEnvCredentials(method.substring(4), login);
 			}
-			verboseMsg("Unknown jbang-auth method: " + method);
+			verboseMsg(NETWORK, "Unknown jbang-auth method: " + method);
 			return null;
 		}
 	}

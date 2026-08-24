@@ -96,7 +96,7 @@ public class IntegrationManager {
 						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, compileDir, pomPath, repos, deps,
-						comments, prj.isNativeImage(), Util.isVerbose());
+						comments, prj.isNativeImage(), Util.isVerbose(Util.VerboseCategory.INTERNALS));
 				boolean embedded = (requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion()) && !JavaUtil.inNativeImage())
 						&& !"true".equals(System.getProperty("jbang.build.integration.forceExternal"));
@@ -182,7 +182,7 @@ public class IntegrationManager {
 		Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
 				List.class, boolean.class);
 
-		if (Util.isVerbose()) {
+		if (Util.isVerbose(Util.VerboseCategory.INTERNALS)) {
 			System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.err)));
 		} else {
 			System.setOut(new PrintStream(new OutputStream() {
@@ -264,10 +264,8 @@ public class IntegrationManager {
 
 		args.add("dev.jbang.spi.IntegrationManager");
 
-		if (Util.isVerbose()) {
-			Util.verboseMsg("Running: " + String.join(" ", args));
-			Util.verboseMsg("Input: " + parser.toJson(input));
-		}
+		Util.verboseMsg(Util.VerboseCategory.COMMANDS, "Running: " + String.join(" ", args));
+		Util.verboseMsg("Input: " + parser.toJson(input));
 
 		Process process = new ProcessBuilder(args)
 			.redirectError(ProcessBuilder.Redirect.INHERIT)

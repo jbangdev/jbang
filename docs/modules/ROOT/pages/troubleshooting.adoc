@@ -358,10 +358,19 @@ jbang cache list
 
 === Enable Verbose Mode
 
+By default, `--verbose` shows all diagnostic output. To investigate a specific area without unrelated details,
+provide one or more comma-separated categories:
+
 [source,bash]
 ----
 # Verbose output
 jbang --verbose script.java
+
+# External commands and network activity only
+jbang --verbose=commands,network script.java
+
+# All verbose output except internal details
+jbang --verbose=-internals script.java
 
 # Debug mode
 jbang --debug script.java
@@ -369,6 +378,24 @@ jbang --debug script.java
 # Show Java command
 jbang --show-java-command script.java
 ----
+
+The available verbose categories are:
+
+`commands`:: External process invocations, such as compiler and run commands.
+`network`:: HTTP requests, downloads, redirects, authentication, and repository access.
+`build`:: Dependency resolution, compilation decisions, classpath assembly, and caching.
+`config`:: Configuration, catalog, trusted-source, and environment lookup.
+`internals`:: Other internal diagnostic details.
+
+Bare `--verbose` and `--verbose=all` enable every category. If only negative categories are specified,
+all categories are enabled first and the named categories are removed. The selection can also be configured:
+
+[source,bash]
+----
+jbang config set verbose commands,network
+----
+
+Use `--no-verbose` to disable verbose output for one invocation when a default is configured.
 
 === Environment Information
 

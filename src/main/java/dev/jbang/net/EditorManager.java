@@ -38,7 +38,7 @@ public class EditorManager {
 		Util.infoMsg("Downloading VSCodium " + version
 				+ ". Be patient, this can take several minutes...(Ctrl+C if you want to cancel)");
 		String url = getVSCodiumDownloadURL(version);
-		Util.verboseMsg("Downloading " + url);
+		Util.verboseMsg(Util.VerboseCategory.NETWORK, "Downloading " + url);
 		Path editorDir = getVSCodiumPath();
 		Path editorTmpDir = editorDir.getParent().resolve(editorDir.getFileName().toString() + ".tmp");
 		Path editorOldDir = editorDir.getParent().resolve(editorDir.getFileName().toString() + ".old");
@@ -47,7 +47,7 @@ public class EditorManager {
 		try {
 			Path jdkPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing VSCodium " + version + "...");
-			Util.verboseMsg("Unpacking to " + editorDir.toString());
+			Util.verboseMsg(Util.VerboseCategory.NETWORK, "Unpacking to " + editorDir.toString());
 			UnpackUtil.unpackEditor(jdkPkg, editorTmpDir);
 			if (Files.isDirectory(editorDir)) {
 				Files.move(editorDir, editorOldDir);
@@ -95,7 +95,7 @@ public class EditorManager {
 	private static String getLatestVSCodiumVersion() {
 		String version = "1.52.1";
 		try {
-			Util.verboseMsg("Lookup vscodium latest version...");
+			Util.verboseMsg(Util.VerboseCategory.NETWORK, "Lookup vscodium latest version...");
 			try (InputStream is = new URL("https://api.github.com/repos/vscodium/vscodium/releases/latest")
 				.openStream();
 					Scanner sc = new Scanner(is, "UTF-8")) {
@@ -104,7 +104,8 @@ public class EditorManager {
 				if (matcher.find()) {
 					version = matcher.group(1);
 				} else {
-					Util.verboseMsg("Could not find latest version - falling back to " + version);
+					Util.verboseMsg(Util.VerboseCategory.NETWORK,
+							"Could not find latest version - falling back to " + version);
 				}
 			}
 

@@ -37,7 +37,7 @@ public class GroovyManager {
 	public static Path downloadAndInstallGroovy(String version) {
 		Util.infoMsg("Downloading Groovy " + version + ". Be patient, this can take several minutes...");
 		String url = getGroovyDownloadUrl(version);
-		Util.verboseMsg("Downloading " + url);
+		Util.verboseMsg(Util.VerboseCategory.NETWORK, "Downloading " + url);
 		Path groovyDir = getGroovyPath(version);
 		Path groovyTmpDir = groovyDir.getParent().resolve(groovyDir.getFileName().toString() + ".tmp");
 		Path groovyOldDir = groovyDir.getParent().resolve(groovyDir.getFileName().toString() + ".old");
@@ -46,7 +46,7 @@ public class GroovyManager {
 		try {
 			Path groovyPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing Groovy " + version + "...");
-			Util.verboseMsg("Unpacking to " + groovyDir);
+			Util.verboseMsg(Util.VerboseCategory.NETWORK, "Unpacking to " + groovyDir);
 			UnpackUtil.unpack(groovyPkg, groovyTmpDir);
 			if (Files.isDirectory(groovyDir)) {
 				Files.move(groovyDir, groovyOldDir);

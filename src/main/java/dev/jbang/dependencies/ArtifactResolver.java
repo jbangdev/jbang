@@ -192,7 +192,7 @@ public class ArtifactResolver implements Closeable {
 					.setRepositories(
 							context.remoteRepositories()));
 		} catch (ArtifactResolutionException e) {
-			Util.verboseMsg("Could not resolve sources for " + artifact.toString());
+			Util.verboseMsg(Util.VerboseCategory.BUILD, "Could not resolve sources for " + artifact.toString());
 		}
 	}
 
@@ -306,7 +306,8 @@ public class ArtifactResolver implements Closeable {
 				if (!printed.contains(id)) {
 					String coord = coord(groupId, artId, version, null, classifier);
 					String pomcoord = coord(groupId, artId, version, "pom", null);
-					if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
+					if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord)
+							|| Util.isVerbose(Util.VerboseCategory.BUILD)) {
 						if (ids.contains(pomcoord)) {
 							infoMsg("   " + pomcoord);
 						} else {
@@ -404,7 +405,8 @@ public class ArtifactResolver implements Closeable {
 				builder.setAuthentication(auth);
 			}
 		} catch (MalformedURLException e) {
-			Util.verboseMsg("Could not parse repository URL for auth lookup: " + repo.getUrl());
+			Util.verboseMsg(Util.VerboseCategory.BUILD,
+					"Could not parse repository URL for auth lookup: " + repo.getUrl());
 		}
 
 		return builder.build();

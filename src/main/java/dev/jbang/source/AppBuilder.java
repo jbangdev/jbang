@@ -50,22 +50,25 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
 		if (project.isExecutableArchive()) {
-			Util.verboseMsg("The resource is an executable archive, no compilation to be done.");
+			Util.verboseMsg(Util.VerboseCategory.BUILD,
+					"The resource is an executable archive, no compilation to be done.");
 			buildRequired = false;
 		} else if (fresh) {
-			Util.verboseMsg("Building as fresh build explicitly requested.");
+			Util.verboseMsg(Util.VerboseCategory.BUILD, "Building as fresh build explicitly requested.");
 		} else if (nativeBuildRequired) {
-			Util.verboseMsg("Building as native build required.");
+			Util.verboseMsg(Util.VerboseCategory.BUILD, "Building as native build required.");
 		} else if (Files.isReadable(outjar)) {
 			Project jarProject = Project.builder().build(outjar);
 			// We already have a Jar, check if we can still use it
 			if (!ctx.isUpToDate()) {
-				Util.verboseMsg("Building as previously built jar found but it or its dependencies not up-to-date.");
+				Util.verboseMsg(Util.VerboseCategory.BUILD,
+						"Building as previously built jar found but it or its dependencies not up-to-date.");
 			} else if (jarProject.getJavaVersion() == null) {
-				Util.verboseMsg("Building as previously built jar found but it has incomplete meta data.");
+				Util.verboseMsg(Util.VerboseCategory.BUILD,
+						"Building as previously built jar found but it has incomplete meta data.");
 			} else if (project.projectJdk().majorVersion() < JavaUtil.minRequestedVersion(
 					jarProject.getJavaVersion())) {
-				Util.verboseMsg(
+				Util.verboseMsg(Util.VerboseCategory.BUILD,
 						String.format(
 								"Building as requested Java version %s < than the java version used during last build %s",
 								requestedJavaVersion, project.getJavaVersion()));
@@ -76,11 +79,11 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 				if (!project.getModuleName().isPresent()) {
 					project.setModuleName(jarProject.getModuleName().orElse(null));
 				}
-				Util.verboseMsg("No build required. Reusing jar from " + ctx.getJarFile());
+				Util.verboseMsg(Util.VerboseCategory.BUILD, "No build required. Reusing jar from " + ctx.getJarFile());
 				buildRequired = false;
 			}
 		} else {
-			Util.verboseMsg("Build required as " + outjar + " not readable or not found.");
+			Util.verboseMsg(Util.VerboseCategory.BUILD, "Build required as " + outjar + " not readable or not found.");
 		}
 
 		if (buildRequired) {
