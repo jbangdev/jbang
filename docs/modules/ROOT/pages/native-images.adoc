@@ -111,6 +111,44 @@ Or from command line:
 jbang --native --native-option="-O2" --native-option="--no-fallback" app.java
 ----
 
+== System Properties and Runtime Options
+
+System properties reach a native binary the same way they reach a JVM: JBang passes them on the
+executable's command line, and the image runtime consumes them before your `main` method is called.
+
+[source,bash]
+----
+jbang --native -Dgreeting=hello myapp.java
+----
+
+This covers both properties given with `-D` on the command line and those set with a
+`//RUNTIME_OPTIONS` directive:
+
+[source,java]
+----
+//RUNTIME_OPTIONS -Dgreeting=hello
+----
+
+Other runtime options are *not* passed to a native binary, and JBang warns when you supply any:
+
+[source,bash]
+----
+$ jbang --native --runtime-option=-Xmx128m myapp.java
+[jbang] [WARN] Runtime options are not supported by a native image and are ignored: -Xmx128m
+----
+
+The reason is that a native image treats them very differently from a JVM. An unknown `-XX:` flag
+makes the binary refuse to start, while options it does not recognise at all — `-agentlib:`,
+`-verbose:gc` and similar — are left in the argument list and arrive in your program's `args` array.
+Passing them through would break the run or silently corrupt your arguments, so JBang reports them
+instead.
+
+If you need to tune the generated binary, do it at build time with `//NATIVE_OPTIONS` or
+`--native-option` rather than at run time.
+
+NOTE: The image runtime removes `-D` and `-X` arguments from anywhere on the command line, so a
+native script cannot receive a program argument that starts with either prefix.
+
 == Common Native Image Configurations
 
 === CLI Applications
