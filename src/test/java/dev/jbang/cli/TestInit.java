@@ -369,16 +369,14 @@ public class TestInit extends BaseTest {
 		Path outJava = cwd.resolve("result.java");
 		Path outTf = cwd.resolve("prefixed-result.tf");
 
-		JBang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
-						"{filename}" + "=" + javaFileQute.toAbsolutePath().toString(),
-						"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath().toString());
+		JBang.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
+				"{filename}" + "=" + javaFileQute.toAbsolutePath().toString(),
+				"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath().toString());
 
 		assertThat(outJava.toFile().exists(), not(true));
 
-		int result = JBang	.getCommandLine()
-							.execute("init", "--verbose", "--template=template-with-more-files",
-									outJava.toAbsolutePath().toString());
+		int result = JBang.execute("init", "--verbose", "--template=template-with-more-files",
+				outJava.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(outJava.toFile().exists(), is(true));
