@@ -116,6 +116,8 @@ public class Init extends BaseCommand {
 		propsMap.put("javaVersion", reqVersion);
 		propsMap.put("compactSourceFiles", reqVersion >= 25);
 
+		validateOutputExtension(tpl.fileRefs, outName);
+
 		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
 			.stream()
 			.map(e -> entry(
@@ -203,11 +205,33 @@ public class Init extends BaseCommand {
 		}
 	}
 
+	static void validateOutputExtension(Map<String, String> fileRefs, String outName) {
+		String outExt = Util.extension(outName);
+		if (outExt.isEmpty() || fileRefs.keySet()
+			.stream()
+			.anyMatch(target -> dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(target).find())) {
+			return;
+		}
+		fileRefs.entrySet()
+			.stream()
+			.filter(entry -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(entry.getKey()).find())
+			.findFirst()
+			.ifPresent(entry -> {
+				String targetExt = Util.extension(entry.getKey());
+				if (targetExt.isEmpty()) {
+					targetExt = entry.getValue().endsWith(".qute") ? Util.extension(Util.base(entry.getValue()))
+							: Util.extension(entry.getValue());
+				}
+				if (!outExt.equals(targetExt)) {
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"Template expects " + targetExt + " extension, not " + outExt);
+				}
+			});
+	}
+
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
 		String result = refTarget;
-		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()
-				|| dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
-			String baseName = Util.base(outName);
+		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()) {
 			String outExt = Util.extension(outName);
 			String targetExt = Util.extension(refTarget);
 			if (targetExt.isEmpty()) {
@@ -219,6 +243,9 @@ public class Init extends BaseCommand {
 						"Template expects " + targetExt + " extension, not " + outExt);
 			}
 			result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
+		}
+		if (dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
+			String baseName = Util.base(outName);
 			result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		}
 		return Paths.get(result);
