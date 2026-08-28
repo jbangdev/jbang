@@ -82,6 +82,27 @@ javacInPath() {
   [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
+# Verifies SHA-256 checksum of a file against an expected value.
+# Usage: _jbang_verify_checksum <file> <expected_checksum> <var_name>
+_jbang_verify_checksum() {
+  local checkFile="$1" expectedRaw="$2" varName="$3"
+  local actual=""
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual=$(sha256sum "$checkFile" | cut -d' ' -f1)
+  elif command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$checkFile" | cut -d' ' -f1)
+  else
+    echo "Error: $varName is set but neither sha256sum nor shasum is available" 1>&2
+    exit 1
+  fi
+  local expected
+  expected=$(echo "$expectedRaw" | tr '[:upper:]' '[:lower:]')
+  if [ "$actual" != "$expected" ]; then
+    echo "Error: checksum mismatch for $checkFile (expected $expected, got $actual)" 1>&2
+    exit 1
+  fi
+}
+
 # Determines the JDK/JAVA_EXEC to use
 setup_java_exec() {
   unset JAVA_EXEC
@@ -303,6 +324,43 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     echo "Downloading JBang ${JBANG_DOWNLOAD_VERSION:-latest} from $jburl..." 1>&2
     download "$jburl" "$TDIR/urls/jbang.tar"
     if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
+    if command -v sha256sum >/dev/null 2>&1; then
+      actual=$(sha256sum "$TDIR/urls/jbang.tar" | cut -d' ' -f1)
+      hashret=$?
+    elif command -v shasum >/dev/null 2>&1; then
+      actual=$(shasum -a 256 "$TDIR/urls/jbang.tar" | cut -d' ' -f1)
+      hashret=$?
+    else
+      hashret=1
+      actual=""
+    fi
+    if [ $hashret -ne 0 ] || [ -z "$actual" ]; then
+      if [ -n "$JBANG_DOWNLOAD_CHECKSUM" ]; then
+        echo "Error: JBANG_DOWNLOAD_CHECKSUM is set but could not compute SHA-256 hash" 1>&2
+        exit 1
+      fi
+      echo "Warning: could not compute SHA-256 hash, skipping download checksum verification" 1>&2
+      actual=""
+    fi
+    if [ -n "$actual" ]; then
+      if [ -n "$JBANG_DOWNLOAD_CHECKSUM" ]; then
+        expected=$(echo "$JBANG_DOWNLOAD_CHECKSUM" | tr '[:upper:]' '[:lower:]')
+      else
+        download "${jburl}.sha256" "$TDIR/urls/jbang.tar.sha256"
+        if [ $retval -eq 0 ]; then
+          expected=$(tr -d '[:space:]' < "$TDIR/urls/jbang.tar.sha256" | tr '[:upper:]' '[:lower:]')
+        else
+          expected=""
+        fi
+        if [ -z "$expected" ]; then
+          echo "Warning: could not obtain checksum from server, skipping verification" 1>&2
+        fi
+      fi
+      if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
+        echo "Error: checksum mismatch for jbang.tar (expected $expected, got $actual)" 1>&2
+        exit 1
+      fi
+    fi
     echo "Installing JBang..." 1>&2
     rm -rf "$TDIR/urls/jbang"
     tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
@@ -310,6 +368,16 @@ if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
     mkdir -p "$JBDIR/bin"
     rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
     cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
+  fi
+  # Verify the artifact we are about to execute
+  if [ "$JBANG_USE_NATIVE" == "true" ]; then
+    if [ -n "$JBANG_BIN_CHECKSUM" ]; then
+      _jbang_verify_checksum "$JBDIR/bin/jbang.bin" "$JBANG_BIN_CHECKSUM" "JBANG_BIN_CHECKSUM"
+    elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+      _jbang_verify_checksum "$JBDIR/bin/jbang.bin" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
+    fi
+  elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+    _jbang_verify_checksum "$JBDIR/bin/jbang.jar" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
   fi
   "$JBDIR"/bin/jbang "$@"
   exit $?
@@ -323,6 +391,12 @@ fi
 # Only setup Java if we're running the JAR version
 if [[ -z "$binaryPath" ]]; then
   setup_java_exec
+fi
+
+if [ -n "$binaryPath" ] && [ -n "$JBANG_BIN_CHECKSUM" ]; then
+  _jbang_verify_checksum "$binaryPath" "$JBANG_BIN_CHECKSUM" "JBANG_BIN_CHECKSUM"
+elif [ -n "$JBANG_JAR_CHECKSUM" ]; then
+  _jbang_verify_checksum "${binaryPath:-$jarPath}" "$JBANG_JAR_CHECKSUM" "JBANG_JAR_CHECKSUM"
 fi
 
 execute_jbang "$@"
