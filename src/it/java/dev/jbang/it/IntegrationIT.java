@@ -22,4 +22,44 @@ public class IntegrationIT extends BaseIT {
 		assertThat(shell("jbang --fresh --no-integrations integrations/main.java"))
 			.outContains("Wrong main!!!");
 	}
+
+	// --fresh ensures a full build so integrations are actually executed, not
+	// served from cache
+	@Test
+	void testInScriptIntegrationSuccess() {
+		assertThat(shell("jbang --fresh integration/inttest.java"))
+			.succeeded()
+			.errNotContains("Integration... (out)")
+			.errContains("Integration... (err)")
+			.outContains("Integration test");
+	}
+
+	@Test
+	void testInScriptIntegrationSuccessVerbose() {
+		assertThat(shell("jbang --fresh --verbose integration/inttest.java"))
+			.succeeded()
+			.errContains("Integration... (out)")
+			.errContains("Integration... (err)")
+			.outContains("Integration test");
+	}
+
+	@Test
+	void testInScriptIntegrationFailure() {
+		assertThat(shell("jbang --fresh -Dfailintegration=1 integration/inttest.java"))
+			.exitedWith(1)
+			.errNotContains("Integration... (out)")
+			.errContains("Integration... (err)")
+			.errContains("Issue running postBuild()")
+			.errNotContains("Failing integration...");
+	}
+
+	@Test
+	void testInScriptIntegrationFailureVerbose() {
+		assertThat(shell("jbang --fresh -Dfailintegration=1 --verbose integration/inttest.java"))
+			.exitedWith(1)
+			.errContains("Integration... (out)")
+			.errContains("Integration... (err)")
+			.errContains("Issue running postBuild()")
+			.errContains("Failing integration...");
+	}
 }
