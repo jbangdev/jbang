@@ -48,6 +48,10 @@ repositories {
 	mavenLocal()
 	mavenCentral()
 	//maven { url 'https://jitpack.io' }
+	maven {
+		name = 'Central Portal Snapshots'
+		url = 'https://central.sonatype.com/repository/maven-snapshots/'
+	}
 }
 
 java {
@@ -171,8 +175,8 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:2.0.18"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.36"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.36"
+	implementation "eu.maveniverse.maven.mima:context:3.0.0-SNAPSHOT"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:3.0.0-SNAPSHOT"
 	implementation "eu.maveniverse.maven.domtrip:domtrip-core:1.5.2"
 	implementation "eu.maveniverse.maven.domtrip:domtrip-maven:1.5.2"
 
