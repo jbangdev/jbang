@@ -235,7 +235,7 @@ sonarqube {
 spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
-		target '**/*.gradle', '**/*.md', '**/.gitignore'
+		target '**/*.md', '**/.gitignore'
 		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
 		// all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
@@ -251,6 +251,16 @@ spotless {
 	format 'xml', {
 		targetExclude 'build/test-results', fileTree('.idea')
 		target '**/*.xml', '**/*.nuspec'
+	}
+	groovyGradle {
+		// Target both build and settings files in the project root and subprojects
+		target '*.gradle', 'gradle/*.gradle', '**/build.gradle', '**/settings.gradle'
+
+		// Define formatting rules
+		greclipse() // Optional: Uses the Groovy Eclipse formatter for deep formatting
+		trimTrailingWhitespace()
+		//leadingTabsToSpaces(4)
+		endWithNewline()
 	}
 }
 
