@@ -137,6 +137,57 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testSourceLocationProperties() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		Path script = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		Run run = JBang.parseCommand("run", script.toString());
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		String result = Project.codeBuilder(BuildContext.forProject(pb.build(script.toString())))
+			.build()
+			.build()
+			.generate();
+
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument(
+				"-Djbang.source=" + script, Util.getShell())));
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument(
+				"-Djbang.dir=" + script.getParent(), Util.getShell())));
+	}
+
+	@Test
+	void testNoSourceLocationPropertiesForUrl() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String url = examplesTestFolder.resolve("helloworld.java").toUri().toString();
+		Run run = JBang.parseCommand("run", url);
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		String result = Project.codeBuilder(BuildContext.forProject(pb.build(url))).build().build().generate();
+
+		// A remote source is out of scope: its local copy is in the download cache,
+		// which is not a project, and reporting the URL would put it on the command
+		// line. See testURLPrepare, which asserts exactly that it does not appear.
+		assertThat(result, not(containsString("-Djbang.source")));
+		assertThat(result, not(containsString("-Djbang.dir")));
+	}
+
+	@Test
+	void testSourceLocationPropertyCanBeOverridden() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		Path script = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		Run run = JBang.parseCommand("run", "-Djbang.source=/somewhere/else.java", script.toString());
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		String result = run.updateGeneratorForRun(pb.build(script.toString()).codeBuilder().build())
+			.build()
+			.generate();
+
+		// Both appear, the user's last, which is the one the JVM keeps.
+		assertThat(result, containsString("-Djbang.source="));
+		assertThat(result.lastIndexOf("-Djbang.source=/somewhere/else.java"),
+				greaterThan(result.indexOf("-Djbang.source=" + script)));
+	}
+
+	@Test
 	void testHelloWorldAlias() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		Path cat = examplesTestFolder.resolve("jbang-catalog.json").toAbsolutePath();
@@ -768,7 +819,11 @@ public class TestRun extends BaseTest {
 		} else {
 			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
-		String[] split = result.split("example.java");
+		// Split on the main class rather than on the script name: it is the actual
+		// boundary between JVM options and program arguments, and unlike the script
+		// name it
+		// appears exactly once now that -Djbang.source carries the script's path.
+		String[] split = result.split("fakemain");
 		assertEquals(2, split.length);
 		assertThat(split[0], not(containsString("after=wonka")));
 		assertThat(split[1], containsString("after=wonka"));
