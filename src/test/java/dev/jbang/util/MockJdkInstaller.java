@@ -31,7 +31,7 @@ public class MockJdkInstaller implements JdkInstaller {
 	@Override
 	public @NonNull Stream<Jdk.AvailableJdk> listAvailable() {
 		return Arrays.stream(versions)
-			.map(v -> new Jdk.AvailableJdk.Default(provider, v, v, Collections.emptySet()));
+			.map(v -> new Jdk.AvailableJdk.Default(provider, v + "-jbang", v, Collections.emptySet()));
 	}
 
 	@Override
