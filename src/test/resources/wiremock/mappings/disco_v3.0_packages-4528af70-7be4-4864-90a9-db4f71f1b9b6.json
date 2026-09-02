@@ -1,0 +1,82 @@
+{
+  "id" : "4528af70-7be4-4864-90a9-db4f71f1b9b6",
+  "name" : "disco_v3.0_packages",
+  "request" : {
+    "urlPath" : "/disco/v3.0/packages",
+    "method" : "GET",
+    "queryParameters" : {
+      "distro" : {
+        "hasExactly" : [ {
+          "equalTo" : "temurin,aoj"
+        } ]
+      },
+      "javafx_bundled" : {
+        "hasExactly" : [ {
+          "equalTo" : "false"
+        } ]
+      },
+      "libc_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "c_std_lib"
+        } ]
+      },
+      "directly_downloadable" : {
+        "hasExactly" : [ {
+          "equalTo" : "true"
+        } ]
+      },
+      "archive_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "zip"
+        } ]
+      },
+      "operating_system" : {
+        "hasExactly" : [ {
+          "equalTo" : "windows"
+        } ]
+      },
+      "package_type" : {
+        "hasExactly" : [ {
+          "equalTo" : "jdk"
+        } ]
+      },
+      "version" : {
+        "hasExactly" : [ {
+          "equalTo" : "13"
+        } ]
+      },
+      "release_status" : {
+        "hasExactly" : [ {
+          "equalTo" : "ga"
+        } ]
+      },
+      "architecture" : {
+        "hasExactly" : [ {
+          "equalTo" : "x64"
+        } ]
+      },
+      "latest" : {
+        "hasExactly" : [ {
+          "equalTo" : "available"
+        } ]
+      }
+    }
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"result\":[{\"id\":\"0d775bff8edcfff4f36eda53b112480d\",\"archive_type\":\"zip\",\"distribution\":\"aoj\",\"major_version\":13,\"java_version\":\"13.0.2\",\"distribution_version\":\"13.0.2\",\"jdk_version\":13,\"latest_build_available\":true,\"release_status\":\"ga\",\"term_of_support\":\"sts\",\"operating_system\":\"windows\",\"lib_c_type\":\"c_std_lib\",\"architecture\":\"x64\",\"fpu\":\"unknown\",\"package_type\":\"jdk\",\"javafx_bundled\":false,\"directly_downloadable\":true,\"filename\":\"OpenJDK13U-jdk_x64_windows_hotspot_13.0.2_8.zip\",\"links\":{\"pkg_info_uri\":\"https://api.foojay.io/disco/v3.0/ids/0d775bff8edcfff4f36eda53b112480d\",\"pkg_download_redirect\":\"https://api.foojay.io/disco/v3.0/ids/0d775bff8edcfff4f36eda53b112480d/redirect\"},\"free_use_in_production\":true,\"tck_tested\":\"unknown\",\"tck_cert_uri\":\"\",\"aqavit_certified\":\"unknown\",\"aqavit_cert_uri\":\"\",\"size\":209645142,\"feature\":[]}],\"message\":\"1 package(s) found\"}",
+    "headers" : {
+      "Accept-Ranges" : "bytes",
+      "last-modified" : "Wed, 02 Sep 2026 09:18:42 GMT",
+      "CF-RAY" : "a34b6dc89ed4547b-MAD",
+      "Server" : "cloudflare",
+      "cf-cache-status" : "MISS",
+      "alt-svc" : "h3=\":443\"; ma=86400",
+      "Date" : "Wed, 02 Sep 2026 09:18:42 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "4528af70-7be4-4864-90a9-db4f71f1b9b6",
+  "persistent" : true,
+  "insertionIndex" : 66
+}
