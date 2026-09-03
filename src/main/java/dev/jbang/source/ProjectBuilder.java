@@ -29,6 +29,7 @@ import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.dependencies.BuildSystemClassPaths;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;
@@ -365,8 +366,14 @@ public class ProjectBuilder {
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
 		for (String srcDep : directives.sourceDependencies()) {
-			ResourceRef subRef = resolver.resolve(srcDep, true);
-			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+			if (BuildSystemClassPaths.isBuildFileDependency(srcDep)) {
+				rejectBuildFileDepFromRemote(resourceRef, srcDep);
+				ss.addClassPaths(BuildSystemClassPaths.classPaths(
+						Collections.singletonList(srcDep), resourceRef.getFile()));
+			} else {
+				ResourceRef subRef = resolver.resolve(srcDep, true);
+				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+			}
 		}
 
 		boolean first = true;
@@ -511,10 +518,34 @@ public class ProjectBuilder {
 		}
 	}
 
+	/**
+	 * A `//DEPS build.gradle` inside a remote/URL-based script would silently
+	 * resolve against the cache directory the script was downloaded into, which
+	 * never contains a real project tree. Rather than let it fail with a confusing
+	 * "Build file not found" further down, reject it up front with an actionable
+	 * message.
+	 */
+	private static void rejectBuildFileDepFromRemote(ResourceRef ref, String srcDep) {
+		if (ref != null && ref.isURL()) {
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Build file dependency '" + srcDep + "' is not supported inside a remote script ("
+							+ ref.getOriginalResource()
+							+ "); a single build file cannot be fetched in isolation from its project. "
+							+ "Pass the build file via --deps on the command line instead.");
+		}
+	}
+
 	private Project updateProject(Project prj) {
 		SourceSet ss = prj.getMainSourceSet();
 		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
-		ss.addDependencies(replaceAllProps(additionalDeps));
+		List<String> deps = replaceAllProps(additionalDeps);
+		ss.addDependencies(BuildSystemClassPaths.dependencies(deps));
+		if (deps.stream().anyMatch(BuildSystemClassPaths::isBuildFileDependency)) {
+			// CLI-supplied --deps are resolved relative to the user's CWD, not the
+			// script file, which may live in a jbang cache dir for remote/aliased
+			// scripts.
+			ss.addClassPaths(BuildSystemClassPaths.classPaths(deps, null));
+		}
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(
@@ -709,8 +740,14 @@ public class ProjectBuilder {
 				}
 			}
 			for (String srcDep : src.collectSourceDependencies()) {
-				ResourceRef subRef = sibRes1.resolve(srcDep, true);
-				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+				if (BuildSystemClassPaths.isBuildFileDependency(srcDep)) {
+					rejectBuildFileDepFromRemote(srcRef, srcDep);
+					ss.addClassPaths(BuildSystemClassPaths.classPaths(
+							Collections.singletonList(srcDep), srcRef.getFile()));
+				} else {
+					ResourceRef subRef = sibRes1.resolve(srcDep, true);
+					prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+				}
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
 			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
@@ -753,7 +790,7 @@ public class ProjectBuilder {
 				.addDependency(dep)
 				.addRepositories(allToMavenRepo(
 						replaceAllProps(additionalRepos)))
-				.addDependencies(replaceAllProps(additionalDeps))
+				.addDependencies(BuildSystemClassPaths.dependencies(replaceAllProps(additionalDeps)))
 				.addClassPaths(
 						replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
