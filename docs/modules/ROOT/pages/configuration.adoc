@@ -247,10 +247,11 @@ As long as `gh auth login --hostname github.mycompany.com` has been run, JBang w
 
 === Debugging authentication
 
-Use `--verbose` to see which credential source JBang selected for each request:
+Use `--verbose=network` to see which credential source JBang selected for each request without unrelated
+diagnostic output:
 
 ```bash
-jbang --verbose run https://gitlab.mycompany.com/group/project/-/raw/main/script.java
+jbang --verbose=network run https://gitlab.mycompany.com/group/project/-/raw/main/script.java
 ```
 
 The output will include lines like `Using .netrc credentials for host: gitlab.mycompany.com` or `Using GITHUB_TOKEN environment variable for host: github.com`.
@@ -306,4 +307,3 @@ Finally JBang uses maven resolver to download dependencies. Maven resolver uses 
     </proxies>
 </settings>
 ```
-

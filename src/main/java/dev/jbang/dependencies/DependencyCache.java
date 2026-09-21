@@ -122,14 +122,15 @@ public class DependencyCache {
 				return cachedCP;
 			} else {
 				warnMsg("Detected missing or out-of-date dependencies in cache.");
-				if (Util.isVerbose()) {
+				if (Util.isVerbose(Util.VerboseCategory.BUILD)) {
 					cachedCP.stream().filter(ai -> !ai.isUpToDate()).forEach(ai -> {
 						if (Files.isReadable(ai.getFile())) {
-							Util.verboseMsg(
+							Util.verboseMsg(Util.VerboseCategory.BUILD,
 									"   Artifact out of date: " + ai.getFile() + " : " + ai.getTimestamp() + " != "
 											+ ai.getFile().toFile().lastModified());
 						} else {
-							Util.verboseMsg("   Artifact not found in local cache: " + ai.getFile());
+							Util.verboseMsg(Util.VerboseCategory.BUILD,
+									"   Artifact not found in local cache: " + ai.getFile());
 						}
 					});
 				}

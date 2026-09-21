@@ -49,9 +49,13 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	@Option(name = "insecure", hasValue = false, description = "Enable insecure trust of all SSL certificates.")
 	boolean insecure;
 
-	@Option(name = "verbose", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
-			"quiet" }, description = "jbang will be verbose on what it does.")
-	Boolean verbose;
+	@Option(name = "verbose", inherited = true, fallbackValue = "all", exclusiveWith = {
+			"quiet", "no-verbose" }, description = "Enable verbose output, optionally filtered by category.")
+	String verbose;
+
+	@Option(name = "no-verbose", hasValue = false, inherited = true, exclusiveWith = {
+			"verbose" }, description = "Disable verbose output.")
+	boolean noVerbose;
 
 	@Option(name = "quiet", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
 			"verbose" }, description = "jbang will be quiet, only print when error occurs.")
@@ -82,7 +86,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	protected CommandInvocation commandInvocation;
 
 	void debug(String msg) {
-		if (isVerbose()) {
+		if (Util.isVerbose(Util.VerboseCategory.INTERNALS)) {
 			Util.verboseMsg(msg);
 		}
 	}
@@ -179,7 +183,10 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	@Override
 	public void afterParse() {
 		if (verbose != null) {
-			Util.setVerbose(verbose);
+			Util.setVerboseCategories(verbose);
+		}
+		if (noVerbose) {
+			Util.setVerbose(false);
 		}
 		if (quiet != null) {
 			Util.setQuiet(quiet);
