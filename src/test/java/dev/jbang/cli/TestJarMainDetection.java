@@ -61,6 +61,12 @@ public class TestJarMainDetection extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("run", jar.toString());
 		assertThat(result.result, org.hamcrest.Matchers.equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.out, containsString("pkg.Main"));
+
+		// With --module the jar must be run as a module: either "-m test.mod"
+		// (main resolved from descriptor by the JVM) or "-m test.mod/pkg.Main"
+		result = checkedRun("run", "--module", jar.toString());
+		assertThat(result.result, org.hamcrest.Matchers.equalTo(ExitException.EXIT_EXECUTE));
+		assertThat(result.out, containsString("-m test.mod"));
 	}
 
 	private static void exec(String... cmd) throws Exception {

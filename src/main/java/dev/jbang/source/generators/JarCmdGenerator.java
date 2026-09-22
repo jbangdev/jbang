@@ -242,7 +242,14 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 					: null;
 			if (moduleMain != null) {
 				Util.verboseMsg("Using main class from module descriptor: " + moduleMain);
-				fullArgs.add(moduleMain);
+				if (runAsModule) {
+					// Let the JVM resolve the main class from the module descriptor
+					String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
+					fullArgs.add("-m");
+					fullArgs.add(modName);
+				} else {
+					fullArgs.add(moduleMain);
+				}
 				fullArgs.addAll(arguments);
 				return fullArgs;
 			}
@@ -308,7 +315,13 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				} else {
 					mainClass = mainClassOptions[result - 1];
 					Util.verboseMsg("User chose main:" + mainClass);
-					fullArgs.add(mainClass);
+					if (runAsModule) {
+						String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
+						fullArgs.add("-m");
+						fullArgs.add(modName + "/" + mainClass);
+					} else {
+						fullArgs.add(mainClass);
+					}
 				}
 			}
 		}
