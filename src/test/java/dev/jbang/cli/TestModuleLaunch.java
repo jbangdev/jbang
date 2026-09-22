@@ -113,11 +113,13 @@ public class TestModuleLaunch extends BaseTest {
 	}
 
 	@Test
-	void moduleWithGlob_searchesAndOverridesDescriptor() throws Exception {
+	void moduleWithGlob_promptsForSelection() throws Exception {
+		// A glob is a request to search and choose, so it always prompts; running
+		// automatically requires an explicit main class. Non-interactively it fails.
 		Path jar = buildJar("b4", false);
-		CaptureResult<Integer> r = checkedRun("run", "--module=test.mod/pkg.Oth*", jar.toString());
-		assertThat(r.result, equalTo(ExitException.EXIT_EXECUTE));
-		assertThat(r.out, containsString("-m test.mod/pkg.Other"));
+		ExitException e = assertThrows(ExitException.class,
+				() -> checkedRun("run", "--module=test.mod/pkg.Oth*", jar.toString()));
+		assertThat(e.getMessage(), containsString("candidates"));
 	}
 
 	@Test
@@ -130,11 +132,13 @@ public class TestModuleLaunch extends BaseTest {
 	}
 
 	@Test
-	void moduleEmptyModuleGlob_derivesAndSearches() throws Exception {
+	void moduleEmptyModuleGlob_promptsForSelection() throws Exception {
+		// Empty-module derive + glob: still a search, so it prompts (fails
+		// non-interactively).
 		Path jar = buildJar("b6", false);
-		CaptureResult<Integer> r = checkedRun("run", "--module=/pkg.Oth*", jar.toString());
-		assertThat(r.result, equalTo(ExitException.EXIT_EXECUTE));
-		assertThat(r.out, containsString("-m test.mod/pkg.Other"));
+		ExitException e = assertThrows(ExitException.class,
+				() -> checkedRun("run", "--module=/pkg.Oth*", jar.toString()));
+		assertThat(e.getMessage(), containsString("candidates"));
 	}
 
 	@Test

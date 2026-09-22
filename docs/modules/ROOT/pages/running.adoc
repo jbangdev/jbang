@@ -184,9 +184,10 @@ resulting JAR file.
 
 When running a JAR file, JBang determines the main class in this order: the `Main-Class`
 manifest entry, the `main-class` declared in the JAR's module descriptor (`module-info.class`),
-and finally by scanning the JAR for classes with a `main()` method. If the scan finds a single
-candidate JBang runs it directly; if it finds several it asks you to pick one. See
-<<Classpath vs module execution>> for when the descriptor main triggers module execution.
+and finally by scanning the JAR for classes with a `main()` method (asking you to pick from the
+candidates it finds). Running a scanned candidate automatically requires setting the main class
+explicitly. See <<Classpath vs module execution>> for when the descriptor main triggers module
+execution.
 
 One can also override the main class on the command line by using `--main <name>` or `-m <name>`
 for `jbang build` or `jbang run`. Main classes set for `jbang build` are permanent, just like
@@ -211,16 +212,22 @@ $ jbang run info.picocli:picocli-codegen:4.6.3
 [jbang] Type in your choice and hit enter. Will automatically select option (0) after 30 seconds.
 ----
 
-The main class can also use a glob pattern using `?` and `*` to limit the candidates. When the
-pattern (or a plain scan) narrows things down to a single candidate, JBang runs it directly
-without asking:
+The main class can also use a glob pattern using `?` and `*` to limit the candidates to choose
+from. For example:
 
 [source, bash]
 ----
 $ jbang run -m "*ManPageGenerator" info.picocli:picocli-codegen:4.6.3
+[jbang] No main class deduced, specified nor found in a manifest, but found these candidates:
+
+(1) picocli.codegen.docgen.manpage.ManPageGenerator
+(0) Cancel
+
+[jbang] Type in your choice and hit enter. Will automatically select option (0) after 30 seconds.
 ----
 
-If more than one class still matches, JBang lists them and asks you to pick one.
+Note how even though there is a single candidate, JBang still asks for confirmation, since you
+have not *explicitly* set the main class.
 
 == Adding entries to `MANIFEST.MF`
 

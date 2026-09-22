@@ -76,10 +76,11 @@ public class TestJarMainDetection extends BaseTest {
 	}
 
 	@Test
-	void testModuleGlobMainSearchOverridesDescriptor() throws Exception {
+	void testModuleGlobMainSearchPromptsInModuleMode() throws Exception {
 		// A glob main lets jbang search classes even in module mode and even when
-		// the descriptor declares a main class; a unique match runs without a prompt
-		// and overrides the descriptor via "-m <module>/<main>".
+		// the descriptor declares a main class; a glob always prompts for a choice
+		// (running automatically requires an explicit main class), so it fails
+		// non-interactively.
 		Path src = cwdDir.resolve("gsrc");
 		Files.createDirectories(src.resolve("pkg"));
 		Files.write(src.resolve("module-info.java"), "module test.mod {}".getBytes());
@@ -97,10 +98,10 @@ public class TestJarMainDetection extends BaseTest {
 		exec(javaHome + "/bin/jar", "--create", "--file", jar.toString(), "--main-class", "pkg.Main",
 				"-C", classes.toString(), ".");
 
-		// Glob uniquely matching pkg.Other should override descriptor's pkg.Main
-		CaptureResult<Integer> result = checkedRun("run", "--module", "--main", "pkg.Oth*", jar.toString());
-		assertThat(result.result, org.hamcrest.Matchers.equalTo(ExitException.EXIT_EXECUTE));
-		assertThat(result.out, containsString("-m test.mod/pkg.Other"));
+		// Glob in module mode prompts; non-interactively it fails with candidates.
+		ExitException e = assertThrows(ExitException.class,
+				() -> checkedRun("run", "--module", "--main", "pkg.Oth*", jar.toString()));
+		assertThat(e.getMessage(), containsString("candidates"));
 	}
 
 	private static void exec(String... cmd) throws Exception {

@@ -355,27 +355,23 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				}
 
 				String[] mainClassOptions = filteredMains.map(m -> m.name().toString()).toArray(String[]::new);
-				if (mainClassOptions.length == 1) {
-					// A single (possibly glob-matched) candidate: run it without prompting
-					mainClass = mainClassOptions[0];
-					Util.verboseMsg("Using single main class candidate: " + mainClass);
-				} else {
-					int result = Util.askInput(
-							"No main class deduced, specified nor found in a manifest, but found these candidates:",
-							Util.getAskInputTimeout(), 0,
-							mainClassOptions);
+				// A glob (or an ambiguous scan) always prompts the user to choose; running
+				// automatically requires an explicit main class.
+				int result = Util.askInput(
+						"No main class deduced, specified nor found in a manifest, but found these candidates:",
+						Util.getAskInputTimeout(), 0,
+						mainClassOptions);
 
-					if (result <= 0) {
-						String mainClasses = mains.stream()
-							.map(m -> "\n - " + m)
-							.collect(Collectors.joining());
-						throw new ExitException(ExitException.EXIT_INVALID_INPUT,
-								"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
-										+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
-					}
-					mainClass = mainClassOptions[result - 1];
-					Util.verboseMsg("User chose main:" + mainClass);
+				if (result <= 0) {
+					String mainClasses = mains.stream()
+						.map(m -> "\n - " + m)
+						.collect(Collectors.joining());
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
+									+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
 				}
+				mainClass = mainClassOptions[result - 1];
+				Util.verboseMsg("User chose main:" + mainClass);
 				if (runAsModule) {
 					fullArgs.add("-m");
 					fullArgs.add(modName + "/" + mainClass);
