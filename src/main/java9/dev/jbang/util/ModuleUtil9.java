@@ -24,6 +24,18 @@ public class ModuleUtil9 {
 		return null;
 	}
 
+	public static String getModuleMainClass(Path file) {
+		try {
+			Set<ModuleReference> refs = ModuleFinder.of(file).findAll();
+			if (!refs.isEmpty()) {
+				return refs.iterator().next().descriptor().mainClass().orElse(null);
+			}
+		} catch (FindException ex) {
+			// Ignore
+		}
+		return null;
+	}
+
 	public static List<String> listJdkModules() {
 		ModuleLayer ml = ModuleLayer.boot();
 		return ml.modules()

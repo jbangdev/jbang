@@ -235,12 +235,22 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				fullArgs.add(main);
 			}
 		} else if (mainRequired) {
+			Path jarPath = ctx.getJarFile();
+			// Prefer a main class declared in the jar's module descriptor, if any
+			String moduleMain = main == null && jarPath != null && Files.isRegularFile(jarPath)
+					? ModuleUtil.getModuleMainClass(jarPath)
+					: null;
+			if (moduleMain != null) {
+				Util.verboseMsg("Using main class from module descriptor: " + moduleMain);
+				fullArgs.add(moduleMain);
+				fullArgs.addAll(arguments);
+				return fullArgs;
+			}
 			List<ClassInfo> mains = Collections.emptyList();
 			try {
 				Indexer indexer = new Indexer();
 				Index index;
 				// Iterate all .class files in ctx.getJar and put in jandex index
-				Path jarPath = ctx.getJarFile();
 				if (jarPath != null && Files.exists(jarPath) && Files.isRegularFile(jarPath)) {
 					try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
 						java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();

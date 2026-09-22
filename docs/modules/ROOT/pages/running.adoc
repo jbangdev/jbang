@@ -133,6 +133,11 @@ this behaviour in code, you can use the following line:
 The main class selected by the line is permanent and will be stored as the default main class in the
 resulting JAR file.
 
+When running a JAR file, JBang determines the main class in this order: the `Main-Class`
+manifest entry, the `main-class` declared in the JAR's module descriptor (`module-info.class`),
+and finally by scanning the JAR for classes with a `main()` method (asking you to pick if
+there is more than one candidate).
+
 One can also override the main class on the command line by using `--main <name>` or `-m <name>`
 for `jbang build` or `jbang run`. Main classes set for `jbang build` are permanent, just like
 using a `//MAIN` line in the code. But main classes set for `jbang run` are temporary and will
