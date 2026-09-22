@@ -36,6 +36,18 @@ public class ModuleUtil9 {
 		return null;
 	}
 
+	public static Set<String> listModuleNames(List<Path> paths) {
+		try {
+			return ModuleFinder.of(paths.toArray(new Path[0]))
+				.findAll()
+				.stream()
+				.map(r -> r.descriptor().name())
+				.collect(Collectors.toSet());
+		} catch (FindException ex) {
+			return java.util.Collections.emptySet();
+		}
+	}
+
 	public static List<String> listJdkModules() {
 		ModuleLayer ml = ModuleLayer.boot();
 		return ml.modules()

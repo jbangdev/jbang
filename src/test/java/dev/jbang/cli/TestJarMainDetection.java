@@ -61,13 +61,14 @@ public class TestJarMainDetection extends BaseTest {
 		exec(javaHome + "/bin/jar", "--create", "--no-manifest", "--file", jar.toString(), "--main-class", "pkg.Main",
 				"-C", classes.toString(), ".");
 
+		// A manifest-less modular jar with a descriptor main-class runs as a module
+		// by default (no scan, even though the two mains would be ambiguous).
 		CaptureResult<Integer> result = checkedRun("run", jar.toString());
 		assertThat(result.result, org.hamcrest.Matchers.equalTo(ExitException.EXIT_EXECUTE));
-		assertThat(result.out, containsString("pkg.Main"));
+		assertThat(result.out, containsString("-m test.mod"));
+		assertThat(result.out, org.hamcrest.Matchers.not(containsString("test.mod/")));
 
-		// With --module and no explicit main, jbang must NOT scan for a main
-		// class (the two mains would be ambiguous); it lets the JVM resolve the
-		// descriptor main via a bare "-m test.mod".
+		// Explicit --module is equivalent here.
 		result = checkedRun("run", "--module", jar.toString());
 		assertThat(result.result, org.hamcrest.Matchers.equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.out, containsString("-m test.mod"));
