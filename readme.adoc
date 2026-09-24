@@ -127,6 +127,15 @@ Full user documentation is at https://jbang.dev/documentation[jbang.dev/document
 
 There is also an AI-generated technical reference at https://deepwiki.com/jbangdev/jbang[deepwiki.com/jbangdev/jbang] built from the source code.
 
+=== Agent skill
+
+link:skills/jbang/SKILL.md[`skills/jbang/SKILL.md`] is an https://agentskills.io[Agent Skill] that teaches AI coding agents how to install and drive JBang — including the native binary install via `JBANG_USE_NATIVE`. Add it to a project with:
+
+[source, bash]
+----
+npx skills add jbangdev/jbang
+----
+
 == Community
 
 * https://jbangdev.zulipchat.com[Zulip chat]
