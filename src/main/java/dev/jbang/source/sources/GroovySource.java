@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jspecify.annotations.NonNull;
 
@@ -50,7 +52,12 @@ public class GroovySource extends Source {
 	protected List<String> collectBinaryDependencies() {
 		final List<String> allDependencies = super.collectBinaryDependencies();
 		final String groovyVersion = getGroovyVersion();
-		if (groovyVersion.startsWith("4.") || groovyVersion.startsWith("5.")) {
+		int majorVersion = 0;
+		Matcher matcher = Pattern.compile("^(\\d+)").matcher(groovyVersion);
+		if (matcher.find()) {
+			majorVersion = Integer.parseInt(matcher.group(1));
+		}
+		if (majorVersion >= 4) {
 			allDependencies.add("org.apache.groovy:groovy:" + groovyVersion);
 		} else {
 			allDependencies.add("org.codehaus.groovy:groovy:" + groovyVersion);
