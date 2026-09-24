@@ -13,6 +13,12 @@ ifdef::env-github[]
 endif::[]
 
 [qanda]
+How does my script find out where it is?::
+  Through the `jbang.source` and `jbang.dir` system properties, which JBang sets to the script's
+path and to the directory it is in. They are what a script needs to read or write files belonging to
+the project it is checked into, since the compiled script itself runs from the jar cache and
+`getCodeSource()` therefore points there. See xref:jbang:ROOT:execution-options.adoc#script-location-properties[Script Location Properties].
+
 Why the name j'bang?::
   I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
 From there came j'bang which is a "bad" spelling of how shebang is pronounced in French.
