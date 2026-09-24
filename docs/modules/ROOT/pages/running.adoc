@@ -120,6 +120,55 @@ Any declared dependencies are automatically marked as being required.
 You can also set this on the command line by using the `--module=<name>` option on the `jbang build` command.
 The option also exists for `jbang run` where it will treat anything to be run as a module.
 
+=== Classpath vs module execution
+
+By default JBang runs code the way it was packaged: if the main class comes from a
+`Main-Class` manifest entry (or is found by scanning) it runs on the *classpath*; if it
+comes only from the JAR's module descriptor (`module-info.class` with a `main-class`, and
+*no* `Main-Class` manifest entry) it runs as a *module* (`java -p ... -m <module>`). Many
+modular command-line tools are packaged exactly this way, and running them as a module means
+their services (`ServiceLoader`), strong encapsulation and module version are all active.
+
+Use `--module` to force module execution and to pick the module and/or main class. Its value
+follows java's own `-m <module>[/<mainclass>]` syntax, with two JBang extensions: an empty
+module part derives the module from the JAR, and the main class may be a glob to search for.
+
+[cols="2,3",options="header"]
+|===
+| Command | Runs
+
+| `jbang run app.jar`
+| classpath, or module if the main is only in the descriptor
+
+| `jbang run -m com.acme.Main app.jar`
+| `com.acme.Main` on the classpath
+
+| `jbang run --module app.jar`
+| `-m <jarModule>` (main from the module descriptor)
+
+| `jbang run --module=some.mod app.jar`
+| `-m some.mod`
+
+| `jbang run --module=some.mod/com.acme.Main app.jar`
+| `-m some.mod/com.acme.Main` (java syntax)
+
+| `jbang run --module=some.mod/com.acme.* app.jar`
+| search `some.mod` for a matching main, then run it
+
+| `jbang run --module=/com.acme.Main app.jar`
+| derive the module from the JAR, run `com.acme.Main`
+
+| `jbang run --module --main com.acme.Main app.jar`
+| same as `--module=/com.acme.Main`
+|===
+
+Specifying the main class both inside `--module=<mod>/<main>` and via `--main` with different
+values is an error. The module name is not validated by JBang; if it does not exist the JVM
+reports it when launched.
+
+NOTE: `--module` (java's `-m`) is not the same as JBang's `-m`/`--main`, which sets the main
+*class*. There is no short option for `--module`.
+
 == Setting main class
 
 Normally JBang will figure out by itself what your code's main class is, but in case you want to override
@@ -132,6 +181,13 @@ this behaviour in code, you can use the following line:
 
 The main class selected by the line is permanent and will be stored as the default main class in the
 resulting JAR file.
+
+When running a JAR file, JBang determines the main class in this order: the `Main-Class`
+manifest entry, the `main-class` declared in the JAR's module descriptor (`module-info.class`),
+and finally by scanning the JAR for classes with a `main()` method (asking you to pick from the
+candidates it finds). Running a scanned candidate automatically requires setting the main class
+explicitly. See <<Classpath vs module execution>> for when the descriptor main triggers module
+execution.
 
 One can also override the main class on the command line by using `--main <name>` or `-m <name>`
 for `jbang build` or `jbang run`. Main classes set for `jbang build` are permanent, just like
@@ -156,11 +212,12 @@ $ jbang run info.picocli:picocli-codegen:4.6.3
 [jbang] Type in your choice and hit enter. Will automatically select option (0) after 30 seconds.
 ----
 
-The main class can also use a glob pattern using `?` and `*` and use it to limit the candidates to choose from. For example:
+The main class can also use a glob pattern using `?` and `*` to limit the candidates to choose
+from. For example:
 
 [source, bash]
 ----
-just jbang run -m "*ManPageGenerator" info.picocli:picocli-codegen:4.6.3
+$ jbang run -m "*ManPageGenerator" info.picocli:picocli-codegen:4.6.3
 [jbang] No main class deduced, specified nor found in a manifest, but found these candidates:
 
 (1) picocli.codegen.docgen.manpage.ManPageGenerator
@@ -169,8 +226,8 @@ just jbang run -m "*ManPageGenerator" info.picocli:picocli-codegen:4.6.3
 [jbang] Type in your choice and hit enter. Will automatically select option (0) after 30 seconds.
 ----
 
-Note how even though there are a single candidate, JBang still asks for confirmation as you have not 
-*explicitly* set the main class.
+Note how even though there is a single candidate, JBang still asks for confirmation, since you
+have not *explicitly* set the main class.
 
 == Adding entries to `MANIFEST.MF`
 

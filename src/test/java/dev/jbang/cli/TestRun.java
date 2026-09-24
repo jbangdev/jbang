@@ -2518,6 +2518,9 @@ public class TestRun extends BaseTest {
 		// assertThat(code.getResourceRef().getFile().toString(),
 		// matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
+		// Modular deps, no manifest Main-Class and no module-descriptor main-class:
+		// jbang scans and, finding candidates, prompts (fails non-interactively with
+		// the candidate list) since running automatically needs an explicit main.
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 

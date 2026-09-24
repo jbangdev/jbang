@@ -24,6 +24,30 @@ public class ModuleUtil9 {
 		return null;
 	}
 
+	public static String getModuleMainClass(Path file) {
+		try {
+			Set<ModuleReference> refs = ModuleFinder.of(file).findAll();
+			if (!refs.isEmpty()) {
+				return refs.iterator().next().descriptor().mainClass().orElse(null);
+			}
+		} catch (FindException ex) {
+			// Ignore
+		}
+		return null;
+	}
+
+	public static Set<String> listModuleNames(List<Path> paths) {
+		try {
+			return ModuleFinder.of(paths.toArray(new Path[0]))
+				.findAll()
+				.stream()
+				.map(r -> r.descriptor().name())
+				.collect(Collectors.toSet());
+		} catch (FindException ex) {
+			return java.util.Collections.emptySet();
+		}
+	}
+
 	public static List<String> listJdkModules() {
 		ModuleLayer ml = ModuleLayer.boot();
 		return ml.modules()
