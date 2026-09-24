@@ -91,6 +91,95 @@ Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-
 
 For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS`.
 
+=== Classpath from build files (EXPERIMENTAL)
+
+You can use a build file as a dependency. JBang runs the matching build tool and adds its compile dependencies to the script's classpath.
+
+[source, java]
+----
+//DEPS pom.xml
+//DEPS build.gradle
+//DEPS build.sbt
+//DEPS build.mill
+----
+
+Build file paths are resolved relative to the script, like Java source dependencies. Prefix a file name with `^` to search the script's directory and its parents, stopping after the user home directory:
+
+[source, java]
+----
+//DEPS ^pom.xml
+----
+
+The same references can be passed on the command line, for example `jbang run --deps ^pom.xml src/main/java/app.java`.
+
+==== Why use a build file as a dependency?
+
+Using this is great for reusing the same classpath as an existing project's build tool without having to manually maintain a separate list, and without needing to build the full project just to get at its dependencies.
+
+It makes it possible to seamlessly experiment with and extend your project with minimal ceremony.
+
+Pointing `//DEPS` at the build file lets you have:
+
+* *One place to change versions.* Bump `commons-lang3` in `pom.xml` and the script picks it up on the next run — no second edit, no forgotten stale copy.
+* *Reuse an existing project's dependencies from a small script.* Drop a `run.java` next to a Maven/Gradle project and let it borrow the project's compile classpath instead of duplicating a curated subset.
+* *Bridge scripts and applications.* A prototype often starts as a JBang script and later grows into a Maven/Gradle project; letting the script consume the future project's build file makes the transition incremental instead of a big rewrite.
+* *Complex dependency graphs.* BOMs, exclusions, dependency-management stanzas, custom repositories, and platform constraints are already expressed cleanly in build files. Letting the native tool resolve them is more accurate than approximating the graph in `//DEPS` lines.
+
+This feature does come at a cost: JBang has to actually invoke Maven, Gradle, sbt, or Mill, which is slower than JBang's built-in resolver and requires the tool to be installed. Results are cached (see below), so the cost is paid once per build file until it changes.
+
+==== Supported build tools
+
+[cols="1,3,3,2", options="header"]
+|===
+| Tool | Build files | How JBang resolves the classpath | Wrapper detected
+
+| Maven
+| `pom.xml`
+| Runs `dependency:build-classpath` and reads the result from a temp file. `<includeScope>compile` so only compile dependencies land on the classpath.
+| `mvnw` / `mvnw.cmd`, else `mvn` on `PATH`
+
+| Gradle
+| `build.gradle`, `build.gradle.kts`
+| Applies a temporary init script that registers a `jbangPrintClasspath` task on any subproject with the `java` plugin and prints `sourceSets.main.compileClasspath`. Fails loudly if no subproject applies the `java` plugin.
+| `gradlew` / `gradlew.bat`, else `gradle` on `PATH`
+
+| sbt
+| `build.sbt`
+| Runs `sbt --error --batch "export Compile / dependencyClasspath"` and takes the last non-blank line (validated to look like a classpath).
+| `sbt` / `sbt.bat`
+
+| Mill
+| `build.mill`, `build.mill.yaml`, legacy `build.sc`
+| Runs `mill --disable-ticker show compileClasspath` and parses the JSON output. Requires a build that exposes a root module; multi-module Mill builds have no single unambiguous compile classpath.
+| `mill` / `mill.bat`
+|===
+
+==== Caching
+
+Resolved classpaths are cached per build file under `$JBANG_DIR/cache/projects/buildclasspaths/` and reused until the build file changes (modification time or size). The cache is also invalidated automatically if any jar it references has disappeared from disk (e.g. because your local Maven repo was cleared). Force a re-resolution with:
+
+[source, shell]
+----
+jbang cache clear --projects
+----
+
+==== Limitations
+
+* Only scripts that live on the local filesystem can use build files as dependencies. An embedded `//DEPS build.gradle` in a script fetched from a URL or catalog is rejected, because a single build file cannot be resolved in isolation from the rest of its project tree. Pass the build file via `--deps` on the command line instead.
+* Each strategy requires the matching build tool to be available (via a wrapper in the project or on `PATH`). If the tool is missing, JBang fails with the tool's own error output rather than silently degrading.
+* The first resolution pays the tool's normal cold-start cost (Maven downloads, Gradle daemon startup, sbt/Mill JVM warmup). Subsequent runs use the cache.
+* Only the project's declared compile dependencies are added to the classpath — the project's own compiled classes are not. If you need to reference the project's source from your script, pull the file(s) in directly with `//SOURCES`:
++
+[source, java]
+----
+//DEPS pom.xml
+//SOURCES src/main/java/example/Greeter.java
+----
++
+A future release may add a scope option (e.g. `compile` vs `runtime`) so the project's own output can be included automatically. Feedback on which scope should be the default is welcome — open an issue at https://github.com/jbangdev/jbang.
+
+NOTE: Build files can execute code. Only use this feature with build files you trust.
+
 == Preview
 
 The example above can alternatively also be written with `PREVIEW` instead of `--enable-preview`, like this:
