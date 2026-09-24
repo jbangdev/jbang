@@ -85,8 +85,7 @@ public class AlpineJavaDownloadIT extends BaseIT {
 	public GenericContainer<?> container = new GenericContainer<>(
 			new ImageFromDockerfile("jbang-alpine-test", false)
 				.withDockerfileFromBuilder(builder -> builder
-					// .from("alpine:latest")
-					.from("ghcr.io/home-assistant/amd64-base:3.19")
+					.from("alpine:3.19")
 					.run("apk add --no-cache bash curl")
 					.build()))
 		.withStartupTimeout(Duration.ofMinutes(5))
