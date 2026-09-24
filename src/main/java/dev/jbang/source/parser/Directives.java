@@ -31,6 +31,7 @@ public abstract class Directives {
 		public static final String CDS = "CDS";
 		public static final String COMPILE_OPTIONS = "COMPILE_OPTIONS";
 		public static final String DEPS = "DEPS";
+		public static final String CONF = "CONF";
 		public static final String DESCRIPTION = "DESCRIPTION";
 		public static final String DOCS = "DOCS";
 		public static final String FILES = "FILES";
@@ -208,6 +209,19 @@ public abstract class Directives {
 		return collectDirectiveOptions(Names.MANIFEST);
 	}
 
+	public List<KeyValue> confOptions() {
+		List<KeyValue> confs = collectDirectiveOptions(Names.CONF);
+		confs.stream()
+			.collect(Collectors.groupingBy(KeyValue::getKey, Collectors.counting()))
+			.forEach((key, count) -> {
+				if (count > 1) {
+					Util.warnMsg("Multiple //CONF lines found for key '" + key
+							+ "', later value overrides earlier one");
+				}
+			});
+		return confs;
+	}
+
 	public List<KeyValue> agentOptions() {
 		return collectDirectiveOptions(Names.JAVAAGENT);
 	}
@@ -242,8 +256,10 @@ public abstract class Directives {
 
 	@NonNull
 	public List<String> runtimeOptions() {
-		return collectOptions(Names.RUNTIME_OPTIONS, Names.JAVA_OPTIONS)
-			.collect(Collectors.toList());
+		List<String> opts = new ArrayList<>(collectOptions(Names.RUNTIME_OPTIONS, Names.JAVA_OPTIONS)
+			.collect(Collectors.toList()));
+		confOptions().forEach(kv -> opts.add("-D" + kv.getKey() + "=" + kv.getValue()));
+		return opts;
 	}
 
 	@NonNull

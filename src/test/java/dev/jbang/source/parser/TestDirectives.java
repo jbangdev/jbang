@@ -1,11 +1,13 @@
 package dev.jbang.source.parser;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -80,5 +82,51 @@ public class TestDirectives {
 
 		assertThat(deps, hasItem(new MavenRepo("http://maven.restlet.org", "http://maven.restlet.org")));
 
+	}
+
+	@Test
+	void testExtractConfOptions() {
+		Directives tr = new Directives.Extended(
+				"//DEPS ch.qos.logback:logback-classic:1.4.14\n" +
+						"//CONF logback.file.name=app.log\n" +
+						"//CONF logback.file.maxSize=1MB\n" +
+						"//CONF spring.http.client.connect-timeout=5s\n" +
+						"//CONF spring.http.client.read-timeout=10s",
+				null);
+
+		List<String> deps = tr.binaryDependencies();
+		assertThat(deps, hasItem("ch.qos.logback:logback-classic:1.4.14"));
+
+		List<KeyValue> confs = tr.confOptions();
+		assertThat(confs, hasSize(4));
+		List<String> pairs = confs.stream()
+			.map(kv -> kv.getKey() + "=" + kv.getValue())
+			.collect(Collectors.toList());
+		assertThat(pairs, containsInAnyOrder(
+				"logback.file.name=app.log",
+				"logback.file.maxSize=1MB",
+				"spring.http.client.connect-timeout=5s",
+				"spring.http.client.read-timeout=10s"));
+
+		List<String> runtime = tr.runtimeOptions();
+		assertThat(runtime, containsInAnyOrder(
+				"-Dlogback.file.name=app.log",
+				"-Dlogback.file.maxSize=1MB",
+				"-Dspring.http.client.connect-timeout=5s",
+				"-Dspring.http.client.read-timeout=10s"));
+	}
+
+	@Test
+	void testDuplicateConfKeyPreservesOrderForLastWins() {
+		Directives tr = new Directives.Extended(
+				"//CONF timeout=30\n//CONF timeout=5000", null);
+
+		List<KeyValue> confs = tr.confOptions();
+		assertThat(confs, hasSize(2));
+
+		// both entries survive (no dedup) but must stay in file order so the
+		// later -D flag is the one the JVM actually applies last
+		List<String> runtime = tr.runtimeOptions();
+		assertThat(runtime, contains("-Dtimeout=30", "-Dtimeout=5000"));
 	}
 }

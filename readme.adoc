@@ -63,6 +63,8 @@ A CLI app with a dependency pulled from Maven Central:
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.6.3
 //JAVA 25+
+//CONF picocli.trace=INFO
+//CONF picocli.ansi=false
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -101,6 +103,39 @@ void main() {
             router.get("/", ctx -> ctx.result("Hello from JBang!"));
         });
     }).start(8000);
+}
+----
+
+A single file Spring Boot script:
+
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS org.springframework.boot:spring-boot-starter:3.3.4
+//JAVA 17+
+//CONF logging.level.root=INFO
+//CONF logging.file.name=app.log
+//CONF logging.logback.rollingpolicy.max-file-size=2MB
+//CONF logging.console.enabled=false
+
+package demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@SpringBootApplication
+public class hello {
+
+    private static final Logger log = LoggerFactory.getLogger(hello.class);
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext ctx = SpringApplication.run(hello.class, args);
+        log.info("Hello from Spring Boot via jbang!");
+        ctx.close();
+    }
 }
 ----
 
