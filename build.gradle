@@ -1,3 +1,6 @@
+import groovy.json.JsonOutput
+import org.ajoberstar.grgit.Grgit
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.crypto.checksum.Checksum
 
 plugins {
@@ -17,8 +20,8 @@ plugins {
 	id 'jacoco'
 	id 'maven-publish'
 	id 'eu.maveniverse.gradle.plugins.nisse-gradle-plugin' version '0.9.2'
-	id 'io.qameta.allure-report' version '2.12.0'
-	id "io.qameta.allure-adapter-base" version "2.12.0"
+	id 'io.qameta.allure-report' version '4.1.0'
+	id "io.qameta.allure-adapter-base" version "4.1.0"
 }
 
 def allureVersion = '2.29.1'
@@ -78,7 +81,7 @@ def testExecutionToolchain = project.javaToolchains.launcherFor {
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
 reporting {
-	baseDir = "$buildDir/reports"
+	baseDirectory = layout.buildDirectory.dir("reports")
 }
 
 allure {
@@ -200,7 +203,7 @@ dependencies {
 			allureRawResultElements(files(dir.trim()))
 		}
 	} else {
-		allureRawResultElements(files("$buildDir/allure-results"))
+		allureRawResultElements(files(layout.buildDirectory.dir("allure-results")))
 	}
 
 }
@@ -219,7 +222,7 @@ tasks.withType(Test).configureEach {
 }
 
 // to enable reproducible builds
-tasks.withType(AbstractArchiveTask) {
+tasks.withType(AbstractArchiveTask).configureEach {
 	preserveFileTimestamps = false
 	reproducibleFileOrder = true
 }
@@ -233,7 +236,7 @@ sonarqube {
 }
 
 spotless {
-	lineEndings 'UNIX'
+	lineEndings = 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
 		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
@@ -277,7 +280,7 @@ afterEvaluate {
 	version = resolvedVersion
 }
 
-task printVersion {
+tasks.register('printVersion') {
 	group = "versioning"
 	description = "Print the project version"
 	doLast {
@@ -285,9 +288,11 @@ task printVersion {
 	}
 }
 
-task versionTxt() {
+tasks.register('versionTxt') {
 	doLast {
-		new File(project.buildDir, "tmp/version.txt").text = project.version
+		def versionFile = layout.buildDirectory.file("tmp/version.txt").get().asFile
+		versionFile.parentFile.mkdirs()
+		versionFile.text = project.version
 	}
 }
 
@@ -299,7 +304,7 @@ def commonSpec = project.copySpec {
 	from(shadowJar) {
 		into 'bin'
 	}
-	from(project.buildDir.toPath().resolve('tmp')) {
+	from(layout.buildDirectory.dir('tmp')) {
 		include 'version.txt'
 	}
 	from('src/main/scripts') {
@@ -312,7 +317,7 @@ def commonSpec = project.copySpec {
 	// Scripts look for the platform-named binary first, then fall back to jbang.bin
 	def nativeExecName = getNativeExecutableName()
 	def platformNativeExecName = getPlatformNativeExecutableName()
-	from(project.buildDir.toPath().resolve('native-image')) {
+	from(layout.buildDirectory.dir('native-image')) {
 		include nativeExecName
 		rename nativeExecName, platformNativeExecName
 		into 'bin'
@@ -463,7 +468,7 @@ test {
 	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
 }
 
-task benchmark(type: Test) {
+tasks.register('benchmark', Test) {
 	description = 'Run startup benchmark tests'
 	group = 'verification'
 	useJUnitPlatform() {
@@ -473,8 +478,8 @@ task benchmark(type: Test) {
 	def jvmArgsList = []
 	if (testJavaVersion.asInt() >= 9) {
 		jvmArgsList.addAll([
-			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+				"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+				"--add-opens", "java.base/java.util=ALL-UNNAMED"
 		])
 	}
 	jvmArgs = jvmArgsList
@@ -547,39 +552,39 @@ tasks.named('compileIntegrationTestJava') {
 	options.compilerArgs.addAll(['--release', '11']) // wiremock requires java 11
 }
 
-task karateExecute(type: JavaExec) {
+tasks.register('karateExecute', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = System.properties.getProperty('mainClass')
 }
 
-task copyResources(type: Copy) {
+tasks.register('copyResources', Copy) {
 	from "${projectDir}/src/main/resources"
-	into "${buildDir}/classes/java/main"
+	into layout.buildDirectory.dir("classes/java/main")
 }
-processResources.dependsOn copyResources
+processResources.dependsOn tasks.named('copyResources')
 
 
-task copyTestResources(type: Copy) {
+tasks.register('copyTestResources', Copy) {
 	from "${projectDir}/itests"
-	into "${buildDir}/classes/java/test/itests"
+	into layout.buildDirectory.dir("classes/java/test/itests")
 }
-processTestResources.dependsOn copyTestResources
+processTestResources.dependsOn tasks.named('copyTestResources')
 
-task createChecksum(type: Checksum) {
+tasks.register('createChecksum', Checksum) {
 	dependsOn(assembleDist)
 	files = files([distZip, latestDistZip, distTar, latestDistTar].outputs.files.flatten())
 	outputDir = distZip.destinationDirectory.asFile.get()
 	algorithm = Checksum.Algorithm.SHA256
 }
 
-task container(type: Copy) {
-	dependsOn(createChecksum)
+tasks.register('container', Copy) {
+	dependsOn(tasks.named('createChecksum'))
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/container/')
 	include('*')
-	into(buildDir.toString() + '/container')
+	into(layout.buildDirectory.dir('container'))
 	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+		t.filter(ReplaceTokens,
 				tokens: [
 						projectVersion: project.version,
 						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
@@ -588,13 +593,13 @@ task container(type: Copy) {
 	}
 }
 
-task spec(type: Copy) {
-	dependsOn(createChecksum)
+tasks.register('spec', Copy) {
+	dependsOn(tasks.named('createChecksum'))
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/spec/jbang.spec')
-	into(buildDir.toString() + '/spec')
+	into(layout.buildDirectory.dir('spec'))
 	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+		t.filter(ReplaceTokens,
 				tokens: [
 						projectVersion: project.version,
 						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
@@ -603,13 +608,13 @@ task spec(type: Copy) {
 	}
 }
 
-task chocolatey(type: Copy) {
-	dependsOn(createChecksum)
+tasks.register('chocolatey', Copy) {
+	dependsOn(tasks.named('createChecksum'))
 	inputs.property('version', provider { project.version })
 	from('src/main/scripts/choco')
-	into(buildDir.toString() + '/choco')
+	into(layout.buildDirectory.dir('choco'))
 	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+		t.filter(ReplaceTokens,
 				tokens: [
 						projectVersion: project.version,
 						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
@@ -618,12 +623,12 @@ task chocolatey(type: Copy) {
 	}
 }
 
-task copyITests(type: Copy) {
+tasks.register('copyITests', Copy) {
 	from "${projectDir}/itests"
-	into "${buildDir}/itests"
+	into layout.buildDirectory.dir("itests")
 }
 
-task tagVersion {
+tasks.register('tagVersion') {
 	group = "versioning"
 	description = "Tag and push the current version in git"
 	doLast {
@@ -672,7 +677,7 @@ asciidoctor {
 	baseDirFollowsSourceDir()
 }
 
-task clidoc(type: Exec) {
+tasks.register('clidoc', Exec) {
 	doFirst {
 		println 'Generating cli man pages'
 		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
@@ -693,12 +698,12 @@ build.dependsOn(spec)
 // clidoc not auto included as it depends on jbang...which isn't built at this time.
 //build.dependsOn(clidoc)
 
-compileJava.dependsOn(copyResources);
-compileJava.dependsOn(compileJava9Java);
-compileTestJava.dependsOn(compileJava9Java);
+compileJava.dependsOn(tasks.named('copyResources'))
+compileJava.dependsOn(compileJava9Java)
+compileTestJava.dependsOn(compileJava9Java)
 
 // Don't know how to tell shadowJar _not_ to depend on this
-shadowJar.dependsOn(copyTestResources);
+shadowJar.dependsOn(tasks.named('copyTestResources'))
 
 // Function to generate parentSuite value based on environment
 def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolchain.JavaLanguageVersion testJavaVersion) {
@@ -722,7 +727,7 @@ def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolch
 	}
 	parts.add(javaVersionStr)
 	try {
-		def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+		def grgit = Grgit.open(dir: project.rootDir)
 		def gitSha = grgit.head().id
 		if (gitSha != null && !gitSha.isEmpty()) {
 			parts.add(gitSha.substring(0, Math.min(7, gitSha.length())))
@@ -816,7 +821,7 @@ tasks.named("spotlessXml").configure { dependsOn("copyITests") }
 
 
 // Native image build task
-task nativeImage(type: Exec) {
+tasks.register('nativeImage', Exec) {
 	dependsOn shadowJar
 	description = "Build native image executable"
 	group = "build"
@@ -830,8 +835,8 @@ task nativeImage(type: Exec) {
 	}
 
 	def nativeImageCmd = System.getenv("GRAALVM_HOME") ?
-		"${System.getenv('GRAALVM_HOME')}${File.separator}bin${File.separator}${nativeImageName}" :
-		"${nativeImageName}"
+			"${System.getenv('GRAALVM_HOME')}${File.separator}bin${File.separator}${nativeImageName}" :
+			"${nativeImageName}"
 
 
 	// Ensure output directory exists
@@ -840,14 +845,13 @@ task nativeImage(type: Exec) {
 	}
 
 	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
-				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
-				"-H:+ReportExceptionStackTraces",
+			"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
+			"-H:+ReportExceptionStackTraces",
 
-				"--enable-https",
-				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
-				"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
-				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
-
+			"--enable-https",
+			"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
+			"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
+			"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
 
 
 	doFirst {
@@ -859,13 +863,13 @@ task nativeImage(type: Exec) {
 
 	doLast {
 		// If double named (happens on windows) rename it back
-			def doubleExeFile = new File(outputDir, nativeExecName + ".exe")
-			if (doubleExeFile.exists()) {
-				def moved = doubleExeFile.renameTo(new File(outputDir, nativeExecName))
-				if (!moved) {
-					throw new RuntimeException("Failed to rename ${doubleExeFile} to ${nativeExecName}")
-				}
+		def doubleExeFile = new File(outputDir, nativeExecName + ".exe")
+		if (doubleExeFile.exists()) {
+			def moved = doubleExeFile.renameTo(new File(outputDir, nativeExecName))
+			if (!moved) {
+				throw new RuntimeException("Failed to rename ${doubleExeFile} to ${nativeExecName}")
 			}
+		}
 		println "Native image built successfully: ${outputDir}/${nativeExecName}"
 	}
 
@@ -892,14 +896,14 @@ tasks.named("latestDistZip").configure {
 group = "dev.jbang"
 
 // Generate Allure environment.properties before tests run
-task generateAllureEnvironment {
+tasks.register('generateAllureEnvironment') {
 	description = "Generate Allure environment.properties with CI or local metadata"
 	group = "verification"
 
 	doLast {
 		def env = System.getenv()
 		def props = new Properties()
-		def allureDir = file("$buildDir/allure-results")
+		def allureDir = layout.buildDirectory.dir("allure-results").get().asFile
 		allureDir.mkdirs()
 
 		if (env['GITHUB_ACTIONS'] == 'true') {
@@ -919,7 +923,7 @@ task generateAllureEnvironment {
 		props.setProperty('User', System.getProperty('user.name'))
 		props.setProperty('ProjectVersion', project.version.toString())
 		try {
-			def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+			def grgit = Grgit.open(dir: project.rootDir)
 			props.setProperty('GitBranch', grgit.branch.current().name)
 			props.setProperty('GitCommit', grgit.head().id)
 		} catch (ignored) {
@@ -933,20 +937,20 @@ task generateAllureEnvironment {
 
 		def osKey = (env['RUNNER_OS'] ?: System.getProperty('os.name')).replaceAll(/\s+/, '_')
 		def javaMajor = System.getProperty('java.version').split('\\.')[0] == '1'
-			? System.getProperty('java.version').split('\\.')[1]
-			: System.getProperty('java.version').split('\\.')[0]
+				? System.getProperty('java.version').split('\\.')[1]
+				: System.getProperty('java.version').split('\\.')[0]
 		def runnerName = env['RUNNER_OS'] ? "${env['RUNNER_OS']}-latest java${javaMajor}" : "local"
 		def executor = [
-			name      : runnerName,
-			type      : 'github',
-			reportName: "Allure Report (${osKey})",
-			buildName : env['GITHUB_RUN_NUMBER'] ? "ci-build #${env['GITHUB_RUN_NUMBER']} ${osKey}" : 'local',
-			buildUrl  : (env['GITHUB_SERVER_URL'] && env['GITHUB_REPOSITORY'] && env['GITHUB_RUN_ID'])
-				? "${env['GITHUB_SERVER_URL']}/${env['GITHUB_REPOSITORY']}/actions/runs/${env['GITHUB_RUN_ID']}"
-				: '',
-			buildOrder: (env['GITHUB_RUN_NUMBER'] ?: '0') as Integer,
+				name      : runnerName,
+				type      : 'github',
+				reportName: "Allure Report (${osKey})",
+				buildName : env['GITHUB_RUN_NUMBER'] ? "ci-build #${env['GITHUB_RUN_NUMBER']} ${osKey}" : 'local',
+				buildUrl  : (env['GITHUB_SERVER_URL'] && env['GITHUB_REPOSITORY'] && env['GITHUB_RUN_ID'])
+						? "${env['GITHUB_SERVER_URL']}/${env['GITHUB_REPOSITORY']}/actions/runs/${env['GITHUB_RUN_ID']}"
+						: '',
+				buildOrder: (env['GITHUB_RUN_NUMBER'] ?: '0') as Integer,
 		]
-		new File(allureDir, 'executor.json').text = groovy.json.JsonOutput.toJson(executor)
+		new File(allureDir, 'executor.json').text = JsonOutput.toJson(executor)
 	}
 }
 
