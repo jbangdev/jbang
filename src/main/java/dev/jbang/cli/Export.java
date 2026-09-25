@@ -325,6 +325,7 @@ public class Export extends BaseCommand {
 			Files.copy(source, outputPath);
 
 			if (upx && Util.runCommand("upx", "--best", outputPath.toString()) == null) {
+				Files.deleteIfExists(outputPath);
 				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
 						"UPX compression failed. Ensure UPX (https://upx.github.io) is installed and available on PATH.");
 			}
