@@ -725,7 +725,8 @@ public class Export extends BaseCommand {
 				.data("compilerArgs", compilerArgs)
 				.render();
 			Util.writeString(destination, result);
-			Util.writeString(projectDir.resolve("settings.gradle"), "");
+			Util.writeString(projectDir.resolve("settings.gradle"), "plugins {\n" + "  "
+					+ "id \"org.gradle.toolchains.foojay-resolver-convention\" version \"1.0.0\"\n" + "}");
 			Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
 		}
 
