@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.aesh.AeshRuntimeRunner;
 import org.aesh.command.CommandResult;
+import org.aesh.command.validator.OptionValidatorException;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
@@ -62,8 +63,10 @@ public class Main {
 			while (cause.getCause() != null) {
 				cause = cause.getCause();
 			}
-			if (cause instanceof IllegalArgumentException) {
-				// Converter/validation errors from aesh (e.g. invalid enum values)
+			if (cause instanceof IllegalArgumentException
+					|| cause instanceof OptionValidatorException) {
+				// Converter/validation errors from aesh (e.g. invalid enum values,
+				// option validator rejections)
 				Util.errorMsg(cause.getMessage());
 				exitCode = ExitException.EXIT_INVALID_INPUT;
 			} else if (cause instanceof ExitException) {
