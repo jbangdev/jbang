@@ -326,7 +326,7 @@ public class Export extends BaseCommand {
 
 			if (upx && Util.runCommand("upx", "--best", outputPath.toString()) == null) {
 				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
-						"UPX compression failed. Ensure UPX is installed and available on PATH.");
+						"UPX compression failed. Ensure UPX (https://upx.github.io) is installed and available on PATH.");
 			}
 
 			Util.infoMsg("Exported to " + outputPath);
