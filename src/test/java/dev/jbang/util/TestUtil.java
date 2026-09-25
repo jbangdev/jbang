@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,17 @@ import dev.jbang.catalog.Catalog;
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
 		Catalog.clearCache();
+	}
+
+	@Test
+	void testMessageHeaderIsLocaleIndependent() {
+		Locale defaultLocale = Locale.getDefault();
+		try {
+			Locale.setDefault(Locale.forLanguageTag("ar"));
+			assertTrue(Util.getMsgHeader().matches("\\[jbang\\] \\[[0-9]+:[0-9]{3}\\] "));
+		} finally {
+			Locale.setDefault(defaultLocale);
+		}
 	}
 
 	@Test
