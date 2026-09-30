@@ -98,7 +98,7 @@ You can see the current version by running `./gradlew printVersion` - if you hav
 
 For pull-requests don't try and trigger bump of a version; we'll apply that once it is time for a release.
 
-NOTE: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that, the `BUILDCONFIG` class gets generated during the Gradle build.
+NOTE: The `dev.jbang.util.Util` class will show a compile error in IDE's but ignore that, the `BUILDCONFIG` class gets generated during the Gradle build.
 
 == How releases are made
 
