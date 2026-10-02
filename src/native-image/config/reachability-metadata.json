@@ -1,5 +1,7 @@
 {
   "reflection": [
+    { "type": "org.jboss.jandex.AnnotationInstance[]" },
+    { "type": "org.jboss.jandex.ClassInfo[]" },
     { "type": "java.util.HashMap" },
     { "type": "java.util.Map" },
     {

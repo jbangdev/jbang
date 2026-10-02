@@ -323,6 +323,7 @@ public class ProjectBuilder {
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
+			prj.setResolvedClassPath(mcp);
 		}
 		return updateProject(importJarMetadata(prj, moduleName != null && moduleName.isEmpty()));
 	}

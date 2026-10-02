@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.resources.ResourceRef;
@@ -51,6 +52,7 @@ public class Project {
 	// Cached values
 	private String stableId;
 	private Jdk.InstalledJdk projectJdk;
+	private ModularClassPath resolvedClassPath;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
@@ -285,6 +287,14 @@ public class Project {
 	protected void updateDependencyResolver(DependencyResolver resolver) {
 		resolver.addRepositories(repositories);
 		getMainSourceSet().updateDependencyResolver(resolver);
+	}
+
+	ModularClassPath getResolvedClassPath() {
+		return resolvedClassPath;
+	}
+
+	void setResolvedClassPath(ModularClassPath resolvedClassPath) {
+		this.resolvedClassPath = resolvedClassPath;
 	}
 
 	public JdkManager projectJdkManager() {

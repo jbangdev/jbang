@@ -44,6 +44,7 @@ public class BuildContext {
 		this.project = project;
 		this.buildDirOverride = buildDirOverride;
 		this.buildDir = buildDir;
+		this.mcp = project.getResolvedClassPath();
 	}
 
 	public BuildContext forSubProject(Project subProject) {

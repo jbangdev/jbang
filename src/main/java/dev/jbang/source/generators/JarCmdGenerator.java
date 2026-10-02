@@ -246,9 +246,13 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 						java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
 						while (entries.hasMoreElements()) {
 							java.util.jar.JarEntry entry = entries.nextElement();
-							if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
+							if (!entry.isDirectory() && entry.getName().endsWith(".class")
+									&& !entry.getName().endsWith("module-info.class")) {
 								try (InputStream is = jarFile.getInputStream(entry)) {
 									indexer.index(is);
+								} catch (Exception e) {
+									// One unparseable class shouldn't break main class detection
+									Util.verboseMsg("Error indexing class " + entry.getName() + ": " + e);
 								}
 							}
 						}
