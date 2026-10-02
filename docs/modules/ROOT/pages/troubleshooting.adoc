@@ -149,6 +149,12 @@ jbang info classpath script.java
 # Test dependency resolution
 jbang info classpath script.java
 
+# Resolve dependency source JARs (source-path)
+jbang info source-path script.java
+
+# Resolve source JAR for a specific JAR or dependency
+jbang info source-jar xyz.jar
+
 # Check repositories
 jbang info docs script.java
 

@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
@@ -47,6 +49,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
+		Info.SourcePath.class, Info.SourceJar.class,
 		Info.Docs.class }, generateHelp = true)
 public class Info extends BaseCommand {
 
@@ -109,12 +112,14 @@ public class Info extends BaseCommand {
 			String originalResource;
 			String backingResource;
 			String applicationJar;
+			String applicationSourceJar;
 			String applicationJsa;
 			String nativeImage;
 			String mainClass;
 			List<String> dependencies;
 			List<Repo> repositories;
 			List<String> resolvedDependencies;
+			List<String> resolvedSourceDependencies;
 			String javaVersion;
 			String requestedJavaVersion;
 			String availableJdkPath;
@@ -128,6 +133,10 @@ public class Info extends BaseCommand {
 			Map<String, List<ProjectFile>> docs;
 
 			public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled) {
+				this(prj, buildDir, assureJdkInstalled, false);
+			}
+
+			public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled, boolean downloadSources) {
 				originalResource = prj.getResourceRef().getOriginalResource();
 
 				if (scripts.add(originalResource)) {
@@ -137,7 +146,7 @@ public class Info extends BaseCommand {
 
 					try {
 						BuildContext ctx = BuildContext.forProject(prj, buildDir);
-						init(ctx);
+						init(ctx, downloadSources);
 					} catch (Exception e) {
 						Util.warnMsg("Unable to obtain full information, the script probably contains errors", e);
 					}
@@ -207,7 +216,7 @@ public class Info extends BaseCommand {
 				}
 			}
 
-			private void init(BuildContext ctx) {
+			private void init(BuildContext ctx, boolean downloadSources) {
 				applicationJar = ctx.getJarFile() == null ? null
 						: ctx.getJarFile().toAbsolutePath().toString();
 				applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
@@ -220,10 +229,18 @@ public class Info extends BaseCommand {
 				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 				if (artifacts.isEmpty()) {
 					resolvedDependencies = Collections.emptyList();
+					resolvedSourceDependencies = Collections.emptyList();
 				} else {
 					resolvedDependencies = artifacts
 						.stream()
 						.map(a -> a.getFile().toString())
+						.collect(Collectors.toList());
+					resolvedSourceDependencies = artifacts
+						.stream()
+						.map(ArtifactInfo::getSourceFile)
+						.filter(Objects::nonNull)
+						.filter(Files::exists)
+						.map(Path::toString)
 						.collect(Collectors.toList());
 				}
 
@@ -232,6 +249,50 @@ public class Info extends BaseCommand {
 					mainClass = jarProject.getMainClass();
 					gav = jarProject.getGav().orElse(gav);
 					module = ModuleUtil.getModuleName(jarProject);
+				}
+
+				if (downloadSources) {
+					resolveApplicationSourceJar(ctx);
+				}
+			}
+
+			private void resolveApplicationSourceJar(BuildContext ctx) {
+				Project prj = ctx.getProject();
+				if (!prj.isExecutableArchive()) {
+					return;
+				}
+				Path jar = ctx.getJarFile();
+				if (jar == null || !Files.exists(jar)) {
+					return;
+				}
+
+				String fileName = jar.getFileName().toString();
+				if (fileName.endsWith(".jar")) {
+					Path sibling = jar.resolveSibling(fileName.substring(0, fileName.length() - 4) + "-sources.jar");
+					if (Files.isRegularFile(sibling)) {
+						applicationSourceJar = sibling.toAbsolutePath().toString();
+						return;
+					}
+				}
+
+				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
+				for (ArtifactInfo art : artifacts) {
+					if (jar.equals(art.getFile()) && art.getSourceFile() != null && Files.exists(art.getSourceFile())) {
+						applicationSourceJar = art.getSourceFile().toAbsolutePath().toString();
+						return;
+					}
+				}
+
+				String targetGav = gav != null ? gav : prj.getGav().orElse(null);
+				if (targetGav == null && prj.getResourceRef().getOriginalResource() != null
+						&& DependencyUtil.looksLikeAGav(prj.getResourceRef().getOriginalResource())) {
+					targetGav = prj.getResourceRef().getOriginalResource();
+				}
+				if (targetGav != null) {
+					Optional<Path> srcJar = DependencyUtil.resolveSource(targetGav, prj.getRepositories());
+					if (srcJar.isPresent() && Files.exists(srcJar.get())) {
+						applicationSourceJar = srcJar.get().toAbsolutePath().toString();
+					}
 				}
 			}
 
@@ -260,15 +321,21 @@ public class Info extends BaseCommand {
 		private static Set<String> scripts;
 
 		ScriptInfo getInfo(boolean assureJdkInstalled) {
-			scriptMixin.validate();
+			return getInfo(assureJdkInstalled, false);
+		}
 
+		ScriptInfo getInfo(boolean assureJdkInstalled, boolean downloadSources) {
+			scriptMixin.validate();
+			if (downloadSources) {
+				Util.setDownloadSources(true);
+			}
 			ProjectBuilder pb = createProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 
 			scripts = new HashSet<>();
 
 			Path bd = buildDir != null ? Paths.get(buildDir) : null;
-			return new ScriptInfo(prj, bd, assureJdkInstalled);
+			return new ScriptInfo(prj, bd, assureJdkInstalled, downloadSources || Util.downloadSources());
 		}
 
 		ProjectBuilder createProjectBuilder() {
@@ -293,11 +360,16 @@ public class Info extends BaseCommand {
 		@Option(name = "select", description = "Indicate the name of the field to select and return from the full info result")
 		String select;
 
+		@Option(name = "download-sources", hasValue = false, description = "Resolve and include source JARs in the output")
+		boolean downloadSources;
+
 		@Override
 		public Integer doCall() throws IOException {
 
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-			ScriptInfo info = getInfo(true);
+			boolean needSources = downloadSources
+					|| (select != null && select.toLowerCase().contains("source"));
+			ScriptInfo info = getInfo(true, needSources);
 			if (select != null) {
 				try {
 					Field f = info.getClass().getDeclaredField(select);
@@ -359,6 +431,48 @@ public class Info extends BaseCommand {
 			ScriptInfo info = getInfo(false);
 			out.println(info.applicationJar);
 			return ExitException.EXIT_OK;
+		}
+	}
+
+	@CommandDefinition(name = "source-path", aliases = { "sourcepath",
+			"sources-path" }, description = "Prints source-path used for this application using operating system specific path separation.", generateHelp = true)
+	public static class SourcePath extends BaseInfoCommand {
+
+		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
+		boolean dependenciesOnly;
+
+		@Override
+		public Integer doCall() throws IOException {
+
+			ScriptInfo info = getInfo(false, true);
+			List<String> deps = info.resolvedSourceDependencies != null ? info.resolvedSourceDependencies
+					: Collections.emptyList();
+			List<String> sp = new ArrayList<>(deps.size() + 1);
+			if (!dependenciesOnly && info.applicationSourceJar != null
+					&& !deps.contains(info.applicationSourceJar)) {
+				sp.add(info.applicationSourceJar);
+			}
+			sp.addAll(deps);
+			out.println(String.join(CP_SEPARATOR, sp));
+
+			return ExitException.EXIT_OK;
+		}
+	}
+
+	@CommandDefinition(name = "source-jar", aliases = { "sourcejar",
+			"sources-jar" }, description = "Prints the path to this application's or artifact's source JAR file.", generateHelp = true)
+	public static class SourceJar extends BaseInfoCommand {
+
+		@Override
+		public Integer doCall() throws IOException {
+			ScriptInfo info = getInfo(false, true);
+			if (info.applicationSourceJar != null) {
+				out.println(info.applicationSourceJar);
+				return ExitException.EXIT_OK;
+			} else {
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+						"No source JAR found for: " + scriptMixin.scriptOrFile);
+			}
 		}
 	}
 

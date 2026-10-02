@@ -7,6 +7,7 @@ import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.isWindows;
 import static dev.jbang.util.Util.verboseMsg;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -93,9 +94,14 @@ public class DependencyUtil {
 		if (!updateCache) {
 			cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
 			if (cachedDeps != null) {
-				ModularClassPath mcp = new ModularClassPath(cachedDeps);
-				verboseMsg(String.format("Resolved artifact(s) from cache: %s", mcp));
-				return mcp;
+				boolean sourcesValid = !downloadSources || cachedDeps.stream()
+					.allMatch(ai -> ai.isSourcesChecked()
+							&& (ai.getSourceFile() == null || Files.exists(ai.getSourceFile())));
+				if (sourcesValid) {
+					ModularClassPath mcp = new ModularClassPath(cachedDeps);
+					verboseMsg(String.format("Resolved artifact(s) from cache: %s", mcp));
+					return mcp;
+				}
 			}
 		}
 
@@ -219,5 +225,27 @@ public class DependencyUtil {
 		// to be nice to windows we accept it but if users want to be portable best to
 		// use /
 		return isWindows() && (reporef.startsWith(".\\") || reporef.startsWith("..\\"));
+	}
+
+	public static Optional<Path> resolveSource(String coord, List<MavenRepo> repos) {
+		return resolveSource(MavenCoordinate.fromString(coord), repos);
+	}
+
+	public static Optional<Path> resolveSource(MavenCoordinate coord, List<MavenRepo> repos) {
+		List<MavenRepo> actualRepos = repos != null && !repos.isEmpty() ? repos
+				: Collections.singletonList(toMavenRepo("central"));
+		try (ArtifactResolver resolver = ArtifactResolver.Builder
+			.create()
+			.repositories(actualRepos)
+			.withUserSettings(true)
+			.localFolder(getJBangLocalMavenRepoOverride())
+			.offline(dev.jbang.util.Util.isOffline())
+			.ignoreTransitiveRepositories(dev.jbang.util.Util.isIgnoreTransitiveRepositories())
+			.forceCacheUpdate(dev.jbang.util.Util.isFresh())
+			.logging(!dev.jbang.util.Util.isQuiet())
+			.downloadSources(true)
+			.build()) {
+			return resolver.resolveSource(coord);
+		}
 	}
 }

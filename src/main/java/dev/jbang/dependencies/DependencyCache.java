@@ -37,7 +37,12 @@ public class DependencyCache {
 						MavenCoordinate gav = MavenCoordinate.fromCanonicalString(jsonObject.get("gav").getAsString());
 						Path file = Paths.get(jsonObject.get("file").getAsString());
 						long ts = jsonObject.has("ts") ? jsonObject.get("ts").getAsLong() : 0;
-						return new ArtifactInfo(gav, file, ts);
+						Path sourceFile = jsonObject.has("sourceFile")
+								? Paths.get(jsonObject.get("sourceFile").getAsString())
+								: null;
+						boolean sourcesChecked = jsonObject.has("sourcesChecked")
+								&& jsonObject.get("sourcesChecked").getAsBoolean();
+						return new ArtifactInfo(gav, file, sourceFile, sourcesChecked, ts);
 					};
 					Gson parser = new GsonBuilder()
 						.setPrettyPrinting()
@@ -87,6 +92,12 @@ public class DependencyCache {
 					JsonObject json = new JsonObject();
 					json.addProperty("gav", src.getCoordinate().toCanonicalForm());
 					json.addProperty("file", src.getFile().toString());
+					if (src.getSourceFile() != null) {
+						json.addProperty("sourceFile", src.getSourceFile().toString());
+					}
+					if (src.isSourcesChecked()) {
+						json.addProperty("sourcesChecked", true);
+					}
 					json.addProperty("ts", src.getTimestamp());
 					return json;
 				};
