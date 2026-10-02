@@ -171,8 +171,8 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:2.0.20"
 	implementation "io.smallrye:jandex:3.2.3"
 
-	implementation "eu.maveniverse.maven.mima:context:3.0.0"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:3.0.0"
+	implementation "eu.maveniverse.maven.mima:context:3.0.1"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:3.0.1"
 	implementation "eu.maveniverse.maven.domtrip:domtrip-core:1.8.0"
 	implementation "eu.maveniverse.maven.domtrip:domtrip-maven:1.8.0"
 
