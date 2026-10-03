@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,16 +15,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.Indexer;
-
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
+import dev.jbang.source.MainClassScanner;
 import dev.jbang.source.Project;
-import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.Glob;
 import dev.jbang.util.JavaUtil;
@@ -235,37 +230,26 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				fullArgs.add(main);
 			}
 		} else if (mainRequired) {
-			List<ClassInfo> mains = Collections.emptyList();
+			List<String> mains = Collections.emptyList();
 			try {
-				Indexer indexer = new Indexer();
-				Index index;
-				// Iterate all .class files in ctx.getJar and put in jandex index
+				// Iterate all .class files in ctx.getJar and scan for main classes
 				Path jarPath = ctx.getJarFile();
 				if (jarPath != null && Files.exists(jarPath) && Files.isRegularFile(jarPath)) {
-					try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
-						java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
-						while (entries.hasMoreElements()) {
-							java.util.jar.JarEntry entry = entries.nextElement();
-							if (!entry.isDirectory() && entry.getName().endsWith(".class")
-									&& !entry.getName().endsWith("module-info.class")) {
-								try (InputStream is = jarFile.getInputStream(entry)) {
-									indexer.index(is);
-								} catch (Exception e) {
-									// One unparseable class shouldn't break main class detection
-									Util.verboseMsg("Error indexing class " + entry.getName() + ": " + e);
+					mains = MainClassScanner.scan(consumer -> {
+						try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
+							java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
+							while (entries.hasMoreElements()) {
+								java.util.jar.JarEntry entry = entries.nextElement();
+								if (!entry.isDirectory() && entry.getName().endsWith(".class")
+										&& !entry.getName().endsWith("module-info.class")) {
+									try (InputStream is = jarFile.getInputStream(entry)) {
+										consumer.accept(entry.getName(), is);
+									}
 								}
 							}
 						}
-					}
+					}).getMainClasses();
 				}
-				index = indexer.complete();
-
-				Collection<ClassInfo> classes = index.getKnownClasses();
-
-				mains = classes.stream()
-					.filter(CompileBuildStep.getMainFinder())
-					.collect(Collectors.toList());
-
 			} catch (IOException e) {
 				Util.warnMsg("Error indexing jar file: " + e.getMessage());
 			}
@@ -275,14 +259,14 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 						"No main class deduced, specified nor found in a manifest nor jar");
 			} else {
 
-				Stream<ClassInfo> filteredMains = mains.stream();
+				Stream<String> filteredMains = mains.stream();
 
 				if (Glob.isGlob(main)) {
 					filteredMains = filteredMains
-						.filter(m -> Glob.matches(main, m.name().toString()));
+						.filter(m -> Glob.matches(main, m));
 				}
 
-				String[] mainClassOptions = filteredMains.map(m -> m.name().toString()).toArray(String[]::new);
+				String[] mainClassOptions = filteredMains.toArray(String[]::new);
 				int result = Util.askInput(
 						"No main class deduced, specified nor found in a manifest, but found these candidates:",
 						Util.getAskInputTimeout(), 0,
