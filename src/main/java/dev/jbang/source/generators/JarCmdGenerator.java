@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,7 +88,51 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		List<String> fullArgs = new ArrayList<>();
 
 		Project project = ctx.getProject();
-		boolean runAsModule = moduleName != null && project.getModuleName().isPresent();
+		Path jarPath = ctx.getJarFile();
+
+		// Parse the --module value with java's own module[/mainclass] grammar, plus
+		// two jbang extensions: an empty module part derives the module from the jar,
+		// and the mainclass part may be a glob to search for.
+		boolean moduleFlagGiven = moduleName != null;
+		String moduleTargetName = null; // explicit module name from the value (null => derive)
+		String moduleValueMain = null; // class-or-glob from the value (null => none)
+		if (moduleFlagGiven) {
+			int slash = moduleName.indexOf('/');
+			if (slash >= 0) {
+				String left = moduleName.substring(0, slash);
+				String right = moduleName.substring(slash + 1);
+				moduleTargetName = left.isEmpty() ? null : left;
+				moduleValueMain = right.isEmpty() ? null : right;
+			} else if (!moduleName.isEmpty()) {
+				moduleTargetName = moduleName;
+			}
+		}
+
+		// A main class given both via --main and inside --module=<mod>/<main> must
+		// agree.
+		if (moduleValueMain != null && mainClass != null && !moduleValueMain.equals(mainClass)) {
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Conflicting main class: --main=" + mainClass + " and --module=.../" + moduleValueMain
+							+ " - specify the main class only once.");
+		}
+
+		// User-specified main (explicit); manifest Main-Class is a lower-priority
+		// fallback.
+		String requestedMain = moduleValueMain != null ? moduleValueMain : mainClass;
+
+		// Main class declared in the jar's module descriptor (only relevant when no
+		// explicit main).
+		String descriptorMain = requestedMain == null && jarPath != null && Files.isRegularFile(jarPath)
+				? ModuleUtil.getModuleMainClass(jarPath)
+				: null;
+
+		// A jar whose main lives only in the module descriptor (no manifest Main-Class)
+		// runs as a module by default - that is how it was packaged to run.
+		boolean autoModule = !moduleFlagGiven && requestedMain == null
+				&& project.getMainClass() == null && descriptorMain != null;
+
+		boolean runAsModule = autoModule
+				|| (moduleFlagGiven && (project.getModuleName().isPresent() || moduleTargetName != null));
 		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
@@ -225,22 +268,51 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
-		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
+		String main = requestedMain != null ? requestedMain : project.getMainClass();
+		// Resolve the module name to launch: an explicit name from the --module value
+		// wins; otherwise derive it from the jar's own descriptor
+		// (project.getModuleName()
+		// may hold the raw --module value, so it is only a last resort, e.g. for
+		// scripts).
+		String modName = moduleTargetName;
+		if (modName == null && jarPath != null && Files.isRegularFile(jarPath)) {
+			modName = ModuleUtil.getModuleName(jarPath);
+		}
+		if (modName == null) {
+			modName = ModuleUtil.getModuleName(project);
+		}
+
+		// ponytail: no jbang-side "module not found" pre-check. The launched module
+		// name can legitimately differ from what ModuleFinder enumerates (automatic
+		// module names, not-yet-built jars, custom module-info), so validating here
+		// causes false negatives. The JVM already reports a clear FindException at
+		// runtime. Add a check back only if a reliable module-name resolution exists.
 		if (main != null && !Glob.isGlob(main)) {
 			if (runAsModule) {
-				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
 				fullArgs.add("-m");
 				fullArgs.add(modName + "/" + main);
 			} else {
 				fullArgs.add(main);
 			}
 		} else if (mainRequired) {
+			// No explicit/manifest main (main==null) or a glob to search for.
+			if (main == null && descriptorMain != null) {
+				Util.verboseMsg("Using main class from module descriptor: " + descriptorMain);
+				if (runAsModule) {
+					// Let the JVM resolve the main class from the module descriptor
+					fullArgs.add("-m");
+					fullArgs.add(modName);
+				} else {
+					fullArgs.add(descriptorMain);
+				}
+				fullArgs.addAll(arguments);
+				return fullArgs;
+			}
 			List<ClassInfo> mains = Collections.emptyList();
 			try {
 				Indexer indexer = new Indexer();
 				Index index;
 				// Iterate all .class files in ctx.getJar and put in jandex index
-				Path jarPath = ctx.getJarFile();
 				if (jarPath != null && Files.exists(jarPath) && Files.isRegularFile(jarPath)) {
 					try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
 						java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
@@ -283,6 +355,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				}
 
 				String[] mainClassOptions = filteredMains.map(m -> m.name().toString()).toArray(String[]::new);
+				// A glob (or an ambiguous scan) always prompts the user to choose; running
+				// automatically requires an explicit main class.
 				int result = Util.askInput(
 						"No main class deduced, specified nor found in a manifest, but found these candidates:",
 						Util.getAskInputTimeout(), 0,
@@ -295,9 +369,13 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"No main class deduced, specified nor found in a manifest, but found these candidates:\n"
 									+ mainClasses + "\n\nUse -m <main class> to specify a main class.");
+				}
+				mainClass = mainClassOptions[result - 1];
+				Util.verboseMsg("User chose main:" + mainClass);
+				if (runAsModule) {
+					fullArgs.add("-m");
+					fullArgs.add(modName + "/" + mainClass);
 				} else {
-					mainClass = mainClassOptions[result - 1];
-					Util.verboseMsg("User chose main:" + mainClass);
 					fullArgs.add(mainClass);
 				}
 			}

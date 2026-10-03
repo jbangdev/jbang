@@ -51,6 +51,23 @@ public class ModuleUtil {
 	}
 
 	@Nullable
+	public static String getModuleMainClass(Path file) {
+		if (JavaUtil.getCurrentMajorJavaVersion() >= 9) {
+			return ModuleUtil9.getModuleMainClass(file);
+		} else {
+			return null;
+		}
+	}
+
+	public static java.util.Set<String> listModuleNames(java.util.List<Path> paths) {
+		if (JavaUtil.getCurrentMajorJavaVersion() >= 9) {
+			return ModuleUtil9.listModuleNames(paths);
+		} else {
+			return java.util.Collections.emptySet();
+		}
+	}
+
+	@Nullable
 	public static String getModuleName(Project project) {
 		String modName = project.getModuleName().orElse(null);
 		if (modName != null && modName.isEmpty()) {
