@@ -38,7 +38,7 @@ public class Version extends BaseCommand {
 			System.out.println(Util.getJBangVersion());
 		}
 
-		if (isVerbose()) {
+		if (Util.isVerbose(Util.VerboseCategory.INTERNALS)) {
 			System.err.println("Cache: " + Settings.getCacheDir());
 			System.err.println("Config: " + Settings.getConfigDir());
 			System.err.println("Repository: " + ArtifactResolver.getLocalMavenRepo());

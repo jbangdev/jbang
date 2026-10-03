@@ -221,7 +221,7 @@ public class Catalog {
 				throw new ExitException(EXIT_UNEXPECTED_STATE,
 						"Unable to download catalog: " + catalogRef);
 			}
-			Util.verboseMsg(String.format("Obtained catalog from %s", catalogRef));
+			Util.verboseMsg(Util.VerboseCategory.CONFIG, String.format("Obtained catalog from %s", catalogRef));
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
 				String baseRef = catalog.baseRef;
@@ -327,7 +327,8 @@ public class Catalog {
 					if (result != null)
 						return result;
 				} catch (Exception e) {
-					Util.verboseMsg("Unable to read catalog " + cr.catalogRef + ": " + e.getMessage(), e);
+					Util.verboseMsg(Util.VerboseCategory.CONFIG,
+							"Unable to read catalog " + cr.catalogRef + ": " + e.getMessage(), e);
 				}
 			}
 		}
@@ -376,7 +377,8 @@ public class Catalog {
 	}
 
 	static Catalog read(ResourceRef catalogRef) {
-		Util.verboseMsg(String.format("Reading catalog from %s", catalogRef.getOriginalResource()));
+		Util.verboseMsg(Util.VerboseCategory.CONFIG,
+				String.format("Reading catalog from %s", catalogRef.getOriginalResource()));
 		Catalog catalog = Catalog.empty();
 		if (catalogRef.exists()) {
 			try (InputStream is = catalogRef.getInputStream()) {

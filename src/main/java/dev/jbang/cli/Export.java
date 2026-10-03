@@ -513,7 +513,7 @@ public class Export extends BaseCommand {
 				args.addAll(params);
 			}
 
-			Util.verboseMsg("Run: " + String.join(" ", args));
+			Util.verboseMsg(Util.VerboseCategory.COMMANDS, "Run: " + String.join(" ", args));
 			String out = Util.runCommand(args.toArray(new String[] {}));
 			if (out == null) {
 				Util.errorMsg("Unable to export Jdk distribution.");

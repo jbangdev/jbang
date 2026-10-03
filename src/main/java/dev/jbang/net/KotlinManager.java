@@ -38,7 +38,7 @@ public class KotlinManager {
 	public static Path downloadAndInstallKotlin(String version) {
 		Util.infoMsg("Downloading Kotlin " + version + ". Be patient, this can take several minutes...");
 		String url = String.format(KOTLIN_DOWNLOAD_URL, version, version);
-		Util.verboseMsg("Downloading " + url);
+		Util.verboseMsg(Util.VerboseCategory.NETWORK, "Downloading " + url);
 		Path kotlinDir = getKotlinPath(version);
 		Path kotlinTmpDir = kotlinDir.getParent().resolve(kotlinDir.getFileName().toString() + ".tmp");
 		Path kotlinOldDir = kotlinDir.getParent().resolve(kotlinDir.getFileName().toString() + ".old");
@@ -47,7 +47,7 @@ public class KotlinManager {
 		try {
 			Path kotlinPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing Kotlin " + version + "...");
-			Util.verboseMsg("Unpacking to " + kotlinDir);
+			Util.verboseMsg(Util.VerboseCategory.NETWORK, "Unpacking to " + kotlinDir);
 			UnpackUtil.unpack(kotlinPkg, kotlinTmpDir);
 			if (Files.isDirectory(kotlinDir)) {
 				Files.move(kotlinDir, kotlinOldDir);
