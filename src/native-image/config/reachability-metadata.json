@@ -507,7 +507,13 @@
     { "type": "dev.jbang.devkitman.jdkproviders.SdkmanJdkProvider$Discovery" },
     { "type": "eu.maveniverse.maven.mima.runtime.standalonestatic.StandaloneStaticRuntime" },
     { "type": "eu.maveniverse.maven.mima.runtime.standalonestatic.MemoizingRepositorySystemSupplierLookup$MimaRepositorySystemSupplier" },
-    { "type": "org.apache.maven.repository.supplier.RepositorySystemSupplier" },
+    {
+      "type": "org.apache.maven.repository.supplier.RepositorySystemSupplier",
+      "methods": [ { "name": "getRepositorySystem", "parameterTypes": [] } ]
+    },
+    { "type": "org.eclipse.aether.transport.apache.ApacheTransporterFactory" },
+    { "type": "org.eclipse.aether.transport.url.UrlTransporterFactory" },
+    { "type": "org.slf4j.nop.NOPServiceProvider" },
     {
       "type": "org.aesh.command.impl.parser.AeshOptionParser",
       "methods": [ { "name": "<init>", "parameterTypes": [] } ]
