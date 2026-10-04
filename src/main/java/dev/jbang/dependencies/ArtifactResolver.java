@@ -164,8 +164,11 @@ public class ArtifactResolver implements Closeable {
 					ContextOverrides.AddRepositoriesOp.REPLACE) // ignore
 																// settings.xml
 																// reposes
-			.snapshotUpdatePolicy(builder.updateCache
-					? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+			.artifactUpdatePolicy(builder.updateCache
+					? ContextOverrides.UpdatePolicy.ALWAYS
+					: null)
+			.metadataUpdatePolicy(builder.updateCache
+					? ContextOverrides.UpdatePolicy.ALWAYS
 					: null)
 			.repositoryListener(listener);
 
@@ -191,11 +194,11 @@ public class ArtifactResolver implements Closeable {
 									"jar"))
 					.setRepositories(
 							context.remoteRepositories()));
-			if (result.getArtifact() != null && result.getArtifact().getFile() != null) {
-				return Optional.of(result.getArtifact().getFile().toPath());
+			if (result.getArtifact() != null && result.getArtifact().getPath() != null) {
+				return Optional.of(result.getArtifact().getPath());
 			}
 		} catch (ArtifactResolutionException e) {
-			Util.verboseMsg("Could not resolve sources for " + artifact.toString());
+			Util.verboseMsg("Could not resolve sources for " + artifact);
 		}
 		return Optional.empty();
 	}
@@ -312,7 +315,7 @@ public class ArtifactResolver implements Closeable {
 				Set<String> ids = (Set<String>) session.getData()
 					.computeIfAbsent("ids", () -> new HashSet<>(depIds));
 				Set<String> printed = (Set<String>) session.getData()
-					.computeIfAbsent("printed", () -> new HashSet<>());
+					.computeIfAbsent("printed", HashSet::new);
 
 				String id = coord(groupId, artId, null, null, classifier);
 				if (!printed.contains(id)) {
@@ -334,7 +337,7 @@ public class ArtifactResolver implements Closeable {
 				if (version != null && !version.isEmpty()) {
 					res += ":" + version;
 				}
-				if (classifier != null && classifier.length() > 0) {
+				if (classifier != null && !classifier.isEmpty()) {
 					res += "-" + classifier;
 				}
 				if ("pom".equals(type)) {
@@ -449,7 +452,7 @@ public class ArtifactResolver implements Closeable {
 	private static ArtifactInfo toArtifactInfo(Artifact artifact, Path sourcePath, boolean sourcesChecked) {
 		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
 				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
-		return new ArtifactInfo(coord, artifact.getFile().toPath(), sourcePath, sourcesChecked);
+		return new ArtifactInfo(coord, artifact.getPath(), sourcePath, sourcesChecked);
 	}
 
 	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
@@ -461,8 +464,7 @@ public class ArtifactResolver implements Closeable {
 			return ar.context
 				.repositorySystemSession()
 				.getLocalRepository()
-				.getBasedir()
-				.toPath();
+				.getBasePath();
 		}
 	}
 }

@@ -281,4 +281,20 @@ public class TestInfo extends BaseTest {
 		assertThat(result.result, equalTo(0));
 		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
 	}
+
+	@Test
+	void testInfoToolsSelectSourcesDoesNotRequireSourceJars() throws Exception {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		CaptureResult<Integer> result = checkedRun("info", "tools", "--select", "sources", src);
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), containsString("quote.java"));
+	}
+
+	@Test
+	void testInfoToolsSelectResolvedSourceDependencies() throws Exception {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		CaptureResult<Integer> result = checkedRun("info", "tools", "--select", "resolvedSourceDependencies", src);
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
+	}
 }

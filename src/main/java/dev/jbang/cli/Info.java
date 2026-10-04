@@ -368,7 +368,8 @@ public class Info extends BaseCommand {
 
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			boolean needSources = downloadSources
-					|| (select != null && select.toLowerCase().contains("source"));
+					|| "applicationSourceJar".equals(select)
+					|| "resolvedSourceDependencies".equals(select);
 			ScriptInfo info = getInfo(true, needSources);
 			if (select != null) {
 				try {
