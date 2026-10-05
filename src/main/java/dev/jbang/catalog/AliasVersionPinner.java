@@ -1,7 +1,5 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -11,7 +9,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.PropertiesValueResolver;
@@ -77,7 +74,9 @@ public final class AliasVersionPinner {
 	 * <li><b>Catalog reference</b> replacement for {@code alias@org/repo/ref} by
 	 * swapping the last segment to the requested version.</li>
 	 * </ol>
-	 * If none apply, an {@link ExitException} is thrown for least surprise.
+	 * If none apply, the {@code scriptRef} is returned unchanged; the requested
+	 * version is still exposed to the running script as {@code jbang.app.version}
+	 * (set in {@code ProjectBuilder}).
 	 *
 	 * @param scriptRef the original script reference from an alias definition
 	 * @param version   the requested version (non-null)
@@ -129,17 +128,15 @@ public final class AliasVersionPinner {
 			return catalogResult;
 		}
 
-		if (Catalog.isValidCatalogReference(scriptRef)) {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					"Cannot apply version '" + version + "' to catalog reference '" + scriptRef
-							+ "'. Registered catalog names don't support version pinning. "
-							+ "Either use a path-based catalog (e.g., alias@org/repo/ref) or have the alias define ${jbang.app.version} in its script-ref.");
-		} else {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					"Cannot apply version '" + version + "' to script-ref '" + scriptRef
-							+ "'. No recognizable version pattern found. "
-							+ "Supported patterns: Maven GAV, GitHub/GitLab/Bitbucket URLs, or use ${jbang.app.version:default} in the alias definition.");
-		}
+		// No path/GAV/URL pattern matched: leave the script-ref untouched. The version
+		// is
+		// still exposed to the running script via -Djbang.app.version=<version> (set in
+		// ProjectBuilder from the explicit alias:version), so the script can decide
+		// what to
+		// do with it instead of jbang terminating.
+		Util.verboseMsg("No version pattern matched in script-ref '" + scriptRef
+				+ "'; version exposed to script via -Djbang.app.version=" + version);
+		return scriptRef;
 	}
 
 	/**

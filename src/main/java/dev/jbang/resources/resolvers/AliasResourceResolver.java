@@ -58,7 +58,7 @@ public class AliasResourceResolver implements ResourceResolver {
 							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
 									+ alias.scriptRef);
 				}
-				ref = new AliasedResourceRef(resolvedRef, alias);
+				ref = new AliasedResourceRef(resolvedRef, alias, aliasRef.requestedVersion);
 			}
 		}
 		return ref;
@@ -67,15 +67,28 @@ public class AliasResourceResolver implements ResourceResolver {
 	public static class AliasedResourceRef extends ResourceRef.WrappedResourceRef {
 		@NonNull
 		private final Alias alias;
+		@Nullable
+		private final String requestedVersion;
 
-		public AliasedResourceRef(ResourceRef aliasRef, @NonNull Alias alias) {
+		public AliasedResourceRef(ResourceRef aliasRef, @NonNull Alias alias, @Nullable String requestedVersion) {
 			super(aliasRef);
 			this.alias = alias;
+			this.requestedVersion = requestedVersion;
 		}
 
 		@NonNull
 		public Alias getAlias() {
 			return alias;
+		}
+
+		/**
+		 * The version explicitly requested via {@code alias:version}, or {@code null}
+		 * if none was given. Exposed to the running script as
+		 * {@code jbang.app.version}.
+		 */
+		@Nullable
+		public String getRequestedVersion() {
+			return requestedVersion;
 		}
 	}
 }

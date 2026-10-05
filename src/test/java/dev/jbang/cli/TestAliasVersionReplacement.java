@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.AliasRef;
 import dev.jbang.catalog.AliasVersionPinner;
@@ -345,7 +346,9 @@ public class TestAliasVersionReplacement extends BaseTest {
 
 	@Test
 	void testNoReplacementForPlainUrls() throws IOException {
-		// URLs that don't match git patterns should throw error for least surprise
+		// URLs that don't match any path/GAV/URL pattern are left untouched; the
+		// version is
+		// instead exposed to the running script via -Djbang.app.version=<version>.
 		String catalog = "{\n" +
 				"  \"aliases\": {\n" +
 				"    \"tool\": {\n" +
@@ -359,10 +362,8 @@ public class TestAliasVersionReplacement extends BaseTest {
 		Alias alias = Alias.get(ref.alias);
 		assertThat(alias, notNullValue());
 
-		ExitException ex = assertThrows(ExitException.class,
-				() -> resolveWithVersion(alias, ref));
-		assertThat(ex.getMessage(), containsString("Cannot apply version '1.0.0'"));
-		assertThat(ex.getMessage(), containsString("No recognizable version pattern found"));
+		String resolved = resolveWithVersion(alias, ref);
+		assertThat(resolved, equalTo("https://example.com/script.java"));
 	}
 
 	@Test
