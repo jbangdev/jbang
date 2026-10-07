@@ -29,3 +29,9 @@ assets/
 CLAUDE.md
 PLAN-*.md
 .pi/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
