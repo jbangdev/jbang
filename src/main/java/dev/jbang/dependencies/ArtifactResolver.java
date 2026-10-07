@@ -203,13 +203,6 @@ public class ArtifactResolver implements Closeable {
 		return Optional.empty();
 	}
 
-	public Optional<Path> resolveSource(MavenCoordinate coord) {
-		return downloadSources(toArtifact(coord));
-	}
-
-	public Optional<Path> resolveSource(String coord) {
-		return downloadSources(toArtifact(coord));
-	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
 		context.repositorySystemSession().getData().set("depIds", depIds);

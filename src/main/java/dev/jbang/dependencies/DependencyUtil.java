@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -228,24 +229,22 @@ public class DependencyUtil {
 	}
 
 	public static Optional<Path> resolveSource(String coord, List<MavenRepo> repos) {
-		return resolveSource(MavenCoordinate.fromString(coord), repos);
+		List<MavenRepo> actualRepos = repos != null ? repos : Collections.emptyList();
+		ModularClassPath mcp = resolveDependencies(Collections.singletonList(coord), actualRepos,
+				dev.jbang.util.Util.isOffline(),
+				dev.jbang.util.Util.isIgnoreTransitiveRepositories(),
+				dev.jbang.util.Util.isFresh(),
+				!dev.jbang.util.Util.isQuiet(),
+				true);
+		return mcp.getArtifacts()
+			.stream()
+			.map(ArtifactInfo::getSourceFile)
+			.filter(Objects::nonNull)
+			.filter(Files::exists)
+			.findFirst();
 	}
 
 	public static Optional<Path> resolveSource(MavenCoordinate coord, List<MavenRepo> repos) {
-		List<MavenRepo> actualRepos = repos != null && !repos.isEmpty() ? repos
-				: Collections.singletonList(toMavenRepo("central"));
-		try (ArtifactResolver resolver = ArtifactResolver.Builder
-			.create()
-			.repositories(actualRepos)
-			.withUserSettings(true)
-			.localFolder(getJBangLocalMavenRepoOverride())
-			.offline(dev.jbang.util.Util.isOffline())
-			.ignoreTransitiveRepositories(dev.jbang.util.Util.isIgnoreTransitiveRepositories())
-			.forceCacheUpdate(dev.jbang.util.Util.isFresh())
-			.logging(!dev.jbang.util.Util.isQuiet())
-			.downloadSources(true)
-			.build()) {
-			return resolver.resolveSource(coord);
-		}
+		return resolveSource(coord.toMavenString(), repos);
 	}
 }
