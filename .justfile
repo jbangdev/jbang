@@ -8,7 +8,7 @@ build *args:
     ./gradlew spotlessApply installDist -x test {{args}}
 
 format:
-    ./gradlew spotlessApply
+    ./gradlew format
 
 # run tests
 test *args:
