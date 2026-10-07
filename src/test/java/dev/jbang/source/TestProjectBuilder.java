@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -185,7 +187,7 @@ public class TestProjectBuilder extends BaseTest {
 				contains("--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(7));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null),
+				new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null, null),
 				ResourceRef.forFile(examplesTestFolder.resolve("Two.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")),
@@ -235,6 +237,109 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getManifestAttributes(), hasEntry("bar", "baz"));
 		assertThat(prj.getManifestAttributes(), hasEntry("baz", "nada"));
 		assertThat(prj.getManifestAttributes(), hasEntry("twom", "2"));
+	}
+
+	@Test
+	void testAliasExplicitVersionExposedAsProperty() throws IOException {
+		// alias:version on a plain file (no pattern) exposes jbang.app.version to the
+		// script
+		Util.setCwd(examplesTestFolder);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build("helloworld:1.2.3");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "1.2.3"));
+	}
+
+	@Test
+	void testAliasWithoutVersionHasNoVersionProperty() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build("helloworld");
+		assertThat(prj.getProperties(), not(hasEntry("jbang.app.version", "1.2.3")));
+		assertThat(prj.getProperties().containsKey("jbang.app.version"), is(Boolean.FALSE));
+	}
+
+	@Test
+	void testExplicitVersionPropertyWinsOverAliasVersion() throws IOException {
+		// An explicit -Djbang.app.version=<version> must not be clobbered by
+		// alias:version
+		Util.setCwd(examplesTestFolder);
+		ProjectBuilder pb = Project.builder()
+			.setProperties(java.util.Collections.singletonMap("jbang.app.version", "2.33"));
+		Project prj = pb.build("helloworld:1.2");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.33"));
+	}
+
+	// --- Scenarios discussed on PR #2433 ---------------------------------------
+	// Alias `versiondefault` defines a default via its properties block:
+	// { "script-ref": "helloworld.java", "properties": { "jbang.app.version":
+	// "2.7.4" } }
+	// Agreed precedence: -D (command line) > alias:version selector > alias
+	// properties
+	// default.
+
+	@Test
+	void testAliasPropertiesDefaultVersion() throws IOException {
+		// No :version, no -D -> the alias properties-block default is used
+		Util.setCwd(examplesTestFolder);
+		Project prj = Project.builder().build("versiondefault");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.7.4"));
+	}
+
+	@Test
+	void testAliasVersionOverridesPropertiesDefault() throws IOException {
+		// alias:version must override the alias properties-block default
+		Util.setCwd(examplesTestFolder);
+		Project prj = Project.builder().build("versiondefault:2.7.5b1");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.7.5b1"));
+	}
+
+	@Test
+	void testExplicitPropertyWinsOverVersionAndPropertiesDefault() throws IOException {
+		// An explicit -Djbang.app.version wins over both the selector and the alias
+		// default
+		Util.setCwd(examplesTestFolder);
+		Project prj = Project.builder()
+			.setProperties(java.util.Collections.singletonMap("jbang.app.version", "1.2.3"))
+			.build("versiondefault:2.7.5b1");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "1.2.3"));
+	}
+
+	// --- Command-line -D vs alias `properties` block: should MERGE per-key, -D
+	// winning
+	// (today it is an all-or-nothing block override; these pin the desired merge)
+	// ------
+
+	@Test
+	void testAliasPropertiesMergedWithCommandLineProperties() throws IOException {
+		// alias `alltags` defines properties { "two": "2" }; an unrelated -D must merge
+		// in
+		Util.setCwd(examplesTestFolder);
+		Map<String, String> cli = new java.util.HashMap<>();
+		cli.put("foo", "bar");
+		Project prj = Project.builder().setProperties(cli).build("alltags");
+		assertThat(prj.getProperties(), hasEntry("two", "2")); // from alias properties
+		assertThat(prj.getProperties(), hasEntry("foo", "bar")); // from -D
+	}
+
+	@Test
+	void testCommandLinePropertyOverridesAliasPropertyPerKey() throws IOException {
+		// same key in both -> -D wins for that key
+		Util.setCwd(examplesTestFolder);
+		Project prj = Project.builder()
+			.setProperties(java.util.Collections.singletonMap("two", "99"))
+			.build("alltags");
+		assertThat(prj.getProperties(), hasEntry("two", "99"));
+	}
+
+	@Test
+	void testUnrelatedCommandLinePropertyKeepsAliasDefault() throws IOException {
+		// an unrelated -D must NOT wipe the alias properties-block default
+		Util.setCwd(examplesTestFolder);
+		Project prj = Project.builder()
+			.setProperties(java.util.Collections.singletonMap("foo", "bar"))
+			.build("versiondefault");
+		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.7.4"));
+		assertThat(prj.getProperties(), hasEntry("foo", "bar"));
 	}
 
 	@Test

@@ -179,7 +179,7 @@ public class Alias extends CatalogItem {
 	public static Alias get(String aliasName) {
 		HashSet<String> names = new HashSet<>();
 		Alias alias = new Alias();
-		Alias result = merge(alias, aliasName, Alias::getLocal, names);
+		Alias result = merge(alias, aliasName, Alias::getLocal, names, null);
 		return result.scriptRef != null ? result : null;
 	}
 
@@ -194,25 +194,37 @@ public class Alias extends CatalogItem {
 	public static Alias get(Catalog catalog, String aliasName) {
 		HashSet<String> names = new HashSet<>();
 		Alias alias = new Alias();
-		Alias result = merge(alias, aliasName, catalog.aliases::get, names);
+		Alias result = merge(alias, aliasName, catalog.aliases::get, names, null);
+		return result.scriptRef != null ? result : null;
+	}
+
+	public static Alias get(Catalog catalog, String aliasName, String requestedVersion) {
+		HashSet<String> names = new HashSet<>();
+		Alias alias = new Alias();
+		Alias result = merge(alias, aliasName, catalog.aliases::get, names, requestedVersion);
 		return result.scriptRef != null ? result : null;
 	}
 
 	private static Alias merge(Alias a1, String name, Function<String, Alias> findUnqualifiedAlias,
-			HashSet<String> names) {
-		// if this is a proper possible GAV, i.e.
-		// io.quarkiverse.mcp:artifact:1.0.0.Beta5@fatjar
-		// don't try interpret it.
+			HashSet<String> names, String requestedVersion) {
+		if (name.startsWith(":") || name.startsWith("@")) {
+			throw new RuntimeException("Invalid alias name '" + name + "'");
+		}
+
 		if (DependencyUtil.looksLikeAPossibleGav(name)) {
 			return a1;
 		}
+
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
+
 		String[] parts = name.split("@", 2);
-		if (parts[0].isEmpty()) {
+		if (parts[0].isEmpty() || parts[0].startsWith(":")) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
+
+		// EXISTING: Look up alias (unchanged)
 		Alias a2;
 		if (parts.length == 1) {
 			a2 = findUnqualifiedAlias.apply(name);
@@ -222,9 +234,29 @@ public class Alias extends CatalogItem {
 			}
 			a2 = fromCatalog(parts[1], parts[0]);
 		}
+
+		// EXISTING: Merge if found
 		if (a2 != null) {
 			names.add(name);
-			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
+
+			// If a version was requested for the alias invocation, it must apply to the
+			// final script-ref (GAV/URL/catalog-ref), not to an alias reference. We
+			// detect plain alias references by checking that the scriptRef looks like a
+			// valid alias name and does not contain URL/GAV/catalog special characters.
+			if (requestedVersion != null && Catalog.isValidName(a2.scriptRef)
+					&& !a2.scriptRef.contains(":")
+					&& !a2.scriptRef.contains("/")
+					&& !a2.scriptRef.contains("\\")
+					&& !a2.scriptRef.contains("@")) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						"Cannot apply version '" + requestedVersion + "' to alias reference '" + a2.scriptRef
+								+ "'. Version can only be applied to the final target. "
+								+ "Use the target alias directly: " + a2.scriptRef + ":" + requestedVersion);
+			}
+
+			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names, requestedVersion);
+
+			// EXISTING: Property merging (all unchanged from original code)
 			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
 			List<String> jopts = a1.runtimeOptions != null && !a1.runtimeOptions.isEmpty() ? a1.runtimeOptions
@@ -263,9 +295,12 @@ public class Alias extends CatalogItem {
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			List<String> docs = a1.docs != null && !a1.docs.isEmpty() ? a1.docs : a2.docs;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
+
+			// EXISTING: Create merged alias
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
 					mainClass, moduleName, copts, nimg, nopts, forceType, ints, jfr, debug, cds, inter, ep, ea, esa,
-					mopts, jags, docs, catalog);
+					mopts,
+					jags, docs, catalog);
 		} else {
 			return a1;
 		}

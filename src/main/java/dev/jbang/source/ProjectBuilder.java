@@ -73,6 +73,10 @@ public class ProjectBuilder {
 	private List<String> additionalRepos = new ArrayList<>();
 	private List<String> additionalClasspaths = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
+	// Snapshot of the caller/command-line (-D) properties taken before any alias
+	// properties are merged in, so we can tell an explicit -D from an alias
+	// default.
+	private Map<String, String> explicitProperties = Collections.emptyMap();
 	private Source.Type forceType = null;
 	private String mainClass;
 	private String moduleName;
@@ -261,6 +265,9 @@ public class ProjectBuilder {
 	}
 
 	public Project build(String resource) {
+		// Capture the caller/-D properties before alias resolution merges alias
+		// properties into `properties`, so version precedence can distinguish them.
+		explicitProperties = new HashMap<>(properties);
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 		return build(resourceRef);
 	}
@@ -304,6 +311,28 @@ public class ProjectBuilder {
 		if (!buildRefs.add(resourceRef)) {
 			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Self-referencing project dependency found for: '" + resourceRef.getOriginalResource() + "'");
+		}
+
+		// Expose an explicit alias:version to the running script as
+		// -Djbang.app.version=<version>
+		// (part of the reserved jbang.app.* namespace; mirrors the JBANG_APP_* env
+		// inputs).
+		if (resourceRef instanceof AliasResourceResolver.AliasedResourceRef) {
+			String requestedVersion = ((AliasResourceResolver.AliasedResourceRef) resourceRef).getRequestedVersion();
+			if (requestedVersion != null) {
+				if (explicitProperties.containsKey("jbang.app.version")) {
+					// An explicit -Djbang.app.version=<version> wins over the alias:version
+					// selector (which in turn overrides the alias properties-block default).
+					Util.verboseMsg("Keeping explicit -Djbang.app.version="
+							+ explicitProperties.get("jbang.app.version")
+							+ "; not clobbering it with alias version '" + requestedVersion + "'");
+				} else {
+					Map<String, String> merged = new HashMap<>(properties); // properties may be shared/immutable
+					merged.put("jbang.app.version", requestedVersion);
+					properties = merged;
+					contextProperties = null; // reset cached context so the new property is picked up
+				}
+			}
 		}
 
 		Project prj;
@@ -778,8 +807,12 @@ public class ProjectBuilder {
 		if (additionalClasspaths.isEmpty()) {
 			additionalClasspaths(alias.classpaths);
 		}
-		if (properties.isEmpty()) {
-			setProperties(alias.properties);
+		if (alias.properties != null && !alias.properties.isEmpty()) {
+			// Merge per-key: alias properties are defaults, caller/-D properties win.
+			Map<String, String> merged = new HashMap<>(alias.properties);
+			merged.putAll(properties);
+			properties = merged;
+			contextProperties = null;
 		}
 		if (javaVersion == null) {
 			javaVersion(alias.javaVersion);
