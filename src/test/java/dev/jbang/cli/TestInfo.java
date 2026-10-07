@@ -297,4 +297,19 @@ public class TestInfo extends BaseTest {
 		assertThat(result.result, equalTo(0));
 		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
 	}
+
+	@Test
+	void testInfoSourceJarForGavWithoutSources() {
+		Info.SourceJar sourceJar = JBang.parseCommand("info", "source-jar",
+				"io.netty:netty-tcnative-boringssl-static:2.0.61.Final");
+		Assertions.assertThrows(ExitException.class, sourceJar::doCall);
+	}
+
+	@Test
+	void testInfoToolsForGavWithoutSources() {
+		Info.Tools tools = JBang.parseCommand("info", "tools", "--download-sources",
+				"io.netty:netty-tcnative-boringssl-static:2.0.61.Final");
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false, true);
+		assertThat(info.applicationSourceJar, is(nullValue()));
+	}
 }

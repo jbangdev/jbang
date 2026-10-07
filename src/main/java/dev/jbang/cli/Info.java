@@ -277,8 +277,10 @@ public class Info extends BaseCommand {
 
 				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 				for (ArtifactInfo art : artifacts) {
-					if (jar.equals(art.getFile()) && art.getSourceFile() != null && Files.exists(art.getSourceFile())) {
-						applicationSourceJar = art.getSourceFile().toAbsolutePath().toString();
+					if (jar.equals(art.getFile())) {
+						if (art.getSourceFile() != null && Files.exists(art.getSourceFile())) {
+							applicationSourceJar = art.getSourceFile().toAbsolutePath().toString();
+						}
 						return;
 					}
 				}

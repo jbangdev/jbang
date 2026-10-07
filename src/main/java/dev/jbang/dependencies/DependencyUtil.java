@@ -235,8 +235,12 @@ public class DependencyUtil {
 				Collections.singletonList(coord), actualRepos,
 				Util.isOffline(), Util.isIgnoreTransitiveRepositories(), Util.isFresh(), !Util.isQuiet(),
 				true);
+		MavenCoordinate target = MavenCoordinate.fromString(coord);
 		return mcp.getArtifacts()
 			.stream()
+			.filter(ai -> ai.getCoordinate() != null
+					&& ai.getCoordinate().getGroupId().equals(target.getGroupId())
+					&& ai.getCoordinate().getArtifactId().equals(target.getArtifactId()))
 			.map(ArtifactInfo::getSourceFile)
 			.filter(Objects::nonNull)
 			.filter(Files::exists)
