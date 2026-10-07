@@ -25,7 +25,6 @@ import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.source.sources.KotlinSource;
-import dev.jbang.util.PropertiesValueResolver;
 
 import io.qameta.allure.Issue;
 
@@ -194,7 +193,7 @@ public class TestSource extends BaseTest {
 	@Test
 	void testFindDependencies() {
 		Source src = new JavaSource(ResourceRef.forLiteral(example),
-				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
+				new Properties());
 		Project prj = Project.builder().build(src);
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
@@ -210,7 +209,7 @@ public class TestSource extends BaseTest {
 	@Disabled("Disabled until #2330 is fixed")
 	void testFindBrokenListDependencies() {
 		Source src = new JavaSource(ResourceRef.forLiteral("//DEPS com.offbytwo:docopt:0.6.0.20150202,mac"),
-				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
+				new Properties());
 		Project prj = Project.builder().build(src); // NPE's atm.
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
@@ -226,7 +225,7 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(ResourceRef.forLiteral(example),
-				it -> PropertiesValueResolver.replaceProperties(it, p));
+				p);
 		Project prj = Project.builder().build(src);
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
