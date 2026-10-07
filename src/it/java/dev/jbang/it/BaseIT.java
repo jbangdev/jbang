@@ -71,7 +71,7 @@ public class BaseIT {
 		// provide default scratch directory for temporary content
 		// !('SCRATCH' in env) && (env.SCRATCH = sc)
 		// set JBANG_REPO to not mess with users own ~/.m2
-		String sep = java.io.File.separator;
+		String sep = File.separator;
 
 		env.put("SCRATCH", scratch.toString());
 		env.put("JBANG_REPO", scratch + sep + "itest-m2");

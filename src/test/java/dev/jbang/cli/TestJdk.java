@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,7 +62,7 @@ public class TestJdk extends BaseTest {
 		String[] suffix = { "--jdk-providers", "default,jbang,linked", "--jdk-installer",
 				"mock;versions=11.1,17.7,24.4" };
 		int start = 0;
-		java.util.List<String> newArgs = new java.util.ArrayList<>();
+		List<String> newArgs = new ArrayList<>();
 		newArgs.add("jdk");
 		if (args.length > 0 && "jdk".equals(args[0])) {
 			start = 1;

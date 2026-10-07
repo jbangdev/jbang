@@ -807,9 +807,9 @@ public class Util {
 				"https://repo1.maven.org/maven2/$1/");
 
 		if (url.equals(originalUrl)) {
-			java.net.URI uri = null;
+			URI uri = null;
 			try {
-				uri = new java.net.URI(url);
+				uri = new URI(url);
 			} catch (URISyntaxException e) {
 				return url;
 			}

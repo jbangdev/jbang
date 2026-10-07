@@ -59,7 +59,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 	}
 
 	public static Path fetchScriptFromUntrustedURL(String scriptURL) throws IOException, URISyntaxException {
-		java.net.URI uri = new java.net.URI(scriptURL);
+		URI uri = new URI(scriptURL);
 
 		String swizzledUrl = swizzleURL(scriptURL);
 

@@ -29,6 +29,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.aesh.command.parser.CommandLineParserException;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterEach;
@@ -42,6 +43,7 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
+import dev.jbang.cli.Run;
 import dev.jbang.dependencies.DependencyCache;
 import dev.jbang.util.Util;
 
@@ -135,12 +137,12 @@ public abstract class BaseTest {
 		return captureOutput(() -> {
 			try {
 				BaseCommand cmd = JBang.parseCommand(args);
-				if (cmd instanceof dev.jbang.cli.Run) {
-					((dev.jbang.cli.Run) cmd).realOut = System.out;
+				if (cmd instanceof Run) {
+					((Run) cmd).realOut = System.out;
 				}
 				return cmd.doCall();
 			} catch (RuntimeException e) {
-				if (e.getCause() instanceof org.aesh.command.parser.CommandLineParserException) {
+				if (e.getCause() instanceof CommandLineParserException) {
 					Util.verboseMsg("checkedRun: parseCommand failed with "
 							+ e.getCause().getMessage() + ", falling back to JBang.execute()");
 					return JBang.execute(args);

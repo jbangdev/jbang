@@ -54,7 +54,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	}
 
 	protected ProjectBuilder createBaseProjectBuilder() {
-		return dev.jbang.source.Project
+		return Project
 			.builder()
 			.setProperties(dependencyInfoMixin.getProperties())
 			.additionalDependencies(dependencyInfoMixin.getDependencies())
