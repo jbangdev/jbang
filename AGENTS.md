@@ -5,8 +5,8 @@
 - Unit tests: `./gradlew test`; single test with `./gradlew test --tests "pkg.Class"`.
 - Always add unit tests, and if relevant integration tests for new features and bugfixes.
 - Integration tests: `./gradlew integrationTest`; filter via `--tests "pkg.ITClass"`.
-- Formatting: `./gradlew spotlessApply`; verify using `spotlessCheck`.
-- No extra linters; rely on compiler + spotless for CI hygiene.
+- Formatting: `./gradlew format` (Spotless layout + OpenRewrite shorten-FQNs); verify using `formatCheck`.
+- No extra linters; rely on compiler + Spotless + OpenRewrite for CI hygiene.
 - Source layout: app in `src/main/java`, unit tests in `src/test/java`, IT in `src/it/java`.
 - Main entry point: `dev.jbang.Main`; CLI commands built with picocli.
 - Keep packages under `dev.jbang`; match existing folder hierarchy.

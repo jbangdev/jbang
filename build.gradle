@@ -9,6 +9,7 @@ plugins {
 
 	id 'org.gradle.crypto.checksum' version '1.4.0'
 	id "com.diffplug.spotless" version "8.6.0"
+	id "org.openrewrite.rewrite" version "7.39.0"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
@@ -253,6 +254,37 @@ spotless {
 		target '**/*.xml', '**/*.nuspec'
 	}
 }
+
+rewrite {
+	// Replace unnecessary fully-qualified type names with simple names + imports.
+	// OpenRewrite resolves types from the compile classpath, so unlike text-level
+	// formatters it can do this safely across the whole module.
+	activeRecipe('org.openrewrite.java.ShortenFullyQualifiedTypeReferences')
+	activeStyle('dev.jbang.ImportStyle')
+	// Guardrail: `rewriteDryRun` fails the build if any FQN could still be shortened.
+	failOnDryRunResults = true
+	// Skip Gradle/Groovy scripts: OpenRewrite's Groovy support shortens stdlib
+	// types (e.g. groovy.json.JsonOutput) without adding the needed import.
+	exclusion('*.gradle', 'settings.gradle', '**/*.gradle', '**/*.gradle.kts')
+}
+
+// Single entry points for code formatting = OpenRewrite (shorten FQNs) + Spotless (layout).
+// OpenRewrite adds imports; Spotless then orders/formats them, so Spotless must run after.
+tasks.named('spotlessApply').configure { mustRunAfter('rewriteRun') }
+tasks.named('spotlessCheck').configure { mustRunAfter('rewriteDryRun') }
+tasks.register('format') {
+	group = 'formatting'
+	description = 'Apply all code formatting (OpenRewrite + Spotless)'
+	dependsOn('rewriteRun', 'spotlessApply')
+}
+tasks.register('formatCheck') {
+	group = 'formatting'
+	description = 'Verify all code formatting (OpenRewrite + Spotless)'
+	dependsOn('rewriteDryRun', 'spotlessCheck')
+}
+// Make the formatting gate a first-class part of `check` (Spotless already wires
+// spotlessCheck into check; this adds the OpenRewrite dry-run alongside it).
+tasks.named('check').configure { dependsOn('formatCheck') }
 
 nisseConfig {
 	jgit {
