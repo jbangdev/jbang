@@ -3,7 +3,7 @@ package dev.jbang.source;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -53,17 +53,17 @@ public abstract class Source {
 		}
 	}
 
-	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	protected Source(ResourceRef resourceRef, Properties properties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> Util.readString(resourceRef.getInputStream());
-		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), properties);
 	}
 
-	protected Source(ResourceRef resourceRef, String contents, Function<String, String> replaceProperties) {
+	protected Source(ResourceRef resourceRef, String contents, Properties properties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> contents;
 		this.contents = contents;
-		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), properties);
 	}
 
 	@NonNull
@@ -129,31 +129,31 @@ public abstract class Source {
 	}
 
 	// Used only by tests
-	static Source forResource(String resource, Function<String, String> replaceProperties) {
-		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
+	static Source forResource(String resource, Properties properties) {
+		return forResource(ResourceResolver.forResources(), resource, properties);
 	}
 
 	static Source forResource(ResourceResolver resolver, String resource,
-			Function<String, String> replaceProperties) {
+			Properties properties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
 			resourceRef = ResourceRef.forUnresolvable(resource, "not found from " + resolver.description());
 		}
-		return forResourceRef(resourceRef, replaceProperties);
+		return forResourceRef(resourceRef, properties);
 	}
 
-	public static Source forResourceRef(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	public static Source forResourceRef(ResourceRef resourceRef, Properties properties) {
 		String ext = resourceRef.getExtension();
 		if (ext.equals("kt")) {
-			return new KotlinSource(resourceRef, replaceProperties);
+			return new KotlinSource(resourceRef, properties);
 		} else if (ext.equals("groovy")) {
-			return new GroovySource(resourceRef, replaceProperties);
+			return new GroovySource(resourceRef, properties);
 		} else if (ext.equals("jsh")) {
-			return new JshSource(resourceRef, replaceProperties);
+			return new JshSource(resourceRef, properties);
 		} else if (ext.equals("md")) {
-			return MarkdownSource.create(resourceRef, replaceProperties);
+			return MarkdownSource.create(resourceRef, properties);
 		} else {
-			return new JavaSource(resourceRef, replaceProperties);
+			return new JavaSource(resourceRef, properties);
 		}
 	}
 }

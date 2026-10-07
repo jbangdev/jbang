@@ -1,6 +1,6 @@
 package dev.jbang.source.sources;
 
-import java.util.function.Function;
+import java.util.Properties;
 
 import org.jspecify.annotations.NonNull;
 
@@ -8,12 +8,12 @@ import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 
 public class JshSource extends JavaSource {
-	public JshSource(ResourceRef script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
+	public JshSource(ResourceRef script, Properties properties) {
+		super(script, properties);
 	}
 
-	protected JshSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
-		super(ref, script, replaceProperties);
+	protected JshSource(ResourceRef ref, String script, Properties properties) {
+		super(ref, script, properties);
 	}
 
 	@Override

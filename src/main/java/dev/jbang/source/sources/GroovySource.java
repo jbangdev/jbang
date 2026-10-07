@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,8 +23,8 @@ import dev.jbang.util.Util;
 
 public class GroovySource extends Source {
 
-	public GroovySource(ResourceRef script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
+	public GroovySource(ResourceRef script, Properties properties) {
+		super(script, properties);
 	}
 
 	@Override

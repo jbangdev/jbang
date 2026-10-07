@@ -36,6 +36,43 @@ class MyScript {
 }
 ----
 
+== Properties
+
+[[props-directive]]
+=== //PROPS
+
+Defines properties that can be used in the other directives of the file using the `${name}` syntax.
+This is useful to avoid repeating the same value, like a version or a path, over and over.
+
+[source,java]
+----
+//PROPS quarkus.version=3.25
+//DEPS io.quarkus:quarkus-resteasy:${quarkus.version}
+//DEPS io.quarkus:quarkus-arc:${quarkus.version}
+
+//PROPS base=../jabls/src/main/java/org/jabref/languageserver
+//SOURCES ${base}/LspLauncher.java
+//SOURCES ${base}/util/LspIntegrityCheck.java
+----
+
+*Rules:*
+
+* A single `//PROPS` line can define multiple properties separated by spaces: `//PROPS a=1 b=2`.
+  Use quotes for values containing spaces: `//PROPS greeting="hello world"`.
+* Properties apply to the whole file, no matter where the `//PROPS` line is placed.
+* `//PROPS` lines are evaluated in order, so a property can refer to a property defined before it:
+  `//PROPS root=../lib` followed by `//PROPS base=${root}/src`.
+* If the same property is defined multiple times in a file the last definition wins.
+* Properties set on the command line (`-Dname=value`), in an alias or by the system (eg. `${os.name}`)
+  always take priority over properties defined with `//PROPS`.
+* Files included using `//SOURCES` inherit the properties of the file that includes them.
+  Their own `//PROPS` can add new properties, but they cannot override inherited ones,
+  so the including file always has the final say. Properties defined in an included file
+  are not visible to the file that includes it, nor to its other included files.
+* `//PROPS` properties are only used while reading the directives. They are *not* passed to
+  your application at runtime. If you need that, pass them on explicitly,
+  eg. `//RUNTIME_OPTIONS -Dquarkus.version=${quarkus.version}`.
+
 == Dependencies and Repositories
 
 === //DEPS
@@ -700,6 +737,7 @@ Some directives can be conditionally applied:
 |`//SOURCES` |Additional sources |`//SOURCES util/Helper.java`
 |`//FILES` |Include files |`//FILES config.properties`
 |`//DESCRIPTION` |Script description |`//DESCRIPTION My utility`
+|`//PROPS` |Properties for use in directives |`//PROPS version=1.0`
 |===
 
 == What's Next?

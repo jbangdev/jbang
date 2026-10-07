@@ -3,7 +3,7 @@ package dev.jbang.source.sources;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.jspecify.annotations.NonNull;
@@ -19,8 +19,8 @@ import dev.jbang.util.Util;
 
 public class MarkdownSource extends JshSource {
 
-	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
-		super(ref, script, replaceProperties);
+	protected MarkdownSource(ResourceRef ref, String script, Properties properties) {
+		super(ref, script, properties);
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class MarkdownSource extends JshSource {
 		return ctx.getProject().isJShell() ? super.getBuilder(ctx) : new JavaAppBuilder(ctx);
 	}
 
-	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	public static Source create(ResourceRef resourceRef, Properties properties) {
 		String scriptText = new MarkdownTransform().transformMarkdown(
 				Util.readFileContent(resourceRef.getFile()));
 		try {
@@ -48,7 +48,7 @@ public class MarkdownSource extends JshSource {
 		}
 		return new MarkdownSource(resourceRef,
 				scriptText,
-				replaceProperties);
+				properties);
 	}
 
 	static class MarkdownTransform {

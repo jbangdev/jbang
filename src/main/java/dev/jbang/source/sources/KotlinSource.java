@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Properties;
 
 import org.jspecify.annotations.NonNull;
 
@@ -20,8 +20,8 @@ import dev.jbang.util.Util;
 
 public class KotlinSource extends Source {
 
-	public KotlinSource(ResourceRef script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
+	public KotlinSource(ResourceRef script, Properties properties) {
+		super(script, properties);
 	}
 
 	@Override

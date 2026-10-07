@@ -328,6 +328,16 @@ This can be put to use in `//DEPS` like so:
 
 Here we use the properties to avoid hardcoding your script to a specific operating system.
 
+You can also define your own properties in the script itself using `//PROPS`,
+see xref:script-directives.adoc#props-directive[//PROPS]:
+
+[source,java]
+----
+//PROPS quarkus.version=3.25
+//DEPS io.quarkus:quarkus-resteasy:${quarkus.version}
+//DEPS io.quarkus:quarkus-arc:${quarkus.version}
+----
+
 // TODO: move out of dependencies ?
 === JavaFX
 

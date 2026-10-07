@@ -331,7 +331,7 @@ public class ProjectBuilder {
 	private Project createJbangProject(ResourceRef resourceRef) {
 		Project prj = new Project(resourceRef);
 		String contents = Util.readFileContent(resourceRef.getFile());
-		Directives directives = new Directives.JbangProject(contents, propertyReplacer());
+		Directives directives = new Directives.JbangProject(contents, getContextProperties());
 		ResourceResolver sibRes1 = getSiblingResolver(resourceRef);
 		prj.setDescription(directives.description());
 		prj.addDocs(allToDocRef(directives.collectDocs(), sibRes1));
@@ -388,7 +388,7 @@ public class ProjectBuilder {
 				}
 			}
 		}
-		List<Source> includedSources = allToSource(sources, resourceRef, sibRes2);
+		List<Source> includedSources = allToSource(sources, resourceRef, sibRes2, directives.properties());
 		for (Source includedSource : includedSources) {
 			updateProject(includedSource, prj, resolver);
 			if (first) {
@@ -407,9 +407,7 @@ public class ProjectBuilder {
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
-		return Source.forResourceRef(resourceRef,
-				propertyReplacer());
-
+		return Source.forResourceRef(resourceRef, getContextProperties());
 	}
 
 	public Project build(Source src) {
@@ -570,12 +568,13 @@ public class ProjectBuilder {
 		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
 	}
 
-	private List<Source> allToSource(List<String> sources, ResourceRef resourceRef, ResourceResolver resolver) {
+	private List<Source> allToSource(List<String> sources, ResourceRef resourceRef, ResourceResolver resolver,
+			Properties inheritedProperties) {
 		String org = resourceRef != null ? resourceRef.getOriginalResource() : null;
 		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent() : Util.getCwd();
 		return sources.stream()
 			.flatMap(line -> Util.explode(org, baseDir, line).stream())
-			.map(ref -> Source.forResource(resolver, ref, propertyReplacer()))
+			.map(ref -> Source.forResource(resolver, ref, inheritedProperties))
 			.collect(Collectors.toList());
 	}
 
@@ -714,7 +713,10 @@ public class ProjectBuilder {
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
-			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
+			// included sources inherit the properties of the source that includes them
+			Properties srcProps = src.getDirectives().properties();
+			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2,
+					srcProps != null ? srcProps : getContextProperties());
 			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
 			}

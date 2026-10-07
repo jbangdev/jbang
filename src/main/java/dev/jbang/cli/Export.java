@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -617,7 +616,7 @@ public class Export extends BaseCommand {
 
 		private Path copySource(ResourceRef sourceRef, Path srcJavaDir) throws IOException {
 			Path srcFile = Objects.requireNonNull(sourceRef.getFile());
-			Source src = Source.forResourceRef(sourceRef, Function.identity());
+			Source src = Source.forResourceRef(sourceRef, null);
 			String fileName = Util.unkebabify(srcFile.getFileName().toString());
 			Path destFile;
 			if (src.getJavaPackage().isPresent()) {

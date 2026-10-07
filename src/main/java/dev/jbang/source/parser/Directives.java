@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -24,6 +24,7 @@ import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 public abstract class Directives {
@@ -45,6 +46,7 @@ public abstract class Directives {
 		public static final String NATIVE_OPTIONS = "NATIVE_OPTIONS";
 		public static final String NOINTEGRATIONS = "NOINTEGRATIONS";
 		public static final String PREVIEW = "PREVIEW";
+		public static final String PROPS = "PROPS";
 		public static final String REPOS = "REPOS";
 		public static final String RUNTIME_OPTIONS = "RUNTIME_OPTIONS";
 		public static final String SOURCES = "SOURCES";
@@ -55,6 +57,15 @@ public abstract class Directives {
 	}
 
 	public abstract Stream<Directive> getAll();
+
+	/**
+	 * Returns the properties that are in effect for this set of directives. These
+	 * are the properties that were passed in, combined with any properties defined
+	 * using <code>//PROPS</code> directives. Returns <code>null</code> if no
+	 * properties were passed in, meaning property replacement is disabled.
+	 */
+	@Nullable
+	public abstract Properties properties();
 
 	public List<String> binaryDependencies() {
 		return getAll()
@@ -414,17 +425,79 @@ public abstract class Directives {
 		.compile("(?<key>(?:[A-Z]+:)?[A-Z_]+)(?:\\s+(?<value>.*?))?(?:\\s\\/\\/\\s.*)?");
 
 	@Nullable
-	protected Directive toDirective(@NonNull String line, @Nullable Function<String, String> propertiesReplacer) {
+	protected Directive toDirective(@NonNull String line, @Nullable Properties properties) {
 		Matcher matcher = DIRECTIVE.matcher(line);
 		if (matcher.matches()) {
 			String value = matcher.group("value");
-			if (propertiesReplacer != null && value != null) {
-				value = propertiesReplacer.apply(value);
+			if (properties != null && value != null) {
+				value = PropertiesValueResolver.replaceProperties(value, properties);
 			}
 			value = value != null ? value.trim() : null;
 			return new Directive(matcher.group("key"), value);
 		}
 		return null;
+	}
+
+	private static final Pattern PROPS_ENTRY = Pattern
+		.compile("(?<key>[^\\s=\"']+)=(?:\"(?<dq>[^\"]*)\"|'(?<sq>[^']*)'|(?<uq>[^\\s\"']*))|(?<bad>\\S+)");
+
+	/**
+	 * Determines the properties that are in effect for a file given the properties
+	 * it inherits (from the command line, aliases and any files that include it)
+	 * and its own <code>//PROPS</code> directives. Inherited properties always win,
+	 * which means properties defined on the command line override those defined in
+	 * the file and that a file can override the properties of the files it
+	 * includes. The <code>//PROPS</code> directives themselves are evaluated in
+	 * order, so a property can refer to properties defined before it.
+	 *
+	 * @param inherited   The properties inherited by the file
+	 * @param propsValues The raw (unreplaced) values of all <code>//PROPS</code>
+	 *                    directives in the file
+	 * @return The properties in effect for the file
+	 */
+	@NonNull
+	static Properties resolveProperties(@NonNull Properties inherited, @NonNull List<String> propsValues) {
+		Properties result = new Properties(inherited);
+		for (String propsValue : propsValues) {
+			Matcher m = PROPS_ENTRY.matcher(propsValue);
+			while (m.find()) {
+				if (m.group("bad") != null) {
+					Util.warnMsg("Ignoring invalid //PROPS entry '" + m.group("bad") + "', expected key=value");
+					continue;
+				}
+				String key = m.group("key");
+				String value = m.group("dq") != null ? m.group("dq")
+						: m.group("sq") != null ? m.group("sq") : m.group("uq");
+				if (inherited.getProperty(key) == null) {
+					result.setProperty(key, PropertiesValueResolver.replaceProperties(value, result));
+				}
+			}
+		}
+		return result;
+	}
+
+	@Nullable
+	private static String rawPropsValue(@NonNull String line) {
+		Matcher matcher = DIRECTIVE.matcher(line);
+		if (matcher.matches() && Names.PROPS.equals(matcher.group("key"))) {
+			return matcher.group("value");
+		}
+		return null;
+	}
+
+	@Nullable
+	static Properties resolveProperties(@Nullable Properties inherited, @NonNull Stream<String> directiveLines) {
+		if (inherited == null) {
+			return null;
+		}
+		List<String> propsValues = directiveLines
+			.map(Directives::rawPropsValue)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+		if (propsValues.isEmpty()) {
+			return inherited;
+		}
+		return resolveProperties(inherited, propsValues);
 	}
 
 	/**
@@ -433,7 +506,8 @@ public abstract class Directives {
 	 */
 	public static class Extended extends Directives {
 		private String contents;
-		private final Function<String, String> propertiesReplacer;
+		@Nullable
+		private Properties properties;
 		private List<Directive> tags;
 
 		private static final String DEPS_ANNOT_PREFIX = "@Grab(";
@@ -445,9 +519,9 @@ public abstract class Directives {
 		private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile(
 				"@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-		public Extended(String contents, Function<String, String> propertiesReplacer) {
+		public Extended(String contents, @Nullable Properties properties) {
 			this.contents = contents;
-			this.propertiesReplacer = propertiesReplacer;
+			this.properties = properties;
 		}
 
 		public static class ExtendedDirective extends Directive {
@@ -464,11 +538,14 @@ public abstract class Directives {
 		@Override
 		public Stream<Directive> getAll() {
 			if (tags == null) {
+				properties = resolveProperties(properties, Util.stringLines(contents)
+					.filter(s -> s.startsWith("//"))
+					.map(s -> s.substring(2)));
 				tags = Util.stringLines(contents)
 					.filter(s -> s.startsWith("//")
 							|| s.contains(DEPS_ANNOT_PREFIX)
 							|| s.contains(REPOS_ANNOT_PREFIX))
-					.map(line -> toDirective(line, propertiesReplacer))
+					.map(line -> toDirective(line, properties))
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 				contents = null;
@@ -478,13 +555,20 @@ public abstract class Directives {
 
 		@Override
 		@Nullable
-		protected Directive toDirective(@NonNull String line, @Nullable Function<String, String> propertiesReplacer) {
+		public Properties properties() {
+			getAll();
+			return properties;
+		}
+
+		@Override
+		@Nullable
+		protected Directive toDirective(@NonNull String line, @Nullable Properties properties) {
 			if (line.contains(DEPS_ANNOT_PREFIX)) {
 				return parseDepsAnnotation(line);
 			} else if (line.contains(REPOS_ANNOT_PREFIX)) {
 				return parseReposAnnotation(line);
 			} else {
-				Directive d = super.toDirective(line.substring(2), this.propertiesReplacer);
+				Directive d = super.toDirective(line.substring(2), properties);
 				if (d == null) {
 					return null;
 				}
@@ -573,21 +657,31 @@ public abstract class Directives {
 
 	public static class JbangProject extends Directives {
 		private String contents;
-		private final Function<String, String> propertiesReplacer;
+		@Nullable
+		private Properties properties;
 
 		private List<Directive> tags;
 
-		public JbangProject(String contents, Function<String, String> propertiesReplacer) {
+		public JbangProject(String contents, @Nullable Properties properties) {
 			this.contents = contents;
-			this.propertiesReplacer = propertiesReplacer;
+			this.properties = properties;
+		}
+
+		@Override
+		@Nullable
+		public Properties properties() {
+			getAll();
+			return properties;
 		}
 
 		@Override
 		public Stream<Directive> getAll() {
 			if (tags == null) {
+				properties = resolveProperties(properties, Util.stringLines(contents)
+					.filter(s -> !s.startsWith("//")));
 				tags = Util.stringLines(contents)
 					.filter(s -> !s.startsWith("//"))
-					.map(line -> toDirective(line, propertiesReplacer))
+					.map(line -> toDirective(line, properties))
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 				contents = null;

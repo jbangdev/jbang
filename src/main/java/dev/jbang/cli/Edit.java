@@ -12,7 +12,6 @@ import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.aesh.command.CommandDefinition;
@@ -429,7 +428,7 @@ public class Edit extends BaseCommand {
 
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
 			Path linkFile;
-			Source src = Source.forResourceRef(sourceRef, Function.identity());
+			Source src = Source.forResourceRef(sourceRef, null);
 			if (src.getJavaPackage().isPresent()) {
 				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);
