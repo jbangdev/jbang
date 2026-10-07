@@ -40,17 +40,10 @@ public class DependencyCache {
 						Path sourceFile = null;
 						if (jsonObject.has("sources-file") && !jsonObject.get("sources-file").isJsonNull()) {
 							sourceFile = Paths.get(jsonObject.get("sources-file").getAsString());
-						} else if (jsonObject.has("sourceFile") && !jsonObject.get("sourceFile").isJsonNull()) {
-							sourceFile = Paths.get(jsonObject.get("sourceFile").getAsString());
 						}
-						boolean sourcesChecked = false;
-						if (jsonObject.has("sources-checked")) {
-							sourcesChecked = jsonObject.get("sources-checked").getAsBoolean();
-						} else if (jsonObject.has("sourcesChecked")) {
-							sourcesChecked = jsonObject.get("sourcesChecked").getAsBoolean();
-						} else if (sourceFile != null) {
-							sourcesChecked = true;
-						}
+						boolean sourcesChecked = (sourceFile != null)
+								|| (jsonObject.has("sources-checked")
+										&& jsonObject.get("sources-checked").getAsBoolean());
 						return new ArtifactInfo(gav, file, sourceFile, sourcesChecked, ts);
 					};
 					Gson parser = new GsonBuilder()
