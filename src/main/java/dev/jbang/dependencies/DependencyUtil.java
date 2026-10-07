@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.ExitException;
+import dev.jbang.util.Util;
 
 public class DependencyUtil {
 
@@ -230,11 +231,9 @@ public class DependencyUtil {
 
 	public static Optional<Path> resolveSource(String coord, List<MavenRepo> repos) {
 		List<MavenRepo> actualRepos = repos != null ? repos : Collections.emptyList();
-		ModularClassPath mcp = resolveDependencies(Collections.singletonList(coord), actualRepos,
-				dev.jbang.util.Util.isOffline(),
-				dev.jbang.util.Util.isIgnoreTransitiveRepositories(),
-				dev.jbang.util.Util.isFresh(),
-				!dev.jbang.util.Util.isQuiet(),
+		ModularClassPath mcp = resolveDependencies(
+				Collections.singletonList(coord), actualRepos,
+				Util.isOffline(), Util.isIgnoreTransitiveRepositories(), Util.isFresh(), !Util.isQuiet(),
 				true);
 		return mcp.getArtifacts()
 			.stream()

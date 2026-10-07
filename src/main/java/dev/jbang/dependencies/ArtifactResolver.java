@@ -203,7 +203,6 @@ public class ArtifactResolver implements Closeable {
 		return Optional.empty();
 	}
 
-
 	public List<ArtifactInfo> resolve(List<String> depIds) {
 		context.repositorySystemSession().getData().set("depIds", depIds);
 		// Maven is by default "forgiving" for dependency POM loading: here we want to
