@@ -62,13 +62,17 @@ This is useful to avoid repeating the same value, like a version or a path, over
 * Properties apply to the whole file, no matter where the `//PROPS` line is placed.
 * `//PROPS` lines are evaluated in order, so a property can refer to a property defined before it:
   `//PROPS root=../lib` followed by `//PROPS base=${root}/src`.
-* If the same property is defined multiple times in a file the last definition wins.
+* Defining the same property multiple times in a file shows a warning; the last definition is used.
 * Properties set on the command line (`-Dname=value`), in an alias or by the system (eg. `${os.name}`)
   always take priority over properties defined with `//PROPS`.
 * Files included using `//SOURCES` inherit the properties of the file that includes them.
   Their own `//PROPS` can add new properties, but they cannot override inherited ones,
   so the including file always has the final say. Properties defined in an included file
   are not visible to the file that includes it, nor to its other included files.
+  In short: an outer scope (command line, including file) always wins over an inner one.
+* A file that gets included multiple times (eg. `A` and `C` both include `D`) is only processed once,
+  using the properties it inherits from its first inclusion. A warning is shown if its other
+  inclusions would have resulted in different property values.
 * `//PROPS` properties are only used while reading the directives. They are *not* passed to
   your application at runtime. If you need that, pass them on explicitly,
   eg. `//RUNTIME_OPTIONS -Dquarkus.version=${quarkus.version}`.

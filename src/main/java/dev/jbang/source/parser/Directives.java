@@ -6,11 +6,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -448,7 +450,9 @@ public abstract class Directives {
 	 * which means properties defined on the command line override those defined in
 	 * the file and that a file can override the properties of the files it
 	 * includes. The <code>//PROPS</code> directives themselves are evaluated in
-	 * order, so a property can refer to properties defined before it.
+	 * order, so a property can refer to properties defined before it. Defining the
+	 * same property more than once in a file is most likely a mistake, so a warning
+	 * is shown in that case (the last definition is the one that will be used).
 	 *
 	 * @param inherited   The properties inherited by the file
 	 * @param propsValues The raw (unreplaced) values of all <code>//PROPS</code>
@@ -458,6 +462,7 @@ public abstract class Directives {
 	@NonNull
 	static Properties resolveProperties(@NonNull Properties inherited, @NonNull List<String> propsValues) {
 		Properties result = new Properties(inherited);
+		Set<String> definedKeys = new HashSet<>();
 		for (String propsValue : propsValues) {
 			Matcher m = PROPS_ENTRY.matcher(propsValue);
 			while (m.find()) {
@@ -468,6 +473,10 @@ public abstract class Directives {
 				String key = m.group("key");
 				String value = m.group("dq") != null ? m.group("dq")
 						: m.group("sq") != null ? m.group("sq") : m.group("uq");
+				if (!definedKeys.add(key)) {
+					Util.warnMsg("Property '" + key
+							+ "' is defined multiple times using //PROPS, the last definition will be used");
+				}
 				if (inherited.getProperty(key) == null) {
 					result.setProperty(key, PropertiesValueResolver.replaceProperties(value, result));
 				}

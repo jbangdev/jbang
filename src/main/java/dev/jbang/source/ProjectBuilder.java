@@ -91,6 +91,8 @@ public class ProjectBuilder {
 	private Properties contextProperties;
 	private ModularClassPath mcp;
 	private final Set<ResourceRef> buildRefs;
+	// the first Source instance processed for each included file of the project
+	private final Map<ResourceRef, Source> processedSources = new HashMap<>();
 
 	ProjectBuilder() {
 		buildRefs = new HashSet<>();
@@ -301,6 +303,7 @@ public class ProjectBuilder {
 	}
 
 	public Project build(ResourceRef resourceRef) {
+		processedSources.clear();
 		if (!buildRefs.add(resourceRef)) {
 			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Self-referencing project dependency found for: '" + resourceRef.getOriginalResource() + "'");
@@ -411,6 +414,7 @@ public class ProjectBuilder {
 	}
 
 	public Project build(Source src) {
+		processedSources.clear();
 		Project prj = new Project(src);
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
@@ -676,7 +680,12 @@ public class ProjectBuilder {
 	@NonNull
 	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
 		ResourceRef srcRef = src.getResourceRef();
-		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {
+		if (prj.getMainSourceSet().getSources().contains(srcRef)) {
+			if (!(srcRef instanceof ResourceRef.UnresolvableResourceRef)) {
+				warnIfIncludedWithDifferentProperties(src);
+			}
+		} else {
+			processedSources.put(srcRef, src);
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(srcRef);
 			if (srcRef instanceof ResourceRef.UnresolvableResourceRef) {
@@ -722,6 +731,24 @@ public class ProjectBuilder {
 			}
 		}
 		return prj;
+	}
+
+	/**
+	 * When a source file gets included multiple times (eg. A includes B and C,
+	 * which both include D) only its first inclusion gets processed. If the
+	 * properties it inherits from its other includers would result in different
+	 * directives the user should know that those differences are being ignored.
+	 */
+	private void warnIfIncludedWithDifferentProperties(Source src) {
+		Source first = processedSources.get(src.getResourceRef());
+		if (first != null && first != src && !directivesAsStrings(first).equals(directivesAsStrings(src))) {
+			Util.warnMsg("Source '" + src.getResourceRef().getOriginalResource()
+					+ "' is included multiple times with different property values, only the values from its first inclusion will be used");
+		}
+	}
+
+	private static List<String> directivesAsStrings(Source src) {
+		return src.getDirectives().getAll().map(Object::toString).collect(Collectors.toList());
 	}
 
 	private ResourceResolver getResourceResolver() {

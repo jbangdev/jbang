@@ -3,14 +3,18 @@ package dev.jbang.source.parser;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
-public class TestPropsDirective {
+import dev.jbang.BaseTest;
+
+public class TestPropsDirective extends BaseTest {
 
 	private static Properties props(String... kvs) {
 		Properties p = new Properties();
@@ -72,6 +76,32 @@ public class TestPropsDirective {
 						+ "//PROPS v=2\n",
 				new Properties());
 		assertThat(d.binaryDependencies(), contains("g:a:2"));
+	}
+
+	@Test
+	void testDuplicatePropsWarns() throws Exception {
+		CaptureResult<String> result = captureOutput(() -> new Directives.Extended(
+				"//PROPS v=1\n"
+						+ "//PROPS w=1 v=2\n"
+						+ "//DEPS g:a:${v}\n",
+				new Properties())
+			.binaryDependencies()
+			.get(0));
+		assertThat(result.result, equalTo("g:a:2"));
+		assertThat(result.err, containsString("[WARN] Property 'v' is defined multiple times using //PROPS"));
+		assertThat(result.err, not(containsString("Property 'w'")));
+	}
+
+	@Test
+	void testNoWarningWithoutDuplicates() throws Exception {
+		CaptureResult<String> result = captureOutput(() -> new Directives.Extended(
+				"//PROPS v=1 w=2\n"
+						+ "//DEPS g:a:${v}\n",
+				new Properties())
+			.binaryDependencies()
+			.get(0));
+		assertThat(result.result, equalTo("g:a:1"));
+		assertThat(result.err, not(containsString("[WARN]")));
 	}
 
 	@Test
