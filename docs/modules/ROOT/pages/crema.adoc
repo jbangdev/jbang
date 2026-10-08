@@ -53,15 +53,18 @@ but this is not a promise of JDK-free operation.
 
 == Validation checklist
 
-An opt-in smoke runner covers arguments, cached execution, a Maven dependency,
-resources on an application thread, exceptions and exit codes:
+The opt-in `CremaIT` integration tests cover arguments, cached execution,
+a Maven dependency, resources on an application thread, exceptions and exit codes:
 
 [source,shell]
 ----
-python3 itests/crema/smoke.py build/native-image-crema/jbang.bin
+JBANG_CREMA_BINARY="$PWD/build/native-image-crema/jbang.bin" \
+  ./gradlew integrationTest --tests dev.jbang.it.CremaIT
 ----
 
-It needs network access for the dependency and a JDK for source compilation.
+Use `jbang.exe` as the binary path on Windows. The tests need network access
+for the dependency and a JDK for source compilation. Without
+`JBANG_CREMA_BINARY`, `CremaIT` is skipped in the regular integration suite.
 
 Run these against the native binary before treating the spike as proven:
 
