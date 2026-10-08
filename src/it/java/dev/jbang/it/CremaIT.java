@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 /**
- * Opt-in native image tests. The build of the experimental image is intentionally
- * separate from the normal integrationTest task.
+ * Opt-in native image tests. The build of the experimental image is
+ * intentionally separate from the normal integrationTest task.
  */
 @EnabledIfEnvironmentVariable(named = "JBANG_CREMA_BINARY", matches = ".+")
 public class CremaIT extends BaseIT {
