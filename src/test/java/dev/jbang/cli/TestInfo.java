@@ -11,9 +11,11 @@ import java.nio.file.Paths;
 import java.util.Collection;
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.util.WarTestFixtures;
 
 public class TestInfo extends BaseTest {
@@ -200,5 +202,114 @@ public class TestInfo extends BaseTest {
 		} finally {
 			Files.deleteIfExists(warPath);
 		}
+	}
+
+	@Test
+	void testInfoSourceJarSibling() throws IOException {
+		Path testJar = cwdDir.resolve("mylib.jar");
+		Path testSrcJar = cwdDir.resolve("mylib-sources.jar");
+		Files.write(testJar, "dummy jar".getBytes());
+		Files.write(testSrcJar, "dummy sources".getBytes());
+
+		Info.SourceJar sourceJar = JBang.parseCommand("info", "source-jar", testJar.toString());
+		Info.BaseInfoCommand.ScriptInfo info = sourceJar.getInfo(false, true);
+		assertThat(info.applicationSourceJar, equalTo(testSrcJar.toAbsolutePath().toString()));
+	}
+
+	@Test
+	void testInfoSourcePathSibling() throws IOException {
+		Path testJar = cwdDir.resolve("mylib2.jar");
+		Path testSrcJar = cwdDir.resolve("mylib2-sources.jar");
+		Files.write(testJar, "dummy jar".getBytes());
+		Files.write(testSrcJar, "dummy sources".getBytes());
+
+		Info.SourcePath sourcePath = JBang.parseCommand("info", "source-path", testJar.toString());
+		Info.BaseInfoCommand.ScriptInfo info = sourcePath.getInfo(false, true);
+		assertThat(info.applicationSourceJar, equalTo(testSrcJar.toAbsolutePath().toString()));
+	}
+
+	@Test
+	void testInfoSourceJarNotFound() {
+		Path testJar = cwdDir.resolve("nosrc.jar");
+		try {
+			Files.write(testJar, "dummy jar".getBytes());
+			Info.SourceJar sourceJar = JBang.parseCommand("info", "source-jar", testJar.toString());
+			Assertions.assertThrows(ExitException.class, sourceJar::doCall);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Test
+	void testInfoSourcePathWithDeps() {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		Info.SourcePath sourcePath = JBang.parseCommand("info", "source-path", src);
+		Info.BaseInfoCommand.ScriptInfo info = sourcePath.getInfo(false, true);
+		assertThat(info.resolvedSourceDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(allOf(containsString("picocli"), endsWith("-sources.jar")))));
+	}
+
+	@Test
+	void testInfoSourceJarForGav() {
+		Info.SourceJar sourceJar = JBang.parseCommand("info", "source-jar", "info.picocli:picocli:4.6.3");
+		Info.BaseInfoCommand.ScriptInfo info = sourceJar.getInfo(false, true);
+		assertThat(info.applicationSourceJar, allOf(containsString("picocli"), endsWith("-sources.jar")));
+	}
+
+	@Test
+	void testInfoToolsWithDownloadSources() {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		Info.Tools tools = JBang.parseCommand("info", "tools", "--download-sources", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false, true);
+		assertThat(info.resolvedSourceDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(allOf(containsString("picocli"), endsWith("-sources.jar")))));
+	}
+
+	@Test
+	void testInfoSourcePathExecution() throws Exception {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		CaptureResult<Integer> result = checkedRun("info", "source-path", src);
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
+	}
+
+	@Test
+	void testInfoSourceJarExecution() throws Exception {
+		CaptureResult<Integer> result = checkedRun("info", "source-jar", "info.picocli:picocli:4.6.3");
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
+	}
+
+	@Test
+	void testInfoToolsSelectSourcesDoesNotRequireSourceJars() throws Exception {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		CaptureResult<Integer> result = checkedRun("info", "tools", "--select", "sources", src);
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), containsString("quote.java"));
+	}
+
+	@Test
+	void testInfoToolsSelectResolvedSourceDependencies() throws Exception {
+		String src = examplesTestFolder.resolve("quote.java").toString();
+		CaptureResult<Integer> result = checkedRun("info", "tools", "--select", "resolvedSourceDependencies", src);
+		assertThat(result.result, equalTo(0));
+		assertThat(result.normalizedOut(), allOf(containsString("picocli"), containsString("-sources.jar")));
+	}
+
+	@Test
+	void testInfoSourceJarForGavWithoutSources() {
+		Info.SourceJar sourceJar = JBang.parseCommand("info", "source-jar",
+				"io.netty:netty-tcnative-boringssl-static:2.0.61.Final");
+		Assertions.assertThrows(ExitException.class, sourceJar::doCall);
+	}
+
+	@Test
+	void testInfoToolsForGavWithoutSources() {
+		Info.Tools tools = JBang.parseCommand("info", "tools", "--download-sources",
+				"io.netty:netty-tcnative-boringssl-static:2.0.61.Final");
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false, true);
+		assertThat(info.applicationSourceJar, is(nullValue()));
 	}
 }

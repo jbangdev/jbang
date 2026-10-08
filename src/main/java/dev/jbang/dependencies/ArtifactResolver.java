@@ -183,9 +183,9 @@ public class ArtifactResolver implements Closeable {
 		context.close();
 	}
 
-	public void downloadSources(Artifact artifact) {
+	public Optional<Path> downloadSources(Artifact artifact) {
 		try {
-			context.repositorySystem()
+			ArtifactResult result = context.repositorySystem()
 				.resolveArtifact(context.repositorySystemSession(), new ArtifactRequest()
 					.setArtifact(
 							new SubArtifact(
@@ -194,9 +194,21 @@ public class ArtifactResolver implements Closeable {
 									"jar"))
 					.setRepositories(
 							context.remoteRepositories()));
+			if (result.getArtifact() != null && result.getArtifact().getPath() != null) {
+				return Optional.of(result.getArtifact().getPath());
+			}
 		} catch (ArtifactResolutionException e) {
 			Util.verboseMsg("Could not resolve sources for " + artifact);
 		}
+		return Optional.empty();
+	}
+
+	public Optional<Path> resolveSource(MavenCoordinate coord) {
+		return downloadSources(toArtifact(coord));
+	}
+
+	public Optional<Path> resolveSource(String coord) {
+		return downloadSources(toArtifact(coord));
 	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
@@ -245,12 +257,12 @@ public class ArtifactResolver implements Closeable {
 
 			return artifacts.stream()
 				.map(ar -> {
+					Path sourcePath = null;
 					if (downloadSources) {
-						downloadSources(ar.getArtifact());
+						sourcePath = downloadSources(ar.getArtifact()).orElse(null);
 					}
-					return ar.getArtifact();
+					return toArtifactInfo(ar.getArtifact(), sourcePath, downloadSources);
 				})
-				.map(ArtifactResolver::toArtifactInfo)
 				.collect(Collectors.toList());
 		} catch (DependencyResolutionException ex) {
 			throw new ExitException(1, "Could not resolve dependencies: " + ex.getMessage(), ex);
@@ -437,10 +449,14 @@ public class ArtifactResolver implements Closeable {
 		return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), cls, ext, coord.getVersion());
 	}
 
-	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
+	private static ArtifactInfo toArtifactInfo(Artifact artifact, Path sourcePath, boolean sourcesChecked) {
 		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
 				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
-		return new ArtifactInfo(coord, artifact.getPath());
+		return new ArtifactInfo(coord, artifact.getPath(), sourcePath, sourcesChecked);
+	}
+
+	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
+		return toArtifactInfo(artifact, null, false);
 	}
 
 	public static Path getLocalMavenRepo() {

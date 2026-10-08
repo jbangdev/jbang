@@ -38,6 +38,8 @@
 *** xref:jbang:cli:jbang-info-tools.adoc[tools]
 *** xref:jbang:cli:jbang-info-classpath.adoc[classpath]
 *** xref:jbang:cli:jbang-info-jar.adoc[jar]
+*** xref:jbang:cli:jbang-info-source-path.adoc[source-path]
+*** xref:jbang:cli:jbang-info-source-jar.adoc[source-jar]
 *** xref:jbang:cli:jbang-info-docs.adoc[docs]
 ** xref:jbang:cli:jbang-app.adoc[app]
 *** xref:jbang:cli:jbang-app-install.adoc[install]
