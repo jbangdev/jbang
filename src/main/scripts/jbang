@@ -251,24 +251,26 @@ if [[ -z "$JBANG_USE_NATIVE" ]]; then JBANG_USE_NATIVE="false"; fi
 binaryPath=""
 jarPath=""
 if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
-  # Look for platform-specific native binary first (e.g. jbang.bin-linux-x64),
-  # then fall back to generic jbang.bin for manually placed binaries
-  if [[ "$os" == "windows" ]]; then
-    if [ -f "$abs_jbang_dir/jbang.bin-${os}-${arch}.exe" ] && [ -x "$abs_jbang_dir/jbang.bin-${os}-${arch}.exe" ]; then
-      binaryPath="$abs_jbang_dir/jbang.bin-${os}-${arch}.exe"
-    elif [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
-      binaryPath="$abs_jbang_dir/jbang.bin.exe"
+  # Look in the launcher directory and its .jbang directory. Within each
+  # directory prefer the platform-specific binary.
+  for binaryDir in "$abs_jbang_dir" "$abs_jbang_dir/.jbang"; do
+    if [[ "$os" == "windows" ]]; then
+      if [ -f "$binaryDir/jbang.bin-${os}-${arch}.exe" ] && [ -x "$binaryDir/jbang.bin-${os}-${arch}.exe" ]; then
+        binaryPath="$binaryDir/jbang.bin-${os}-${arch}.exe"
+      elif [ -f "$binaryDir/jbang.bin.exe" ] && [ -x "$binaryDir/jbang.bin.exe" ]; then
+        binaryPath="$binaryDir/jbang.bin.exe"
+      fi
     else
-      echo "WARNING: JBang native binary (jbang.bin-${os}-${arch}.exe or jbang.bin.exe) not found in $abs_jbang_dir" 1>&2
+      if [ -f "$binaryDir/jbang.bin-${os}-${arch}" ] && [ -x "$binaryDir/jbang.bin-${os}-${arch}" ]; then
+        binaryPath="$binaryDir/jbang.bin-${os}-${arch}"
+      elif [ -f "$binaryDir/jbang.bin" ] && [ -x "$binaryDir/jbang.bin" ]; then
+        binaryPath="$binaryDir/jbang.bin"
+      fi
     fi
-  else
-    if [ -f "$abs_jbang_dir/jbang.bin-${os}-${arch}" ] && [ -x "$abs_jbang_dir/jbang.bin-${os}-${arch}" ]; then
-      binaryPath="$abs_jbang_dir/jbang.bin-${os}-${arch}"
-    elif [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
-      binaryPath="$abs_jbang_dir/jbang.bin"
-    else
-      echo "WARNING: JBang native binary (jbang.bin-${os}-${arch} or jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
-    fi
+    if [[ -n "$binaryPath" ]]; then break; fi
+  done
+  if [[ -z "$binaryPath" ]]; then
+    echo "WARNING: JBang native binary not found or not executable in launcher or .jbang directories" 1>&2
   fi
 fi
 if [[ -z "$binaryPath" ]]; then
