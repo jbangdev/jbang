@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -223,7 +224,7 @@ public class Alias extends BaseCommand {
 						name))
 				.collect(Collectors.groupingBy(
 						a -> a._catalogRef,
-						java.util.LinkedHashMap::new,
+						LinkedHashMap::new,
 						Collectors.toList()));
 			return groups.entrySet()
 				.stream()
@@ -240,7 +241,7 @@ public class Alias extends BaseCommand {
 				parser.toJson(catalogs, out);
 			} else {
 				catalogs.forEach(cat -> {
-					out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
+					out.println(ConsoleOutput.bold(Catalog.simplifyRef(cat.resourceRef)));
 					cat.aliases.forEach(a -> printAlias(out, a, 1));
 				});
 			}

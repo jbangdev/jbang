@@ -36,7 +36,7 @@ jobs:
       - uses: ./.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
-        run: ./gradlew --no-daemon spotlessCheck
+        run: ./gradlew --no-daemon formatCheck
 
   build-shared:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: build-with-no-tests
-        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
