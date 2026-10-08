@@ -93,6 +93,7 @@ public class Main {
 		if (subcommandNames == null) {
 			Set<String> names = new LinkedHashSet<>();
 			names.add("run");
+			names.add("crema");
 			names.add("build");
 			names.add("edit");
 			names.add("init");

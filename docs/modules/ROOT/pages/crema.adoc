@@ -1,0 +1,81 @@
+= Experimental Crema execution
+
+The experimental `jbang crema` command builds and resolves an application using
+the normal JBang pipeline, then loads its bytecode inside a Crema-enabled native
+JBang process. Ordinary JVM and native JBang builds report an unsupported-runtime
+error. There is no automatic JVM fallback.
+
+== Build and run
+
+Use a Crema-enabled GraalVM JDK and a C toolchain. The reference launcher uses
+SDKMAN's `25.4.4+1-graal`; availability and flags are experimental.
+Set `GRAALVM_HOME` to this JDK (or put its `native-image` on PATH).
+The Gradle compilation toolchain remains unchanged.
+
+[source,shell]
+----
+./gradlew nativeImageCrema
+build/native-image-crema/jbang.bin crema itests/helloworld.java
+build/native-image-crema/jbang.bin crema app.java first second
+build/native-image-crema/jbang.bin crema --main=com.example.Main app.jar
+----
+
+On Windows use `jbang.exe` in the same directory. Invoke this binary directly:
+the regular distribution scripts do not select or distribute the experimental
+variant. Keep the entire output directory, including companion native libraries,
+and the build JDK available. Packaging a self-contained runtime is follow-up work.
+
+Sources, aliases, catalogs, `//DEPS`, resources and compiled cache entries use
+existing JBang infrastructure. Source compilation still requires an external JDK;
+this experiment does not embed javac. A cached application can avoid recompilation,
+but this is not a promise of JDK-free operation.
+
+== Limits of the spike
+
+* Only a concrete `public static void main(String[])` entry point is supported.
+  Compact/instance mains and interactive main-class selection are follow-up work.
+* Execution uses a classpath loader with the platform loader as parent to avoid
+  resolving dependencies from JBang's own application classpath.
+* `--java` and `//JAVA` select the compilation JDK. Execution always uses the
+  Crema image's Java version; incompatible bytecode fails at loading.
+* JVM run options (including debug, JFR, agents, assertions and CDS),
+  `//JAVA_OPTIONS`, JShell, preview execution, `--module` and `--native` are rejected.
+  Manifest requests for opens, exports and native access are also rejected.
+* System properties from the project are applied to the current process.
+  Application code shares this process's streams, environment and native libraries.
+* `System.exit(n)` terminates native JBang with status `n`. An exception from
+  main is reported as an application failure. This is not an application sandbox.
+* The loader stays open after main returns so application threads can continue
+  loading classes and resources. This is intended for one application per process.
+* The build preserves `java.base`. Other JDK modules, reflection, ServiceLoader,
+  JNI and members of classes already compiled into the image need validation;
+  additional preservation rules may be necessary.
+
+== Validation checklist
+
+An opt-in smoke runner covers arguments, cached execution, a Maven dependency,
+resources on an application thread, exceptions and exit codes:
+
+[source,shell]
+----
+python3 itests/crema/smoke.py build/native-image-crema/jbang.bin
+----
+
+It needs network access for the dependency and a JDK for source compilation.
+
+Run these against the native binary before treating the spike as proven:
+
+. Hello World and argument forwarding, twice to exercise the compiled cache.
+. A source using `//DEPS`, including a dependency version different from JBang's.
+. Application resources and ServiceLoader providers from dependency jars.
+. Reflection, nested class loading and a background thread loading a resource.
+. `System.exit(7)`, an exception from main, and unsupported-runtime diagnostics.
+. Bytecode compiled with older and newer JDKs.
+
+No native compatibility or performance results are claimed yet. Compare the
+experimental binary with normal native JBang plus JVM execution using the same
+source/cache state before drawing startup conclusions.
+
+References:
+https://github.com/thomaswue/crema-source-launcher[Crema source launcher] and
+https://github.com/oracle/graal/issues/11327[GraalVM Crema discussion].

@@ -873,6 +873,33 @@ task nativeImage(type: Exec) {
 	outputs.file("${outputDir}/${nativeExecName}")
 }
 
+// Deliberately separate from native distributions and their install/packaging tasks.
+tasks.register('nativeImageCrema', Exec) {
+	dependsOn shadowJar
+	description = "Build experimental JBang with Crema runtime bytecode loading"
+	group = "build"
+	def outputDir = layout.buildDirectory.dir("native-image-crema").get().asFile
+	def executable = new File(outputDir, getNativeExecutableName())
+	doFirst {
+		outputDir.mkdirs()
+		def regular = tasks.named('nativeImage').get()
+		def args = new ArrayList(regular.commandLine)
+		def regularOutput = new File(layout.buildDirectory.dir("native-image").get().asFile, getNativeExecutableName()).path
+		args = args.collect { it.toString() == regularOutput ? executable.path : it }
+		args.addAll([
+			"-Djbang.crema.enabled=true",
+			"--initialize-at-build-time=dev.jbang.util.CremaRuntime",
+			"-H:+UnlockExperimentalVMOptions",
+			"-H:+RuntimeClassLoading",
+			"-H:Preserve=module=java.base",
+			"-H:-InterpreterTraceSupport",
+			"-H:+AllowJRTFileSystem"
+		])
+		commandLine args
+	}
+	// No up-to-date shortcut: switching GraalVM/Crema builds must rebuild the image.
+}
+
 tasks.named("distTar").configure {
 	mustRunAfter(tasks.named("nativeImage"))
 }
