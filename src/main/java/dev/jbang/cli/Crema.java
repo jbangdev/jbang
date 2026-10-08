@@ -33,6 +33,17 @@ public class Crema extends Run {
 			throw ExitException
 				.invalidInput("jbang crema does not support JVM run options, --native, --module or preview execution.");
 		}
+		if (buildMixin.javaVersion == null) {
+			// Match the compile target to the Crema interpreter's java.base version so
+			// produced bytecode is never newer than what the runtime can load.
+			String spec = System.getProperty("java.specification.version", "");
+			if (spec.startsWith("1.")) {
+				spec = spec.substring(2);
+			}
+			if (!spec.isEmpty()) {
+				buildMixin.javaVersion = spec;
+			}
+		}
 		return super.doCall();
 	}
 

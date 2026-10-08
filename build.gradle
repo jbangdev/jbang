@@ -834,19 +834,40 @@ task nativeImage(type: Exec) {
 		"${nativeImageName}"
 
 
+	// Experimental: this spike builds the Crema variant (runtime bytecode loading)
+	// by default so CI and users exercise it. Build a plain image with -Pnocrema.
+	// Requires a GraalVM whose native-image supports -H:+RuntimeClassLoading (25+).
+	def crema = !project.hasProperty("nocrema")
+
 	// Ensure output directory exists
 	doFirst {
 		outputDir.mkdirs()
 	}
 
-	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
-				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
+	def nativeImageArgs = [nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}".toString(),
+				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config".toString(),
 				"-H:+ReportExceptionStackTraces",
-
 				"--enable-https",
-				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
 				"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
-				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
+				"-H:-ParseRuntimeOptions"] // so -Dkey=value will continue to be passed to jbang
+	if (crema) {
+		// Crema differences vs the regular build:
+		// 1. omit --exact-reachability-metadata: Crema runs an open world
+		//    (RuntimeClassLoading implies -ClosedTypeWorld); strict exact metadata
+		//    turns allowed reflection on runtime-loaded classes into hard errors.
+		// 2. add the runtime-class-loading / interpreter flags below.
+		nativeImageArgs.addAll([
+				"-Djbang.crema.enabled=true",
+				"--initialize-at-build-time=dev.jbang.util.CremaRuntime",
+				"-H:+UnlockExperimentalVMOptions",
+				"-H:+RuntimeClassLoading",
+				"-H:Preserve=module=java.base",
+				"-H:-InterpreterTraceSupport",
+				"-H:+AllowJRTFileSystem"])
+	} else {
+		nativeImageArgs.add("--exact-reachability-metadata") // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
+	}
+	commandLine nativeImageArgs
 
 
 
@@ -870,34 +891,10 @@ task nativeImage(type: Exec) {
 	}
 
 	// Define outputs for Gradle's incremental build
+	// Toggling -Pcrema reuses the same output path with different content, so make
+	// the Crema flag part of the up-to-date key to force a rebuild when it changes.
+	inputs.property("crema", crema)
 	outputs.file("${outputDir}/${nativeExecName}")
-}
-
-// Deliberately separate from native distributions and their install/packaging tasks.
-tasks.register('nativeImageCrema', Exec) {
-	dependsOn shadowJar
-	description = "Build experimental JBang with Crema runtime bytecode loading"
-	group = "build"
-	def outputDir = layout.buildDirectory.dir("native-image-crema").get().asFile
-	def executable = new File(outputDir, getNativeExecutableName())
-	doFirst {
-		outputDir.mkdirs()
-		def regular = tasks.named('nativeImage').get()
-		def args = new ArrayList(regular.commandLine)
-		def regularOutput = new File(layout.buildDirectory.dir("native-image").get().asFile, getNativeExecutableName()).path
-		args = args.collect { it.toString() == regularOutput ? executable.path : it }
-		args.addAll([
-			"-Djbang.crema.enabled=true",
-			"--initialize-at-build-time=dev.jbang.util.CremaRuntime",
-			"-H:+UnlockExperimentalVMOptions",
-			"-H:+RuntimeClassLoading",
-			"-H:Preserve=module=java.base",
-			"-H:-InterpreterTraceSupport",
-			"-H:+AllowJRTFileSystem"
-		])
-		commandLine args
-	}
-	// No up-to-date shortcut: switching GraalVM/Crema builds must rebuild the image.
 }
 
 tasks.named("distTar").configure {
