@@ -28,7 +28,12 @@ public final class CremaRuntime {
 		return ENABLED && "runtime".equals(System.getProperty("org.graalvm.nativeimage.imagecode"));
 	}
 
-	public static void launch(List<Path> classpath, String mainClass, String[] args, Map<String, String> properties)
+	/**
+	 * Returns the application loader so callers that run multiple applications in
+	 * one process can close it after all application threads have finished.
+	 */
+	public static URLClassLoader launch(List<Path> classpath, String mainClass, String[] args,
+			Map<String, String> properties)
 			throws IOException {
 		URL[] urls = new URL[classpath.size()];
 		for (int i = 0; i < classpath.size(); i++) {
@@ -61,6 +66,7 @@ public final class CremaRuntime {
 					.invalidInput("jbang crema requires public static void main(String[]): " + mainClass);
 			}
 			main.invoke(null, (Object) args);
+			return loader;
 		} catch (InvocationTargetException e) {
 			throw ExitException.genericError("Application failed in jbang crema: " + e.getCause(), e.getCause());
 		} catch (ReflectiveOperationException | LinkageError e) {

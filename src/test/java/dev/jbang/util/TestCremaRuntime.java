@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,9 +58,8 @@ class TestCremaRuntime {
 				jar);
 		ClassLoader previous = Thread.currentThread().getContextClassLoader();
 		String previousClasspath = System.getProperty("java.class.path");
-		try {
-			CremaRuntime.launch(Arrays.asList(application, jar), "Application", new String[] { "two words" },
-					Collections.singletonMap("crema.test.input", "property"));
+		try (URLClassLoader loader = CremaRuntime.launch(Arrays.asList(application, jar), "Application",
+				new String[] { "two words" }, Collections.singletonMap("crema.test.input", "property"))) {
 			assertEquals("two words:resource:service:property", System.getProperty("crema.test.result"));
 			assertSame(previous, Thread.currentThread().getContextClassLoader());
 		} finally {
@@ -67,6 +67,7 @@ class TestCremaRuntime {
 			System.clearProperty("crema.test.input");
 			System.clearProperty("crema.test.result");
 		}
+		Files.delete(jar);
 	}
 
 	@Test
