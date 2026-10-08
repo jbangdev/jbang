@@ -280,8 +280,11 @@ public class Info extends BaseCommand {
 					if (jar.equals(art.getFile())) {
 						if (art.getSourceFile() != null && Files.exists(art.getSourceFile())) {
 							applicationSourceJar = art.getSourceFile().toAbsolutePath().toString();
+							return;
+						} else if (art.isSourcesChecked()) {
+							return;
 						}
-						return;
+						break;
 					}
 				}
 

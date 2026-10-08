@@ -15,14 +15,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.ExitException;
-import dev.jbang.util.Util;
 
 public class DependencyUtil {
 
@@ -230,24 +228,24 @@ public class DependencyUtil {
 	}
 
 	public static Optional<Path> resolveSource(String coord, List<MavenRepo> repos) {
-		List<MavenRepo> actualRepos = repos != null ? repos : Collections.emptyList();
-		ModularClassPath mcp = resolveDependencies(
-				Collections.singletonList(coord), actualRepos,
-				Util.isOffline(), Util.isIgnoreTransitiveRepositories(), Util.isFresh(), !Util.isQuiet(),
-				true);
-		MavenCoordinate target = MavenCoordinate.fromString(coord);
-		return mcp.getArtifacts()
-			.stream()
-			.filter(ai -> ai.getCoordinate() != null
-					&& ai.getCoordinate().getGroupId().equals(target.getGroupId())
-					&& ai.getCoordinate().getArtifactId().equals(target.getArtifactId()))
-			.map(ArtifactInfo::getSourceFile)
-			.filter(Objects::nonNull)
-			.filter(Files::exists)
-			.findFirst();
+		return resolveSource(MavenCoordinate.fromString(coord), repos);
 	}
 
 	public static Optional<Path> resolveSource(MavenCoordinate coord, List<MavenRepo> repos) {
-		return resolveSource(coord.toMavenString(), repos);
+		List<MavenRepo> actualRepos = repos != null && !repos.isEmpty() ? repos
+				: Collections.singletonList(toMavenRepo("central"));
+		try (ArtifactResolver resolver = ArtifactResolver.Builder
+			.create()
+			.repositories(actualRepos)
+			.withUserSettings(true)
+			.localFolder(getJBangLocalMavenRepoOverride())
+			.offline(dev.jbang.util.Util.isOffline())
+			.ignoreTransitiveRepositories(dev.jbang.util.Util.isIgnoreTransitiveRepositories())
+			.forceCacheUpdate(dev.jbang.util.Util.isFresh())
+			.logging(!dev.jbang.util.Util.isQuiet())
+			.downloadSources(true)
+			.build()) {
+			return resolver.resolveSource(coord);
+		}
 	}
 }
