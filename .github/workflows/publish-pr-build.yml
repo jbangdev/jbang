@@ -46,6 +46,7 @@ jobs:
       - name: Download jbang artifact from CI run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: '*-shared-build-jbang'
           path: jbang-artifact
           run-id: ${{ github.event.workflow_run.id }}

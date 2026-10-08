@@ -453,6 +453,40 @@ By default JBang downloads itself from GitHub. You can override the download URL
 export JBANG_DOWNLOAD_URL=https://internal-mirror.example.com/jbang/jbang.tar
 ----
 
+=== Download checksum verification
+
+JBang automatically verifies the SHA-256 checksum of the downloaded archive against the `.sha256` file published alongside each release.
+If the checksum does not match, the download is rejected.
+If the `.sha256` file cannot be downloaded (e.g. a corporate mirror that does not publish it), a warning is printed and installation continues.
+
+On Linux/macOS the bash script requires `sha256sum` or `shasum` to compute hashes.
+If neither is available and `JBANG_DOWNLOAD_CHECKSUM` is set, the script exits with an error (verification was explicitly requested but cannot be performed).
+If neither is available and no explicit checksum was requested, a warning is printed and installation continues without verification.
+On Windows, PowerShell's built-in `Get-FileHash` cmdlet is always available.
+
+You can override the expected checksum by setting the `JBANG_DOWNLOAD_CHECKSUM` environment variable.
+When set, the server-side `.sha256` file is not downloaded and the provided value is used instead:
+
+[source,bash]
+----
+export JBANG_DOWNLOAD_CHECKSUM=0305dab682909378fa71eb590eb199dffba8d2ea8f6293c4bd7dcc671daabaca
+----
+
+This is useful in locked-down CI environments or air-gapped setups where you want to pin an exact artifact hash.
+
+To verify the JBang JAR or native binary before every execution — even when no download occurs — set `JBANG_JAR_CHECKSUM` (for the JAR) or `JBANG_BIN_CHECKSUM` (for the native binary):
+
+[source,bash]
+----
+export JBANG_JAR_CHECKSUM=abc123...  # SHA-256 of jbang.jar
+export JBANG_BIN_CHECKSUM=def456...  # SHA-256 of the native binary (when JBANG_USE_NATIVE=true)
+----
+
+`JBANG_JAR_CHECKSUM` verifies whichever artifact is about to be executed — the JAR or the native binary.
+`JBANG_BIN_CHECKSUM` is an optional override that takes precedence when running a native binary (`JBANG_USE_NATIVE=true`).
+Most users only need `JBANG_JAR_CHECKSUM`; set `JBANG_BIN_CHECKSUM` only when you need different checksums for the JAR and the native binary.
+Unlike `JBANG_DOWNLOAD_CHECKSUM`, these checks run on every invocation and are always mandatory when set.
+
 === Downloading a specific version or the early-access build
 
 Set `JBANG_DOWNLOAD_VERSION` to pick a specific release. Numeric values are resolved to the matching `vX.Y.Z` GitHub release; any other value is used as a release tag name as-is. This means you can opt-in to the perpetual early-access build with a simple:
@@ -600,6 +634,18 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 | `JBANG_DOWNLOAD_URL`
 | _(GitHub releases)_
 | Override the URL used to download JBang itself. Useful for corporate mirrors or air-gapped environments.
+
+| `JBANG_DOWNLOAD_CHECKSUM`
+| _(from server)_
+| Expected SHA-256 checksum of the JBang archive. When set, verification uses this value instead of downloading the `.sha256` file from the server.
+
+| `JBANG_JAR_CHECKSUM`
+| _(unset)_
+| Expected SHA-256 of the JBang JAR. Verified before every execution. Fails if the checksum does not match or no hash tool is available.
+
+| `JBANG_BIN_CHECKSUM`
+| _(unset)_
+| Expected SHA-256 of the native binary. Only used when `JBANG_USE_NATIVE=true`. Takes precedence over `JBANG_JAR_CHECKSUM` for native binary verification. Most users only need `JBANG_JAR_CHECKSUM`.
 
 | `JBANG_DOWNLOAD_VERSION`
 | _(latest)_
