@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -84,6 +86,7 @@ public class Wrapper extends BaseCommand {
 		private void copyScripts(Path dir, Path dest) throws IOException {
 			for (String nm : SCRIPT_NAMES) {
 				Files.copy(dir.resolve(nm), dest.resolve(nm), COPY_ATTRIBUTES, REPLACE_EXISTING);
+				Files.setLastModifiedTime(dest.resolve(nm), FileTime.from(Instant.now()));
 			}
 		}
 
@@ -91,6 +94,7 @@ public class Wrapper extends BaseCommand {
 			Path jbdir = dest.resolve(DIR_NAME);
 			jbdir.toFile().mkdirs();
 			Files.copy(dir.resolve(JAR_NAME), jbdir.resolve(JAR_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
+			Files.setLastModifiedTime(jbdir.resolve(JAR_NAME), FileTime.from(Instant.now()));
 		}
 	}
 }
