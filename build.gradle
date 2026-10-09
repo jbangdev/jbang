@@ -861,7 +861,7 @@ task nativeImage(type: Exec) {
 				"--initialize-at-build-time=dev.jbang.util.CremaRuntime",
 				"-H:+UnlockExperimentalVMOptions",
 				"-H:+RuntimeClassLoading",
-				"-H:Preserve=module=java.base",
+				"-H:Preserve=all",
 				"-H:-InterpreterTraceSupport",
 				"-H:+AllowJRTFileSystem"])
 	} else {
