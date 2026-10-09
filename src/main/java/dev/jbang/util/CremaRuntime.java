@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +48,12 @@ public final class CremaRuntime {
 		} catch (ReflectiveOperationException e) {
 			parent = null;
 		}
+		Util.verboseMsg("Crema: launching main class '" + mainClass + "'");
+		Util.verboseMsg("Crema: classpath = " + classpath);
+		Util.verboseMsg("Crema: args = " + Arrays.toString(args));
+		if (!properties.isEmpty()) {
+			Util.verboseMsg("Crema: forwarding properties = " + properties.keySet());
+		}
 		URLClassLoader loader = new URLClassLoader(urls, parent);
 		Thread thread = Thread.currentThread();
 		ClassLoader previous = thread.getContextClassLoader();
@@ -60,11 +67,17 @@ public final class CremaRuntime {
 		}
 		try {
 			Class<?> type = Class.forName(mainClass, false, loader);
+			Util.verboseMsg("Crema: loaded " + type + " via " + type.getClassLoader());
 			Method main = type.getMethod("main", String[].class);
 			if (!Modifier.isStatic(main.getModifiers()) || main.getReturnType() != void.class) {
 				throw ExitException
 					.invalidInput("jbang crema requires public static void main(String[]): " + mainClass);
 			}
+			// The main class (and/or its main method) is often package-private in a
+			// jbang script; the java launcher can still invoke it but reflection
+			// cannot without this, so mirror the launcher's behaviour.
+			main.setAccessible(true);
+			Util.verboseMsg("Crema: invoking " + mainClass + ".main(String[])");
 			main.invoke(null, (Object) args);
 			return loader;
 		} catch (InvocationTargetException e) {
