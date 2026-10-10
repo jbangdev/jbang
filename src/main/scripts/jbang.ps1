@@ -103,6 +103,21 @@ function Invoke-JBang {
     $oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
     $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
     
+    $interactive = ($args.Count -ge 2 -and $args[0] -ieq 'deps' -and $args[1] -ieq 'search')
+
+    if ($interactive) {
+        if ($binaryPath) {
+            & "$binaryPath" $args
+        } else {
+            & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        }
+        $err=$LASTEXITCODE
+        $erroractionpreference=$old_erroractionpreference
+        $global:progresspreference=$old_progresspreference
+        $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
+        exit $err
+    }
+
     if ($binaryPath) {
         # Run native binary
         $output = & "$binaryPath" $args

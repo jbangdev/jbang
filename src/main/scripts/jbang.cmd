@@ -1,6 +1,10 @@
 @echo off
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
+rem Detect commands that need a live, uncaptured console (interactive TUI)
+set INTERACTIVE=false
+if /I "%~1"=="deps" if /I "%~2"=="search" set INTERACTIVE=true
+
 rem The Java version to install when it's not installed on the system yet
 if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
 
@@ -96,6 +100,10 @@ if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 
 set CMD=!JAVA_EXEC!
+if "%INTERACTIVE%"=="true" (
+  "%CMD%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %*
+  exit /b !ERRORLEVEL!
+)
 SETLOCAL DISABLEDELAYEDEXPANSION
 "%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %* || goto :handleError
 set ERROR=%ERRORLEVEL%
