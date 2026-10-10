@@ -39,10 +39,10 @@ public class VersionChecker {
 
 	/**
 	 * Very specialized function used to check if jbang can be updated. It returns
-	 * `true` when we're running a managed jbang and either there is a newer version
-	 * or `checkForUpdate` was disabled. In all other cases it will return `false`
-	 * and informing the user that either jbang is already up-to-date or telling
-	 * them how to update jbang themselves (if `checkForUpdate` was disabled).
+	 * `true` when we're running a managed jbang and there is a newer version
+	 * available. In all other cases it will return `false` and inform the user
+	 * that either jbang is already up-to-date or tell them how to update jbang
+	 * themselves (if not a managed install).
 	 * 
 	 * @param checkForUpdate do we check for a new version or not?
 	 * @return do we update jbang or not?
@@ -51,9 +51,10 @@ public class VersionChecker {
 		try {
 			if (Util.runningManagedJBang()) {
 				String latestVersion = retrieveLatestVersionAsync().get();
-				if (!checkForUpdate || isNewer(latestVersion)) {
+				if (isNewer(latestVersion)) {
+					informed = true;
 					return true;
-				} else if (checkForUpdate) {
+				} else {
 					inform(latestVersion, false);
 				}
 			} else {
