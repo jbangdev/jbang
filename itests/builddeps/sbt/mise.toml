@@ -1,0 +1,3 @@
+[tools]
+java = "temurin-21"
+sbt = "1.10"

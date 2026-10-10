@@ -1,0 +1,5 @@
+# Mill is vendored via the `./mill` bootstrap script (the standard Mill
+# distribution mechanism), which downloads the version pinned in
+# `.mill-version` on first use. Mise only needs to provide Java.
+[tools]
+java = "temurin-21"
