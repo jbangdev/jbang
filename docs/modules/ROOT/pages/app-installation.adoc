@@ -118,8 +118,11 @@ jbang app uninstall mytool
 
 [source,bash]
 ----
-# Reinstall to update
+# Reinstall to update (always fetches fresh sources and dependencies)
 jbang app install --force gavsearch@jbangdev
+
+# Reuse cached resources instead
+jbang app install --force --no-fresh gavsearch@jbangdev
 ----
 
 == Installation Options

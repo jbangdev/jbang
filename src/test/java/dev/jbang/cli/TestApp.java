@@ -125,6 +125,19 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testAppInstallDefaultsToFresh() throws Exception {
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
+		checkedRun("app", "install", "--no-build", "--force", src);
+		assertThat(Util.isFresh(), is(true));
+
+		checkedRun("app", "install", "--no-build", "--force", "--no-fresh", src);
+		assertThat(Util.isFresh(), is(false));
+
+		checkedRun("app", "install", "--no-build", "--force", "--offline", src);
+		assertThat(Util.isFresh(), is(false));
+	}
+
+	@Test
 	void testAppInstallWithRepos() throws Exception {
 		String src = examplesTestFolder.resolve("repos.java").toString();
 		App.AppInstall app = JBang.parseCommand("app", "install", "--no-build", "--fresh", "--force",
