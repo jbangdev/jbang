@@ -46,7 +46,7 @@ public class Run extends BaseBuildCommand {
 	public List<String> userParams = new ArrayList<>();
 
 	protected void requireScriptArgument() {
-		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && literalScript == null)
+		if (scriptMixin.scriptOrFile == null && ((!Boolean.TRUE.equals(runMixin.interactive) && literalScript == null)
 				|| (literalScript != null && literalScript.isEmpty()))) {
 			if (commandInvocation != null) {
 				System.err.println(commandInvocation.getHelpInfo());
