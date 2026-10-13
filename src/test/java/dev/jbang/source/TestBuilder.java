@@ -30,12 +30,17 @@ import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.spi.IntegrationResult;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
+
+import io.quarkus.qute.Template;
 
 public class TestBuilder extends BaseTest {
 
@@ -482,6 +487,102 @@ public class TestBuilder extends BaseTest {
 			return new IntegrationResult(null, null, null);
 		}, null, null);
 		assertThat(integrationStepCalled.get(), is(false));
+	}
+
+	@Test
+	void testPomInJarIncludesBoms() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		Path mainFile = examplesTestFolder.resolve("classpath_log_bom.java");
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(mainFile.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
+		Project.codeBuilder(ctx).build();
+
+		try (JarFile jf = new JarFile(ctx.getJarFile().toFile())) {
+			java.util.jar.JarEntry pomEntry = jf.stream()
+				.filter(e -> e.getName().endsWith("pom.xml"))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("No pom.xml found in jar"));
+
+			String pomContent;
+			try (java.io.InputStream is = jf.getInputStream(pomEntry)) {
+				pomContent = new String(is.readAllBytes());
+			}
+
+			assertThat(pomContent, containsString("<dependencyManagement>"));
+			assertThat(pomContent, containsString("log4j-bom"));
+			assertThat(pomContent, containsString("<type>pom</type>"));
+			assertThat(pomContent, containsString("<scope>import</scope>"));
+		}
+	}
+
+	@Test
+	void testPomIncludesBomDependencies() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		List<MavenCoordinate> boms = Arrays.asList(
+				MavenCoordinate.fromString("io.quarkus.platform:quarkus-bom:3.17.0@pom"));
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "test")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("boms", boms)
+			.render();
+
+		assertThat(pomContent, containsString("<dependencyManagement>"));
+		assertThat(pomContent, containsString("<groupId>io.quarkus.platform</groupId>"));
+		assertThat(pomContent, containsString("<artifactId>quarkus-bom</artifactId>"));
+		assertThat(pomContent, containsString("<version>3.17.0</version>"));
+		assertThat(pomContent, containsString("<type>pom</type>"));
+		assertThat(pomContent, containsString("<scope>import</scope>"));
+	}
+
+	@Test
+	void testPomWithoutBoms() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "test")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("boms", java.util.Collections.emptyList())
+			.render();
+
+		assertThat(pomContent, not(containsString("<dependencyManagement>")));
+	}
+
+	@Test
+	void testPomMultipleBoms() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		List<MavenCoordinate> boms = Arrays.asList(
+				MavenCoordinate.fromString("io.quarkus.platform:quarkus-bom:3.17.0@pom"),
+				MavenCoordinate.fromString("org.springframework.boot:spring-boot-dependencies:3.2.0@pom"));
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "test")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("boms", boms)
+			.render();
+
+		assertThat(pomContent, containsString("<dependencyManagement>"));
+		assertThat(pomContent, containsString("io.quarkus.platform"));
+		assertThat(pomContent, containsString("spring-boot-dependencies"));
 	}
 
 	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,
