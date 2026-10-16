@@ -1,2 +1,2 @@
 [tools]
-java = "graalvm-community-25"
+java = "temurin-21"
