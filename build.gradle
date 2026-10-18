@@ -164,6 +164,7 @@ dependencies {
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.5.2'
 	implementation 'com.google.code.gson:gson:2.13.2'
+    implementation 'org.eclipse.jdt:ecj:3.46.0'
 	implementation 'org.jsoup:jsoup:1.17.1'
 	implementation 'org.codejive:java-properties:0.0.7'
 

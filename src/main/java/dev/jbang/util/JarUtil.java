@@ -1,76 +1,112 @@
 package dev.jbang.util;
 
-import static dev.jbang.util.JavaUtil.resolveInJavaHome;
-
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import dev.jbang.ExitException;
 import dev.jbang.devkitman.Jdk;
 
 public final class JarUtil {
-	private JarUtil() {
-	}
+    private JarUtil() {
+    }
 
-	public static void createJar(Path jar, Path src, Manifest manifest, String mainClass, Jdk jdk)
-			throws IOException {
-		runJarCommand(jar, "c", src, manifest, mainClass, jdk);
-	}
+    public static void createJar(Path jar, Path src, Manifest manifest, String mainClass, Jdk jdk)
+            throws IOException {
+        Manifest mf = prepareManifest(manifest, mainClass);
 
-	public static void updateJar(Path jar, Manifest manifest, String mainClass, Jdk jdk)
-			throws IOException {
-		runJarCommand(jar, "u", null, manifest, mainClass, jdk);
-	}
+        Util.verboseMsg("Package: " + jar);
+        try (JarOutputStream jos = new JarOutputStream(Files.newOutputStream(jar), mf)) {
+            if (src != null) {
+                addDirectory(jos, src, src);
+            }
+        }
+    }
 
-	private static void runJarCommand(Path jar, String action, Path src, Manifest manifest, String mainClass, Jdk jdk)
-			throws IOException {
-		assert (action.equals("c") || action.equals("u"));
-		List<String> optionList = new ArrayList<>();
-		Path tmpManifest = null;
-		try {
-			action += "f";
-			optionList.add(jar.toString());
+    public static void updateJar(Path jar, Manifest manifest, String mainClass, Jdk jdk)
+            throws IOException {
+        Manifest mf = prepareManifest(manifest, mainClass);
 
-			if (manifest != null) {
-				tmpManifest = Files.createTempFile("jbang-manifest", "mf");
-				try (OutputStream out = Files.newOutputStream(tmpManifest)) {
-					manifest.write(out);
-				}
-				action += "m";
-				optionList.add(tmpManifest.toString());
-			}
+        Util.verboseMsg("Package: " + jar);
+        // A jar file cannot be updated in place, so we write a new one next to
+        // the original and move it into place when we're done
+        Path tmpJar = Files.createTempFile(jar.toAbsolutePath().getParent(), "jbang-jar", ".tmp");
+        boolean done = false;
+        try {
+            try (JarFile jf = new JarFile(jar.toFile());
+                 JarOutputStream jos = new JarOutputStream(Files.newOutputStream(tmpJar), mf)) {
+                Enumeration<JarEntry> entries = jf.entries();
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    if (JarFile.MANIFEST_NAME.equals(entry.getName())) {
+                        // The manifest is written by the JarOutputStream
+                        // constructor so we skip the original one
+                        continue;
+                    }
+                    jos.putNextEntry(new JarEntry(entry.getName()));
+                    try (InputStream is = jf.getInputStream(entry)) {
+                        byte[] buffer = new byte[8192];
+                        int n;
+                        while ((n = is.read(buffer)) > 0) {
+                            jos.write(buffer, 0, n);
+                        }
+                    }
+                    jos.closeEntry();
+                }
+            }
+            Files.move(tmpJar, jar, StandardCopyOption.REPLACE_EXISTING);
+            done = true;
+        } finally {
+            if (!done) {
+                Files.deleteIfExists(tmpJar);
+            }
+        }
+    }
 
-			if (mainClass != null) {
-				action += "e";
-				optionList.add(mainClass);
-			}
+    private static Manifest prepareManifest(Manifest manifest, String mainClass) {
+        if (manifest == null) {
+            manifest = new Manifest();
+        }
+        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        if (mainClass != null) {
+            manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainClass);
+        }
+        return manifest;
+    }
 
-			optionList.add(0, action);
-
-			if (src != null) {
-				optionList.add("-C");
-				optionList.add(src.toAbsolutePath().toString());
-				optionList.add(".");
-			}
-			runJarCommand(optionList, jdk);
-		} finally {
-			if (tmpManifest != null) {
-				Util.deletePath(tmpManifest, true);
-			}
-		}
-	}
-
-	private static void runJarCommand(List<String> arguments, Jdk jdk) throws IOException {
-		arguments.add(0, resolveInJavaHome("jar", jdk));
-		Util.verboseMsg("Package: " + String.join(" ", arguments));
-		String out = Util.runCommand(arguments.toArray(new String[] {}));
-		if (out == null) {
-			throw new ExitException(1, "Error creating/updating jar");
-		}
-	}
+    private static void addDirectory(JarOutputStream jos, Path root, Path dir) throws IOException {
+        try (Stream<Path> paths = Files.walk(dir)) {
+            List<Path> items = paths.sorted().collect(Collectors.toList());
+            for (Path item : items) {
+                if (item.equals(root)) {
+                    continue;
+                }
+                String name = root.relativize(item).toString().replace(File.separatorChar, '/');
+                if (JarFile.MANIFEST_NAME.equals(name)) {
+                    // The manifest we create ourselves takes precedence over
+                    // any file with that name found in the source directory
+                    continue;
+                }
+                if (Files.isDirectory(item)) {
+                    jos.putNextEntry(new JarEntry(name + "/"));
+                    jos.closeEntry();
+                } else {
+                    jos.putNextEntry(new JarEntry(name));
+                    Files.copy(item, jos);
+                    jos.closeEntry();
+                }
+            }
+        }
+    }
 }

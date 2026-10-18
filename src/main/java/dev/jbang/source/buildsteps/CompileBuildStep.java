@@ -2,6 +2,9 @@ package dev.jbang.source.buildsteps;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -9,8 +12,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.internal.compiler.batch.Main;
+
 import dev.jbang.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
@@ -27,207 +33,267 @@ import io.quarkus.qute.Template;
  * This class takes a <code>Project</code> and compiles it.
  */
 public abstract class CompileBuildStep implements Builder<Project> {
-	protected final BuildContext ctx;
+    protected final BuildContext ctx;
 
-	public CompileBuildStep(BuildContext ctx) {
-		this.ctx = ctx;
-	}
+    public CompileBuildStep(BuildContext ctx) {
+        this.ctx = ctx;
+    }
 
-	@Override
-	public Project build() throws IOException {
-		return compile();
-	}
+    @Override
+    public Project build() throws IOException {
+        return compile();
+    }
 
-	protected Project compile() throws IOException {
-		List<String> compileCmd = getCompileCommand();
+    protected Project compile() throws IOException {
+        List<String> compileCmd = getCompileCommand();
 
-		// add additional files
-		Project project = ctx.getProject();
-		project.getMainSourceSet().copyResourcesTo(ctx.getCompileDir());
+        // add additional files
+        Project project = ctx.getProject();
+        project.getMainSourceSet().copyResourcesTo(ctx.getCompileDir());
 
-		generatePom();
+        generatePom();
 
-		Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
-				project.getResourceRef().getFile().getFileName().toString()));
-		Util.verboseMsg("Compile: " + String.join(" ", compileCmd));
-		runCompiler(compileCmd);
+        Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
+                project.getResourceRef().getFile().getFileName().toString()));
+        runCompiler(compileCmd);
 
-		searchForMain(ctx.getCompileDir());
+        searchForMain(ctx.getCompileDir());
 
-		return project;
-	}
+        return project;
+    }
 
-	protected List<String> getCompileCommand() throws IOException {
-		List<String> compileCmd = new ArrayList<>();
+    protected List<String> getCompileCommand() throws IOException {
+        List<String> compileCmd = new ArrayList<>();
 
-		Project project = ctx.getProject();
-		compileCmd.add(getCompilerBinary());
-		compileCmd.addAll(getCompileCommandOptions());
+        Project project = ctx.getProject();
+        compileCmd.add(getCompilerBinary());
+        compileCmd.addAll(getCompileCommandOptions());
 
-		// add source files to compile
-		compileCmd.addAll(project.getMainSourceSet()
-			.getSources()
-			.stream()
-			.map(x -> x.getFile().toString())
-			.collect(Collectors.toList()));
+        // add source files to compile
+        compileCmd.addAll(project.getMainSourceSet()
+                .getSources()
+                .stream()
+                .map(x -> x.getFile().toString())
+                .collect(Collectors.toList()));
 
-		if (project.getModuleName().isPresent()) {
-			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
-				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
-						"Module code cannot work with the default package, adding a 'package' statement is required");
-			}
-			if (!hasModuleInfoFile()) {
-				// generate module-info descriptor and add it to list of files to compile
-				Path infoFile = ModuleUtil.generateModuleInfo(ctx);
-				if (infoFile != null) {
-					compileCmd.add(infoFile.toString());
-				}
-			}
-		}
+        if (project.getModuleName().isPresent()) {
+            if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
+                throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+                        "Module code cannot work with the default package, adding a 'package' statement is required");
+            }
+            if (!hasModuleInfoFile()) {
+                // generate module-info descriptor and add it to list of files to compile
+                Path infoFile = ModuleUtil.generateModuleInfo(ctx);
+                if (infoFile != null) {
+                    compileCmd.add(infoFile.toString());
+                }
+            }
+        }
 
-		return compileCmd;
-	}
+        return compileCmd;
+    }
 
-	private boolean hasModuleInfoFile() {
-		return ctx.getProject()
-			.getMainSourceSet()
-			.getSources()
-			.stream()
-			.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
-	}
+    private boolean hasModuleInfoFile() {
+        return ctx.getProject()
+                .getMainSourceSet()
+                .getSources()
+                .stream()
+                .anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
+    }
 
-	protected abstract String getCompilerBinary();
+    protected abstract String getCompilerBinary();
 
-	protected abstract List<String> getCompileCommandOptions() throws IOException;
+    protected abstract List<String> getCompileCommandOptions() throws IOException;
 
-	protected void runCompiler(List<String> optionList) throws IOException {
-		runCompiler(CommandBuffer.of(optionList)
-			.applyWindowsMaxProcessLimit()
-			.asProcessBuilder()
-			.inheritIO());
-	}
+    protected void runCompiler(List<String> optionList) throws IOException {
+        Util.verboseMsg("Compile: " + String.join(" ", optionList));
+        runCompiler(CommandBuffer.of(optionList)
+                .applyWindowsMaxProcessLimit()
+                .asProcessBuilder()
+                .inheritIO());
+    }
 
-	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
-		Process process = processBuilder.start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
+    protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
+        Process process = processBuilder.start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            throw new ExitException(1, e);
+        }
 
-		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during compile");
-		}
-	}
+        if (process.exitValue() != 0) {
+            throw new ExitException(1, "Error during compile");
+        }
+    }
 
-	protected Path generatePom() throws IOException {
-		Template pomTemplate = TemplateEngine.instance()
-			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+    /**
+     * Compiles the given (javac style) options and source files using the Eclipse
+     * Compiler for Java (ECJ). ECJ runs in-process, so contrary to the default
+     * implementation no external compiler process is spawned. The compiler binary
+     * itself (normally the first element of a compile command) must not be part of
+     * the given list.
+     */
+    protected void compileWithEcj(List<String> optionList) throws IOException {
+        List<String> args = new ArrayList<>(optionList);
+        completeEcjArguments(args);
 
-		Path pomPath = null;
-		if (pomTemplate == null) {
-			// ignore
-			Util.warnMsg("Could not locate pom.xml template");
-		} else {
-			Project project = ctx.getProject();
-			String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
-			MavenCoordinate gav = getPomGav(project);
-			String pomfile = pomTemplate
-				.data("baseName", baseName)
-				.data("group", gav.getGroupId())
-				.data("artifact", gav.getArtifactId())
-				.data("version", gav.getVersion())
-				.data("description", project.getDescription().orElse(""))
-				.data("dependencies", ctx.resolveClassPath().getArtifacts())
-				.render();
+        Util.verboseMsg("Compile (ecj): " + String.join(" ", args));
 
-			pomPath = getPomPath(ctx);
-			Files.createDirectories(pomPath.getParent());
-			Util.writeString(pomPath, pomfile);
-		}
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+        PrintWriter err = new PrintWriter(new OutputStreamWriter(System.err, StandardCharsets.UTF_8), true);
+        if (!Main.compile(args.toArray(new String[0]), out, err, null)) {
+            throw new ExitException(1, "Error during compile");
+        }
+    }
 
-		return pomPath;
-	}
+    /**
+     * Unlike javac, ECJ has no notion of the JDK that is being used for the
+     * project: it compiles for its own default source/target level unless told
+     * otherwise. So we make sure the source and target levels are set to the
+     * project's JDK version when the user did not specify them explicitly.
+     */
+    private void completeEcjArguments(List<String> args) {
+        Jdk jdk = ctx.getProject().projectJdk();
+        int majorVersion = jdk.majorVersion();
+        // ECJ expects version "1.x" for Java 8 and lower
+        String version = majorVersion < 9 ? "1." + majorVersion : Integer.toString(majorVersion);
 
-	private static MavenCoordinate getPomGav(Project prj) {
-		if (prj.getGav().isPresent()) {
-			return MavenCoordinate.fromString(prj.getGav().get()).withVersion();
-		} else {
-			String baseName = Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
-			return new MavenCoordinate(MavenCoordinate.DUMMY_GROUP, baseName, MavenCoordinate.DEFAULT_VERSION);
-		}
+        int idx = 0;
+        if (!hasOption(args, "--release")) {
+            if (!hasOption(args, "-source", "--source")) {
+                args.add(idx++, "-source");
+                args.add(idx++, version);
+            }
+            if (!hasOption(args, "-target", "--target")) {
+                args.add(idx++, "-target");
+                args.add(idx++, version);
+            }
+        }
+        if (!hasOption(args, "-encoding")) {
+            args.add(idx++, "-encoding");
+            args.add(idx, "UTF-8");
+        }
+    }
 
-	}
+    private static boolean hasOption(List<String> args, String... names) {
+        for (String arg : args) {
+            for (String name : names) {
+                if (arg.equals(name) || arg.startsWith(name + "=")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	public static Path getPomPath(BuildContext ctx) {
-		MavenCoordinate gav = getPomGav(ctx.getProject());
-		return ctx.getCompileDir()
-			.resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
-	}
+    protected Path generatePom() throws IOException {
+        Template pomTemplate = TemplateEngine.instance()
+                .getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
-	protected void searchForMain(Path tmpJarDir) {
-		try {
-			// using Files.walk method with try-with-resources
-			try (Stream<Path> paths = Files.walk(tmpJarDir)) {
-				List<Path> items = paths.filter(Files::isRegularFile)
-					.filter(f -> !f.toFile().getName().contains("$"))
-					.filter(f -> f.toFile().getName().endsWith(".class"))
-					.collect(Collectors.toList());
+        Path pomPath = null;
+        if (pomTemplate == null) {
+            // ignore
+            Util.warnMsg("Could not locate pom.xml template");
+        } else {
+            Project project = ctx.getProject();
+            String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
+            MavenCoordinate gav = getPomGav(project);
+            String pomfile = pomTemplate
+                    .data("baseName", baseName)
+                    .data("group", gav.getGroupId())
+                    .data("artifact", gav.getArtifactId())
+                    .data("version", gav.getVersion())
+                    .data("description", project.getDescription().orElse(""))
+                    .data("dependencies", ctx.resolveClassPath().getArtifacts())
+                    .render();
 
-				MainClassScanner.MainScan scan = MainClassScanner.scan(consumer -> {
-					for (Path item : items) {
-						try (InputStream stream = Files.newInputStream(item)) {
-							consumer.accept(item.toString(), stream);
-						}
-					}
-				});
+            pomPath = getPomPath(ctx);
+            Files.createDirectories(pomPath.getParent());
+            Util.writeString(pomPath, pomfile);
+        }
 
-				Project project = ctx.getProject();
-				if (project.getMainClass() == null) { // if non-null user forced set main
-					List<String> mains = scan.getMainClasses();
-					String mainName = getSuggestedMain();
-					if (mains.size() > 1 && mainName != null) {
-						List<String> suggestedmain = mains.stream()
-							.filter(n -> simpleName(n).equals(mainName))
-							.collect(Collectors.toList());
-						if (!suggestedmain.isEmpty()) {
-							mains = suggestedmain;
-						}
-					}
+        return pomPath;
+    }
 
-					if (!mains.isEmpty()) {
-						project.setMainClass(mains.get(0));
-						if (mains.size() > 1) {
-							Util.warnMsg(
-									"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
-											+ String.join(",", mains));
-						}
-					}
-				}
+    private static MavenCoordinate getPomGav(Project prj) {
+        if (prj.getGav().isPresent()) {
+            return MavenCoordinate.fromString(prj.getGav().get()).withVersion();
+        } else {
+            String baseName = Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
+            return new MavenCoordinate(MavenCoordinate.DUMMY_GROUP, baseName, MavenCoordinate.DEFAULT_VERSION);
+        }
 
-				if (project.getMainSource().isAgent()) {
-					scan.getAgentMain().ifPresent(project::setAgentMainClass);
-					scan.getPreMain().ifPresent(project::setPreMainClass);
-				}
-			}
-		} catch (IOException e) {
-			throw new ExitException(1, e);
-		}
-	}
+    }
 
-	protected String getSuggestedMain() {
-		Project project = ctx.getProject();
-		if (!project.getResourceRef().isStdin()) {
-			return project.getResourceRef().getFile().getFileName().toString().replace("." + getMainExtension(), "");
-		} else {
-			return null;
-		}
-	}
+    public static Path getPomPath(BuildContext ctx) {
+        MavenCoordinate gav = getPomGav(ctx.getProject());
+        return ctx.getCompileDir()
+                .resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
+    }
 
-	protected abstract String getMainExtension();
+    protected void searchForMain(Path tmpJarDir) {
+        try {
+            // using Files.walk method with try-with-resources
+            try (Stream<Path> paths = Files.walk(tmpJarDir)) {
+                List<Path> items = paths.filter(Files::isRegularFile)
+                        .filter(f -> !f.toFile().getName().contains("$"))
+                        .filter(f -> f.toFile().getName().endsWith(".class"))
+                        .collect(Collectors.toList());
 
-	private static String simpleName(String fqcn) {
-		int i = fqcn.lastIndexOf('.');
-		return i < 0 ? fqcn : fqcn.substring(i + 1);
-	}
+                MainClassScanner.MainScan scan = MainClassScanner.scan(consumer -> {
+                    for (Path item : items) {
+                        try (InputStream stream = Files.newInputStream(item)) {
+                            consumer.accept(item.toString(), stream);
+                        }
+                    }
+                });
+
+                Project project = ctx.getProject();
+                if (project.getMainClass() == null) { // if non-null user forced set main
+                    List<String> mains = scan.getMainClasses();
+                    String mainName = getSuggestedMain();
+                    if (mains.size() > 1 && mainName != null) {
+                        List<String> suggestedmain = mains.stream()
+                                .filter(n -> simpleName(n).equals(mainName))
+                                .collect(Collectors.toList());
+                        if (!suggestedmain.isEmpty()) {
+                            mains = suggestedmain;
+                        }
+                    }
+
+                    if (!mains.isEmpty()) {
+                        project.setMainClass(mains.get(0));
+                        if (mains.size() > 1) {
+                            Util.warnMsg(
+                                    "Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
+                                            + String.join(",", mains));
+                        }
+                    }
+                }
+
+                if (project.getMainSource().isAgent()) {
+                    scan.getAgentMain().ifPresent(project::setAgentMainClass);
+                    scan.getPreMain().ifPresent(project::setPreMainClass);
+                }
+            }
+        } catch (IOException e) {
+            throw new ExitException(1, e);
+        }
+    }
+
+    protected String getSuggestedMain() {
+        Project project = ctx.getProject();
+        if (!project.getResourceRef().isStdin()) {
+            return project.getResourceRef().getFile().getFileName().toString().replace("." + getMainExtension(), "");
+        } else {
+            return null;
+        }
+    }
+
+    protected abstract String getMainExtension();
+
+    private static String simpleName(String fqcn) {
+        int i = fqcn.lastIndexOf('.');
+        return i < 0 ? fqcn : fqcn.substring(i + 1);
+    }
 }
