@@ -201,14 +201,17 @@ public class Main {
 				result.addAll(remainingArgs);
 				args = result.toArray(args);
 			} else if (!getSubcommandNames().contains(cmd)) {
+				boolean resolvedAsAlias = false;
 				if (Catalog.isValidName("jbang-" + cmd) && Alias.get("jbang-" + cmd) != null) {
 					// We found a matching "jbang-xxx" alias
 					remainingArgs.set(0, "jbang-" + cmd);
+					resolvedAsAlias = true;
 				} else if (Catalog.isValidName(cmd) && Alias.get(cmd) != null) {
 					// We found an exactly matching alias.
 					// We do this test because we want aliases to have a higher
 					// priority than the next case, which is to look up commands
 					// in the user's PATH which might be slow-ish
+					resolvedAsAlias = true;
 				} else if (Catalog.isValidName(cmd) && Util.searchPath("jbang-" + cmd) != null) {
 					// We found a matching "jbang-xxx" command on the user's PATH
 					List<String> result = new ArrayList<>();
@@ -226,7 +229,7 @@ public class Main {
 				// suggest if the input doesn't look like a file/script
 				// reference (no path separators, no extensions, no URLs).
 				String suggestion = findClosestSubcommand(cmd);
-				if (suggestion != null && !looksLikeScriptRef(cmd)) {
+				if (!resolvedAsAlias && suggestion != null && !looksLikeScriptRef(cmd)) {
 					Util.warnMsg("'" + cmd + "' is not a jbang command. Did you mean '" + suggestion + "'?");
 					Util.infoMsg("See 'jbang --help' for available commands.");
 				}
