@@ -585,6 +585,21 @@ public class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun("install", "11");
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
+		assertThat(result.normalizedErr(),
+				containsString("This is an additional JDK for major version 11 with id '11.1-jbang'"));
+	}
+
+	@Test
+	void testJdkInstallSameVersionTwice() throws Exception {
+		CaptureResult<Integer> result = checkedRun("install", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
+
+		result = checkedRun("install", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), containsString("JDK is already installed"));
 		assertThat(result.normalizedErr(), containsString("Use --force to install anyway"));
 	}
@@ -598,8 +613,21 @@ public class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
-		assertTrue(Files.isDirectory(jdkPath.resolve("11.1")));
+		assertTrue(Files.isDirectory(jdkPath.resolve("11.1-jbang")));
 		assertTrue(Util.isLink(jdkPath.resolve("11")));
+	}
+
+	@Test
+	void testJdkInstallSameVersionTwiceForced() throws Exception {
+		CaptureResult<Integer> result = checkedRun("install", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
+
+		result = checkedRun("install", "--force", "11");
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), containsString("Installing Mock JDK 11.1"));
 	}
 
 	@Test
