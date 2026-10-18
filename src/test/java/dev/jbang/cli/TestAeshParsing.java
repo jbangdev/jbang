@@ -1,10 +1,13 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
 import dev.jbang.Main;
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.util.Util;
 
 class TestAeshParsing extends BaseTest {
@@ -453,6 +458,35 @@ class TestAeshParsing extends BaseTest {
 	@Test
 	void testFindClosestSubcommand_extraChar() {
 		assertThat(Main.findClosestSubcommand("initt"), equalTo("init"));
+	}
+
+	// --- Alias resolution suppresses typo warning (#2683) ---
+
+	private String captureErrDuringDefaultRun(String... args) {
+		PrintStream orig = System.err;
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		try {
+			System.setErr(new PrintStream(buf));
+			Main.handleDefaultRun(args);
+		} finally {
+			System.setErr(orig);
+		}
+		return buf.toString();
+	}
+
+	@Test
+	void testNoTypoWarningWhenAliasResolves() {
+		// "buidl" is a typo of "build" but also a defined alias -> no warning
+		CatalogUtil.addNearestAlias("buidl", new Alias().withScriptRef("http://dummy"));
+		clearSettingsCaches();
+		String err = captureErrDuringDefaultRun("buidl");
+		assertThat(err, not(containsString("is not a jbang command")));
+	}
+
+	@Test
+	void testTypoWarningWhenNoAlias() {
+		String err = captureErrDuringDefaultRun("buidl");
+		assertThat(err, containsString("is not a jbang command"));
 	}
 
 	// --- Subcommand list consistency ---
