@@ -94,6 +94,8 @@ that will run out of that directory using `./jbang`.
 
 The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
 
+When `JBANG_USE_NATIVE=true`, the wrapper searches for a matching native binary beside the wrapper scripts and then in `./.jbang`. If no local native binary is available, it falls back to the wrapper's `jbang.jar` before using the installation in `$JBANG_DIR/bin`.
+
 == Linux & macOS
 
 === SDKMan
@@ -611,7 +613,7 @@ These are read by the scripts themselves before Java or JBang's Java code is inv
 
 | `JBANG_USE_NATIVE`
 | `false`
-| When set to `true`, use the native binary (`jbang.bin` / `jbang.bin.exe`) instead of the JAR.
+| When set to `true`, prefer a platform-specific or generic native binary from the startup script directory or its `.jbang` directory, in that order. Falls back to the corresponding JAR when no native binary is available.
 
 | `JBANG_NO_VERSION_CHECK`
 | _(unset)_
