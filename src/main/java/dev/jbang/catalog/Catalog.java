@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,7 +32,10 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
+import dev.jbang.resources.ResourceNotFoundException;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.resolvers.RemoteResourceResolver.RemoteResourceRef;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 public class Catalog {
@@ -343,6 +349,7 @@ public class Catalog {
 
 	private static Catalog get(ResourceRef ref) {
 		Catalog catalog;
+		ref = resolveCatalog(ref);
 		Path catalogPath = ref.getFile();
 		if (Util.isFresh() || !catalogCache.containsKey(catalogPath.toString())) {
 			catalog = read(ref);
@@ -352,6 +359,32 @@ public class Catalog {
 			catalog = catalogCache.get(catalogPath.toString());
 		}
 		return catalog;
+	}
+
+	private static ResourceRef resolveCatalog(ResourceRef ref) {
+		try {
+			ref.getFile();
+			return ref;
+		} catch (ResourceNotFoundException ex) {
+			Throwable cause = ex.getCause();
+			if (Util.isFresh() || !ref.isURL()
+					|| !(cause instanceof UnknownHostException || cause instanceof ConnectException
+							|| cause instanceof NoRouteToHostException)) {
+				throw ex;
+			}
+			Path cached;
+			try {
+				cached = NetUtil.getCachedFile(Util.swizzleURL(ref.getOriginalResource()));
+			} catch (IOException cacheError) {
+				ex.addSuppressed(cacheError);
+				throw ex;
+			}
+			if (cached == null) {
+				throw ex;
+			}
+			Util.warnMsg("Unable to connect to " + ref.getOriginalResource() + "; using cached catalog");
+			return new RemoteResourceRef(ref.getOriginalResource(), ignored -> cached, ref);
+		}
 	}
 
 	// This returns the built-in Catalog that can be found in the resources
