@@ -1,0 +1,88 @@
+= JBANG-INFO-SOURCE-PATH
+
+== NAME
+
+jbang info source-path -- Prints source-path used for this application using operating system specific path separation.
+
+== SYNOPSIS
+
+[source]
+----
+jbang info source-path [-h] [--deps-only] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [--build-dir=<build-dir>] [--module] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+----
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*--deps-only*::
+Only include the dependencies in the output, not the application jar itself
+
+*-s*, *--sources*=<sources>::
+Add additional sources.
+
+*--files*=<files>::
+Add additional files.
+
+*-T*, *--source-type*=<source-type>::
+Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*--jsh*::
+Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*--catalog*=<catalog>::
+Path to catalog file to be used instead of the default
+
+*-D*=<key>=<value>::
+set a system property
++
+Default: `true`
+
+*--deps*=<deps>::
+Add additional dependencies (Use commas to separate them).
+
+*--repos*=<repos>::
+Add additional repositories.
+
+*--cp*=<cp>::
+Add class path entries.
++
+Aliases: `--class-path`
+
+*--ignore-transitive-repositories*::
+Ignore remote repositories found in transitive dependencies
++
+Aliases: `--itr`
+
+*--build-dir*=<build-dir>::
+Use given directory for build results
+
+*--module*=<module>::
+Treat resource as a module. Optionally with the given module name
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--[no-]verbose*::
+jbang will be verbose on what it does.
+
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+== ARGUMENTS
+
+*<scriptOrFile>*::
+A file or URL to a Java code file

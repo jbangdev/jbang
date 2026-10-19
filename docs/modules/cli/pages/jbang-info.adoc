@@ -42,5 +42,7 @@ Print exceptions stacktraces to stderr (even when quiet).
 * xref:jbang:cli:jbang-info-tools.adoc[*tools*] - Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.
 * xref:jbang:cli:jbang-info-classpath.adoc[*classpath*] - Prints class-path used for this application using operating system specific path separation.
 * xref:jbang:cli:jbang-info-jar.adoc[*jar*] - Prints the path to this application's JAR file.
+* xref:jbang:cli:jbang-info-source-path.adoc[*source-path*] - Prints source-path used for this application using operating system specific path separation.
+* xref:jbang:cli:jbang-info-source-jar.adoc[*source-jar*] - Prints the path to this application's or artifact's source JAR file.
 * xref:jbang:cli:jbang-info-docs.adoc[*docs*] - Open the documentation file in the default browser.
 

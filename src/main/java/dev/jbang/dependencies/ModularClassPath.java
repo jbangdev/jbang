@@ -5,6 +5,7 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class ModularClassPath {
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
+	private List<String> sourcePaths;
 	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
@@ -51,6 +53,24 @@ public class ModularClassPath {
 
 	public String getClassPath() {
 		return String.join(CP_SEPARATOR, getClassPaths());
+	}
+
+	public List<String> getSourcePaths() {
+		if (sourcePaths == null) {
+			sourcePaths = artifacts
+				.stream()
+				.map(ArtifactInfo::getSourceFile)
+				.filter(Objects::nonNull)
+				.filter(Files::exists)
+				.map(it -> it.toAbsolutePath().toString())
+				.distinct()
+				.collect(Collectors.toList());
+		}
+		return sourcePaths;
+	}
+
+	public String getSourcePath() {
+		return String.join(CP_SEPARATOR, getSourcePaths());
 	}
 
 	public String getManifestPath() {
