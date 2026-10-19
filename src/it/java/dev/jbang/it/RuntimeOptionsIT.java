@@ -4,6 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -172,7 +173,7 @@ public class RuntimeOptionsIT extends BaseIT {
 	private CommandResult shellWithTimeout(String... command) {
 		ByteArrayOutputStream stdoutStream = new ByteArrayOutputStream();
 		ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-		java.util.List<String> cmd = prefixShellArgs(Arrays.asList(command));
+		List<String> cmd = prefixShellArgs(Arrays.asList(command));
 		try {
 			ProcessResult execute = new ProcessExecutor().command(cmd)
 				.directory(baseDir().toFile())

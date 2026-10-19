@@ -25,6 +25,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.source.Source;
@@ -225,7 +226,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			Catalog merged = Catalog.getMerged(true, true);
 			for (String name : merged.aliases.keySet()) {
 				if (name.startsWith(partial)) {
-					dev.jbang.catalog.Alias alias = merged.aliases.get(name);
+					Alias alias = merged.aliases.get(name);
 					String desc = (alias != null && alias.description != null) ? alias.description : "Alias";
 					candidates.add(described(name, desc));
 				}
