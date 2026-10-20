@@ -50,6 +50,14 @@ public class Completion extends BaseCommand {
 		}
 		try {
 			String script = ShellCompletionGenerator.generateDynamic(shellType, JBang.class, "jbang");
+			if (shellType == ShellType.FISH) {
+				// Fish sorts completion candidates alphabetically by default.
+				// Add --keep-order so Fish preserves the order returned by
+				// jbang --aesh-complete (matching zsh behaviour).
+				script = script.replace(
+						"complete -c jbang -f -a",
+						"complete -c jbang -f -k -a");
+			}
 			System.out.println(script);
 			System.out.println(usageHint(shellType));
 		} catch (Exception e) {
