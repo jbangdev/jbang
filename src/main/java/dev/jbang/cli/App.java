@@ -82,6 +82,11 @@ public class App extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
+			// Installing is a rare, explicit act: fetch the latest sources and
+			// dependencies unless the user asked for cached or offline behaviour.
+			if (fresh == null && !Util.isOffline()) {
+				Util.setFresh(true);
+			}
 			scriptMixin.validate();
 			boolean installed = false;
 			try {
