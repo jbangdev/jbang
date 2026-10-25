@@ -24,6 +24,10 @@ jbang alias add --name hello https://github.com/jbangdev/jbang-examples/blob/HEA
 
 will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
 
+You can omit `run` when invoking an alias, even if its name resembles a built-in command.
+For example, `jbang alis` runs an alias named `alis` without a command-typo warning.
+If no alias or external command matches, JBang may suggest a similarly named built-in command.
+
 [source,bash]
 ----
 jbang alias list
