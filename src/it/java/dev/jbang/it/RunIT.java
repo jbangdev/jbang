@@ -36,6 +36,16 @@ public class RunIT extends BaseIT {
 			.exitedWith(2);
 	}
 
+	@Test
+	public void shouldRunAliasWithoutCommandTypoWarning() {
+		assertThat(shell("jbang alias add --name alis helloworld.java")).succeeded();
+		assertThat(shell("jbang alis jbangtest"))
+			.succeeded()
+			.outEquals("Hello jbangtest" + lineSeparator())
+			.errNotContains("is not a jbang command")
+			.errNotContains("See 'jbang --help'");
+	}
+
 	// Scenario: parameter passing
 	// * command('jbang helloworld.java jbangtest')
 	// * match err == "[jbang] Building jar for helloworld.java...\n"

@@ -11,10 +11,13 @@ import java.util.Set;
 
 import org.aesh.command.CommandDefinition;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
 import dev.jbang.Main;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
 
 class TestAeshParsing extends BaseTest {
@@ -453,6 +456,30 @@ class TestAeshParsing extends BaseTest {
 	@Test
 	void testFindClosestSubcommand_extraChar() {
 		assertThat(Main.findClosestSubcommand("initt"), equalTo("init"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "false, repl, repl", "true, repl, repl", "false, alis, alis", "true, alis, alis",
+			"false, jbang-alis, alis", "true, jbang-alis, alis" })
+	void testResolvedAliasDoesNotSuggestSubcommand(boolean userCatalog, String alias, String command) throws Exception {
+		Files.writeString((userCatalog ? jbangTempDir : cwdDir).resolve(Catalog.JBANG_CATALOG_JSON),
+				"{\"aliases\":{\"" + alias + "\":{\"script-ref\":\"./hello.java\"}}}");
+
+		CaptureResult<String[]> result = captureOutput(
+				() -> Main.handleDefaultRun(new String[] { command, "argument" }));
+
+		assertThat(result.result, arrayContaining("run", alias, "argument"));
+		assertThat(result.err, not(containsString("is not a jbang command")));
+		assertThat(result.err, not(containsString("See 'jbang --help'")));
+	}
+
+	@Test
+	void testUnresolvedTypoSuggestsSubcommand() throws Exception {
+		CaptureResult<String[]> result = captureOutput(() -> Main.handleDefaultRun(new String[] { "alis" }));
+
+		assertThat(result.result, arrayContaining("run", "alis"));
+		assertThat(result.err, containsString("'alis' is not a jbang command. Did you mean 'alias'?"));
+		assertThat(result.err, containsString("See 'jbang --help' for available commands."));
 	}
 
 	// --- Subcommand list consistency ---

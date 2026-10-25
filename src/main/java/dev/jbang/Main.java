@@ -220,15 +220,16 @@ public class Main {
 					Util.verboseMsg("run plugin: " + cmdLine);
 					System.out.println(cmdLine);
 					throw new ExitException(ExitException.EXIT_EXECUTE, cmdLine);
-				}
-				// Before falling through to implicit "run", check if the
-				// command looks like a typo of a known subcommand. Only
-				// suggest if the input doesn't look like a file/script
-				// reference (no path separators, no extensions, no URLs).
-				String suggestion = findClosestSubcommand(cmd);
-				if (suggestion != null && !looksLikeScriptRef(cmd)) {
-					Util.warnMsg("'" + cmd + "' is not a jbang command. Did you mean '" + suggestion + "'?");
-					Util.infoMsg("See 'jbang --help' for available commands.");
+				} else {
+					// No alias or external command matched. Before falling through
+					// to implicit "run", check for a typo of a known subcommand. Only
+					// suggest if the input doesn't look like a file/script
+					// reference (no path separators, no extensions, no URLs).
+					String suggestion = findClosestSubcommand(cmd);
+					if (suggestion != null && !looksLikeScriptRef(cmd)) {
+						Util.warnMsg("'" + cmd + "' is not a jbang command. Did you mean '" + suggestion + "'?");
+						Util.infoMsg("See 'jbang --help' for available commands.");
+					}
 				}
 				// In all other cases assume it's an implicit "run"
 				List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);
