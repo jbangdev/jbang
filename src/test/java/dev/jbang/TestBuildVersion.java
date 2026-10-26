@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.jar.Manifest;
 
 import org.junit.jupiter.api.Test;
@@ -25,10 +28,10 @@ public class TestBuildVersion {
 
 	@Test
 	void manifestContainsVersion() throws IOException {
-		java.nio.file.Path manifestPath = java.nio.file.Paths.get("build/tmp/jar/MANIFEST.MF");
-		assumeTrue(java.nio.file.Files.exists(manifestPath),
+		Path manifestPath = Paths.get("build/tmp/jar/MANIFEST.MF");
+		assumeTrue(Files.exists(manifestPath),
 				"Manifest file not yet generated - run jar task first");
-		try (InputStream is = java.nio.file.Files.newInputStream(manifestPath)) {
+		try (InputStream is = Files.newInputStream(manifestPath)) {
 			Manifest manifest = new Manifest(is);
 			String jbangVersion = manifest.getMainAttributes().getValue("JBang-Version");
 			assertNotNull(jbangVersion, "JBang-Version should be present in META-INF/MANIFEST.MF");

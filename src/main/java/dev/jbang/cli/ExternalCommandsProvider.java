@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -94,7 +95,7 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 			.collect(Collectors.toList());
 	}
 
-	private static List<Path> findCommandsWith(List<Path> pathElems, java.util.function.Predicate<Path> accept) {
+	private static List<Path> findCommandsWith(List<Path> pathElems, Predicate<Path> accept) {
 		return pathElems.stream()
 			.filter(Files::isDirectory)
 			.flatMap(dir -> listFiles(dir).filter(Util::isExecutable).filter(accept))

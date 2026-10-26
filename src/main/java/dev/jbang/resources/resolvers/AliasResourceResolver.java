@@ -1,5 +1,6 @@
 package dev.jbang.resources.resolvers;
 
+import java.util.Collections;
 import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
@@ -47,7 +48,7 @@ public class AliasResourceResolver implements ResourceResolver {
 				String rawScriptRef = alias.scriptRef;
 				if (aliasRef.requestedVersion != null) {
 					rawScriptRef = AliasVersionPinner.applyVersion(rawScriptRef, aliasRef.requestedVersion,
-							ProjectBuilder.getContextProperties(java.util.Collections.emptyMap()));
+							ProjectBuilder.getContextProperties(Collections.emptyMap()));
 				} else {
 					rawScriptRef = PropertiesValueResolver.replaceProperties(rawScriptRef);
 				}

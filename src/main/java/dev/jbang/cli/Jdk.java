@@ -561,8 +561,8 @@ public class Jdk extends BaseCommand {
 					Util.infoMsg("Default JDK already set to " + defjdk.majorVersion());
 				}
 			} else {
-				java.util.List<dev.jbang.devkitman.Jdk.LinkedJdk> jdks = jdkMan.listDefaultJdks();
-				java.util.List<JdkOut> jdkOuts = jdks.stream()
+				List<dev.jbang.devkitman.Jdk.LinkedJdk> jdks = jdkMan.listDefaultJdks();
+				List<JdkOut> jdkOuts = jdks.stream()
 					.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(), jdk.home(),
 							jdk.linked().id(), jdk.id().equals("default"), jdk.tags()))
 					.collect(Collectors.toList());

@@ -5,6 +5,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ public class CompletionIT extends BaseIT {
 	private CommandResult complete(String subcommand, String partial) {
 		// Run jbang --aesh-complete inside workDir so file completion is deterministic
 		return run(workDir, baseEnv, prefixShellArgs(
-				java.util.Arrays.asList("jbang --aesh-complete -- " + subcommand + " \"" + partial + "\"")));
+				Arrays.asList("jbang --aesh-complete -- " + subcommand + " \"" + partial + "\"")));
 	}
 
 	// ---- File completion tests ----

@@ -580,7 +580,7 @@ public class TestAlias extends BaseTest {
 		clearSettingsCaches();
 		Catalog cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
 
-		dev.jbang.catalog.AliasRef ref = dev.jbang.catalog.AliasRef.parse("test:2.0.0");
+		AliasRef ref = AliasRef.parse("test:2.0.0");
 		Alias alias = Alias.get(cat, ref.alias);
 
 		assertThat(alias, notNullValue());
@@ -596,14 +596,14 @@ public class TestAlias extends BaseTest {
 	@Test
 	void testEmptyVersionThrowsError() {
 		Exception exception = assertThrows(IllegalArgumentException.class,
-				() -> dev.jbang.catalog.AliasRef.parse("test:@catalog"));
+				() -> AliasRef.parse("test:@catalog"));
 		assertThat(exception.getMessage(), containsString("Invalid alias syntax"));
 	}
 
 	@Test
 	void testEmptyAliasNameThrowsError() {
 		Exception exception = assertThrows(IllegalArgumentException.class,
-				() -> dev.jbang.catalog.AliasRef.parse(":1.0@catalog"));
+				() -> AliasRef.parse(":1.0@catalog"));
 		assertThat(exception.getMessage(), containsString("Invalid alias"));
 	}
 

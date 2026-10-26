@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,7 +82,7 @@ public class TestMainClassScanner {
 	private static void javac(Path outDir, Path... sources) throws Exception {
 		Files.createDirectories(outDir);
 		String javac = System.getProperty("java.home") + "/bin/javac";
-		java.util.List<String> cmd = new java.util.ArrayList<>();
+		List<String> cmd = new ArrayList<>();
 		cmd.add(javac);
 		cmd.add("-d");
 		cmd.add(outDir.toString());
