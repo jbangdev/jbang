@@ -16,7 +16,7 @@
 - Naming: UpperCamelCase types, lowerCamelCase members, UPPER_SNAKE constants.
 - Types: prefer explicit generics; annotate nullability with `@jspecify` where applicable.
 - Avoid raw collections and unchecked casts; keep method signatures explicit.
-- Error handling: throw `dev.jbang.cli.ExitException` for controlled exits; let picocli report parameter issues.
+- Error handling: throw `dev.jbang.ExitException` for controlled exits; let picocli report parameter issues.
 - Logging/output: use `dev.jbang.util.Util` helpers (e.g., `infoMsg`, `verboseMsg`).
 - Commits: use conventional/semantic format — `feat:`, `fix:`, `build:`, `docs:`, etc. PR titles follow the same convention.
 - Startup scripts live in `src/main/scripts/`: `jbang` (bash), `jbang.cmd` (CMD), `jbang.ps1` (PowerShell). The CMD script delegates downloads and JDK installs to `jbang.ps1`. Changes affecting downloads or bootstrap must be applied consistently across all three. Behavior (e.g., retry backoff) must be consistent across tools — watch for tool-specific quirks like `curl --retry-delay 0` meaning exponential backoff while `wget --waitretry=0` meaning no delay.
