@@ -304,6 +304,9 @@ public class Export extends BaseCommand {
 	@CommandDefinition(name = "native", description = "Exports native executable", generateHelp = true)
 	public static class ExportNative extends BaseExportCommand {
 
+		@Option(name = "upx", hasValue = false, description = "Compress the native executable using UPX (requires UPX on PATH)")
+		boolean upx;
+
 		@Override
 		int apply(BuildContext ctx) throws IOException {
 			// Copy the native binary
@@ -320,6 +323,12 @@ public class Export extends BaseCommand {
 				Util.mkdirs(outputPath.getParent());
 			}
 			Files.copy(source, outputPath);
+
+			if (upx && Util.runCommand("upx", "--best", outputPath.toString()) == null) {
+				Files.deleteIfExists(outputPath);
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+						"UPX compression failed. Ensure UPX (https://upx.github.io) is installed and available on PATH.");
+			}
 
 			Util.infoMsg("Exported to " + outputPath);
 			return ExitException.EXIT_OK;

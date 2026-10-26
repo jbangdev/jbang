@@ -193,6 +193,9 @@ jbang export native myapp.java
 
 # Export to specific location
 jbang export native --output=/usr/local/bin/myapp myapp.java
+
+# Compress the exported binary with UPX (UPX must be installed and on PATH)
+jbang export native --upx myapp.java
 ----
 
 === Cross-Platform Considerations
