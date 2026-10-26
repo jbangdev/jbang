@@ -8,10 +8,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -236,10 +239,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				Path jarPath = ctx.getJarFile();
 				if (jarPath != null && Files.exists(jarPath) && Files.isRegularFile(jarPath)) {
 					mains = MainClassScanner.scan(consumer -> {
-						try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
-							java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
+						try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+							Enumeration<JarEntry> entries = jarFile.entries();
 							while (entries.hasMoreElements()) {
-								java.util.jar.JarEntry entry = entries.nextElement();
+								JarEntry entry = entries.nextElement();
 								if (!entry.isDirectory() && entry.getName().endsWith(".class")
 										&& !entry.getName().endsWith("module-info.class")) {
 									try (InputStream is = jarFile.getInputStream(entry)) {

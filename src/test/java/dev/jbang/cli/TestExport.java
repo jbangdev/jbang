@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -629,7 +630,7 @@ public class TestExport extends BaseTest {
 		assertThat(fatjar.toFile(), anExistingFile());
 
 		try (JarInputStream jis = new JarInputStream(new FileInputStream(fatjar.toFile()))) {
-			java.util.jar.JarEntry entry;
+			JarEntry entry;
 			String serviceContent = null;
 			while ((entry = jis.getNextJarEntry()) != null) {
 				if (serviceFile.equals(entry.getName())) {

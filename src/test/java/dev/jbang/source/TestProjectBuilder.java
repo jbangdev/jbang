@@ -23,6 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -264,7 +266,7 @@ public class TestProjectBuilder extends BaseTest {
 		// alias:version
 		Util.setCwd(examplesTestFolder);
 		ProjectBuilder pb = Project.builder()
-			.setProperties(java.util.Collections.singletonMap("jbang.app.version", "2.33"));
+			.setProperties(Collections.singletonMap("jbang.app.version", "2.33"));
 		Project prj = pb.build("helloworld:1.2");
 		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.33"));
 	}
@@ -299,7 +301,7 @@ public class TestProjectBuilder extends BaseTest {
 		// default
 		Util.setCwd(examplesTestFolder);
 		Project prj = Project.builder()
-			.setProperties(java.util.Collections.singletonMap("jbang.app.version", "1.2.3"))
+			.setProperties(Collections.singletonMap("jbang.app.version", "1.2.3"))
 			.build("versiondefault:2.7.5b1");
 		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "1.2.3"));
 	}
@@ -314,7 +316,7 @@ public class TestProjectBuilder extends BaseTest {
 		// alias `alltags` defines properties { "two": "2" }; an unrelated -D must merge
 		// in
 		Util.setCwd(examplesTestFolder);
-		Map<String, String> cli = new java.util.HashMap<>();
+		Map<String, String> cli = new HashMap<>();
 		cli.put("foo", "bar");
 		Project prj = Project.builder().setProperties(cli).build("alltags");
 		assertThat(prj.getProperties(), hasEntry("two", "2")); // from alias properties
@@ -326,7 +328,7 @@ public class TestProjectBuilder extends BaseTest {
 		// same key in both -> -D wins for that key
 		Util.setCwd(examplesTestFolder);
 		Project prj = Project.builder()
-			.setProperties(java.util.Collections.singletonMap("two", "99"))
+			.setProperties(Collections.singletonMap("two", "99"))
 			.build("alltags");
 		assertThat(prj.getProperties(), hasEntry("two", "99"));
 	}
@@ -336,7 +338,7 @@ public class TestProjectBuilder extends BaseTest {
 		// an unrelated -D must NOT wipe the alias properties-block default
 		Util.setCwd(examplesTestFolder);
 		Project prj = Project.builder()
-			.setProperties(java.util.Collections.singletonMap("foo", "bar"))
+			.setProperties(Collections.singletonMap("foo", "bar"))
 			.build("versiondefault");
 		assertThat(prj.getProperties(), hasEntry("jbang.app.version", "2.7.4"));
 		assertThat(prj.getProperties(), hasEntry("foo", "bar"));

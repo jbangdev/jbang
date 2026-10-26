@@ -15,7 +15,9 @@ import org.aesh.command.CommandResult;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.JBang;
+import dev.jbang.cli.JBangDefaultValueProvider;
 import dev.jbang.search.SearchScorer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -46,7 +48,7 @@ public class Main {
 			CommandResult result = AeshRuntimeRunner.builder()
 				.command(JBang.class)
 				.args(newArgs)
-				.defaultValueProvider(new dev.jbang.cli.JBangDefaultValueProvider())
+				.defaultValueProvider(new JBangDefaultValueProvider())
 				.execute();
 			if (result != null) {
 				exitCode = result.getResultValue();
@@ -123,7 +125,7 @@ public class Main {
 	 */
 	static void applyJavaOptionsFromEnv() {
 		// Only needed in native-image mode — on JVM the launcher handles -D flags
-		if (!dev.jbang.util.JavaUtil.inNativeImage()) {
+		if (!JavaUtil.inNativeImage()) {
 			return;
 		}
 		String opts = System.getenv("JBANG_JAVA_OPTIONS");
