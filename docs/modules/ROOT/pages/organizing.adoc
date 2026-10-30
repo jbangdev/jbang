@@ -16,6 +16,11 @@ toc::[]
 
 == Multiple source files
 
+TIP: A script that reads or writes files belonging to its project can find them with the
+`jbang.source` and `jbang.dir` system properties, rather than assuming the caller's working
+directory — see xref:jbang:ROOT:execution-options.adoc#script-location-properties[Script Location Properties].
+
+
 It is possible to use multiple source files just by having them in the same source directory. 
 To a limited extend, it also works with packages.
 

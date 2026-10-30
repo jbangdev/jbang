@@ -90,6 +90,59 @@ public class RecordExample {
 
 The `//PREVIEW` directive automatically adds the necessary compile and runtime options.
 
+== Script Location Properties
+
+A script is compiled into JBang's jar cache and run from there, so the usual Java ways of asking
+"where am I?" answer about the cache, not about the script. `getProtectionDomain().getCodeSource()`
+points at `~/.jbang/cache/jars/...`, and a relative path resolves against the directory the caller
+happened to be in.
+
+JBang therefore sets two system properties for you:
+
+[cols="1,3"]
+|===
+| Property | Value
+
+| `jbang.source`
+| Absolute path of the script being run
+
+| `jbang.dir`
+| The directory that script is in
+|===
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+import java.nio.file.Path;
+
+public class LocationTest {
+    public static void main(String... args) {
+        Path script = Path.of(System.getProperty("jbang.source"));
+        Path dir = Path.of(System.getProperty("jbang.dir"));
+
+        System.out.println("script : " + script);
+        System.out.println("dir    : " + dir);
+    }
+}
+----
+
+The typical use is a script checked into a project that has to read or write files belonging to that
+project, wherever it is started from:
+
+[source,java]
+----
+Path root = Path.of(System.getProperty("jbang.dir")).getParent();
+Files.writeString(root.resolve("content/index.html"), html);
+----
+
+Both properties can be overridden on the command line — `jbang -Djbang.source=/elsewhere/x.java
+myscript.java` — because JBang adds them before your own `-D` options.
+
+NOTE: They are set for scripts that exist as a local file. Code piped in, code passed with
+`--code`, a remote source given as a URL, and a jar or Maven coordinate have no source file in a
+project, so neither property is set — check for `null` if your script may be run that way.
+
 == Environment Variables
 
 === Java Options
