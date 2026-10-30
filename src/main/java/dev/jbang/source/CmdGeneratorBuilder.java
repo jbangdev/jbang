@@ -141,7 +141,8 @@ public class CmdGeneratorBuilder {
 
 	private NativeCmdGenerator createNativeCmdGenerator() {
 		return new NativeCmdGenerator(ctx, createJarCmdGenerator())
-			.arguments(arguments);
+			.arguments(arguments)
+			.runtimeOptions(runtimeOptions);
 	}
 
 	private void updateFromAlias(Alias alias) {
