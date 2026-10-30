@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -281,9 +283,32 @@ public class App extends BaseCommand {
 						throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
+			copyNativeBinaries(from, to);
 			if (Util.isWindows() && Util.getShell() != Util.Shell.cmd) {
 				replaceStagedCmdLauncher(to);
 			}
+		}
+
+		private static void copyNativeBinaries(Path from, Path to) throws IOException {
+			Set<String> copied = new HashSet<>();
+			for (Path sourceDir : Arrays.asList(from, from.resolve(".jbang"))) {
+				if (!Files.isDirectory(sourceDir)) {
+					continue;
+				}
+				try (DirectoryStream<Path> binaries = Files.newDirectoryStream(sourceDir, "jbang.bin*")) {
+					for (Path binary : binaries) {
+						String name = binary.getFileName().toString();
+						if (Files.isRegularFile(binary) && isNativeBinaryName(name) && copied.add(name)) {
+							Files.copy(binary, to.resolve(name), StandardCopyOption.REPLACE_EXISTING,
+									StandardCopyOption.COPY_ATTRIBUTES);
+						}
+					}
+				}
+			}
+		}
+
+		private static boolean isNativeBinaryName(String name) {
+			return name.matches("jbang\\.bin(?:-[^.]+)?(?:\\.exe)?");
 		}
 
 		static String cmdLauncherUpdateCommand() {

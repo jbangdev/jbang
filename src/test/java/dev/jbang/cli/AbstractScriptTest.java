@@ -96,8 +96,16 @@ abstract class AbstractScriptTest {
 	// -------------------------------------------------------------------------
 
 	protected static RunResult runProcess(List<String> cmd, Map<String, String> env) throws Exception {
+		return runProcess(cmd, env, null);
+	}
+
+	protected static RunResult runProcess(List<String> cmd, Map<String, String> env, Path workingDirectory)
+			throws Exception {
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		pb.environment().putAll(env);
+		if (workingDirectory != null) {
+			pb.directory(workingDirectory.toFile());
+		}
 		pb.redirectErrorStream(false);
 		Process process = pb.start();
 
