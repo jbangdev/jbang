@@ -117,43 +117,86 @@ public class Jdk extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			JdkManager jdkMan = jdkMixin.getJdkManager();
-			dev.jbang.devkitman.Jdk jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canInstall);
-			if (force || jdk == null) {
-				if (jdk != null) {
-					((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).uninstall();
+			// Check if the user requested linking to a specific JDK or not
+			if (Util.isNullOrBlankString(pathOrUrl)) {
+				// See if we can actually find the JDK that the user wants to install
+				dev.jbang.devkitman.Jdk.AvailableJdk availableJdk = jdkMan.getAvailableJdk(versionOrId);
+				if (availableJdk == null) {
+					throw new IllegalArgumentException("JDK is not available for installation: " + versionOrId);
 				}
-				if (!Util.isNullOrBlankString(pathOrUrl)) {
-					if (isRemoteUrl(pathOrUrl)) {
-						installJdkFromUrl(pathOrUrl);
-					} else {
-						Path jdkPath = parseLocalPath(pathOrUrl);
-						if (Files.isRegularFile(jdkPath)) {
-							installJdkFromArchive(jdkPath);
-						} else {
-							if (isValidInteger(versionOrId)) {
-								versionOrId = generateUserId(versionOrId);
-								Util.infoMsg("Numeric id detected, using '" + versionOrId + "' as id");
-							}
-							Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
-							if (jdkPath.toAbsolutePath().startsWith(jdkCacheDir.toAbsolutePath())) {
-								throw new IllegalArgumentException(
-										"The provided path cannot point to a JBang managed JDK");
-							}
-							jdkMan.linkToExistingJdk(jdkPath, versionOrId);
-						}
-					}
-				} else {
-					jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canInstall);
-					if (jdk == null) {
-						throw new IllegalArgumentException("JDK is not available for installation: " + versionOrId);
-					}
-					((dev.jbang.devkitman.Jdk.AvailableJdk) jdk).install();
+				// Then we check if a JDK that matches the same version/id is already installed
+				if (checkInstalled(availableJdk.id())) {
+					return ExitException.EXIT_OK;
+				}
+				// We install the requested JDK using devkitman
+				availableJdk.install();
+				Util.infoMsg("JDK " + availableJdk.version() + " installed successfully");
+				// Now we check if a different JDK matching same request exists
+				dev.jbang.devkitman.Jdk.InstalledJdk installedJdk = followLinks(jdkMan.getInstalledJdk(versionOrId));
+				if (installedJdk != null && !installedJdk.id().equals(availableJdk.id())) {
+					Util.infoMsg("This is an additional JDK for major version " + availableJdk.majorVersion()
+							+ " with id '" + availableJdk.id() + "'");
+					Util.infoMsg(
+							"To use it you supply its id when selecting a Java version, for example: 'jbang run --java "
+									+ availableJdk.id() + " ...'");
+					Util.infoMsg("To make it the default for its major version run 'jbang jdk default -v "
+							+ availableJdk.majorVersion() + " " + availableJdk.id() + "'");
+					Util.infoMsg(
+							"To make it the global Java default run 'jbang jdk default " + availableJdk.id() + "'");
 				}
 			} else {
-				Util.infoMsg("JDK is already installed: " + jdk);
-				Util.infoMsg("Use --force to install anyway");
+				// We check if a JDK that matches the same version/id is already installed
+				if (checkInstalled(versionOrId)) {
+					return ExitException.EXIT_OK;
+				}
+				// Linking was requested, so we need to determine which type (URL, local
+				// archive, local JDK installation)
+				if (isRemoteUrl(pathOrUrl)) {
+					installJdkFromUrl(pathOrUrl);
+				} else {
+					Path jdkPath = parseLocalPath(pathOrUrl);
+					if (Files.isRegularFile(jdkPath)) {
+						installJdkFromArchive(jdkPath);
+					} else {
+						Path jdkCacheDir = Settings.getCacheDir(Cache.CacheClass.jdks);
+						if (jdkPath.toAbsolutePath().startsWith(jdkCacheDir.toAbsolutePath())) {
+							throw new IllegalArgumentException(
+									"The provided path cannot point to a JBang managed JDK");
+						}
+						if (isValidInteger(versionOrId)) {
+							versionOrId = generateUserId(versionOrId);
+							Util.infoMsg("Numeric id detected, using '" + versionOrId + "' as id");
+						}
+						jdkMan.linkToExistingJdk(jdkPath, versionOrId);
+					}
+				}
 			}
 			return ExitException.EXIT_OK;
+		}
+
+		private boolean checkInstalled(String versionOrId) {
+			JdkManager jdkMan = jdkMixin.getJdkManager();
+			dev.jbang.devkitman.Jdk.InstalledJdk installedJdk = jdkMan.getInstalledJdk(versionOrId);
+			if (installedJdk != null) {
+				if (force) {
+					// The user is requesting a forced re-install so uninstall the current JDK
+					Util.infoMsg("Forcing re-install of JDK: " + installedJdk + ", uninstalling first...");
+					installedJdk.uninstall();
+				} else {
+					// The exact same JDK is already installed so we exit with a message
+					Util.infoMsg("JDK is already installed: " + installedJdk);
+					Util.infoMsg("Use --force to install anyway");
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private dev.jbang.devkitman.Jdk.InstalledJdk followLinks(dev.jbang.devkitman.Jdk.InstalledJdk jdk) {
+			while (jdk instanceof dev.jbang.devkitman.Jdk.LinkedJdk) {
+				jdk = ((dev.jbang.devkitman.Jdk.LinkedJdk) jdk).linked();
+			}
+			return jdk;
 		}
 
 		private boolean isValidInteger(String str) {
