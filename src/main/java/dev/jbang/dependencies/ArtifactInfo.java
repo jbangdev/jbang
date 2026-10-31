@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import dev.jbang.util.ModuleUtil;
 
 /**
@@ -13,17 +15,32 @@ public class ArtifactInfo {
 
 	private final MavenCoordinate coordinate;
 	private final Path file;
+	private final @Nullable Path sourceFile;
+	private final boolean sourcesChecked;
 	private final long timestamp;
 
 	ArtifactInfo(MavenCoordinate coordinate, Path file) {
+		this(coordinate, file, null, false);
+	}
+
+	ArtifactInfo(MavenCoordinate coordinate, Path file, @Nullable Path sourceFile, boolean sourcesChecked) {
 		this.coordinate = coordinate;
 		this.file = file;
+		this.sourceFile = sourceFile;
+		this.sourcesChecked = sourcesChecked;
 		this.timestamp = Files.exists(file) ? file.toFile().lastModified() : 0;
 	}
 
 	ArtifactInfo(MavenCoordinate coordinate, Path file, long cachedTimestamp) {
+		this(coordinate, file, null, false, cachedTimestamp);
+	}
+
+	ArtifactInfo(MavenCoordinate coordinate, Path file, @Nullable Path sourceFile, boolean sourcesChecked,
+			long cachedTimestamp) {
 		this.coordinate = coordinate;
 		this.file = file;
+		this.sourceFile = sourceFile;
+		this.sourcesChecked = sourcesChecked;
 		this.timestamp = cachedTimestamp;
 	}
 
@@ -33,6 +50,14 @@ public class ArtifactInfo {
 
 	public Path getFile() {
 		return file;
+	}
+
+	public @Nullable Path getSourceFile() {
+		return sourceFile;
+	}
+
+	public boolean isSourcesChecked() {
+		return sourcesChecked;
 	}
 
 	public long getTimestamp() {
