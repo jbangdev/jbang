@@ -29,3 +29,6 @@ assets/
 CLAUDE.md
 PLAN-*.md
 .pi/
+
+workspace/.metadata
+workspace/jdt.ls-java-project

@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -400,18 +401,22 @@ public class TestExport extends BaseTest {
 
     @Test
     void testExportIdeaProject() throws Exception {
-        String src = examplesTestFolder.resolve("classpath_log.java").toString();
-        File outFile = jbangTempDir.resolve("target").toFile();
-        outFile.mkdirs();
-        CaptureResult<Integer> result = checkedRun("export", "idea", "--force", "-O", outFile.toString(), src);
+        String src = examplesTestFolder
+            .resolve("classpath_log.java").toString();
+        String outFile = jbangTempDir
+            .resolve("target").toString();
+
+        CaptureResult<Integer> result = checkedRun("export", "idea", "--force", "-O", outFile, src);
         assertThat(result.result, equalTo(ExitException.EXIT_OK));
-        Path imlPath = outFile.toPath().resolve("classpath_log.iml");
+
+        Path imlPath = Paths.get(outFile, ".idea", "classpath_log.iml");
         assertThat(imlPath.toFile(), anExistingFile());
 
-        String iml = Util.readString(imlPath);
-        assertThat(iml, containsString(
-                "<orderEntry type=\"library\" name=\"Maven: log4j:log4j:1.2.17\" level=\"project\" />"));
+        Path modulesPath = Paths.get(outFile, ".idea", "modules.xml");
+        assertThat(modulesPath.toFile(), anExistingFile());
 
+        Path libPath = Paths.get(outFile, "lib");
+        assertThat(libPath.toFile(), anExistingDirectory());
     }
 
 	@Test

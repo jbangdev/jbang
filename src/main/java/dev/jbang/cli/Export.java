@@ -835,7 +835,7 @@ public class Export extends BaseCommand {
         }
     }
 
-    @CommandDefinition(name = "idea", description = "Exports a standalone Intellij IDEA project", generateHelp = true)
+    @CommandDefinition(name = "idea", description = "[EXPERIMENTAL] Exports a standalone Intellij IDEA java project", generateHelp = true)
     public static class ExportIdeaProject extends BaseExportProject {
         @Override
         String getType() {
@@ -856,48 +856,42 @@ public class Export extends BaseCommand {
             }
 
             TemplateEngine engine = TemplateEngine.instance();
-            List<MavenRepo> repositories = prj.getRepositories();
-            List<String> dependencies = prj.getMainSourceSet().getDependencies();
-            List<String> depIds = dependencies.stream()
-                    .map(JitPackUtil::ensureGAV)
-                    .collect(Collectors.toList());
-            if (!depIds.equals(dependencies)
-                    && repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
-                prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
-            }
-
-            ResourceRef imlRef = ResourceRef.forResource("classpath:/idea-project.qute.xml");
-            ResourceRef moduleRef = ResourceRef.forResource("classpath:/idea-modules.qute.xml");
-            ResourceRef libraryRef = ResourceRef.forResource("classpath:/idea-library.qute.xml");
 
             Path ideaDestination = Paths.get(projectDir.toString(), ".idea");
             if(!ideaDestination.toFile().exists()) {
                 Files.createDirectories(ideaDestination);
             }
 
+            ResourceRef imlRef = ResourceRef.forResource("classpath:/idea-iml.qute.xml");
             Path imlDestination = ideaDestination.resolve(prj.getMainClass() + ".iml");
-            Path moduleDestination = ideaDestination.resolve("modules.xnl");
-            Path libraryDestination = ideaDestination.resolve("library.xnl");
-
             String imlResult = engine
                     .getTemplate(imlRef)
-                    .data("dependencies", depIds)
                     .render();
             Util.writeString(imlDestination, imlResult);
 
+            ResourceRef moduleRef = ResourceRef.forResource("classpath:/idea-modules.qute.xml");
+            Path moduleDestination = ideaDestination.resolve("modules.xml");
             String moduleResult = engine
                     .getTemplate(moduleRef)
                     .data("iml", prj.getMainClass() + ".iml")
                     .render();
             Util.writeString(moduleDestination, moduleResult);
 
-            String libraryResult = engine
-                    .getTemplate(libraryRef)
-                    .data("dependencies", depIds)
-                    .render();
-            Util.writeString(libraryDestination, libraryResult);
+            List<ArtifactInfo> deps = ctx.resolveClassPath().getArtifacts();
+            if (!deps.isEmpty()) {
+                // Copy dependencies to "./lib" dir
+                Path libDir = projectDir.resolve("lib");
+                Util.mkdirs(libDir);
+                for (ArtifactInfo dep : deps) {
+                    if (force) {
+                        Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()),
+                                StandardCopyOption.REPLACE_EXISTING);
+                    } else {
+                        Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()));
+                    }
+                }
+            }
         }
-
     }
 
 //    public static class ExportEclipseaProject extends BaseExportProject {}
