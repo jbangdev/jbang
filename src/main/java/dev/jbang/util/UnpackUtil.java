@@ -134,6 +134,63 @@ public class UnpackUtil {
 		}
 	}
 
+	/**
+	 * Reads a single entry from a .tar.gz archive, optionally after stripping the
+	 * single root folder (as GitHub source tarballs have). Returns {@code null} if
+	 * the entry is not found.
+	 */
+	public static byte[] readEntry(Path targz, boolean stripRootFolder, Path relative) throws IOException {
+		try (TarArchiveInputStream in = new TarArchiveInputStream(
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+			TarArchiveEntry entry;
+			while ((entry = in.getNextEntry()) != null) {
+				Path p = Paths.get(entry.getName()).normalize();
+				if (stripRootFolder) {
+					if (p.getNameCount() == 1) {
+						continue;
+					}
+					p = p.subpath(1, p.getNameCount());
+				}
+				if (p.equals(relative) && !entry.isDirectory()) {
+					java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+					byte[] buf = new byte[8192];
+					int n;
+					while ((n = in.read(buf)) != -1) {
+						bos.write(buf, 0, n);
+					}
+					return bos.toByteArray();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Lists the top-level folder names inside a .tar.gz archive, optionally after
+	 * stripping the single root folder (as GitHub source tarballs have).
+	 */
+	public static Set<String> listTopFolders(Path targz, boolean stripRootFolder) throws IOException {
+		Set<String> folders = new LinkedHashSet<>();
+		try (TarArchiveInputStream in = new TarArchiveInputStream(
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+			TarArchiveEntry entry;
+			while ((entry = in.getNextEntry()) != null) {
+				Path p = Paths.get(entry.getName()).normalize();
+				if (stripRootFolder) {
+					if (p.getNameCount() == 1) {
+						continue;
+					}
+					p = p.subpath(1, p.getNameCount());
+				}
+				// only count paths with content below them, i.e. actual folders
+				if (p.getNameCount() >= 2) {
+					folders.add(p.getName(0).toString());
+				}
+			}
+		}
+		return folders;
+	}
+
 	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
