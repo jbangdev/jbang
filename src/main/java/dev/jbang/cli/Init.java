@@ -33,7 +33,7 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 
-@CommandDefinition(name = "init", description = "Initialize a script.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing")
 public class Init extends BaseCommand {
 
 	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")

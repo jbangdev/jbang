@@ -10,7 +10,7 @@ import org.aesh.command.option.Option;
 import dev.jbang.ExitException;
 
 @CommandDefinition(name = "cache", description = "Manage compiled scripts in the local cache.", groupCommands = {
-		Cache.CacheClear.class }, generateHelp = true, helpGroup = "Caching")
+		Cache.CacheClear.class }, helpGroup = "Caching")
 public class Cache extends BaseCommand {
 
 	@Override
@@ -18,7 +18,7 @@ public class Cache extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.", generateHelp = true)
+	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.")
 	public static class CacheClear extends BaseCommand {
 
 		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")

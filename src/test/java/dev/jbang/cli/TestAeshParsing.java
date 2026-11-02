@@ -31,15 +31,39 @@ class TestAeshParsing extends BaseTest {
 	void testGlobalOptionsAreInOwnHelpSection() {
 		String help = JBang.renderHelp("run");
 		assertThat(help, containsString("Global options:"));
-		// Global flags live under the Global options section, not the default Options
-		// section
-		int globalIdx = help.indexOf("Global options:");
-		int optionsIdx = help.indexOf("\nOptions:");
-		assertThat(globalIdx, greaterThanOrEqualTo(0));
-		assertThat(optionsIdx, greaterThanOrEqualTo(0));
+		// Global flags live under the Global options section
+		assertThat(help.indexOf("Global options:"), greaterThanOrEqualTo(0));
 		assertThat(help, containsString("--[no-]verbose"));
 		assertThat(help, containsString("--netrc"));
 		assertThat(help, containsString("--config"));
+	}
+
+	@Test
+	void testHelpOptionIsInGlobalOptions() {
+		String help = JBang.renderHelp("run");
+		// -h/--help is provided by us (generateHelp=false) and grouped under Global
+		// options, appearing exactly once.
+		assertThat(help, containsString("-h, --help"));
+		assertThat(help.indexOf("-h, --help"), equalTo(help.lastIndexOf("-h, --help")));
+		assertThat(help.indexOf("-h, --help"), greaterThan(help.indexOf("Global options:")));
+	}
+
+	@Test
+	void testOptionsAreGroupedIntoMeaningfulSections() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Source options:"));
+		assertThat(help, containsString("Dependency options:"));
+		assertThat(help, containsString("Build options:"));
+		assertThat(help, containsString("JDK options:"));
+		assertThat(help, containsString("Runtime options:"));
+		assertThat(help, containsString("Native image options:"));
+	}
+
+	@Test
+	void testRunHelpHasPivotExamplesSection() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString("jbang run org.example:myapp:1.2.3"));
 	}
 
 	// --- Mutual exclusion (exclusiveWith) ---

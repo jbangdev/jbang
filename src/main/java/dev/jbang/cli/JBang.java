@@ -22,10 +22,10 @@ import dev.jbang.util.Util;
 		Cache.class, Export.class, Jdk.class,
 		Config.class, Trust.class, Alias.class, Template.class, Catalog.class, App.class,
 		Completion.class, Info.class, Version.class,
-		Wrapper.class }, generateHelp = true, helpSectionProvider = ExternalCommandsProvider.class)
+		Wrapper.class }, helpSectionProvider = ExternalCommandsProvider.class)
 public class JBang extends BaseCommand {
 
-	@Option(shortName = 'V', name = "version", hasValue = false, description = "Display version info (use `jbang --verbose version` for more details)")
+	@Option(shortName = 'V', name = "version", hasValue = false, helpGroup = "Global options", description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
 
 	@Override

@@ -36,7 +36,7 @@ import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 
-@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", helpGroup = "Editing")
 public class Edit extends BaseCommand {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };

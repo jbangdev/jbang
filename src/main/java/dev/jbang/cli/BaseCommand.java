@@ -44,6 +44,9 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		logger.setLevel(Level.SEVERE);
 	}
 
+	@Option(shortName = 'h', name = "help", hasValue = false, overrideRequired = true, inherited = true, helpGroup = "Global options", description = "Display this help and exit")
+	boolean helpRequested;
+
 	@Option(name = "config", helpGroup = "Global options", description = "Path to config file to be used instead of the default")
 	String configPath;
 
@@ -146,6 +149,11 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 	@Override
 	public CommandResult execute(CommandInvocation commandInvocation) throws InterruptedException {
 		this.commandInvocation = commandInvocation;
+
+		if (helpRequested) {
+			commandInvocation.println(commandInvocation.getHelpInfo());
+			return CommandResult.valueOf(ExitException.EXIT_OK);
+		}
 
 		try {
 			validateArguments();

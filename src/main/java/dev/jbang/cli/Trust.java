@@ -18,7 +18,7 @@ import dev.jbang.net.TrustedSources;
 
 @CommandDefinition(name = "trust", description = "Manage which domains you trust to run scripts from.", groupCommands = {
 		Trust.TrustAdd.class, Trust.TrustList.class,
-		Trust.TrustRemove.class }, generateHelp = true, helpGroup = "Configuration")
+		Trust.TrustRemove.class }, helpGroup = "Configuration")
 public class Trust extends BaseCommand {
 
 	@Override
@@ -26,7 +26,7 @@ public class Trust extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add trust domains.", generateHelp = true)
+	@CommandDefinition(name = "add", description = "Add trust domains.")
 	public static class TrustAdd extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
@@ -39,7 +39,7 @@ public class Trust extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Show defined trust domains.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Show defined trust domains.")
 	public static class TrustList extends BaseCommand {
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
@@ -61,7 +61,7 @@ public class Trust extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove trust domains.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove trust domains.")
 	public static class TrustRemove extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
