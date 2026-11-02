@@ -2,6 +2,7 @@ package dev.jbang;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,16 @@ import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
 public class Main {
+	/**
+	 * aesh built-in commands that {@link AeshRuntimeRunner} intercepts, but only
+	 * when they are the first argument (completion script generation, dynamic
+	 * completion, documentation generation). We must pass these through untouched
+	 * so they stay at {@code args[0]} and are not rewritten into a default
+	 * {@code run} invocation.
+	 */
+	private static final Set<String> AESH_BUILTIN_COMMANDS = new LinkedHashSet<>(Arrays.asList(
+			"--aesh-complete", "--aesh-completion", "--aesh-completion-install", "--aesh-doc"));
+
 	public static void main(String... args) {
 		// In native-image mode the JVM never sees JBANG_JAVA_OPTIONS, so
 		// we parse -Dkey=value entries from it here and set them as system
@@ -168,6 +179,12 @@ public class Main {
 				}
 			}
 			args = filtered.toArray(new String[0]);
+		}
+		// Let aesh's built-in --aesh-* commands pass through untouched so they remain
+		// at args[0] where AeshRuntimeRunner intercepts them (otherwise a trailing
+		// value like `--aesh-doc markdown` would be rewritten into a default run).
+		if (args.length > 0 && AESH_BUILTIN_COMMANDS.contains(args[0])) {
+			return args;
 		}
 		List<String> leadingOpts = new ArrayList<>();
 		List<String> remainingArgs = new ArrayList<>();
