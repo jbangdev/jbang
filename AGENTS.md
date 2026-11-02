@@ -8,7 +8,7 @@
 - Formatting: `./gradlew format` (Spotless layout + OpenRewrite shorten-FQNs); verify using `formatCheck`.
 - No extra linters; rely on compiler + Spotless + OpenRewrite for CI hygiene.
 - Source layout: app in `src/main/java`, unit tests in `src/test/java`, IT in `src/it/java`.
-- Main entry point: `dev.jbang.Main`; CLI commands built with picocli.
+- Main entry point: `dev.jbang.Main`; CLI commands built with aesh (`org.aesh`, `@CommandDefinition`/`@Option`/`@Arguments`, reusable `@Mixin` groups).
 - Keep packages under `dev.jbang`; match existing folder hierarchy.
 - Imports ordered java → javax → org → com → dev.jbang → blank line.
 - Drop unused imports; never use wildcard or static-on-demand imports.
@@ -16,7 +16,7 @@
 - Naming: UpperCamelCase types, lowerCamelCase members, UPPER_SNAKE constants.
 - Types: prefer explicit generics; annotate nullability with `@jspecify` where applicable.
 - Avoid raw collections and unchecked casts; keep method signatures explicit.
-- Error handling: throw `dev.jbang.cli.ExitException` for controlled exits; let picocli report parameter issues.
+- Error handling: throw `dev.jbang.ExitException` for controlled exits; let aesh report parameter issues.
 - Logging/output: use `dev.jbang.util.Util` helpers (e.g., `infoMsg`, `verboseMsg`).
 - Commits: use conventional/semantic format — `feat:`, `fix:`, `build:`, `docs:`, etc. PR titles follow the same convention.
 - Startup scripts live in `src/main/scripts/`: `jbang` (bash), `jbang.cmd` (CMD), `jbang.ps1` (PowerShell). The CMD script delegates downloads and JDK installs to `jbang.ps1`. Changes affecting downloads or bootstrap must be applied consistently across all three. Behavior (e.g., retry backoff) must be consistent across tools — watch for tool-specific quirks like `curl --retry-delay 0` meaning exponential backoff while `wget --waitretry=0` meaning no delay.
