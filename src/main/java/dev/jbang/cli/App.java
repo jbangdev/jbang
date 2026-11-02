@@ -82,7 +82,6 @@ public class App extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
-			scriptMixin.validate();
 			boolean installed = false;
 			try {
 				if ("jbang".equals(scriptMixin.scriptOrFile)) {

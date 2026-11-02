@@ -80,7 +80,6 @@ public class Export extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
-			scriptMixin.validate();
 			ProjectBuilder pb = createExportProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 			BuildContext ctx = BuildContext.forProject(prj);

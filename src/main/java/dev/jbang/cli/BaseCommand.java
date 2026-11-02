@@ -148,6 +148,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		this.commandInvocation = commandInvocation;
 
 		try {
+			validateArguments();
 			int exitCode = doCall();
 			return CommandResult.valueOf(exitCode);
 		} catch (ExitException e) {
@@ -171,10 +172,37 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		System.err.println("Missing required subcommand for '" + getClass().getAnnotation(
 				org.aesh.command.CommandDefinition.class)
 			.name() + "'");
+		printCommandHelp();
+		return ExitException.EXIT_INVALID_INPUT;
+	}
+
+	/**
+	 * Validates that the command's minimal argument requirements are met, before
+	 * {@link #doCall()} runs. The default does nothing; override to add checks and
+	 * throw an {@link ExitException} (usually via {@link #requireScriptArgument})
+	 * when a requirement is missing. Failures print the command's usage help.
+	 */
+	protected void validateArguments() {
+	}
+
+	/** Prints this command's usage/help (synopsis, options, etc.) to stderr. */
+	protected void printCommandHelp() {
 		if (commandInvocation != null) {
 			System.err.println(commandInvocation.getHelpInfo());
 		}
-		return ExitException.EXIT_INVALID_INPUT;
+	}
+
+	/**
+	 * Ensures a script/resource argument was provided. When missing, prints the
+	 * command's usage help (like {@code run} does) and throws an
+	 * {@link ExitException} so the error is consistent across commands.
+	 */
+	protected void requireScriptArgument(String scriptOrFile) {
+		if (scriptOrFile == null) {
+			printCommandHelp();
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Missing required parameter: '<scriptOrFile>'");
+		}
 	}
 
 	@Override
