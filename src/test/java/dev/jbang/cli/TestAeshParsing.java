@@ -482,6 +482,16 @@ class TestAeshParsing extends BaseTest {
 		assertThat(result.err, containsString("See 'jbang --help' for available commands."));
 	}
 
+	@ParameterizedTest
+	@CsvSource({ "--aesh-completion, bash", "--aesh-doc, markdown", "--aesh-complete, --",
+			"--aesh-completion-install, bash" })
+	void testAeshBuiltinsPassThroughUnchanged(String builtin, String arg) {
+		// aesh intercepts these only when they are args[0]; they must not be rewritten
+		// into a default 'run' invocation.
+		String[] result = Main.handleDefaultRun(new String[] { builtin, arg });
+		assertThat(result, arrayContaining(builtin, arg));
+	}
+
 	// --- Subcommand list consistency ---
 
 	@Test
