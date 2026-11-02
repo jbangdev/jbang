@@ -42,6 +42,7 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.CommandInvoker;
 import dev.jbang.cli.JBang;
 import dev.jbang.cli.Run;
 import dev.jbang.dependencies.DependencyCache;
@@ -140,7 +141,7 @@ public abstract class BaseTest {
 				if (cmd instanceof Run) {
 					((Run) cmd).realOut = System.out;
 				}
-				return cmd.doCall();
+				return CommandInvoker.validateAndCall(cmd);
 			} catch (RuntimeException e) {
 				if (e.getCause() instanceof CommandLineParserException) {
 					Util.verboseMsg("checkedRun: parseCommand failed with "
