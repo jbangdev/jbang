@@ -12,20 +12,21 @@ import dev.jbang.util.Util;
 
 public class DependencyInfoMixin {
 
-	@OptionGroup(shortName = 'D', description = "set a system property", defaultValue = "true")
+	@OptionGroup(shortName = 'D', helpGroup = "Runtime options", description = "set a system property", defaultValue = "true")
 	Map<String, String> properties;
 
-	@OptionList(name = "deps", valueSeparator = ',', description = "Add additional dependencies (Use commas to separate them).")
+	@OptionList(name = "deps", valueSeparator = ',', helpGroup = "Dependency options", description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 
-	@OptionList(name = "repos", valueSeparator = ',', description = "Add additional repositories.")
+	@OptionList(name = "repos", valueSeparator = ',', helpGroup = "Dependency options", description = "Add additional repositories.")
 	List<String> repositories;
 
-	@OptionList(name = "cp", aliases = { "class-path" }, description = "Add class path entries.")
+	@OptionList(name = "cp", aliases = {
+			"class-path" }, helpGroup = "Dependency options", description = "Add class path entries.")
 	List<String> classpaths;
 
 	@Option(name = "ignore-transitive-repositories", aliases = {
-			"itr" }, hasValue = false, description = "Ignore remote repositories found in transitive dependencies")
+			"itr" }, hasValue = false, helpGroup = "Dependency options", description = "Ignore remote repositories found in transitive dependencies")
 	boolean ignoreTransitiveRepositories;
 
 	public Map<String, String> getProperties() {
