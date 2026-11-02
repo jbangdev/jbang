@@ -145,6 +145,10 @@ public class UnpackUtil {
 			TarArchiveEntry entry;
 			while ((entry = in.getNextEntry()) != null) {
 				Path p = Paths.get(entry.getName()).normalize();
+				// Ignore entries that would escape the archive root ("Zip Slip")
+				if (p.isAbsolute() || p.startsWith("..")) {
+					continue;
+				}
 				if (stripRootFolder) {
 					if (p.getNameCount() == 1) {
 						continue;
@@ -176,6 +180,10 @@ public class UnpackUtil {
 			TarArchiveEntry entry;
 			while ((entry = in.getNextEntry()) != null) {
 				Path p = Paths.get(entry.getName()).normalize();
+				// Ignore entries that would escape the archive root ("Zip Slip")
+				if (p.isAbsolute() || p.startsWith("..")) {
+					continue;
+				}
 				if (stripRootFolder) {
 					if (p.getNameCount() == 1) {
 						continue;
