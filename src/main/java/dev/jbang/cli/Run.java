@@ -26,7 +26,7 @@ import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
-@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials")
+@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials", helpSectionProvider = RunHelpProvider.class)
 public class Run extends BaseBuildCommand {
 
 	/**
