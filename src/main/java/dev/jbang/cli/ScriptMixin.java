@@ -20,7 +20,7 @@ public class ScriptMixin {
 	@OptionList(name = "files", valueSeparator = ',', description = "Add additional files.")
 	List<String> resources;
 
-	@Option(shortName = 'T', name = "source-type", description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
+	@Option(shortName = 'T', name = "source-type", description = "Force input to be interpreted as the given type")
 	Source.Type forceType;
 
 	@Option(name = "jsh", hasValue = false, description = "Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'")
