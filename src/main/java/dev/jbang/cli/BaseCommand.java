@@ -44,39 +44,39 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 		logger.setLevel(Level.SEVERE);
 	}
 
-	@Option(name = "config", description = "Path to config file to be used instead of the default")
+	@Option(name = "config", helpGroup = "Global options", description = "Path to config file to be used instead of the default")
 	String configPath;
 
-	@Option(name = "insecure", hasValue = false, description = "Enable insecure trust of all SSL certificates.")
+	@Option(name = "insecure", hasValue = false, helpGroup = "Global options", description = "Enable insecure trust of all SSL certificates.")
 	boolean insecure;
 
-	@Option(name = "verbose", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
+	@Option(name = "verbose", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"quiet" }, description = "jbang will be verbose on what it does.")
 	Boolean verbose;
 
-	@Option(name = "quiet", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
+	@Option(name = "quiet", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"verbose" }, description = "jbang will be quiet, only print when error occurs.")
 	Boolean quiet;
 
-	@Option(shortName = 'o', name = "offline", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
+	@Option(shortName = 'o', name = "offline", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"fresh" }, description = "Work offline. Fail-fast if dependencies are missing.")
 	Boolean offline;
 
-	@Option(name = "fresh", hasValue = false, negatable = true, inherited = true, exclusiveWith = {
+	@Option(name = "fresh", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"offline" }, description = "Make sure we use fresh (i.e. non-cached) resources.")
 	Boolean fresh;
 
 	@Option(name = "preview", hasValue = false, negatable = true, inherited = true, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
 	Boolean preview;
 
-	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, description = "Print exceptions stacktraces to stderr (even when quiet).")
+	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", description = "Print exceptions stacktraces to stderr (even when quiet).")
 	Boolean printExceptions;
 
-	@Option(name = "netrc", inherited = true, exclusiveWith = {
+	@Option(name = "netrc", inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"no-netrc" }, description = "Path to a .netrc file for HTTP authentication credentials.")
 	String netrc;
 
-	@Option(name = "no-netrc", hasValue = false, inherited = true, exclusiveWith = {
+	@Option(name = "no-netrc", hasValue = false, inherited = true, helpGroup = "Global options", exclusiveWith = {
 			"netrc" }, description = "Disable .netrc authentication lookup.")
 	boolean noNetrc;
 

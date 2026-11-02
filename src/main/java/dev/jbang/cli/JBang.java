@@ -77,6 +77,30 @@ public class JBang extends BaseCommand {
 		}
 	}
 
+	/**
+	 * Renders the help text for a (sub)command as it would appear with
+	 * {@code --help}. Pass the command path, e.g. {@code renderHelp("run")} or
+	 * {@code renderHelp("jdk", "install")}. With no arguments the root help is
+	 * returned.
+	 */
+	public static String renderHelp(String... commandPath) {
+		try {
+			CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
+			String rootName = (String) registry.getAllCommandNames().iterator().next();
+			org.aesh.command.impl.parser.CommandLineParser<?> parser = registry.getCommand(rootName, rootName)
+				.getParser();
+			for (String name : commandPath) {
+				parser = parser.getChildParser(name);
+				if (parser == null) {
+					throw new IllegalArgumentException("Unknown command: " + name);
+				}
+			}
+			return parser.printHelp();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to render help", e);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T extends Command> T parseCommand(String... args) {
 		try {

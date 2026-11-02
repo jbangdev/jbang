@@ -25,6 +25,23 @@ import dev.jbang.util.Util;
 
 class TestAeshParsing extends BaseTest {
 
+	// --- Help rendering ---
+
+	@Test
+	void testGlobalOptionsAreInOwnHelpSection() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Global options:"));
+		// Global flags live under the Global options section, not the default Options
+		// section
+		int globalIdx = help.indexOf("Global options:");
+		int optionsIdx = help.indexOf("\nOptions:");
+		assertThat(globalIdx, greaterThanOrEqualTo(0));
+		assertThat(optionsIdx, greaterThanOrEqualTo(0));
+		assertThat(help, containsString("--[no-]verbose"));
+		assertThat(help, containsString("--netrc"));
+		assertThat(help, containsString("--config"));
+	}
+
 	// --- Mutual exclusion (exclusiveWith) ---
 
 	@Test
