@@ -87,15 +87,14 @@ public class Alias extends BaseCommand {
 		@Override
 		protected void validateArguments() {
 			requireScriptArgument(scriptMixin.scriptOrFile);
-		}
-
-		@Override
-		public Integer doCall() throws IOException {
 			if (name != null && !Catalog.isValidName(name)) {
 				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 			}
+		}
 
+		@Override
+		public Integer doCall() throws IOException {
 			ProjectBuilder pb = createAliasProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 			if (name == null) {

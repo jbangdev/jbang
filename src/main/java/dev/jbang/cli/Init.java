@@ -63,10 +63,9 @@ public class Init extends BaseCommand {
 	@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
 	List<String> params;
 
-	public void requireScriptArgument() {
-		if (scriptOrFile == null) {
-			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
-		}
+	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptOrFile);
 	}
 
 	List<String> params() {
@@ -78,8 +77,6 @@ public class Init extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
-
 		if (initTemplate == null) {
 			String extensionTemplate = "hello." + Util.extension(scriptOrFile);
 			initTemplate = dev.jbang.catalog.Template.get(extensionTemplate) != null ? extensionTemplate : "hello";
