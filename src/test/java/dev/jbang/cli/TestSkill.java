@@ -3,7 +3,9 @@ package dev.jbang.cli;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
 import dev.jbang.util.UnpackUtil;
 
 public class TestSkill extends BaseTest {
@@ -35,6 +38,22 @@ public class TestSkill extends BaseTest {
 			addFile(out, "repo-main/skilla/SKILL.md", "skill a");
 			addFile(out, "repo-main/skillb/SKILL.md", "skill b");
 			addFile(out, "repo-main/skillb/references/x.md", "ref x");
+		}
+		return tgz;
+	}
+
+	/**
+	 * Build a malicious GitHub-style tarball whose entries try to escape the
+	 * extraction root via ".." path traversal ("Zip Slip").
+	 */
+	private Path maliciousTarball(Path dir) throws IOException {
+		Path tgz = dir.resolve("evil-skills.tar.gz");
+		try (TarArchiveOutputStream out = new TarArchiveOutputStream(
+				new GzipCompressorOutputStream(Files.newOutputStream(tgz)))) {
+			out.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+			addFile(out, "repo-main/good/SKILL.md", "good skill");
+			// entry that, after stripping the root folder, resolves to "../evil/SKILL.md"
+			addFile(out, "repo-main/../evil/SKILL.md", "pwned");
 		}
 		return tgz;
 	}
@@ -62,6 +81,27 @@ public class TestSkill extends BaseTest {
 	void listTopFoldersIgnoresRootAndStrayFiles(@TempDir Path dir) throws IOException {
 		Set<String> folders = UnpackUtil.listTopFolders(fixtureTarball(dir), true);
 		assertThat(folders, containsInAnyOrder("skilla", "skillb"));
+	}
+
+	@Test
+	void listTopFoldersIgnoresTraversalEntries(@TempDir Path dir) throws IOException {
+		Set<String> folders = UnpackUtil.listTopFolders(maliciousTarball(dir), true);
+		assertThat(folders, containsInAnyOrder("good"));
+	}
+
+	@Test
+	void readEntryIgnoresTraversalEntries(@TempDir Path dir) throws IOException {
+		// a ".." escaping entry must never be readable
+		byte[] evil = UnpackUtil.readEntry(maliciousTarball(dir), true, Path.of("..", "evil", "SKILL.md"));
+		assertThat(evil, is(nullValue()));
+	}
+
+	@Test
+	void resolveInsideRejectsTraversal(@TempDir Path dir) {
+		assertThrows(ExitException.class, () -> Skill.resolveInside(dir, "../evil"));
+		assertThrows(ExitException.class, () -> Skill.resolveInside(dir, "a/../../evil"));
+		// a plain name resolves fine
+		assertEquals(dir.resolve("ok").normalize(), Skill.resolveInside(dir, "ok"));
 	}
 
 	@Test

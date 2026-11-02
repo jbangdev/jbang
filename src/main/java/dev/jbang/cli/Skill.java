@@ -149,7 +149,7 @@ public class Skill extends BaseCommand {
 		if (!project && !Files.isDirectory(skillsDir.getParent())) {
 			return Status.AGENT_NOT_DETECTED;
 		}
-		Path target = skillsDir.resolve(name);
+		Path target = resolveInside(skillsDir, name);
 		if (!Files.exists(target)) {
 			return Status.MISSING;
 		}
@@ -209,7 +209,7 @@ public class Skill extends BaseCommand {
 			}
 			detectedAny = true;
 			for (String name : wanted) {
-				Path target = skillsDir.resolve(name);
+				Path target = resolveInside(skillsDir, name);
 				Status st = status(tarball, skillsDir, name, project);
 				switch (st) {
 				case CURRENT:
@@ -271,7 +271,7 @@ public class Skill extends BaseCommand {
 			// no names -> every JBang-installed skill we find (offline, marker-based)
 			List<String> wanted = (names == null || names.isEmpty()) ? installedSkills(skillsDir) : names;
 			for (String name : wanted) {
-				Path target = skillsDir.resolve(name);
+				Path target = resolveInside(skillsDir, name);
 				if (!Files.isDirectory(target)) {
 					continue;
 				}
@@ -329,13 +329,27 @@ public class Skill extends BaseCommand {
 			for (String name : new TreeSet<>(available)) {
 				Util.infoMsg(name);
 				for (Map.Entry<String, Path> agent : agents.entrySet()) {
-					Path target = agent.getValue().resolve(name);
+					Path target = resolveInside(agent.getValue(), name);
 					Status st = status(tarball, agent.getValue(), name, project);
 					Util.infoMsg(String.format("  %-34s %-28s %s", agent.getKey(), st.label, display(target)));
 				}
 			}
 			return ExitException.EXIT_OK;
 		}
+	}
+
+	/**
+	 * Resolves {@code name} against {@code base}, guaranteeing the result stays
+	 * inside {@code base}. Protects against path traversal ("Zip Slip") when the
+	 * name originates from an archive entry or user input.
+	 */
+	static Path resolveInside(Path base, String name) {
+		Path target = base.resolve(name).normalize();
+		if (!target.startsWith(base.normalize())) {
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Invalid skill name '" + name + "': escapes the skills directory");
+		}
+		return target;
 	}
 
 	private static List<String> resolveNames(List<String> requested, Set<String> available) {
