@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -182,11 +181,11 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Export.ExportLocal export = JBang.parseCommand("export", "local");
-			export.doCall();
-		});
+	void testExportMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("export", "local"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test

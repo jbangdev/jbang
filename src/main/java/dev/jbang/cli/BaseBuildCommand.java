@@ -32,6 +32,11 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	Boolean enablePreviewRequested;
 
 	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptMixin.scriptOrFile);
+	}
+
+	@Override
 	public void afterParse() {
 		super.afterParse();
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
