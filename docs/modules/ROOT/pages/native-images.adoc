@@ -4,6 +4,7 @@
 ifndef::env-github[]
 :icons: font
 endif::[]
+
 ifdef::env-github[]
 :caution-caption: :fire:
 :important-caption: :exclamation:
@@ -13,6 +14,9 @@ ifdef::env-github[]
 endif::[]
 
 JBang supports creating native images using GraalVM's `native-image` tool, allowing you to compile your Java scripts into standalone native executables.
+
+For experimental in-process bytecode execution inside native JBang, see
+xref:crema.adoc[Crema execution].
 
 == What are Native Images?
 
