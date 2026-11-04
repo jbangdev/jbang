@@ -66,6 +66,14 @@ class TestAeshParsing extends BaseTest {
 		assertThat(help, containsString("jbang run org.example:myapp:1.2.3"));
 	}
 
+	@ParameterizedTest
+	@CsvSource({ "export, jbang export fatjar hello.java" })
+	void testCommandHelpHasExamplesSection(String command, String example) {
+		String help = JBang.renderHelp(command);
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString(example));
+	}
+
 	// --- Mutual exclusion (exclusiveWith) ---
 
 	@Test

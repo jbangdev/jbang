@@ -40,7 +40,7 @@ import io.quarkus.qute.Template;
 		Export.ExportPortable.class, Export.ExportLocal.class, Export.ExportMavenPublish.class,
 		Export.ExportNative.class, Export.ExportFatjar.class, Export.ExportJlink.class,
 		Export.ExportGradleProject.class,
-		Export.ExportMavenProject.class }, helpGroup = "Caching")
+		Export.ExportMavenProject.class }, helpGroup = "Caching", helpSectionProvider = ExportHelpProvider.class)
 public class Export extends BaseCommand {
 
 	@Override
