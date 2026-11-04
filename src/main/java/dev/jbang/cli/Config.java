@@ -24,7 +24,7 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "config", description = "Read and write configuration options.", groupCommands = {
 		Config.ConfigGet.class, Config.ConfigSet.class,
 		Config.ConfigUnset.class,
-		Config.ConfigList.class }, helpGroup = "Configuration")
+		Config.ConfigList.class }, helpGroup = "Configuration", helpSectionProvider = ConfigHelpProvider.class)
 public class Config extends BaseCommand {
 
 	// IMPORTANT: These options have to be maintained manually! Make sure to add
@@ -104,7 +104,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "set", description = "Set a configuration value")
+	@CommandDefinition(name = "set", description = "Set a configuration value", helpSectionProvider = ConfigHelpProvider.Set.class)
 	public static class ConfigSet extends BaseConfigCommand {
 		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true)
 		String keyOrKeyValue;
