@@ -109,7 +109,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
+	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations", helpSectionProvider = ExportHelpProvider.Local.class)
 	public static class ExportLocal extends BaseExportCommand {
 
 		@Override
@@ -144,7 +144,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
+	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable", helpSectionProvider = ExportHelpProvider.Portable.class)
 	public static class ExportPortable extends BaseExportCommand {
 
 		public static final String LIB = "lib";
@@ -192,7 +192,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository")
+	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", helpSectionProvider = ExportHelpProvider.Mavenrepo.class)
 	public static class ExportMavenPublish extends BaseExportCommand {
 
 		@Option(shortName = 'g', name = "group", description = "The group ID to use for the generated POM.")
@@ -300,7 +300,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "native", description = "Exports native executable")
+	@CommandDefinition(name = "native", description = "Exports native executable", helpSectionProvider = ExportHelpProvider.Native.class)
 	public static class ExportNative extends BaseExportCommand {
 
 		@Override
@@ -341,7 +341,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside")
+	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside", helpSectionProvider = ExportHelpProvider.Fatjar.class)
 	public static class ExportFatjar extends BaseExportCommand {
 
 		@Override
@@ -437,7 +437,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution")
+	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution", helpSectionProvider = ExportHelpProvider.Jlink.class)
 	public static class ExportJlink extends BaseExportCommand {
 
 		@Arguments(paramLabel = "jlinkParams", index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
@@ -666,7 +666,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "gradle", description = "Exports a Gradle project")
+	@CommandDefinition(name = "gradle", description = "Exports a Gradle project", helpSectionProvider = ExportHelpProvider.Gradle.class)
 	public static class ExportGradleProject extends BaseExportProject {
 
 		@Override
@@ -761,7 +761,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "maven", description = "Exports a Maven project")
+	@CommandDefinition(name = "maven", description = "Exports a Maven project", helpSectionProvider = ExportHelpProvider.Maven.class)
 	public static class ExportMavenProject extends BaseExportProject {
 
 		@Override

@@ -77,6 +77,21 @@ class TestAeshParsing extends BaseTest {
 		assertThat(help, containsString(example));
 	}
 
+	@ParameterizedTest
+	@CsvSource({ "export local, jbang export local hello.java",
+			"export portable, jbang export portable hello.java",
+			"export fatjar, jbang export fatjar hello.java",
+			"export native, jbang export native hello.java",
+			"export jlink, jbang export jlink hello.java -- --strip-debug",
+			"export mavenrepo, jbang export mavenrepo -g org.acme hello.java",
+			"export gradle, jbang export gradle hello.java",
+			"export maven, jbang export maven hello.java" })
+	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
+		String help = JBang.renderHelp(commandPath.split(" "));
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString(example));
+	}
+
 	// --- Mutual exclusion (exclusiveWith) ---
 
 	@Test
