@@ -18,7 +18,7 @@ import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {
-		Wrapper.WrapperInstall.class })
+		Wrapper.WrapperInstall.class }, helpSectionProvider = WrapperHelpProvider.class)
 public class Wrapper extends BaseCommand {
 	public static final String DIR_NAME = ".jbang";
 	public static final String JAR_NAME = "jbang.jar";
@@ -29,7 +29,7 @@ public class Wrapper extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder")
+	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder", helpSectionProvider = WrapperHelpProvider.Install.class)
 	public static class WrapperInstall extends BaseCommand {
 
 		@Option(shortName = 'd', name = "dir", helpGroup = "Options", order = 0, description = "The folder to install the wrapper into.")
