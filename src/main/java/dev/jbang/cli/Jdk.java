@@ -36,7 +36,7 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "jdk", description = "Manage Java Development Kits installed by jbang.", groupCommands = {
 		Jdk.JdkInstall.class, Jdk.JdkList.class, Jdk.JdkUninstall.class,
 		Jdk.JdkHome.class, Jdk.JdkJavaEnv.class, Jdk.JdkExec.class,
-		Jdk.JdkDefault.class }, helpGroup = "Caching")
+		Jdk.JdkDefault.class }, helpGroup = "Caching", helpSectionProvider = JdkHelpProvider.class)
 public class Jdk extends BaseCommand {
 
 	@Override
