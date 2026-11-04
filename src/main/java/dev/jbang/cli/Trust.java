@@ -18,7 +18,7 @@ import dev.jbang.net.TrustedSources;
 
 @CommandDefinition(name = "trust", description = "Manage which domains you trust to run scripts from.", groupCommands = {
 		Trust.TrustAdd.class, Trust.TrustList.class,
-		Trust.TrustRemove.class }, helpGroup = "Configuration")
+		Trust.TrustRemove.class }, helpGroup = "Configuration", helpSectionProvider = TrustHelpProvider.class)
 public class Trust extends BaseCommand {
 
 	@Override
@@ -26,7 +26,7 @@ public class Trust extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add trust domains.")
+	@CommandDefinition(name = "add", description = "Add trust domains.", helpSectionProvider = TrustHelpProvider.Add.class)
 	public static class TrustAdd extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
