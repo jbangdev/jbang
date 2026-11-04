@@ -4,6 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -69,7 +70,7 @@ public class BuildSystemClassPathsIT extends BaseIT {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			ProcessBuilder pb = new ProcessBuilder("mise", "install")
-				.directory(new java.io.File(fixture))
+				.directory(new File(fixture))
 				.redirectErrorStream(true);
 			pb.environment().putAll(env);
 			Process p = pb.start();

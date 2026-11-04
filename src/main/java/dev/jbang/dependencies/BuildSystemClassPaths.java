@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -147,7 +148,7 @@ public class BuildSystemClassPaths {
 		if (Util.isBlankString(classPath)) {
 			return Collections.emptyList();
 		}
-		return Arrays.stream(classPath.trim().split(java.util.regex.Pattern.quote(File.pathSeparator)))
+		return Arrays.stream(classPath.trim().split(Pattern.quote(File.pathSeparator)))
 			.filter(p -> !p.isEmpty())
 			.collect(Collectors.toList());
 	}

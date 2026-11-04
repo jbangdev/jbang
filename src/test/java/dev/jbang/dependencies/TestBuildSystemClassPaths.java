@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
 
 public class TestBuildSystemClassPaths extends BaseTest {
@@ -89,7 +91,7 @@ public class TestBuildSystemClassPaths extends BaseTest {
 		Files.createDirectories(cache);
 		Path cachedFile = cache.resolve("remote.java");
 		Files.write(cachedFile, Collections.singletonList("//DEPS build.gradle\nclass remote {}"));
-		dev.jbang.resources.ResourceRef ref = dev.jbang.resources.ResourceRef.forResolvedResource(
+		ResourceRef ref = ResourceRef.forResolvedResource(
 				"https://example.com/remote.java", cachedFile);
 
 		ExitException error = assertThrows(ExitException.class, () -> Project.builder().build(ref));
@@ -109,9 +111,9 @@ public class TestBuildSystemClassPaths extends BaseTest {
 		Path dep = buildFile("build.gradle");
 		writeWrapper("gradlew", "echo 'JBANG_CLASSPATH=" + dep + "'");
 
-		dev.jbang.source.ProjectBuilder builder = dev.jbang.source.Project.builder();
+		ProjectBuilder builder = Project.builder();
 		builder.additionalDependencies(Collections.singletonList("build.gradle"));
-		dev.jbang.source.Project prj = builder.build(src);
+		Project prj = builder.build(src);
 
 		assertThat(prj.getMainSourceSet().getClassPaths(), contains(dep.toString()));
 	}

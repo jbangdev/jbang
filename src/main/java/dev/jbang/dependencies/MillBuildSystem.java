@@ -3,6 +3,7 @@ package dev.jbang.dependencies;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,7 +47,7 @@ class MillBuildSystem implements BuildSystem {
 			}
 			// Mill wraps each entry as `qref:vN:HASH:PATH` or `ref:vN:HASH:PATH`.
 			// Strip the metadata prefix — we only care about the actual path.
-			List<String> classPath = new java.util.ArrayList<>(raw.size());
+			List<String> classPath = new ArrayList<>(raw.size());
 			for (String entry : raw) {
 				classPath.add(stripMillPrefix(entry));
 			}
