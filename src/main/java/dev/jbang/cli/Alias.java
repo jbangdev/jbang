@@ -31,7 +31,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "alias", description = "Manage aliases for scripts.", groupCommands = {
 		Alias.AliasAdd.class, Alias.AliasList.class,
-		Alias.AliasRemove.class }, helpGroup = "Configuration")
+		Alias.AliasRemove.class }, helpGroup = "Configuration", helpSectionProvider = AliasHelpProvider.class)
 public class Alias extends BaseCommand {
 
 	@Override
