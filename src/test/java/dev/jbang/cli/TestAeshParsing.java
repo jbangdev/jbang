@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.aesh.command.CommandDefinition;
+import org.aesh.command.impl.parser.CommandLineParser;
+import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
+import org.aesh.command.registry.CommandRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -97,6 +100,39 @@ class TestAeshParsing extends BaseTest {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));
 		assertThat(help, containsString(example));
+	}
+
+	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	void testOptionSectionsAreOrderedOptionsFirstGlobalLast() throws Exception {
+		// Every command and subcommand: the command's own (ungrouped) "Options:"
+		// come first and "Global options:" come last.
+		CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
+		String root = (String) registry.getAllCommandNames().iterator().next();
+		List<String> problems = new ArrayList<>();
+		checkOptionSections(registry.getCommand(root, root).getParser(), root, problems);
+		assertThat(problems, empty());
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void checkOptionSections(CommandLineParser parser, String path, List<String> problems) {
+		List<String> headers = new ArrayList<>();
+		for (String line : parser.printHelp().split("\\R")) {
+			String l = line.replaceAll("\u001B\\[[;\\d]*m", "");
+			if (l.equals("Options:") || l.endsWith(" options:")) {
+				headers.add(l);
+			}
+		}
+		if (headers.contains("Options:") && headers.indexOf("Options:") != 0) {
+			problems.add(path + ": 'Options:' is not first " + headers);
+		}
+		if (!headers.isEmpty() && !headers.get(headers.size() - 1).equals("Global options:")) {
+			problems.add(path + ": 'Global options:' is not last " + headers);
+		}
+		for (Object child : parser.getAllChildParsers()) {
+			CommandLineParser cp = (CommandLineParser) child;
+			checkOptionSections(cp, path + " " + cp.getProcessedCommand().name(), problems);
+		}
 	}
 
 	// --- Mutual exclusion (exclusiveWith) ---

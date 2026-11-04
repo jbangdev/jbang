@@ -34,7 +34,7 @@ public class Completion extends BaseCommand {
 		return completion();
 	}
 
-	@Option(shortName = 's', name = "shell", description = "The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.")
+	@Option(shortName = 's', name = "shell", helpGroup = "Options", order = 0, description = "The shell to generate the completion script for. Supported shells: bash, zsh, fish, and pwsh (experimental). Default: auto-detected from current shell.")
 	ShellType shellOption;
 
 	@Argument(paramLabel = "shell", index = "0", arity = "0..1", description = "Shell name (bash, zsh, fish, pwsh (experimental)). Overrides auto-detection.")

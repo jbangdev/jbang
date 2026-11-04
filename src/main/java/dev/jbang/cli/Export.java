@@ -50,10 +50,10 @@ public class Export extends BaseCommand {
 
 	static abstract class BaseExportCommand extends BaseBuildCommand {
 
-		@Option(shortName = 'O', name = "output", description = "The name or path to use for the exported file.")
+		@Option(shortName = 'O', name = "output", helpGroup = "Options", order = 0, description = "The name or path to use for the exported file.")
 		Path outputFile;
 
-		@Option(name = "force", hasValue = false, description = "Force export, i.e. overwrite exported file if already exists")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force export, i.e. overwrite exported file if already exists")
 		boolean force;
 
 		// Create a Manifest with a Class-Path option
@@ -195,13 +195,13 @@ public class Export extends BaseCommand {
 	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", helpSectionProvider = ExportHelpProvider.Mavenrepo.class)
 	public static class ExportMavenPublish extends BaseExportCommand {
 
-		@Option(shortName = 'g', name = "group", description = "The group ID to use for the generated POM.")
+		@Option(shortName = 'g', name = "group", helpGroup = "Options", order = 0, description = "The group ID to use for the generated POM.")
 		String group;
 
-		@Option(shortName = 'a', name = "artifact", description = "The artifact ID to use for the generated POM.")
+		@Option(shortName = 'a', name = "artifact", helpGroup = "Options", order = 0, description = "The artifact ID to use for the generated POM.")
 		String artifact;
 
-		@Option(shortName = 'v', name = "version", description = "The version to use for the generated POM.")
+		@Option(shortName = 'v', name = "version", helpGroup = "Options", order = 0, description = "The version to use for the generated POM.")
 		String version;
 
 		@Override
@@ -534,13 +534,13 @@ public class Export extends BaseCommand {
 
 	static abstract class BaseExportProject extends BaseExportCommand {
 
-		@Option(shortName = 'g', name = "group", description = "The group ID to use for the exported project.")
+		@Option(shortName = 'g', name = "group", helpGroup = "Options", order = 0, description = "The group ID to use for the exported project.")
 		String group;
 
-		@Option(shortName = 'a', name = "artifact", description = "The artifact ID to use for the exported project.")
+		@Option(shortName = 'a', name = "artifact", helpGroup = "Options", order = 0, description = "The artifact ID to use for the exported project.")
 		String artifact;
 
-		@Option(shortName = 'v', name = "version", description = "The version to use for the exported project.")
+		@Option(shortName = 'v', name = "version", helpGroup = "Options", order = 0, description = "The version to use for the exported project.")
 		String version;
 
 		protected EnumSet<Source.Type> supportedSourceTypes = EnumSet.of(Source.Type.java, Source.Type.groovy,

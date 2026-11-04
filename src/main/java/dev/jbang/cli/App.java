@@ -68,13 +68,13 @@ public class App extends BaseCommand {
 		@Mixin
 		RunMixin runMixin;
 
-		@Option(name = "force", hasValue = false, description = "Force re-installation")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force re-installation")
 		boolean force;
 
-		@Option(name = "no-build", hasValue = false, description = "Don't pre-build the code before installation")
+		@Option(name = "no-build", hasValue = false, helpGroup = "Options", order = 0, description = "Don't pre-build the code before installation")
 		boolean noBuild;
 
-		@Option(name = "name", description = "A name for the command")
+		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the command")
 		String name;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
@@ -312,7 +312,7 @@ public class App extends BaseCommand {
 	@CommandDefinition(name = "list", description = "Lists installed commands.")
 	public static class AppList extends BaseCommand {
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override
@@ -388,10 +388,10 @@ public class App extends BaseCommand {
 	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.")
 	public static class AppSetup extends BaseCommand {
 
-		@Option(name = "java", hasValue = false, negatable = true, description = "Add JBang's Java to the user's environment as well")
+		@Option(name = "java", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "Add JBang's Java to the user's environment as well")
 		Boolean java;
 
-		@Option(name = "force", hasValue = false, description = "Force setup to be performed even when existing configuration has been detected")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force setup to be performed even when existing configuration has been detected")
 		boolean force;
 
 		@Override

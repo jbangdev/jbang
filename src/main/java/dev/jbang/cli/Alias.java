@@ -60,22 +60,22 @@ public class Alias extends BaseCommand {
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 
-		@Option(name = "description", description = "A description for the alias")
+		@Option(name = "description", helpGroup = "Options", order = 0, description = "A description for the alias")
 		String description;
 
-		@Option(name = "name", description = "A name for the alias")
+		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the alias")
 		String name;
 
-		@Option(name = "force", hasValue = false, description = "Force overwriting of existing alias")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing alias")
 		boolean force;
 
-		@Option(name = "enable-preview", hasValue = false, description = "Activate Java preview features")
+		@Option(name = "enable-preview", hasValue = false, helpGroup = "Options", order = 0, description = "Activate Java preview features")
 		boolean enablePreviewRequested;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 		List<String> userParams;
 
-		@OptionList(name = "docs", description = "Documentation reference for the alias")
+		@OptionList(name = "docs", helpGroup = "Options", order = 0, description = "Documentation reference for the alias")
 		List<String> docs;
 
 		@Override
@@ -170,13 +170,13 @@ public class Alias extends BaseCommand {
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 
-		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the alias")
+		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the alias")
 		boolean showOrigin;
 
 		@Argument(paramLabel = "catalogName", index = "0", arity = "0..1", description = "The name of a catalog")
 		String catalogName;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;

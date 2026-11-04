@@ -43,10 +43,10 @@ public class Config extends BaseCommand {
 
 	static abstract class BaseConfigCommand extends BaseCommand {
 
-		@Option(shortName = 'g', name = "global", hasValue = false, description = "Use the global (user) config file")
+		@Option(shortName = 'g', name = "global", hasValue = false, helpGroup = "Options", order = 0, description = "Use the global (user) config file")
 		boolean global;
 
-		@Option(shortName = 'f', name = "file", description = "Path to the config file to use")
+		@Option(shortName = 'f', name = "file", helpGroup = "Options", order = 0, description = "Path to the config file to use")
 		Path configFile;
 
 		protected Configuration getConfig(Path cwd, boolean strict) {
@@ -170,13 +170,13 @@ public class Config extends BaseCommand {
 
 	@CommandDefinition(name = "list", description = "List active configuration values")
 	public static class ConfigList extends BaseConfigCommand {
-		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the configuration")
+		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the configuration")
 		boolean showOrigin;
 
-		@Option(name = "show-available", hasValue = false, description = "Show the available key names")
+		@Option(name = "show-available", hasValue = false, helpGroup = "Options", order = 0, description = "Show the available key names")
 		boolean showAvailable;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override

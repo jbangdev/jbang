@@ -21,34 +21,34 @@ public class Cache extends BaseCommand {
 	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.")
 	public static class CacheClear extends BaseCommand {
 
-		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")
+		@Option(name = "url", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear URL cache only")
 		Boolean url;
 
-		@Option(name = "jar", hasValue = false, negatable = true, description = "clear JAR cache only")
+		@Option(name = "jar", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear JAR cache only")
 		Boolean jar;
 
-		@Option(name = "deps", hasValue = false, negatable = true, description = "clear dependency cache only")
+		@Option(name = "deps", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear dependency cache only")
 		Boolean deps;
 
-		@Option(name = "jdk", hasValue = false, negatable = true, description = "clear JDK cache only")
+		@Option(name = "jdk", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear JDK cache only")
 		Boolean jdk;
 
-		@Option(name = "kotlinc", hasValue = false, negatable = true, description = "clear kotlinc cache only")
+		@Option(name = "kotlinc", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear kotlinc cache only")
 		Boolean kotlinc;
 
-		@Option(name = "groovyc", hasValue = false, negatable = true, description = "clear groovyc cache only")
+		@Option(name = "groovyc", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear groovyc cache only")
 		Boolean groovyc;
 
-		@Option(name = "project", hasValue = false, negatable = true, description = "clear temporary projects cache only")
+		@Option(name = "project", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear temporary projects cache only")
 		Boolean project;
 
-		@Option(name = "script", hasValue = false, negatable = true, description = "clear script cache only")
+		@Option(name = "script", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear script cache only")
 		Boolean script;
 
-		@Option(name = "stdin", hasValue = false, negatable = true, description = "clear stdin cache only")
+		@Option(name = "stdin", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear stdin cache only")
 		Boolean stdin;
 
-		@Option(name = "all", hasValue = false, description = "clear all caches")
+		@Option(name = "all", hasValue = false, helpGroup = "Options", order = 0, description = "clear all caches")
 		boolean all;
 
 		@Override

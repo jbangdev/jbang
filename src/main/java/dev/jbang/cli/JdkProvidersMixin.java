@@ -18,7 +18,7 @@ public class JdkProvidersMixin {
 	@OptionList(name = "jdk-distros", valueSeparator = ',', helpGroup = "JDK options", description = "Use the given distributions to install new JDKs")
 	List<String> jdkDistros;
 
-	@Option(name = "jdk-installer", visibility = OptionVisibility.HIDDEN, description = "Use the given installer to install new JDKs")
+	@Option(name = "jdk-installer", visibility = OptionVisibility.HIDDEN, helpGroup = "Options", order = 0, description = "Use the given installer to install new JDKs")
 	String jdkInstaller;
 
 	private JdkManager jdkMan;

@@ -43,16 +43,16 @@ public class Catalog extends BaseCommand {
 	@CommandDefinition(name = "add", description = "Add a catalog.")
 	public static class CatalogAdd extends BaseCatalogCommand {
 
-		@Option(shortName = 'd', name = "description", description = "A description for the catalog")
+		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the catalog")
 		String description;
 
-		@Option(name = "name", description = "A name for the catalog")
+		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the catalog")
 		String name;
 
-		@Option(name = "force", hasValue = false, description = "Force overwriting of existing catalog")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing catalog")
 		boolean force;
 
-		@Option(name = "import", description = "Import catalog items into the catalog's scope")
+		@Option(name = "import", helpGroup = "Options", order = 0, description = "Import catalog items into the catalog's scope")
 		boolean importItems;
 
 		@Argument(paramLabel = "fileOrURL", description = "A file or URL to a catalog file", required = true)
@@ -109,13 +109,13 @@ public class Catalog extends BaseCommand {
 	@CommandDefinition(name = "list", description = "Show currently defined catalogs.")
 	public static class CatalogList extends BaseCatalogCommand {
 
-		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the catalog")
+		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the catalog")
 		boolean showOrigin;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String name;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;

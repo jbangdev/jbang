@@ -105,7 +105,7 @@ public class Jdk extends BaseCommand {
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'f', name = "force", hasValue = false, description = "Force installation even when already installed")
+		@Option(shortName = 'f', name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force installation even when already installed")
 		boolean force;
 
 		@Argument(paramLabel = "versionOrId", index = "0", arity = "1", description = "The version or id to install", required = true)
@@ -237,20 +237,20 @@ public class Jdk extends BaseCommand {
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'a', name = "available", hasValue = false, description = "Shows versions available for installation")
+		@Option(shortName = 'a', name = "available", hasValue = false, helpGroup = "Options", order = 0, description = "Shows versions available for installation")
 		boolean available;
 
-		@Option(shortName = 'P', name = "providers", hasValue = false, description = "Shows available providers")
+		@Option(shortName = 'P', name = "providers", hasValue = false, helpGroup = "Options", order = 0, description = "Shows available providers")
 		boolean listProviders;
 
-		@Option(shortName = 'D', name = "distros", hasValue = false, description = "Shows distributions available for installation")
+		@Option(shortName = 'D', name = "distros", hasValue = false, helpGroup = "Options", order = 0, description = "Shows distributions available for installation")
 		boolean listDistros;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
-				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
+				"details" }, hasValue = false, helpGroup = "Options", order = 0, description = "Shows detailed information for each JDK (only when format=text)")
 		boolean details;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override
@@ -477,7 +477,7 @@ public class Jdk extends BaseCommand {
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'j', name = "java", description = "JDK version to use for executing the command.")
+		@Option(shortName = 'j', name = "java", helpGroup = "Options", order = 0, description = "JDK version to use for executing the command.")
 		String versionOrId;
 
 		@Arguments(paramLabel = "command", arity = "1..*", description = "Command to execute", required = true)
@@ -529,14 +529,14 @@ public class Jdk extends BaseCommand {
 		@Argument(paramLabel = "versionOrId", description = "The version of the JDK to select")
 		String versionOrId;
 
-		@Option(name = "for-version", shortName = 'v', hasValue = false, description = "Sets the default for the specified major version")
+		@Option(name = "for-version", shortName = 'v', hasValue = false, helpGroup = "Options", order = 0, description = "Sets the default for the specified major version")
 		boolean forVersion;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
-				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
+				"details" }, hasValue = false, helpGroup = "Options", order = 0, description = "Shows detailed information for each JDK (only when format=text)")
 		boolean details;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override

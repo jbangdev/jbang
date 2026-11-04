@@ -42,7 +42,7 @@ public class Trust extends BaseCommand {
 	@CommandDefinition(name = "list", description = "Show defined trust domains.")
 	public static class TrustList extends BaseCommand {
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override

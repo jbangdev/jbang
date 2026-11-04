@@ -32,10 +32,10 @@ public class Wrapper extends BaseCommand {
 	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder")
 	public static class WrapperInstall extends BaseCommand {
 
-		@Option(shortName = 'd', name = "dir", description = "The folder to install the wrapper into.")
+		@Option(shortName = 'd', name = "dir", helpGroup = "Options", order = 0, description = "The folder to install the wrapper into.")
 		Path dest;
 
-		@Option(shortName = 'f', name = "force", hasValue = false, description = "Force installation of wrapper even if files already exist")
+		@Option(shortName = 'f', name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force installation of wrapper even if files already exist")
 		boolean force;
 
 		@Override

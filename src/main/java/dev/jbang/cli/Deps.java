@@ -34,13 +34,13 @@ public class Deps extends BaseCommand {
 	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.")
 	public static class DepsSearch extends BaseCommand {
 
-		@Option(name = "max", description = "Maximum number of results to return.", defaultValue = "100")
+		@Option(name = "max", helpGroup = "Options", order = 0, description = "Maximum number of results to return.", defaultValue = "100")
 		int max;
 
-		@Option(shortName = 'q', name = "query", description = "Artifact pattern to search for.")
+		@Option(shortName = 'q', name = "query", helpGroup = "Options", order = 0, description = "Artifact pattern to search for.")
 		String query;
 
-		@Option(name = "target", description = "Target where to add the dependency, i.e. app.java or build.jbang")
+		@Option(name = "target", helpGroup = "Options", order = 0, description = "Target where to add the dependency, i.e. app.java or build.jbang")
 		String target;
 
 		@Arguments(description = "[query] [target]")

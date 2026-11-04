@@ -69,7 +69,7 @@ public abstract class BaseCommand implements Command<CommandInvocation>, Command
 			"offline" }, description = "Make sure we use fresh (i.e. non-cached) resources.")
 	Boolean fresh;
 
-	@Option(name = "preview", hasValue = false, negatable = true, inherited = true, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
+	@Option(name = "preview", hasValue = false, negatable = true, inherited = true, helpGroup = "Options", order = 0, description = "Enable jbang preview features", visibility = org.aesh.command.option.OptionVisibility.HIDDEN)
 	Boolean preview;
 
 	@Option(shortName = 'x', name = "stacktrace", hasValue = false, negatable = true, inherited = true, helpGroup = "Global options", description = "Print exceptions stacktraces to stderr (even when quiet).")

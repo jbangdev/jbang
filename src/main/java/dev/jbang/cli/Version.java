@@ -15,10 +15,10 @@ import dev.jbang.util.VersionChecker;
 @CommandDefinition(name = "version", description = "Display version info.")
 public class Version extends BaseCommand {
 
-	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available")
+	@Option(name = "check", hasValue = false, helpGroup = "Options", order = 0, description = "Check if a new version of jbang is available")
 	boolean checkForUpdate;
 
-	@Option(name = "update", hasValue = false, description = "Update jbang to the latest version")
+	@Option(name = "update", hasValue = false, helpGroup = "Options", order = 0, description = "Update jbang to the latest version")
 	boolean update;
 
 	@Override

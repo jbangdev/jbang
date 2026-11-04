@@ -50,19 +50,19 @@ public class Template extends BaseCommand {
 	@CommandDefinition(name = "add", description = "Add template for script reference.")
 	public static class TemplateAdd extends BaseTemplateCommand {
 
-		@Option(shortName = 'd', name = "description", description = "A description for the template")
+		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the template")
 		String description;
 
-		@Option(name = "name", description = "A name for the template")
+		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the template")
 		String name;
 
-		@Option(name = "force", hasValue = false, description = "Force overwriting of existing template")
+		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing template")
 		boolean force;
 
 		@Arguments(paramLabel = "files", arity = "1..*", description = "Paths or URLs to template files", required = true)
 		List<String> fileRefs;
 
-		@OptionList(shortName = 'P', name = "property", description = "Template property (key=description::defaultValue)")
+		@OptionList(shortName = 'P', name = "property", helpGroup = "Options", order = 0, description = "Template property (key=description::defaultValue)")
 		List<String> propertyStrings;
 
 		@Override
@@ -226,19 +226,19 @@ public class Template extends BaseCommand {
 	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.")
 	public static class TemplateList extends BaseTemplateCommand {
 
-		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the template")
+		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the template")
 		boolean showOrigin;
 
-		@Option(name = "show-files", hasValue = false, description = "Show list of files for each template")
+		@Option(name = "show-files", hasValue = false, helpGroup = "Options", order = 0, description = "Show list of files for each template")
 		boolean showFiles;
 
-		@Option(name = "show-properties", hasValue = false, description = "Show list of properties for each template")
+		@Option(name = "show-properties", hasValue = false, helpGroup = "Options", order = 0, description = "Show list of properties for each template")
 		boolean showProperties;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String catalogName;
 
-		@Option(name = "format", description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;

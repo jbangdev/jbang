@@ -36,25 +36,25 @@ import io.quarkus.qute.TemplateInstance;
 @CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing")
 public class Init extends BaseCommand {
 
-	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
+	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, helpGroup = "Options", order = 0, description = "JDK version to use for running the script.")
 	String javaVersion;
 
 	@Mixin
 	AIOptions aiOptions;
 
-	@Option(shortName = 't', name = "template", description = "Init script with a java class useful for scripting")
+	@Option(shortName = 't', name = "template", helpGroup = "Options", order = 0, description = "Init script with a java class useful for scripting")
 	public String initTemplate;
 
-	@Option(name = "force", hasValue = false, description = "Force overwrite of existing files")
+	@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwrite of existing files")
 	public boolean force;
 
-	@Option(name = "edit", hasValue = false, description = "Open editor on the generated file(s)")
+	@Option(name = "edit", hasValue = false, helpGroup = "Options", order = 0, description = "Open editor on the generated file(s)")
 	public boolean edit;
 
-	@OptionGroup(shortName = 'D', description = "set a system property")
+	@OptionGroup(shortName = 'D', helpGroup = "Options", order = 0, description = "set a system property")
 	public Map<String, String> properties;
 
-	@OptionList(name = "deps", valueSeparator = ',', description = "Add additional dependencies (Use commas to separate them).")
+	@OptionList(name = "deps", valueSeparator = ',', helpGroup = "Options", order = 0, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 
 	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "1", description = "A file or URL to a Java code file", required = true)

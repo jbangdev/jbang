@@ -56,16 +56,16 @@ public class Edit extends BaseCommand {
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
 	}
 
-	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
+	@Option(name = "live", hasValue = false, helpGroup = "Options", order = 0, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
-	@Option(name = "open", defaultValue = "${env:JBANG_EDITOR:-}", fallbackValue = "${env:JBANG_EDITOR:-}", description = "Opens editor/IDE on the temporary project.")
+	@Option(name = "open", defaultValue = "${env:JBANG_EDITOR:-}", fallbackValue = "${env:JBANG_EDITOR:-}", helpGroup = "Options", order = 0, description = "Opens editor/IDE on the temporary project.")
 	public String editor;
 
-	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")
+	@Option(name = "no-open", hasValue = false, helpGroup = "Options", order = 0, description = "Explicitly prevent JBang from opening an editor/IDE")
 	public boolean noOpen;
 
-	@Option(shortName = 'b', name = "sandbox", hasValue = false, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
+	@Option(shortName = 'b', name = "sandbox", hasValue = false, helpGroup = "Options", order = 0, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
 	boolean sandbox;
 
 	/**

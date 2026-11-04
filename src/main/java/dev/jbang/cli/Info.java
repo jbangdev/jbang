@@ -63,10 +63,10 @@ public class Info extends BaseCommand {
 		@Mixin
 		DependencyInfoMixin dependencyInfoMixin;
 
-		@Option(name = "build-dir", description = "Use given directory for build results")
+		@Option(name = "build-dir", helpGroup = "Options", order = 0, description = "Use given directory for build results")
 		String buildDir;
 
-		@Option(name = "module", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name")
+		@Option(name = "module", fallbackValue = "", helpGroup = "Options", order = 0, description = "Treat resource as a module. Optionally with the given module name")
 		String module;
 
 		@Override
@@ -293,7 +293,7 @@ public class Info extends BaseCommand {
 	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.")
 	public static class Tools extends BaseInfoCommand {
 
-		@Option(name = "select", description = "Indicate the name of the field to select and return from the full info result")
+		@Option(name = "select", helpGroup = "Options", order = 0, description = "Indicate the name of the field to select and return from the full info result")
 		String select;
 
 		@Override
@@ -333,7 +333,7 @@ public class Info extends BaseCommand {
 	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.")
 	public static class ClassPath extends BaseInfoCommand {
 
-		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
+		@Option(name = "deps-only", hasValue = false, helpGroup = "Options", order = 0, description = "Only include the dependencies in the output, not the application jar itself")
 		boolean dependenciesOnly;
 
 		@Override
@@ -368,7 +368,7 @@ public class Info extends BaseCommand {
 	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.")
 	public static class Docs extends BaseInfoCommand {
 
-		@Option(name = "open", hasValue = false, negatable = true, description = "Open the (first) documentation file/link in the default browser")
+		@Option(name = "open", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "Open the (first) documentation file/link in the default browser")
 		public boolean open;
 
 		@Override
