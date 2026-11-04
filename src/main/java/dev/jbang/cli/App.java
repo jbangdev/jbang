@@ -43,7 +43,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "app", description = "Manage scripts installed on the user's PATH as commands.", groupCommands = {
 		App.AppInstall.class, App.AppList.class, App.AppUninstall.class,
-		App.AppSetup.class }, helpGroup = "Configuration")
+		App.AppSetup.class }, helpGroup = "Configuration", helpSectionProvider = AppHelpProvider.class)
 public class App extends BaseCommand {
 
 	@Override
@@ -61,7 +61,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "install", description = "Install a script as a command.")
+	@CommandDefinition(name = "install", description = "Install a script as a command.", helpSectionProvider = AppHelpProvider.Install.class)
 	public static class AppInstall extends BaseBuildCommand {
 		private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
@@ -385,7 +385,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.")
+	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", helpSectionProvider = AppHelpProvider.Setup.class)
 	public static class AppSetup extends BaseCommand {
 
 		@Option(name = "java", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "Add JBang's Java to the user's environment as well")
