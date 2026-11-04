@@ -366,6 +366,25 @@ class TestAeshParsing extends BaseTest {
 		assertThat(cause.getMessage(), containsString("Invalid value '" + value + "' for option -d/--debug"));
 	}
 
+	@ParameterizedTest
+	@CsvSource({ "'-d5005,suspend=n,5006', 5006, n",
+			"'--debug=address=4444,address=2323', 2323, ",
+			"-d 5005 -d 6006, 6006, ",
+			"-d 5005 -d suspend=n, 5005, n" })
+	void testDebugValuesAreAppliedInOrder(String debugArgs, String address, String suspend) {
+		// Debug values (within one comma-separated value and across repeated -d
+		// options) are applied in order, so later entries override earlier ones.
+		List<String> args = new ArrayList<>();
+		args.add("run");
+		args.addAll(Arrays.asList(debugArgs.split(" ")));
+		args.add("test.java");
+		Run run = JBang.parseCommand(args.toArray(new String[0]));
+		assertThat(run.runMixin.debugString, hasEntry("address", address));
+		if (suspend != null) {
+			assertThat(run.runMixin.debugString, hasEntry("suspend", suspend));
+		}
+	}
+
 	@Test
 	void testBareDebugFollowedByOtherOption() {
 		// a bare -d must not swallow the following option
