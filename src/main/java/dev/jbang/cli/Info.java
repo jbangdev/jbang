@@ -47,7 +47,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
-		Info.Docs.class })
+		Info.Docs.class }, helpSectionProvider = InfoHelpProvider.class)
 public class Info extends BaseCommand {
 
 	@Override
@@ -290,7 +290,7 @@ public class Info extends BaseCommand {
 
 	}
 
-	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.")
+	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.", helpSectionProvider = InfoHelpProvider.Tools.class)
 	public static class Tools extends BaseInfoCommand {
 
 		@Option(name = "select", helpGroup = "Options", order = 0, description = "Indicate the name of the field to select and return from the full info result")

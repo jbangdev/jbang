@@ -81,7 +81,8 @@ class TestAeshParsing extends BaseTest {
 			"trust, jbang trust list",
 			"template, jbang template list",
 			"catalog, jbang catalog update",
-			"app, jbang app setup" })
+			"app, jbang app setup",
+			"info, jbang info tools hello.java" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
@@ -110,7 +111,8 @@ class TestAeshParsing extends BaseTest {
 			"template add, jbang template add --name greet -P greeting=Greeting::Hello greet.java",
 			"catalog add, jbang catalog add --name demo jbangdev",
 			"app install, jbang app install --name search gavsearch@jbangdev",
-			"app setup, jbang app setup" })
+			"app setup, jbang app setup",
+			"info tools, jbang info tools --select=resolvedDependencies hello.java" })
 	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));
