@@ -26,7 +26,7 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "catalog", description = "Manage Catalogs of aliases.", groupCommands = {
 		Catalog.CatalogAdd.class, Catalog.CatalogUpdate.class,
 		Catalog.CatalogList.class,
-		Catalog.CatalogRemove.class }, helpGroup = "Configuration")
+		Catalog.CatalogRemove.class }, helpGroup = "Configuration", helpSectionProvider = CatalogHelpProvider.class)
 public class Catalog extends BaseCommand {
 
 	@Override
@@ -40,7 +40,7 @@ public class Catalog extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add a catalog.")
+	@CommandDefinition(name = "add", description = "Add a catalog.", helpSectionProvider = CatalogHelpProvider.Add.class)
 	public static class CatalogAdd extends BaseCatalogCommand {
 
 		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the catalog")

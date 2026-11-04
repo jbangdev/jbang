@@ -79,7 +79,8 @@ class TestAeshParsing extends BaseTest {
 			"cache, jbang cache clear --all",
 			"config, jbang config set edit.open code",
 			"trust, jbang trust list",
-			"template, jbang template list" })
+			"template, jbang template list",
+			"catalog, jbang catalog update" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
@@ -105,7 +106,8 @@ class TestAeshParsing extends BaseTest {
 			"cache clear, jbang cache clear --jar --url",
 			"config set, jbang config set format=json",
 			"trust add, jbang trust add https://github.com/myorg/scripts/",
-			"template add, jbang template add --name greet -P greeting=Greeting::Hello greet.java" })
+			"template add, jbang template add --name greet -P greeting=Greeting::Hello greet.java",
+			"catalog add, jbang catalog add --name demo jbangdev" })
 	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));
