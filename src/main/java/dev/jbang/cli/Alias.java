@@ -39,7 +39,7 @@ public class Alias extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add alias for script reference.")
+	@CommandDefinition(name = "add", description = "Add alias for script reference.", helpSectionProvider = AliasHelpProvider.Add.class)
 	public static class AliasAdd extends BaseCommand {
 
 		@Mixin
@@ -164,7 +164,7 @@ public class Alias extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.")
+	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.", helpSectionProvider = AliasHelpProvider.ListAliases.class)
 	public static class AliasList extends BaseCommand {
 
 		@Mixin
