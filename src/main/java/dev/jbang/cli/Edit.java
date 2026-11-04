@@ -140,6 +140,22 @@ public class Edit extends BaseCommand {
 	}
 
 	@Override
+	protected void validateArguments() {
+		// Without a script, edit opens the project in the current directory, which
+		// only makes sense when we are inside one. Sandbox mode always needs a script.
+		if (scriptMixin.scriptOrFile == null && (sandbox || !isInsideProject(Util.getCwd()))) {
+			requireScriptArgument(null);
+		}
+	}
+
+	static boolean isInsideProject(Path dir) {
+		// findNearestRoot() starts at the parent of the given path, so pass a child of
+		// dir to also consider markers in dir itself
+		Path probe = dir.toAbsolutePath().normalize().resolve("_");
+		return findNearestRoot(probe, editorRootMarkers) != null || findNearestRoot(probe, buildRootMarkers) != null;
+	}
+
+	@Override
 	public Integer doCall() throws IOException {
 		// force download sources when editing
 		Util.setDownloadSources(true);
@@ -159,7 +175,7 @@ public class Edit extends BaseCommand {
 			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
 			Path path = null;
 			if (location == null) {
-				path = locateProjectDir(Paths.get("."));
+				path = locateProjectDir(Util.getCwd().toAbsolutePath());
 			} else {
 				path = locateProjectDir(location.toPath());
 			}
