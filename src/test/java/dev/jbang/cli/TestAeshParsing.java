@@ -75,7 +75,8 @@ class TestAeshParsing extends BaseTest {
 			"jdk, jbang jdk install 21",
 			"alias, jbang alias add --name hello hello.java",
 			"init, jbang init --template=cli mytool.java",
-			"build, jbang build --native hello.java" })
+			"build, jbang build --native hello.java",
+			"cache, jbang cache clear --all" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
@@ -97,7 +98,8 @@ class TestAeshParsing extends BaseTest {
 			"jdk java-env, eval $(jbang jdk java-env 21)",
 			"jdk exec, jbang jdk exec -j 21 mvn package",
 			"alias add, jbang alias add --name greet hello.java World",
-			"alias list, jbang alias list --show-origin" })
+			"alias list, jbang alias list --show-origin",
+			"cache clear, jbang cache clear --jar --url" })
 	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));
