@@ -74,7 +74,8 @@ class TestAeshParsing extends BaseTest {
 			"edit, jbang edit --no-open hello.java",
 			"jdk, jbang jdk install 21",
 			"alias, jbang alias add --name hello hello.java",
-			"init, jbang init --template=cli mytool.java" })
+			"init, jbang init --template=cli mytool.java",
+			"build, jbang build --native hello.java" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
