@@ -36,6 +36,22 @@ public class DebugOptionParser implements OptionParser {
 			return;
 		}
 
+		// Short option with an attached value, e.g. -d5005 or -dhost:5005. Anything
+		// that is not a valid debug value (e.g. -dfoo, or -dx meant as -d -x) is an
+		// error instead of being silently dropped in favour of the fallback.
+		if (!option.isLongNameUsed() && word.startsWith(fp) && word.length() > fp.length()) {
+			String value = word.substring(fp.length());
+			if (!DEBUG_VALUE_PATTERN.matcher(value).matches()) {
+				throw new OptionParserException("Invalid value '" + value + "' for option -" + option.shortName()
+						+ "/--" + option.name()
+						+ ". Expected a port, host:port or key=value JPDA options (e.g. -" + option.shortName()
+						+ "5005 or --" + option.name() + "=5005).");
+			}
+			addOptionValue(option, value);
+			iter.pollParsedWord();
+			return;
+		}
+
 		iter.pollParsedWord();
 
 		if (iter.hasNextWord()) {
