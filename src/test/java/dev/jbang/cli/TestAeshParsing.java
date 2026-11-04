@@ -82,7 +82,8 @@ class TestAeshParsing extends BaseTest {
 			"template, jbang template list",
 			"catalog, jbang catalog update",
 			"app, jbang app setup",
-			"info, jbang info tools hello.java" })
+			"info, jbang info tools hello.java",
+			"deps, jbang deps search jackson app.java" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
@@ -112,7 +113,9 @@ class TestAeshParsing extends BaseTest {
 			"catalog add, jbang catalog add --name demo jbangdev",
 			"app install, jbang app install --name search gavsearch@jbangdev",
 			"app setup, jbang app setup",
-			"info tools, jbang info tools --select=resolvedDependencies hello.java" })
+			"info tools, jbang info tools --select=resolvedDependencies hello.java",
+			"deps search, jbang deps search jackson app.java",
+			"deps add, jbang deps add info.picocli:picocli:4.7.6 app.java" })
 	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));

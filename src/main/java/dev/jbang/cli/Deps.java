@@ -23,7 +23,7 @@ import dev.jbang.source.update.FileUpdaters;
 
 @CommandDefinition(name = "deps", description = "Manage dependencies in jbang files.", groupCommands = {
 		Deps.DepsSearch.class,
-		Deps.DepsAdd.class }, helpGroup = "Editing")
+		Deps.DepsAdd.class }, helpGroup = "Editing", helpSectionProvider = DepsHelpProvider.class)
 public class Deps extends BaseCommand {
 
 	@Override
@@ -31,7 +31,7 @@ public class Deps extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.")
+	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.", helpSectionProvider = DepsHelpProvider.Search.class)
 	public static class DepsSearch extends BaseCommand {
 
 		@Option(name = "max", helpGroup = "Options", order = 0, description = "Maximum number of results to return.", defaultValue = "100")
@@ -112,7 +112,7 @@ public class Deps extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.")
+	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.", helpSectionProvider = DepsHelpProvider.Add.class)
 	public static class DepsAdd extends BaseCommand {
 
 		@Arguments(paramLabel = "deps target", arity = "2..*", description = "Dependencies to add (groupId:artifactId:version) and target file (.java or build.jbang)")
