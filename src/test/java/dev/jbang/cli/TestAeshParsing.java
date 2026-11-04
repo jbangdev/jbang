@@ -85,7 +85,12 @@ class TestAeshParsing extends BaseTest {
 			"export jlink, jbang export jlink hello.java -- --strip-debug",
 			"export mavenrepo, jbang export mavenrepo -g org.acme hello.java",
 			"export gradle, jbang export gradle hello.java",
-			"export maven, jbang export maven hello.java" })
+			"export maven, jbang export maven hello.java",
+			"jdk install, jbang jdk install 21 /opt/java/jdk-21",
+			"jdk list, jbang jdk list --available",
+			"jdk default, jbang jdk default 21",
+			"jdk java-env, eval $(jbang jdk java-env 21)",
+			"jdk exec, jbang jdk exec -j 21 mvn package" })
 	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
 		String help = JBang.renderHelp(commandPath.split(" "));
 		assertThat(help, containsString("Examples:"));
