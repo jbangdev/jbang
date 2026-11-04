@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.aesh.command.CommandDefinition;
@@ -336,6 +339,59 @@ class TestAeshParsing extends BaseTest {
 
 		Run run = JBang.parseCommand("run", "--debug=7007", "test.java");
 		assertThat(run.runMixin.debugString, hasEntry("address", "7007"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "-d5005, 5005", "-d=5005, 5005", "-d 5005, 5005", "--debug 5005, 5005",
+			"--debug=5005, 5005", "-dlocalhost:5005, localhost:5005", "-d, 4004" })
+	void testDebugShortAndLongForms(String debugArgs, String address) {
+		List<String> args = new ArrayList<>();
+		args.add("run");
+		args.addAll(Arrays.asList(debugArgs.split(" ")));
+		args.add("test.java");
+		Run run = JBang.parseCommand(args.toArray(new String[0]));
+		assertThat(run.runMixin.debugString, hasEntry("address", address));
+		assertThat(run.scriptMixin.scriptOrFile, equalTo("test.java"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "-dfoo, foo", "-dx, x" })
+	void testDebugInvalidAttachedValueFails(String arg, String value) {
+		RuntimeException ex = assertThrows(RuntimeException.class,
+				() -> JBang.parseCommand("run", arg, "test.java"));
+		Throwable cause = ex;
+		while (cause.getCause() != null) {
+			cause = cause.getCause();
+		}
+		assertThat(cause.getMessage(), containsString("Invalid value '" + value + "' for option -d/--debug"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "'-d5005,suspend=n,5006', 5006, n",
+			"'--debug=address=4444,address=2323', 2323, ",
+			"-d 5005 -d 6006, 6006, ",
+			"-d 5005 -d suspend=n, 5005, n" })
+	void testDebugValuesAreAppliedInOrder(String debugArgs, String address, String suspend) {
+		// Debug values (within one comma-separated value and across repeated -d
+		// options) are applied in order, so later entries override earlier ones.
+		List<String> args = new ArrayList<>();
+		args.add("run");
+		args.addAll(Arrays.asList(debugArgs.split(" ")));
+		args.add("test.java");
+		Run run = JBang.parseCommand(args.toArray(new String[0]));
+		assertThat(run.runMixin.debugString, hasEntry("address", address));
+		if (suspend != null) {
+			assertThat(run.runMixin.debugString, hasEntry("suspend", suspend));
+		}
+	}
+
+	@Test
+	void testBareDebugFollowedByOtherOption() {
+		// a bare -d must not swallow the following option
+		Run run = JBang.parseCommand("run", "-d", "--java", "21", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
+		assertThat(run.buildMixin.javaVersion, equalTo("21"));
+		assertThat(run.scriptMixin.scriptOrFile, equalTo("test.java"));
 	}
 
 	@Test
