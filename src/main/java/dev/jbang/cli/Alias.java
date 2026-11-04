@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,13 +85,16 @@ public class Alias extends BaseCommand {
 		}
 
 		@Override
-		public Integer doCall() throws IOException {
-			scriptMixin.validate();
+		protected void validateArguments() {
+			requireScriptArgument(scriptMixin.scriptOrFile);
 			if (name != null && !Catalog.isValidName(name)) {
 				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 			}
+		}
 
+		@Override
+		public Integer doCall() throws IOException {
 			ProjectBuilder pb = createAliasProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 			if (name == null) {
@@ -223,7 +227,7 @@ public class Alias extends BaseCommand {
 						name))
 				.collect(Collectors.groupingBy(
 						a -> a._catalogRef,
-						java.util.LinkedHashMap::new,
+						LinkedHashMap::new,
 						Collectors.toList()));
 			return groups.entrySet()
 				.stream()
@@ -240,7 +244,7 @@ public class Alias extends BaseCommand {
 				parser.toJson(catalogs, out);
 			} else {
 				catalogs.forEach(cat -> {
-					out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
+					out.println(ConsoleOutput.bold(Catalog.simplifyRef(cat.resourceRef)));
 					cat.aliases.forEach(a -> printAlias(out, a, 1));
 				});
 			}

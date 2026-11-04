@@ -283,7 +283,7 @@ public class Template extends BaseCommand {
 		}
 
 		static List<dev.jbang.cli.Catalog.CatalogList.CatalogOut> getTemplatesWithOrigin(String catalogName,
-				dev.jbang.catalog.Catalog catalog, boolean showFiles,
+				Catalog catalog, boolean showFiles,
 				boolean showProperties) {
 			Map<ResourceRef, List<TemplateOut>> groups = catalog.templates
 				.keySet()
@@ -301,7 +301,7 @@ public class Template extends BaseCommand {
 				.collect(Collectors.toList());
 		}
 
-		static void printTemplatesWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
+		static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog,
 				boolean showFiles,
 				boolean showProperties, OutputFormat format) {
 			List<dev.jbang.cli.Catalog.CatalogList.CatalogOut> catalogs = getTemplatesWithOrigin(catalogName, catalog,
@@ -311,7 +311,7 @@ public class Template extends BaseCommand {
 				parser.toJson(catalogs, out);
 			} else {
 				catalogs.forEach(cat -> {
-					out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
+					out.println(ConsoleOutput.bold(Catalog.simplifyRef(cat.resourceRef)));
 					cat.templates.forEach(t -> printTemplate(out, t, 1));
 				});
 			}
@@ -333,10 +333,10 @@ public class Template extends BaseCommand {
 			String destination;
 		}
 
-		private static TemplateOut getTemplateOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name,
+		private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 				boolean showFiles, boolean showProperties) {
 			dev.jbang.catalog.Template template = catalog.templates.get(name);
-			String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
+			String catName = catalogName != null ? Catalog.simplifyRef(catalogName)
 					: CatalogUtil.catalogRef(name);
 			String fullName = catalogName != null ? name + "@" + catName : name;
 

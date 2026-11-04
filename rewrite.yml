@@ -1,0 +1,21 @@
+type: specs.openrewrite.org/v1beta/style
+name: dev.jbang.ImportStyle
+styleConfigs:
+  # Never collapse imports to wildcards (jbang forbids star imports).
+  - org.openrewrite.java.style.ImportLayoutStyle:
+      classCountToUseStarImport: 2147483647
+      nameCountToUseStarImport: 2147483647
+      layout:
+        - "import java.*"
+        - "<blank line>"
+        - "import javax.*"
+        - "<blank line>"
+        - "import org.*"
+        - "<blank line>"
+        - "import com.*"
+        - "<blank line>"
+        - "import dev.jbang.*"
+        - "<blank line>"
+        - "import all other imports"
+        - "<blank line>"
+        - "import static all other imports"

@@ -7,6 +7,7 @@ import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -103,7 +104,7 @@ public class VersionChecker {
 			Util.verboseMsg("Couldn't retrieve latest jbang version", e);
 		} catch (InterruptedException e) {
 			// Ignore
-		} catch (java.util.concurrent.CancellationException e) {
+		} catch (CancellationException e) {
 			// Ignore
 		}
 	}

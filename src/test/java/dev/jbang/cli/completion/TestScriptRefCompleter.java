@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.util.TestUtil;
 
 public class TestScriptRefCompleter extends BaseTest {
 
@@ -132,7 +133,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"otheralias\": { \"script-ref\": \"world.java\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("");
 
@@ -150,7 +151,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"otheralias\": { \"script-ref\": \"world.java\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("my");
 
@@ -168,7 +169,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"myalias\": { \"script-ref\": \"hello.java\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("");
 
@@ -265,7 +266,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"mycat\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("@");
 
@@ -285,7 +286,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"bar\": { \"script-ref\": \"bar.java\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("@mycat");
 
@@ -303,7 +304,7 @@ public class TestScriptRefCompleter extends BaseTest {
 				+ "    \"other\": { \"catalog-ref\": \"" + catalogPath.toUri() + "\" }\n"
 				+ "  }\n"
 				+ "}");
-		dev.jbang.util.TestUtil.clearSettingsCaches();
+		TestUtil.clearSettingsCaches();
 
 		List<String> candidates = complete("@my");
 

@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -181,11 +181,11 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Export.ExportLocal export = JBang.parseCommand("export", "local");
-			export.doCall();
-		});
+	void testExportMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("export", "local"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
@@ -629,7 +629,7 @@ public class TestExport extends BaseTest {
 		assertThat(fatjar.toFile(), anExistingFile());
 
 		try (JarInputStream jis = new JarInputStream(new FileInputStream(fatjar.toFile()))) {
-			java.util.jar.JarEntry entry;
+			JarEntry entry;
 			String serviceContent = null;
 			while ((entry = jis.getNextJarEntry()) != null) {
 				if (serviceFile.equals(entry.getName())) {

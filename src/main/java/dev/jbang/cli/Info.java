@@ -259,9 +259,12 @@ public class Info extends BaseCommand {
 
 		private static Set<String> scripts;
 
-		ScriptInfo getInfo(boolean assureJdkInstalled) {
-			scriptMixin.validate();
+		@Override
+		protected void validateArguments() {
+			requireScriptArgument(scriptMixin.scriptOrFile);
+		}
 
+		ScriptInfo getInfo(boolean assureJdkInstalled) {
 			ProjectBuilder pb = createProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 

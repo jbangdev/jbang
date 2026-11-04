@@ -51,7 +51,7 @@ public class Export extends BaseCommand {
 	static abstract class BaseExportCommand extends BaseBuildCommand {
 
 		@Option(shortName = 'O', name = "output", description = "The name or path to use for the exported file.")
-		java.nio.file.Path outputFile;
+		Path outputFile;
 
 		@Option(name = "force", hasValue = false, description = "Force export, i.e. overwrite exported file if already exists")
 		boolean force;
@@ -80,7 +80,6 @@ public class Export extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
-			scriptMixin.validate();
 			ProjectBuilder pb = createExportProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 			BuildContext ctx = BuildContext.forProject(prj);

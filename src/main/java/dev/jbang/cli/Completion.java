@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
@@ -121,7 +122,7 @@ public class Completion extends BaseCommand {
 		return detectShell(System.getenv()::get);
 	}
 
-	static ShellType detectShell(java.util.function.Function<String, String> envLookup) {
+	static ShellType detectShell(Function<String, String> envLookup) {
 		// PSModulePath is set by PowerShell on all platforms \u2014 check it first.
 		// On macOS/Linux, CLI tools are typically launched via a bash wrapper
 		// script which sets BASH_VERSION in the environment. If we checked

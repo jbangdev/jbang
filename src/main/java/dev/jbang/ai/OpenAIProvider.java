@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
@@ -93,7 +94,7 @@ public class OpenAIProvider implements AIProvider {
 		if (result.choices != null && result.error == null) {
 			answer = result.choices.stream()
 				.map(c -> c.message.content)
-				.collect(java.util.stream.Collectors.joining("\n"));
+				.collect(Collectors.joining("\n"));
 		} else {
 			throw new IllegalStateException(
 					"Received no useful response from " + getName() + ". Usage limit exceeded or wrong key? "

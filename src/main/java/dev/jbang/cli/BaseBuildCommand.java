@@ -32,6 +32,11 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	Boolean enablePreviewRequested;
 
 	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptMixin.scriptOrFile);
+	}
+
+	@Override
 	public void afterParse() {
 		super.afterParse();
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
@@ -54,7 +59,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	}
 
 	protected ProjectBuilder createBaseProjectBuilder() {
-		return dev.jbang.source.Project
+		return Project
 			.builder()
 			.setProperties(dependencyInfoMixin.getProperties())
 			.additionalDependencies(dependencyInfoMixin.getDependencies())
