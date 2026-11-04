@@ -73,7 +73,8 @@ class TestAeshParsing extends BaseTest {
 	@CsvSource({ "export, jbang export fatjar hello.java",
 			"edit, jbang edit --no-open hello.java",
 			"jdk, jbang jdk install 21",
-			"alias, jbang alias add --name hello hello.java" })
+			"alias, jbang alias add --name hello hello.java",
+			"init, jbang init --template=cli mytool.java" })
 	void testCommandHelpHasExamplesSection(String command, String example) {
 		String help = JBang.renderHelp(command);
 		assertThat(help, containsString("Examples:"));
