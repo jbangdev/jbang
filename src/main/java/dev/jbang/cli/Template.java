@@ -31,7 +31,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "template", description = "Manage templates for scripts.", groupCommands = {
 		Template.TemplateAdd.class, Template.TemplateList.class,
-		Template.TemplateRemove.class }, helpGroup = "Configuration")
+		Template.TemplateRemove.class }, helpGroup = "Configuration", helpSectionProvider = TemplateHelpProvider.class)
 public class Template extends BaseCommand {
 	public static final Pattern TPL_FILENAME_PATTERN = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
 	public static final Pattern TPL_BASENAME_PATTERN = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
@@ -47,7 +47,7 @@ public class Template extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add template for script reference.")
+	@CommandDefinition(name = "add", description = "Add template for script reference.", helpSectionProvider = TemplateHelpProvider.Add.class)
 	public static class TemplateAdd extends BaseTemplateCommand {
 
 		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the template")
