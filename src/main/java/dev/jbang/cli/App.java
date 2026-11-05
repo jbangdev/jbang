@@ -388,7 +388,7 @@ public class App extends BaseCommand {
 	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", generateHelp = true)
 	public static class AppSetup extends BaseCommand {
 
-		@Option(name = "java", negatable = true, description = "Add JBang's Java to the user's environment as well")
+		@Option(name = "java", hasValue = false, negatable = true, description = "Add JBang's Java to the user's environment as well")
 		Boolean java;
 
 		@Option(name = "force", hasValue = false, description = "Force setup to be performed even when existing configuration has been detected")
