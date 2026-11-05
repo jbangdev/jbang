@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,24 +24,38 @@ import dev.jbang.source.update.FileUpdaters;
 
 @CommandDefinition(name = "deps", description = "Manage dependencies in jbang files.", groupCommands = {
 		Deps.DepsSearch.class,
-		Deps.DepsAdd.class }, helpGroup = "Editing", helpSectionProvider = DepsHelpProvider.class)
-public class Deps extends BaseCommand {
+		Deps.DepsAdd.class }, helpGroup = "Editing")
+public class Deps extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.", helpSectionProvider = DepsHelpProvider.Search.class)
-	public static class DepsSearch extends BaseCommand {
+	@Override
+	public String prose() {
+		return "Finds Maven artifacts and adds them as dependencies to a script's //DEPS lines\n"
+				+ "or a build.jbang file.";
+	}
 
-		@Option(name = "max", helpGroup = "Options", order = 0, description = "Maximum number of results to return.", defaultValue = "100")
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} search jackson",
+				"${COMMAND-FULL-NAME} search jackson app.java",
+				"${COMMAND-FULL-NAME} add com.fasterxml.jackson.core:jackson-databind:2.17.0 app.java");
+	}
+
+	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.")
+	public static class DepsSearch extends BaseCommand implements CommandHelpProvider {
+
+		@Option(name = "max", description = "Maximum number of results to return.", defaultValue = "100")
 		int max;
 
-		@Option(shortName = 'q', name = "query", helpGroup = "Options", order = 0, description = "Artifact pattern to search for.")
+		@Option(shortName = 'q', name = "query", description = "Artifact pattern to search for.")
 		String query;
 
-		@Option(name = "target", helpGroup = "Options", order = 0, description = "Target where to add the dependency, i.e. app.java or build.jbang")
+		@Option(name = "target", description = "Target where to add the dependency, i.e. app.java or build.jbang")
 		String target;
 
 		@Arguments(description = "[query] [target]")
@@ -110,10 +125,25 @@ public class Deps extends BaseCommand {
 		private static String artifactGav(Artifact artifact) {
 			return artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
 		}
+
+		@Override
+		public String prose() {
+			return "Interactively searches your local and the central Maven repository. The chosen\n"
+					+ "artifact is added to the target file if you give one, otherwise its coordinates\n"
+					+ "are printed.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} jackson",
+					"${COMMAND-FULL-NAME} jackson app.java",
+					"${COMMAND-FULL-NAME} --query=jackson --target=build.jbang");
+		}
 	}
 
-	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.", helpSectionProvider = DepsHelpProvider.Add.class)
-	public static class DepsAdd extends BaseCommand {
+	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.")
+	public static class DepsAdd extends BaseCommand implements CommandHelpProvider {
 
 		@Arguments(paramLabel = "deps target", arity = "2..*", description = "Dependencies to add (groupId:artifactId:version) and target file (.java or build.jbang)")
 		List<String> parameters = new ArrayList<>();
@@ -152,6 +182,19 @@ public class Deps extends BaseCommand {
 
 			FileUpdateStrategy strategy = FileUpdaters.forFile(file);
 			strategy.updateFile(file, dependencies);
+		}
+
+		@Override
+		public String prose() {
+			return "Adds one or more groupId:artifactId:version dependencies to the target file,\n"
+					+ "which comes last.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} info.picocli:picocli:4.7.6 app.java",
+					"${COMMAND-FULL-NAME} org.slf4j:slf4j-api:2.0.13 org.slf4j:slf4j-simple:2.0.13 build.jbang");
 		}
 	}
 }

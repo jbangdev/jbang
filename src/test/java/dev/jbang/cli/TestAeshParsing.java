@@ -129,11 +129,28 @@ class TestAeshParsing extends BaseTest {
 	void testOptionSectionsAreOrderedOptionsFirstGlobalLast() throws Exception {
 		// Every command and subcommand: the command's own (ungrouped) "Options:"
 		// come first and "Global options:" come last.
-		CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
+		CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+			.helpDefaults(JBang.HELP_DEFAULTS)
+			.command(JBang.class)
+			.create();
 		String root = (String) registry.getAllCommandNames().iterator().next();
 		List<String> problems = new ArrayList<>();
 		checkOptionSections(registry.getCommand(root, root).getParser(), root, problems);
 		assertThat(problems, empty());
+	}
+
+	@Test
+	void testSynopsisCollapsesOptionalFlags() {
+		// Fleet-wide COLLAPSE_SYNOPSIS should fold optional flags into [OPTIONS]
+		// instead of listing every option in the synopsis line.
+		String help = JBang.renderHelp("run").replaceAll("\u001B\\[[0-9;]*m", "");
+		// The synopsis is the Usage: line plus its wrapped continuations, up to
+		// the next blank line.
+		int usage = help.indexOf("Usage:");
+		String synopsis = help.substring(usage,
+				help.indexOf("\n\n", usage) < 0 ? help.length() : help.indexOf("\n\n", usage));
+		assertThat(synopsis, containsString("[OPTIONS]"));
+		assertThat(synopsis, not(containsString("--runtime-option")));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

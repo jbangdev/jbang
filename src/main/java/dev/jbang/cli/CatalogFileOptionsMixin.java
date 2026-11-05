@@ -11,10 +11,10 @@ import dev.jbang.catalog.Catalog;
 
 public class CatalogFileOptionsMixin {
 
-	@Option(shortName = 'g', name = "global", hasValue = false, helpGroup = "Options", order = 0, description = "Use the global (user) catalog file")
+	@Option(shortName = 'g', name = "global", hasValue = false, description = "Use the global (user) catalog file")
 	boolean global;
 
-	@Option(shortName = 'f', name = "file", helpGroup = "Options", order = 0, description = "Path to the catalog file to use")
+	@Option(shortName = 'f', name = "file", description = "Path to the catalog file to use")
 	Path catalogFile;
 
 	public Path getCatalogOrDefault() {

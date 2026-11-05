@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -47,12 +48,27 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
-		Info.Docs.class }, helpSectionProvider = InfoHelpProvider.class)
-public class Info extends BaseCommand {
+		Info.Docs.class })
+public class Info extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Prints details about a script or application for use by IDEs and other tools:\n"
+				+ "resolved dependencies, class path, jar location and documentation.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} tools hello.java",
+				"${COMMAND-FULL-NAME} classpath hello.java",
+				"${COMMAND-FULL-NAME} jar hello.java",
+				"${COMMAND-FULL-NAME} docs --open hello.java");
 	}
 
 	static abstract class BaseInfoCommand extends BaseCommand {
@@ -63,10 +79,10 @@ public class Info extends BaseCommand {
 		@Mixin
 		DependencyInfoMixin dependencyInfoMixin;
 
-		@Option(name = "build-dir", helpGroup = "Options", order = 0, description = "Use given directory for build results")
+		@Option(name = "build-dir", description = "Use given directory for build results")
 		String buildDir;
 
-		@Option(name = "module", fallbackValue = "", helpGroup = "Options", order = 0, description = "Treat resource as a module. Optionally with the given module name")
+		@Option(name = "module", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name")
 		String module;
 
 		@Override
@@ -290,10 +306,10 @@ public class Info extends BaseCommand {
 
 	}
 
-	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.", helpSectionProvider = InfoHelpProvider.Tools.class)
-	public static class Tools extends BaseInfoCommand {
+	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.")
+	public static class Tools extends BaseInfoCommand implements CommandHelpProvider {
 
-		@Option(name = "select", helpGroup = "Options", order = 0, description = "Indicate the name of the field to select and return from the full info result")
+		@Option(name = "select", description = "Indicate the name of the field to select and return from the full info result")
 		String select;
 
 		@Override
@@ -328,12 +344,25 @@ public class Info extends BaseCommand {
 
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Prints a JSON description of a script (sources, dependencies, class path, Java\n"
+					+ "version and more) for IDEs and tools. Use --select to print just one field.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} --select=resolvedDependencies hello.java");
+		}
 	}
 
 	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.")
 	public static class ClassPath extends BaseInfoCommand {
 
-		@Option(name = "deps-only", hasValue = false, helpGroup = "Options", order = 0, description = "Only include the dependencies in the output, not the application jar itself")
+		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
 		boolean dependenciesOnly;
 
 		@Override
@@ -368,7 +397,7 @@ public class Info extends BaseCommand {
 	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.")
 	public static class Docs extends BaseInfoCommand {
 
-		@Option(name = "open", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "Open the (first) documentation file/link in the default browser")
+		@Option(name = "open", hasValue = false, negatable = true, description = "Open the (first) documentation file/link in the default browser")
 		public boolean open;
 
 		@Override

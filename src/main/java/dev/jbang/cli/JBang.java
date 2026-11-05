@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 import org.aesh.AeshRuntimeRunner;
 import org.aesh.command.AeshCommandRuntimeBuilder;
@@ -9,6 +10,7 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandResult;
 import org.aesh.command.Execution;
 import org.aesh.command.Executor;
+import org.aesh.command.HelpFeature;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.option.Option;
 import org.aesh.command.registry.CommandRegistry;
@@ -24,6 +26,16 @@ import dev.jbang.util.Util;
 		Completion.class, Info.class, Version.class,
 		Wrapper.class }, helpSectionProvider = ExternalCommandsProvider.class)
 public class JBang extends BaseCommand {
+
+	/**
+	 * Fleet-wide help formatting applied to every (sub)command: collapse the long
+	 * option list in the synopsis, and print a command's own options before
+	 * inherited global options. Set once here instead of repeating the toggles on
+	 * every {@code @CommandDefinition}.
+	 */
+	public static final EnumSet<HelpFeature> HELP_DEFAULTS = EnumSet.of(
+			HelpFeature.COLLAPSE_SYNOPSIS, HelpFeature.DEFAULT_OPTIONS_FIRST,
+			HelpFeature.SEPARATE_ARGUMENTS_SECTION, HelpFeature.HEADER_BEFORE_SYNOPSIS);
 
 	@Option(shortName = 'V', name = "version", hasValue = false, helpGroup = "Global options", description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
@@ -53,6 +65,7 @@ public class JBang extends BaseCommand {
 		try {
 			String[] newArgs = Main.handleDefaultRun(args);
 			CommandResult result = AeshRuntimeRunner.builder()
+				.helpDefaults(HELP_DEFAULTS)
 				.command(JBang.class)
 				.args(newArgs)
 				.defaultValueProvider(new JBangDefaultValueProvider())
@@ -85,7 +98,10 @@ public class JBang extends BaseCommand {
 	 */
 	public static String renderHelp(String... commandPath) {
 		try {
-			CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
+			CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+				.helpDefaults(HELP_DEFAULTS)
+				.command(JBang.class)
+				.create();
 			String rootName = (String) registry.getAllCommandNames().iterator().next();
 			org.aesh.command.impl.parser.CommandLineParser<?> parser = registry.getCommand(rootName, rootName)
 				.getParser();
@@ -105,7 +121,10 @@ public class JBang extends BaseCommand {
 	public static <T extends Command> T parseCommand(String... args) {
 		try {
 			String[] newArgs = Main.handleDefaultRun(args);
-			CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
+			CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+				.helpDefaults(HELP_DEFAULTS)
+				.command(JBang.class)
+				.create();
 			org.aesh.command.CommandRuntime runtime = AeshCommandRuntimeBuilder.builder()
 				.commandRegistry(registry)
 				.defaultValueProvider(new JBangDefaultValueProvider())

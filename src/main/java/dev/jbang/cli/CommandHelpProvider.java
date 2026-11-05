@@ -8,18 +8,20 @@ import org.aesh.command.HelpEntry;
 import org.aesh.command.HelpSectionProvider;
 
 /**
- * Base {@link HelpSectionProvider} that renders optional descriptive prose and
- * an {@code Examples:} block into a command's help text. aesh injects the
- * result of {@link #getHeader()} between the synopsis and the options table.
+ * Mix-in for commands that want descriptive prose and an {@code Examples:}
+ * block in their help. A command implements this interface directly (aesh uses
+ * the command itself as its {@link HelpSectionProvider} when no provider class
+ * is annotated), overriding {@link #prose()} and/or {@link #examples()}. aesh
+ * injects {@link #getHeader()} between the synopsis and the options table.
  * <p>
- * Subclasses override {@link #prose()} and/or {@link #examples()}. Text may use
- * the standard aesh variables, most usefully {@code ${COMMAND-FULL-NAME}} which
- * expands to the fully qualified command (e.g. {@code jbang run}).
+ * Text may use the standard aesh variables, most usefully
+ * {@code ${COMMAND-FULL-NAME}} which expands to the fully qualified command
+ * (e.g. {@code jbang run}).
  */
-public abstract class CommandHelpProvider implements HelpSectionProvider {
+public interface CommandHelpProvider extends HelpSectionProvider {
 
 	/** Optional descriptive paragraph(s). Return {@code null} for none. */
-	protected String prose() {
+	default String prose() {
 		return null;
 	}
 
@@ -27,12 +29,12 @@ public abstract class CommandHelpProvider implements HelpSectionProvider {
 	 * Example invocations, one per line, shown under an {@code Examples:} header.
 	 * Use {@code ${COMMAND-FULL-NAME}} for the fully qualified command name.
 	 */
-	protected List<String> examples() {
+	default List<String> examples() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public String getHeader() {
+	default String getHeader() {
 		StringBuilder sb = new StringBuilder();
 		String prose = prose();
 		if (prose != null && !prose.trim().isEmpty()) {
@@ -52,12 +54,12 @@ public abstract class CommandHelpProvider implements HelpSectionProvider {
 	}
 
 	@Override
-	public String getFooter() {
+	default String getFooter() {
 		return null;
 	}
 
 	@Override
-	public Map<String, List<HelpEntry>> getAdditionalSections() {
+	default Map<String, List<HelpEntry>> getAdditionalSections() {
 		return Collections.emptyMap();
 	}
 }

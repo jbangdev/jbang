@@ -58,6 +58,7 @@ public class Main {
 		int exitCode = 0;
 		try {
 			CommandResult result = AeshRuntimeRunner.builder()
+				.helpDefaults(JBang.HELP_DEFAULTS)
 				.command(JBang.class)
 				.args(newArgs)
 				.defaultValueProvider(new JBangDefaultValueProvider())

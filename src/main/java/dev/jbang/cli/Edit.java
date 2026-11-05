@@ -36,8 +36,8 @@ import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 
-@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", helpGroup = "Editing", helpSectionProvider = EditHelpProvider.class)
-public class Edit extends BaseCommand {
+@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", helpGroup = "Editing")
+public class Edit extends BaseCommand implements CommandHelpProvider {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
 
@@ -56,16 +56,16 @@ public class Edit extends BaseCommand {
 		dependencyInfoMixin.applyIgnoreTransitiveRepositories();
 	}
 
-	@Option(name = "live", hasValue = false, helpGroup = "Options", order = 0, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
+	@Option(name = "live", hasValue = false, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
-	@Option(name = "open", defaultValue = "${env:JBANG_EDITOR:-}", fallbackValue = "${env:JBANG_EDITOR:-}", helpGroup = "Options", order = 0, description = "Opens editor/IDE on the temporary project.")
+	@Option(name = "open", defaultValue = "${env:JBANG_EDITOR:-}", fallbackValue = "${env:JBANG_EDITOR:-}", description = "Opens editor/IDE on the temporary project.")
 	public String editor;
 
-	@Option(name = "no-open", hasValue = false, helpGroup = "Options", order = 0, description = "Explicitly prevent JBang from opening an editor/IDE")
+	@Option(name = "no-open", hasValue = false, description = "Explicitly prevent JBang from opening an editor/IDE")
 	public boolean noOpen;
 
-	@Option(shortName = 'b', name = "sandbox", hasValue = false, helpGroup = "Options", order = 0, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
+	@Option(shortName = 'b', name = "sandbox", hasValue = false, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
 	boolean sandbox;
 
 	/**
@@ -609,5 +609,23 @@ public class Edit extends BaseCommand {
 		} else {
 			return fileName;
 		}
+	}
+
+	@Override
+	public String prose() {
+		return "Creates a temporary IDE project that links to your script and its dependencies,\n"
+				+ "so you get code completion without a build file. It opens the editor given by\n"
+				+ "--open (or $JBANG_EDITOR), asking you to pick one if none is set. Use --no-open\n"
+				+ "to only print the project path, and --live to regenerate it when dependencies\n"
+				+ "change.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} --no-open hello.java",
+				"${COMMAND-FULL-NAME} --open=code hello.java",
+				"${COMMAND-FULL-NAME} --live --open=idea hello.java",
+				"${COMMAND-FULL-NAME} --sandbox hello.java");
 	}
 }

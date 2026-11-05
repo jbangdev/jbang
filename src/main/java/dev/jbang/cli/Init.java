@@ -33,28 +33,28 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 
-@CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing", helpSectionProvider = InitHelpProvider.class)
-public class Init extends BaseCommand {
+@CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing")
+public class Init extends BaseCommand implements CommandHelpProvider {
 
-	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, helpGroup = "Options", order = 0, description = "JDK version to use for running the script.")
+	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
 	String javaVersion;
 
 	@Mixin
 	AIOptions aiOptions;
 
-	@Option(shortName = 't', name = "template", helpGroup = "Options", order = 0, description = "Init script with a java class useful for scripting")
+	@Option(shortName = 't', name = "template", description = "Init script with a java class useful for scripting")
 	public String initTemplate;
 
-	@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwrite of existing files")
+	@Option(name = "force", hasValue = false, description = "Force overwrite of existing files")
 	public boolean force;
 
-	@Option(name = "edit", hasValue = false, helpGroup = "Options", order = 0, description = "Open editor on the generated file(s)")
+	@Option(name = "edit", hasValue = false, description = "Open editor on the generated file(s)")
 	public boolean edit;
 
-	@OptionGroup(shortName = 'D', helpGroup = "Options", order = 0, description = "set a system property")
+	@OptionGroup(shortName = 'D', description = "set a system property")
 	public Map<String, String> properties;
 
-	@OptionList(name = "deps", valueSeparator = ',', helpGroup = "Options", order = 0, description = "Add additional dependencies (Use commas to separate them).")
+	@OptionList(name = "deps", valueSeparator = ',', description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 
 	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "1", description = "A file or URL to a Java code file", required = true)
@@ -302,5 +302,23 @@ public class Init extends BaseCommand {
 			}
 		}
 		return scriptOrFile;
+	}
+
+	@Override
+	public String prose() {
+		return "Creates a new script from a template, ready to run with `jbang <file>`. The\n"
+				+ "template is picked from the file extension unless you choose one with\n"
+				+ "--template; `jbang template list` shows what is available. Give a prompt after\n"
+				+ "the file name to have an AI model write the code instead (see the --ai-*\n"
+				+ "options).";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} --template=cli mytool.java",
+				"${COMMAND-FULL-NAME} hello.kt",
+				"${COMMAND-FULL-NAME} weather.java \"a CLI that prints the weather for a city\"");
 	}
 }

@@ -43,12 +43,28 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "app", description = "Manage scripts installed on the user's PATH as commands.", groupCommands = {
 		App.AppInstall.class, App.AppList.class, App.AppUninstall.class,
-		App.AppSetup.class }, helpGroup = "Configuration", helpSectionProvider = AppHelpProvider.class)
-public class App extends BaseCommand {
+		App.AppSetup.class }, helpGroup = "Configuration")
+public class App extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Installs scripts, jars, GAVs or aliases as commands on your PATH, so you can run\n"
+				+ "them without typing jbang. Run `jbang app setup` once to put the install folder\n"
+				+ "on your PATH.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install --name hello hello.java",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} uninstall hello",
+				"${COMMAND-FULL-NAME} setup");
 	}
 
 	public static void deleteCommandFiles(String name) {
@@ -61,20 +77,21 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "install", description = "Install a script as a command.", helpSectionProvider = AppHelpProvider.Install.class)
-	public static class AppInstall extends BaseBuildCommand {
+	@CommandDefinition(name = "install", description = "Install a script as a command.")
+	public static class AppInstall extends BaseBuildCommand implements CommandHelpProvider {
+
 		private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 		@Mixin
 		RunMixin runMixin;
 
-		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force re-installation")
+		@Option(name = "force", hasValue = false, description = "Force re-installation")
 		boolean force;
 
-		@Option(name = "no-build", hasValue = false, helpGroup = "Options", order = 0, description = "Don't pre-build the code before installation")
+		@Option(name = "no-build", hasValue = false, description = "Don't pre-build the code before installation")
 		boolean noBuild;
 
-		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the command")
+		@Option(name = "name", description = "A name for the command")
 		String name;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
@@ -307,12 +324,27 @@ public class App extends BaseCommand {
 				Files.move(launcherUpdate, launcher, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Creates a command that runs the given script, jar, GAV or alias, keeping any run\n"
+					+ "options you pass. It is built up front unless you use --no-build.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} --name search gavsearch@jbangdev",
+					"${COMMAND-FULL-NAME} --name blaze com.fizzed:blaze-lite:RELEASE",
+					"${COMMAND-FULL-NAME} --native --name mytool mytool.java");
+		}
 	}
 
 	@CommandDefinition(name = "list", description = "Lists installed commands.")
 	public static class AppList extends BaseCommand {
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override
@@ -385,13 +417,13 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", helpSectionProvider = AppHelpProvider.Setup.class)
-	public static class AppSetup extends BaseCommand {
+	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.")
+	public static class AppSetup extends BaseCommand implements CommandHelpProvider {
 
-		@Option(name = "java", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "Add JBang's Java to the user's environment as well")
+		@Option(name = "java", hasValue = false, negatable = true, description = "Add JBang's Java to the user's environment as well")
 		Boolean java;
 
-		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force setup to be performed even when existing configuration has been detected")
+		@Option(name = "force", hasValue = false, description = "Force setup to be performed even when existing configuration has been detected")
 		boolean force;
 
 		@Override
@@ -597,6 +629,19 @@ public class App extends BaseCommand {
 			} else {
 				return path.toString();
 			}
+		}
+
+		@Override
+		public String prose() {
+			return "Adds the folder holding installed commands to your PATH (and optionally jbang's\n"
+					+ "Java) by updating your shell setup. Open a new shell afterwards.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --java");
 		}
 	}
 }

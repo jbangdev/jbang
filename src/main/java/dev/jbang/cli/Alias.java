@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,16 +32,32 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "alias", description = "Manage aliases for scripts.", groupCommands = {
 		Alias.AliasAdd.class, Alias.AliasList.class,
-		Alias.AliasRemove.class }, helpGroup = "Configuration", helpSectionProvider = AliasHelpProvider.class)
-public class Alias extends BaseCommand {
+		Alias.AliasRemove.class }, helpGroup = "Configuration")
+public class Alias extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add alias for script reference.", helpSectionProvider = AliasHelpProvider.Add.class)
-	public static class AliasAdd extends BaseCommand {
+	@Override
+	public String prose() {
+		return "Aliases give a short name to a script, jar or GAV (plus any options), so you can\n"
+				+ "run it with `jbang <name>`. They are stored in the nearest jbang-catalog.json\n"
+				+ "(falling back to your user catalog), or use --global / --file to choose.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} add --name hello hello.java",
+				"${COMMAND-FULL-NAME} add --global --name cowsay org.example:cowsay:1.0",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} remove hello");
+	}
+
+	@CommandDefinition(name = "add", description = "Add alias for script reference.")
+	public static class AliasAdd extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		ScriptMixin scriptMixin;
@@ -60,22 +77,22 @@ public class Alias extends BaseCommand {
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 
-		@Option(name = "description", helpGroup = "Options", order = 0, description = "A description for the alias")
+		@Option(name = "description", description = "A description for the alias")
 		String description;
 
-		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the alias")
+		@Option(name = "name", description = "A name for the alias")
 		String name;
 
-		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing alias")
+		@Option(name = "force", hasValue = false, description = "Force overwriting of existing alias")
 		boolean force;
 
-		@Option(name = "enable-preview", hasValue = false, helpGroup = "Options", order = 0, description = "Activate Java preview features")
+		@Option(name = "enable-preview", hasValue = false, description = "Activate Java preview features")
 		boolean enablePreviewRequested;
 
 		@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 		List<String> userParams;
 
-		@OptionList(name = "docs", helpGroup = "Options", order = 0, description = "Documentation reference for the alias")
+		@OptionList(name = "docs", description = "Documentation reference for the alias")
 		List<String> docs;
 
 		@Override
@@ -162,21 +179,36 @@ public class Alias extends BaseCommand {
 				.map(e -> new JavaAgent(e.getKey(), e.getValue()))
 				.collect(Collectors.toList());
 		}
+
+		@Override
+		public String prose() {
+			return "Saves a script, jar or GAV under a name, together with any options and arguments\n"
+					+ "you give (dependencies, runtime options, ...), so `jbang <name>` reproduces it.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name hello hello.java",
+					"${COMMAND-FULL-NAME} --name cowsay --deps org.slf4j:slf4j-simple:2.0.9 cowsay.java",
+					"${COMMAND-FULL-NAME} --name greet hello.java World",
+					"${COMMAND-FULL-NAME} --global --name tool org.example:tool:1.0 serve");
+		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.", helpSectionProvider = AliasHelpProvider.ListAliases.class)
-	public static class AliasList extends BaseCommand {
+	@CommandDefinition(name = "list", description = "Lists locally defined aliases or from the given catalog.")
+	public static class AliasList extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 
-		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the alias")
+		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the alias")
 		boolean showOrigin;
 
 		@Argument(paramLabel = "catalogName", index = "0", arity = "0..1", description = "The name of a catalog")
 		String catalogName;
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;
@@ -325,6 +357,20 @@ public class Alias extends BaseCommand {
 			if (alias.properties != null) {
 				out.println(prefix3 + ConsoleOutput.magenta("   Properties: ") + alias.properties);
 			}
+		}
+
+		@Override
+		public String prose() {
+			return "Lists the aliases you can run: from the nearest catalogs, or from a named\n"
+					+ "catalog when you give one.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --show-origin",
+					"${COMMAND-FULL-NAME} jbangdev");
 		}
 	}
 

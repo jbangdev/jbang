@@ -31,8 +31,8 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "template", description = "Manage templates for scripts.", groupCommands = {
 		Template.TemplateAdd.class, Template.TemplateList.class,
-		Template.TemplateRemove.class }, helpGroup = "Configuration", helpSectionProvider = TemplateHelpProvider.class)
-public class Template extends BaseCommand {
+		Template.TemplateRemove.class }, helpGroup = "Configuration")
+public class Template extends BaseCommand implements CommandHelpProvider {
 	public static final Pattern TPL_FILENAME_PATTERN = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
 	public static final Pattern TPL_BASENAME_PATTERN = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
 
@@ -41,28 +41,42 @@ public class Template extends BaseCommand {
 		return missingSubcommand();
 	}
 
+	@Override
+	public String prose() {
+		return "Templates are the starting points `jbang init --template=<name>` creates scripts\n"
+				+ "from. Add your own to a catalog to reuse them across projects.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} add --name logo showlogo.java img.jpg",
+				"${COMMAND-FULL-NAME} remove logo");
+	}
+
 	static abstract class BaseTemplateCommand extends BaseCommand {
 
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add template for script reference.", helpSectionProvider = TemplateHelpProvider.Add.class)
-	public static class TemplateAdd extends BaseTemplateCommand {
+	@CommandDefinition(name = "add", description = "Add template for script reference.")
+	public static class TemplateAdd extends BaseTemplateCommand implements CommandHelpProvider {
 
-		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the template")
+		@Option(shortName = 'd', name = "description", description = "A description for the template")
 		String description;
 
-		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the template")
+		@Option(name = "name", description = "A name for the template")
 		String name;
 
-		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing template")
+		@Option(name = "force", hasValue = false, description = "Force overwriting of existing template")
 		boolean force;
 
 		@Arguments(paramLabel = "files", arity = "1..*", description = "Paths or URLs to template files", required = true)
 		List<String> fileRefs;
 
-		@OptionList(shortName = 'P', name = "property", helpGroup = "Options", order = 0, description = "Template property (key=description::defaultValue)")
+		@OptionList(shortName = 'P', name = "property", description = "Template property (key=description::defaultValue)")
 		List<String> propertyStrings;
 
 		@Override
@@ -221,24 +235,39 @@ public class Template extends BaseCommand {
 				return splitRef;
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Saves one or more files as a named template. The first file becomes the script;\n"
+					+ "the rest are copied alongside it. Use --property for values `jbang init` asks\n"
+					+ "for.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name logo showlogo.java img.jpg",
+					"${COMMAND-FULL-NAME} --global --name tool tool.java",
+					"${COMMAND-FULL-NAME} --name greet -P greeting=Greeting::Hello greet.java");
+		}
 	}
 
 	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.")
 	public static class TemplateList extends BaseTemplateCommand {
 
-		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the template")
+		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the template")
 		boolean showOrigin;
 
-		@Option(name = "show-files", hasValue = false, helpGroup = "Options", order = 0, description = "Show list of files for each template")
+		@Option(name = "show-files", hasValue = false, description = "Show list of files for each template")
 		boolean showFiles;
 
-		@Option(name = "show-properties", hasValue = false, helpGroup = "Options", order = 0, description = "Show list of properties for each template")
+		@Option(name = "show-properties", hasValue = false, description = "Show list of properties for each template")
 		boolean showProperties;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String catalogName;
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;

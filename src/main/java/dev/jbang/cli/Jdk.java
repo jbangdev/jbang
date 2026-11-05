@@ -36,12 +36,28 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "jdk", description = "Manage Java Development Kits installed by jbang.", groupCommands = {
 		Jdk.JdkInstall.class, Jdk.JdkList.class, Jdk.JdkUninstall.class,
 		Jdk.JdkHome.class, Jdk.JdkJavaEnv.class, Jdk.JdkExec.class,
-		Jdk.JdkDefault.class }, helpGroup = "Caching", helpSectionProvider = JdkHelpProvider.class)
-public class Jdk extends BaseCommand {
+		Jdk.JdkDefault.class }, helpGroup = "Caching")
+public class Jdk extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Installs and manages the JDKs jbang uses. JDKs are normally fetched on demand\n"
+				+ "when a script needs one; use these commands to pre-install versions, pick the\n"
+				+ "default, or point other tools at a jbang-managed JDK.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install 21",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} default 21",
+				"${COMMAND-FULL-NAME} home 21");
 	}
 
 	static class JdkOut implements Comparable<JdkOut> {
@@ -99,13 +115,13 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "install", aliases = {
-			"i" }, description = "Installs a JDK.", helpSectionProvider = JdkHelpProvider.Install.class)
-	public static class JdkInstall extends BaseCommand {
+			"i" }, description = "Installs a JDK.")
+	public static class JdkInstall extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'f', name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force installation even when already installed")
+		@Option(shortName = 'f', name = "force", hasValue = false, description = "Force installation even when already installed")
 		boolean force;
 
 		@Argument(paramLabel = "versionOrId", index = "0", arity = "1", description = "The version or id to install", required = true)
@@ -228,29 +244,43 @@ public class Jdk extends BaseCommand {
 				throw e;
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Installs a JDK by major version or id. Pass a path (or an installable archive)\n"
+					+ "as well to register a JDK you already have instead of downloading one.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} 21",
+					"${COMMAND-FULL-NAME} 21 /opt/java/jdk-21",
+					"${COMMAND-FULL-NAME} --force 21");
+		}
 	}
 
 	@CommandDefinition(name = "list", aliases = {
-			"l" }, description = "Lists installed JDKs.", helpSectionProvider = JdkHelpProvider.ListJdks.class)
-	public static class JdkList extends BaseCommand {
+			"l" }, description = "Lists installed JDKs.")
+	public static class JdkList extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'a', name = "available", hasValue = false, helpGroup = "Options", order = 0, description = "Shows versions available for installation")
+		@Option(shortName = 'a', name = "available", hasValue = false, description = "Shows versions available for installation")
 		boolean available;
 
-		@Option(shortName = 'P', name = "providers", hasValue = false, helpGroup = "Options", order = 0, description = "Shows available providers")
+		@Option(shortName = 'P', name = "providers", hasValue = false, description = "Shows available providers")
 		boolean listProviders;
 
-		@Option(shortName = 'D', name = "distros", hasValue = false, helpGroup = "Options", order = 0, description = "Shows distributions available for installation")
+		@Option(shortName = 'D', name = "distros", hasValue = false, description = "Shows distributions available for installation")
 		boolean listDistros;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
-				"details" }, hasValue = false, helpGroup = "Options", order = 0, description = "Shows detailed information for each JDK (only when format=text)")
+				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
 		boolean details;
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override
@@ -356,6 +386,20 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Lists the JDKs jbang has installed. Use --available to see versions you can\n"
+					+ "install.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --available",
+					"${COMMAND-FULL-NAME} --format=json");
+		}
 	}
 
 	@CommandDefinition(name = "uninstall", aliases = {
@@ -411,8 +455,8 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "java-env", aliases = {
-			"env" }, description = "Prints out the environment variables needed to use the given JDK.", helpSectionProvider = JdkHelpProvider.JavaEnv.class)
-	public static class JdkJavaEnv extends BaseCommand {
+			"env" }, description = "Prints out the environment variables needed to use the given JDK.")
+	public static class JdkJavaEnv extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		JdkProvidersMixin jdkMixin;
@@ -468,16 +512,29 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Prints the shell commands that put a jbang-managed JDK on PATH and set\n"
+					+ "JAVA_HOME. Evaluate the output to use that JDK in your current shell.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"eval $(${COMMAND-FULL-NAME} 21)",
+					"${COMMAND-FULL-NAME} 21");
+		}
 	}
 
 	@CommandDefinition(name = "exec", aliases = {
-			"x" }, description = "Executes the given command using the default (or specified) JDK.", helpSectionProvider = JdkHelpProvider.Exec.class)
-	public static class JdkExec extends BaseCommand {
+			"x" }, description = "Executes the given command using the default (or specified) JDK.")
+	public static class JdkExec extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		JdkProvidersMixin jdkMixin;
 
-		@Option(shortName = 'j', name = "java", helpGroup = "Options", order = 0, description = "JDK version to use for executing the command.")
+		@Option(shortName = 'j', name = "java", description = "JDK version to use for executing the command.")
 		String versionOrId;
 
 		@Arguments(paramLabel = "command", arity = "1..*", description = "Command to execute", required = true)
@@ -518,10 +575,23 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Runs a command with a jbang-managed JDK on PATH and JAVA_HOME: the default JDK,\n"
+					+ "or the one given with -j (installed if needed).";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} java -version",
+					"${COMMAND-FULL-NAME} -j 21 mvn package");
+		}
 	}
 
-	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.", helpSectionProvider = JdkHelpProvider.Default.class)
-	public static class JdkDefault extends BaseCommand {
+	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.")
+	public static class JdkDefault extends BaseCommand implements CommandHelpProvider {
 
 		@Mixin
 		JdkProvidersMixin jdkMixin;
@@ -529,14 +599,14 @@ public class Jdk extends BaseCommand {
 		@Argument(paramLabel = "versionOrId", description = "The version of the JDK to select")
 		String versionOrId;
 
-		@Option(name = "for-version", shortName = 'v', hasValue = false, helpGroup = "Options", order = 0, description = "Sets the default for the specified major version")
+		@Option(name = "for-version", shortName = 'v', hasValue = false, description = "Sets the default for the specified major version")
 		boolean forVersion;
 
 		@Option(shortName = 'd', name = "show-details", aliases = {
-				"details" }, hasValue = false, helpGroup = "Options", order = 0, description = "Shows detailed information for each JDK (only when format=text)")
+				"details" }, hasValue = false, description = "Shows detailed information for each JDK (only when format=text)")
 		boolean details;
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		@Override
@@ -599,6 +669,19 @@ public class Jdk extends BaseCommand {
 				}
 			}
 			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Sets the JDK jbang uses by default, installing it if needed. Without an argument\n"
+					+ "it shows the current defaults.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} 21",
+					"${COMMAND-FULL-NAME}");
 		}
 	}
 }

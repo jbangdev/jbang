@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +27,28 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "catalog", description = "Manage Catalogs of aliases.", groupCommands = {
 		Catalog.CatalogAdd.class, Catalog.CatalogUpdate.class,
 		Catalog.CatalogList.class,
-		Catalog.CatalogRemove.class }, helpGroup = "Configuration", helpSectionProvider = CatalogHelpProvider.class)
-public class Catalog extends BaseCommand {
+		Catalog.CatalogRemove.class }, helpGroup = "Configuration")
+public class Catalog extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Catalogs are jbang-catalog.json files that publish aliases and templates,\n"
+				+ "locally or on GitHub, GitLab and other hosts. Once added, run their aliases as\n"
+				+ "`jbang <alias>@<catalog>`.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} add --name demo jbangdev",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} update",
+				"${COMMAND-FULL-NAME} remove demo");
 	}
 
 	static abstract class BaseCatalogCommand extends BaseCommand {
@@ -40,19 +57,19 @@ public class Catalog extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add a catalog.", helpSectionProvider = CatalogHelpProvider.Add.class)
-	public static class CatalogAdd extends BaseCatalogCommand {
+	@CommandDefinition(name = "add", description = "Add a catalog.")
+	public static class CatalogAdd extends BaseCatalogCommand implements CommandHelpProvider {
 
-		@Option(shortName = 'd', name = "description", helpGroup = "Options", order = 0, description = "A description for the catalog")
+		@Option(shortName = 'd', name = "description", description = "A description for the catalog")
 		String description;
 
-		@Option(name = "name", helpGroup = "Options", order = 0, description = "A name for the catalog")
+		@Option(name = "name", description = "A name for the catalog")
 		String name;
 
-		@Option(name = "force", hasValue = false, helpGroup = "Options", order = 0, description = "Force overwriting of existing catalog")
+		@Option(name = "force", hasValue = false, description = "Force overwriting of existing catalog")
 		boolean force;
 
-		@Option(name = "import", helpGroup = "Options", order = 0, description = "Import catalog items into the catalog's scope")
+		@Option(name = "import", description = "Import catalog items into the catalog's scope")
 		boolean importItems;
 
 		@Argument(paramLabel = "fileOrURL", description = "A file or URL to a catalog file", required = true)
@@ -77,6 +94,20 @@ public class Catalog extends BaseCommand {
 			}
 			info(String.format("Catalog '%s' added to '%s'", name, catFile));
 			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Registers a catalog under a name. Give a file, a URL, or a short GitHub\n"
+					+ "reference such as `jbangdev` (the jbangdev/jbang-catalog repository).";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name demo jbangdev",
+					"${COMMAND-FULL-NAME} --name team https://github.com/myteam/jbang-tools",
+					"${COMMAND-FULL-NAME} --global --name local ./jbang-catalog.json");
 		}
 	}
 
@@ -109,13 +140,13 @@ public class Catalog extends BaseCommand {
 	@CommandDefinition(name = "list", description = "Show currently defined catalogs.")
 	public static class CatalogList extends BaseCatalogCommand {
 
-		@Option(name = "show-origin", hasValue = false, helpGroup = "Options", order = 0, description = "Show the origin of the catalog")
+		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the catalog")
 		boolean showOrigin;
 
 		@Argument(paramLabel = "name", description = "The name of a catalog")
 		String name;
 
-		@Option(name = "format", helpGroup = "Options", order = 0, description = "Specify output format ('text' or 'json')")
+		@Option(name = "format", description = "Specify output format ('text' or 'json')")
 		OutputFormat format;
 
 		private static final int INDENT_SIZE = 3;

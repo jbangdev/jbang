@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 
 import org.aesh.command.CommandDefinition;
@@ -10,45 +11,59 @@ import org.aesh.command.option.Option;
 import dev.jbang.ExitException;
 
 @CommandDefinition(name = "cache", description = "Manage compiled scripts in the local cache.", groupCommands = {
-		Cache.CacheClear.class }, helpGroup = "Caching", helpSectionProvider = CacheHelpProvider.class)
-public class Cache extends BaseCommand {
+		Cache.CacheClear.class }, helpGroup = "Caching")
+public class Cache extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin, URL and dependency caches.", helpSectionProvider = CacheHelpProvider.Clear.class)
-	public static class CacheClear extends BaseCommand {
+	@Override
+	public String prose() {
+		return "jbang caches downloaded scripts, built jars, dependencies and JDKs to make later\n"
+				+ "runs fast. Use these commands to clear them when something looks stale.";
+	}
 
-		@Option(name = "url", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear URL cache only")
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} clear",
+				"${COMMAND-FULL-NAME} clear --deps",
+				"${COMMAND-FULL-NAME} clear --all");
+	}
+
+	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin, URL and dependency caches.")
+	public static class CacheClear extends BaseCommand implements CommandHelpProvider {
+
+		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")
 		Boolean url;
 
-		@Option(name = "jar", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear JAR cache only")
+		@Option(name = "jar", hasValue = false, negatable = true, description = "clear JAR cache only")
 		Boolean jar;
 
-		@Option(name = "deps", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear dependency cache only")
+		@Option(name = "deps", hasValue = false, negatable = true, description = "clear dependency cache only")
 		Boolean deps;
 
-		@Option(name = "jdk", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear JDK cache only")
+		@Option(name = "jdk", hasValue = false, negatable = true, description = "clear JDK cache only")
 		Boolean jdk;
 
-		@Option(name = "kotlinc", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear kotlinc cache only")
+		@Option(name = "kotlinc", hasValue = false, negatable = true, description = "clear kotlinc cache only")
 		Boolean kotlinc;
 
-		@Option(name = "groovyc", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear groovyc cache only")
+		@Option(name = "groovyc", hasValue = false, negatable = true, description = "clear groovyc cache only")
 		Boolean groovyc;
 
-		@Option(name = "project", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear temporary projects cache only")
+		@Option(name = "project", hasValue = false, negatable = true, description = "clear temporary projects cache only")
 		Boolean project;
 
-		@Option(name = "script", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear script cache only")
+		@Option(name = "script", hasValue = false, negatable = true, description = "clear script cache only")
 		Boolean script;
 
-		@Option(name = "stdin", hasValue = false, negatable = true, helpGroup = "Options", order = 0, description = "clear stdin cache only")
+		@Option(name = "stdin", hasValue = false, negatable = true, description = "clear stdin cache only")
 		Boolean stdin;
 
-		@Option(name = "all", hasValue = false, helpGroup = "Options", order = 0, description = "clear all caches")
+		@Option(name = "all", hasValue = false, description = "clear all caches")
 		boolean all;
 
 		@Override
@@ -100,6 +115,21 @@ public class Cache extends BaseCommand {
 					classes.remove(cache);
 				}
 			}
+		}
+
+		@Override
+		public String prose() {
+			return "Without options it clears the jar, script, stdin, URL and dependency caches.\n"
+					+ "Pick specific caches with the flags below, or use --all to also remove JDKs,\n"
+					+ "compilers and temporary projects.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --jar --url",
+					"${COMMAND-FULL-NAME} --all");
 		}
 	}
 }
