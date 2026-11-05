@@ -325,6 +325,17 @@ This applies to JDK and JBang bootstrap downloads on all platforms (curl, wget, 
 2. **Check shell compatibility**: Verify with bash/zsh
 3. **User permissions**: Use user-space installation methods
 
+=== Color Codes in Output
+
+**Problem**: Output piped to a file or another command (e.g. `jbang --help | less`) contains escape codes such as `^[[0;33m`
+
+**Solution**: Set `NO_COLOR` to turn colors off:
+
+[source,bash]
+----
+NO_COLOR=1 jbang --help > help.txt
+----
+
 == Cache and Storage Issues
 
 === Cache Corruption
