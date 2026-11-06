@@ -132,6 +132,15 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			Project project = ctx.getProject();
 			String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
 			MavenCoordinate gav = getPomGav(project);
+
+			List<MavenCoordinate> boms = project.getMainSourceSet()
+				.getDependencies()
+				.stream()
+				.map(MavenCoordinate::fromString)
+				.filter(c -> "pom".equalsIgnoreCase(c.getType()))
+				.filter(c -> c.getVersion() != null && !c.getVersion().isEmpty())
+				.collect(Collectors.toList());
+
 			String pomfile = pomTemplate
 				.data("baseName", baseName)
 				.data("group", gav.getGroupId())
@@ -139,6 +148,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 				.data("version", gav.getVersion())
 				.data("description", project.getDescription().orElse(""))
 				.data("dependencies", ctx.resolveClassPath().getArtifacts())
+				.data("boms", boms)
 				.render();
 
 			pomPath = getPomPath(ctx);
