@@ -45,12 +45,12 @@ public class Run extends BaseBuildCommand {
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
 	public List<String> userParams = new ArrayList<>();
 
-	protected void requireScriptArgument() {
+	@Override
+	protected void validateArguments() {
+		// run allows no script when in interactive mode or when running literal code
 		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && literalScript == null)
 				|| (literalScript != null && literalScript.isEmpty()))) {
-			if (commandInvocation != null) {
-				System.err.println(commandInvocation.getHelpInfo());
-			}
+			printCommandHelp();
 			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
@@ -69,7 +69,6 @@ public class Run extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
 		rewriteScriptArguments();
 		userParams = handleRemoteFiles(userParams);
 		String script = scriptMixin.scriptOrFile;

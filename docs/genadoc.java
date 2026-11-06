@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS org.aesh:aesh:3.16.4
+//DEPS org.aesh:aesh:3.18.1
 ///COMPILE_OPTIONS -proc:none
 //JAVA 17+
 
@@ -14,7 +14,7 @@ import java.nio.file.*;
  * Generates AsciiDoc CLI reference pages from aesh command metadata.
  * Delegates to aesh's built-in DocumentationGenerator.
  *
- * Usage: jbang docs/genadoc.java -d docs/modules/cli --force dev.jbang.cli.JBang
+ * Usage: jbang docs/genadoc.java -d docs/modules/cli [--format asciidoc|markdown|skill] --force dev.jbang.cli.JBang
  */
 public class genadoc {
 
@@ -22,6 +22,7 @@ public class genadoc {
         String outDir = ".";
         String crossRefPrefix = "jbang:cli:";
         String className = null;
+        DocFormat format = DocFormat.ASCIIDOC;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -37,6 +38,18 @@ public class genadoc {
                 case "-f":
                     // force is always on with the new generator (overwrites existing files)
                     break;
+                case "--format":
+                    if (i + 1 >= args.length) {
+                        System.err.println("Error: --format requires a value (asciidoc, markdown, skill)");
+                        System.exit(2);
+                    }
+                    try {
+                        format = DocFormat.valueOf(args[++i].toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Error: unknown format '" + args[i] + "'. Supported: asciidoc, markdown, skill");
+                        System.exit(2);
+                    }
+                    break;
                 case "--component-root":
                     if (i + 1 >= args.length) {
                         System.err.println("Error: --component-root requires a value");
@@ -50,7 +63,7 @@ public class genadoc {
         }
 
         if (className == null) {
-            System.err.println("Usage: genadoc [-d outdir] [--force] [--component-root prefix] <commandClass>");
+            System.err.println("Usage: genadoc [-d outdir] [--format asciidoc|markdown|skill] [--force] [--component-root prefix] <commandClass>");
             System.exit(2);
         }
 
@@ -60,13 +73,15 @@ public class genadoc {
         Path pagesDir = Paths.get(outDir, "pages");
         Files.createDirectories(pagesDir);
 
-        DocumentationGenerator.builder()
+        DocumentationGenerator.Builder builder = DocumentationGenerator.builder()
             .commandClass(cmdClass)
             .outputDir(pagesDir.toFile())
             .crossRefPrefix(crossRefPrefix)
-            .navFile(Paths.get(outDir, "nav.adoc").toFile())
-            .format(DocFormat.ASCIIDOC)
-            .generate();
+            .format(format);
+        if (format == DocFormat.ASCIIDOC) {
+            builder.navFile(Paths.get(outDir, "nav.adoc").toFile());
+        }
+        builder.generate();
 
         System.out.println("Documentation generated in " + outDir);
     }

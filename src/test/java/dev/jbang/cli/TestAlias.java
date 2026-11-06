@@ -370,11 +370,11 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			dev.jbang.cli.Alias.AliasAdd add = JBang.parseCommand("alias", "add", "--name=name");
-			add.doCall();
-		});
+	void testAddMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("alias", "add", "--name=name"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
