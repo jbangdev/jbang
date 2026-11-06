@@ -52,8 +52,8 @@ public class TestSkill extends BaseTest {
 				new GzipCompressorOutputStream(Files.newOutputStream(tgz)))) {
 			out.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
 			addFile(out, "repo-main/good/SKILL.md", "good skill");
-			// entry that, after stripping the root folder, resolves to "../evil/SKILL.md"
-			addFile(out, "repo-main/../evil/SKILL.md", "pwned");
+			// entry that normalizes to "../evil/SKILL.md" - escaping above the archive root
+			addFile(out, "repo-main/../../evil/SKILL.md", "pwned");
 		}
 		return tgz;
 	}
