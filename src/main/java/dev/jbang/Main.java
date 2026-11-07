@@ -126,6 +126,7 @@ public class Main {
 			names.add("export");
 			names.add("config");
 			names.add("deps");
+			names.add("skill");
 			subcommandNames = names;
 		}
 		return subcommandNames;
