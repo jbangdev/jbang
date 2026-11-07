@@ -84,7 +84,7 @@ public class UnpackUtil {
 					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
 				entry = outputDir.resolve(entry).normalize();
-				if (!entry.startsWith(outputDir)) {
+				if (!entry.startsWith(outputDir.normalize())) {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
 				try {
@@ -93,7 +93,12 @@ public class UnpackUtil {
 					} else if (zipEntry.isUnixSymlink()) {
 						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
 							String result = s.hasNext() ? s.next() : "";
-							Files.createSymbolicLink(entry, Paths.get(result));
+							Path linkTarget = Paths.get(result);
+							if (!symlinkStaysInside(outputDir, entry, linkTarget)) {
+								throw new IOException("Symbolic link escapes the target dir: " + zipEntry.getName()
+										+ " -> " + result);
+							}
+							Files.createSymbolicLink(entry, linkTarget);
 						}
 					} else {
 						if (checkValidParent(entry.getParent())) {
@@ -106,6 +111,18 @@ public class UnpackUtil {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Verify that a symlink located at {@code linkPath} and pointing at
+	 * {@code linkTarget} resolves to a location inside {@code outputDir}. Rejects
+	 * absolute targets and relative targets that escape via {@code ..}, preventing
+	 * a symlink from being used to write outside the extraction root ("Zip Slip").
+	 */
+	private static boolean symlinkStaysInside(Path outputDir, Path linkPath, Path linkTarget) {
+		Path base = outputDir.normalize();
+		Path resolved = linkPath.getParent().resolve(linkTarget).normalize();
+		return resolved.startsWith(base);
 	}
 
 	private static boolean checkValidParent(Path path) throws FileAlreadyExistsException {
@@ -224,7 +241,7 @@ public class UnpackUtil {
 
 				entry = outputDir.resolve(entry).normalize();
 
-				if (!entry.startsWith(outputDir)) {
+				if (!entry.startsWith(outputDir.normalize())) {
 					throw new IOException("Entry is outside of the target dir: " + targzEntry.getName());
 				}
 
@@ -233,6 +250,11 @@ public class UnpackUtil {
 				} else if (targzEntry.isSymbolicLink()) {
 					// Handle symbolic links
 					Path linkTarget = Paths.get(targzEntry.getLinkName());
+
+					if (!symlinkStaysInside(outputDir, entry, linkTarget)) {
+						throw new IOException("Symbolic link escapes the target dir: " + targzEntry.getName()
+								+ " -> " + linkTarget);
+					}
 
 					// Ensure parent directory exists
 					Files.createDirectories(entry.getParent());
