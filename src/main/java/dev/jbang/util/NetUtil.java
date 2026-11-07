@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -1004,6 +1005,19 @@ public class NetUtil {
 		Path urlCache = getUrlCacheDir(fileURL);
 		Path file = getCachedFile(urlCache);
 		return ((!isFresh() || isOffline()) && file != null);
+	}
+
+	/**
+	 * Returns a previously downloaded file without refreshing it or checking its
+	 * age.
+	 *
+	 * @param fileURL HTTP URL of the cached file
+	 * @return the regular cached file, or null if none is available
+	 * @throws IOException if the cache directory cannot be read
+	 */
+	public static @Nullable Path getCachedFile(String fileURL) throws IOException {
+		Path cached = getCachedFile(getUrlCacheDir(fileURL));
+		return cached != null && Files.isRegularFile(cached) ? cached : null;
 	}
 
 	private static Path getCachedFile(Path dir) throws IOException {
