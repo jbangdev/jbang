@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,16 +19,30 @@ import dev.jbang.net.TrustedSources;
 
 @CommandDefinition(name = "trust", description = "Manage which domains you trust to run scripts from.", groupCommands = {
 		Trust.TrustAdd.class, Trust.TrustList.class,
-		Trust.TrustRemove.class }, generateHelp = true, helpGroup = "Configuration")
-public class Trust extends BaseCommand {
+		Trust.TrustRemove.class }, helpGroup = "Configuration")
+public class Trust extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add trust domains.", generateHelp = true)
-	public static class TrustAdd extends BaseCommand {
+	@Override
+	public String prose() {
+		return "jbang only runs scripts from remote URLs you trust, and asks the first time it\n"
+				+ "meets a new one. These commands manage that list of trusted URL prefixes.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} add https://github.com/jbangdev/",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} remove https://github.com/jbangdev/");
+	}
+
+	@CommandDefinition(name = "add", description = "Add trust domains.")
+	public static class TrustAdd extends BaseCommand implements CommandHelpProvider {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
 		List<String> rules;
@@ -37,9 +52,22 @@ public class Trust extends BaseCommand {
 			TrustedSources.instance().add(rules);
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Trusts scripts whose URL starts with one of the given prefixes. Keep the prefix\n"
+					+ "as narrow as you can, e.g. a user or repository instead of a whole site.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} https://github.com/jbangdev/",
+					"${COMMAND-FULL-NAME} https://github.com/myorg/scripts/");
+		}
 	}
 
-	@CommandDefinition(name = "list", description = "Show defined trust domains.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Show defined trust domains.")
 	public static class TrustList extends BaseCommand {
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
@@ -61,7 +89,7 @@ public class Trust extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove trust domains.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove trust domains.")
 	public static class TrustRemove extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)

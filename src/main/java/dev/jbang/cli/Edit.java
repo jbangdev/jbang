@@ -36,8 +36,8 @@ import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 
-@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", generateHelp = true, helpGroup = "Editing")
-public class Edit extends BaseCommand {
+@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", helpGroup = "Editing")
+public class Edit extends BaseCommand implements CommandHelpProvider {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
 
@@ -140,6 +140,22 @@ public class Edit extends BaseCommand {
 	}
 
 	@Override
+	protected void validateArguments() {
+		// Without a script, edit opens the project in the current directory, which
+		// only makes sense when we are inside one. Sandbox mode always needs a script.
+		if (scriptMixin.scriptOrFile == null && (sandbox || !isInsideProject(Util.getCwd()))) {
+			requireScriptArgument(null);
+		}
+	}
+
+	static boolean isInsideProject(Path dir) {
+		// findNearestRoot() starts at the parent of the given path, so pass a child of
+		// dir to also consider markers in dir itself
+		Path probe = dir.toAbsolutePath().normalize().resolve("_");
+		return findNearestRoot(probe, editorRootMarkers) != null || findNearestRoot(probe, buildRootMarkers) != null;
+	}
+
+	@Override
 	public Integer doCall() throws IOException {
 		// force download sources when editing
 		Util.setDownloadSources(true);
@@ -159,7 +175,7 @@ public class Edit extends BaseCommand {
 			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
 			Path path = null;
 			if (location == null) {
-				path = locateProjectDir(Paths.get("."));
+				path = locateProjectDir(Util.getCwd().toAbsolutePath());
 			} else {
 				path = locateProjectDir(location.toPath());
 			}
@@ -593,5 +609,23 @@ public class Edit extends BaseCommand {
 		} else {
 			return fileName;
 		}
+	}
+
+	@Override
+	public String prose() {
+		return "Creates a temporary IDE project that links to your script and its dependencies,\n"
+				+ "so you get code completion without a build file. It opens the editor given by\n"
+				+ "--open (or $JBANG_EDITOR), asking you to pick one if none is set. Use --no-open\n"
+				+ "to only print the project path, and --live to regenerate it when dependencies\n"
+				+ "change.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} --no-open hello.java",
+				"${COMMAND-FULL-NAME} --open=code hello.java",
+				"${COMMAND-FULL-NAME} --live --open=idea hello.java",
+				"${COMMAND-FULL-NAME} --sandbox hello.java");
 	}
 }

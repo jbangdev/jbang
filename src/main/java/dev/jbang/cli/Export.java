@@ -40,12 +40,28 @@ import io.quarkus.qute.Template;
 		Export.ExportPortable.class, Export.ExportLocal.class, Export.ExportMavenPublish.class,
 		Export.ExportNative.class, Export.ExportFatjar.class, Export.ExportJlink.class,
 		Export.ExportGradleProject.class,
-		Export.ExportMavenProject.class }, generateHelp = true, helpGroup = "Caching")
-public class Export extends BaseCommand {
+		Export.ExportMavenProject.class }, helpGroup = "Caching")
+public class Export extends BaseCommand implements CommandHelpProvider {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Builds a script, jar or GAV and exports the result in a form you can ship or\n"
+				+ "keep working on: a runnable jar (local, portable or fat), a native executable, a\n"
+				+ "minimized JDK image, a Maven repository layout, or a full Gradle/Maven project.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} fatjar hello.java",
+				"${COMMAND-FULL-NAME} portable -O dist/app.jar hello.java",
+				"${COMMAND-FULL-NAME} native hello.java",
+				"${COMMAND-FULL-NAME} maven -g org.acme hello.java");
 	}
 
 	static abstract class BaseExportCommand extends BaseBuildCommand {
@@ -109,8 +125,8 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations", generateHelp = true)
-	public static class ExportLocal extends BaseExportCommand {
+	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
+	public static class ExportLocal extends BaseExportCommand implements CommandHelpProvider {
 
 		@Override
 		int apply(BuildContext ctx) throws IOException {
@@ -142,10 +158,23 @@ public class Export extends BaseCommand {
 			Util.infoMsg("Exported to " + outputPath);
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Exports a jar whose manifest Class-Path points at the dependencies in your local\n"
+					+ "jbang/Maven cache. Quick and small, but it only runs on this machine.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O hello.jar hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable", generateHelp = true)
-	public static class ExportPortable extends BaseExportCommand {
+	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
+	public static class ExportPortable extends BaseExportCommand implements CommandHelpProvider {
 
 		public static final String LIB = "lib";
 
@@ -190,10 +219,23 @@ public class Export extends BaseCommand {
 			Util.infoMsg("Exported to " + outputPath);
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Exports a jar plus a lib/ folder holding its dependencies. Copy both together\n"
+					+ "and run it anywhere with `java -jar`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O dist/hello.jar hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", generateHelp = true)
-	public static class ExportMavenPublish extends BaseExportCommand {
+	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository")
+	public static class ExportMavenPublish extends BaseExportCommand implements CommandHelpProvider {
 
 		@Option(shortName = 'g', name = "group", description = "The group ID to use for the generated POM.")
 		String group;
@@ -298,10 +340,24 @@ public class Export extends BaseCommand {
 			Util.infoMsg("Exported to " + outPath);
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Writes the built jar and a generated POM in Maven repository layout, by default\n"
+					+ "into your local ~/.m2 repository. Needs a group ID (--group) unless the script\n"
+					+ "declares its GAV.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} -g org.acme hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 -O build/repo --force hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "native", description = "Exports native executable", generateHelp = true)
-	public static class ExportNative extends BaseExportCommand {
+	@CommandDefinition(name = "native", description = "Exports native executable")
+	public static class ExportNative extends BaseExportCommand implements CommandHelpProvider {
 
 		@Override
 		int apply(BuildContext ctx) throws IOException {
@@ -339,10 +395,23 @@ public class Export extends BaseCommand {
 			}
 			return outputPath;
 		}
+
+		@Override
+		public String prose() {
+			return "Builds a native executable using GraalVM native-image, so it starts fast and\n"
+					+ "needs no JVM to run. Requires native-image to be available.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O hello hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside", generateHelp = true)
-	public static class ExportFatjar extends BaseExportCommand {
+	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside")
+	public static class ExportFatjar extends BaseExportCommand implements CommandHelpProvider {
 
 		@Override
 		int apply(BuildContext ctx) throws IOException {
@@ -435,10 +504,23 @@ public class Export extends BaseCommand {
 			}
 			return outputPath;
 		}
+
+		@Override
+		public String prose() {
+			return "Exports a single executable jar with all dependencies merged in (service files\n"
+					+ "are merged, duplicates skipped). Run it with `java -jar`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O app.jar hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution", generateHelp = true)
-	public static class ExportJlink extends BaseExportCommand {
+	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution")
+	public static class ExportJlink extends BaseExportCommand implements CommandHelpProvider {
 
 		@Arguments(paramLabel = "jlinkParams", index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
 		public List<String> params;
@@ -529,6 +611,20 @@ public class Export extends BaseCommand {
 
 		private Path getJlinkOutputPath() {
 			return getOutputPath("-jlink");
+		}
+
+		@Override
+		public String prose() {
+			return "Creates a minimized JDK image with only the modules your app needs, plus a\n"
+					+ "launcher when a main class is known. Works best when the code and its\n"
+					+ "dependencies are modules. Pass extra jlink options after --.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} hello.java -- --strip-debug");
 		}
 	}
 
@@ -666,8 +762,8 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "gradle", description = "Exports a Gradle project", generateHelp = true)
-	public static class ExportGradleProject extends BaseExportProject {
+	@CommandDefinition(name = "gradle", description = "Exports a Gradle project")
+	public static class ExportGradleProject extends BaseExportProject implements CommandHelpProvider {
 
 		@Override
 		String getType() {
@@ -759,10 +855,23 @@ public class Export extends BaseCommand {
 			}
 			return args.toString();
 		}
+
+		@Override
+		public String prose() {
+			return "Generates a standalone Gradle project (sources plus build.gradle with your\n"
+					+ "dependencies) from a script, for when you outgrow jbang. Source files only.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "maven", description = "Exports a Maven project", generateHelp = true)
-	public static class ExportMavenProject extends BaseExportProject {
+	@CommandDefinition(name = "maven", description = "Exports a Maven project")
+	public static class ExportMavenProject extends BaseExportProject implements CommandHelpProvider {
 
 		@Override
 		String getType() {
@@ -836,6 +945,19 @@ public class Export extends BaseCommand {
 			copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
 			copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
 					Paths.get(dir, ".mvn", "wrapper", "maven-wrapper.properties").toString(), false);
+		}
+
+		@Override
+		public String prose() {
+			return "Generates a standalone Maven project (sources plus pom.xml with your\n"
+					+ "dependencies) from a script, for when you outgrow jbang. Source files only.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 hello.java");
 		}
 	}
 }

@@ -24,8 +24,8 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "config", description = "Read and write configuration options.", groupCommands = {
 		Config.ConfigGet.class, Config.ConfigSet.class,
 		Config.ConfigUnset.class,
-		Config.ConfigList.class }, generateHelp = true, helpGroup = "Configuration")
-public class Config extends BaseCommand {
+		Config.ConfigList.class }, helpGroup = "Configuration")
+public class Config extends BaseCommand implements CommandHelpProvider {
 
 	// IMPORTANT: These options have to be maintained manually! Make sure to add
 	// an option for each configuration key that gets added!
@@ -39,6 +39,22 @@ public class Config extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Reads and writes jbang settings in jbang.properties. A setting named\n"
+				+ "`<command>.<option>` becomes the default for that option, e.g. `edit.open`.\n"
+				+ "Changes go to the nearest config file unless you choose --global or --file.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} set edit.open code",
+				"${COMMAND-FULL-NAME} get edit.open",
+				"${COMMAND-FULL-NAME} unset edit.open");
 	}
 
 	static abstract class BaseConfigCommand extends BaseCommand {
@@ -85,7 +101,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "get", description = "Get a configuration value", generateHelp = true)
+	@CommandDefinition(name = "get", description = "Get a configuration value")
 	public static class ConfigGet extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to get", required = true)
 		String key;
@@ -104,8 +120,9 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "set", description = "Set a configuration value", generateHelp = true)
-	public static class ConfigSet extends BaseConfigCommand {
+	@CommandDefinition(name = "set", description = "Set a configuration value")
+	public static class ConfigSet extends BaseConfigCommand implements CommandHelpProvider {
+
 		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true)
 		String keyOrKeyValue;
 
@@ -138,9 +155,23 @@ public class Config extends BaseCommand {
 			Util.infoMsg("Option '" + key + "' set to '" + val + "' in " + cfgFile);
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Sets a configuration value, either as separate key and value or as key=value. A\n"
+					+ "key of the form `<command>.<option>` sets the default for that option.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} edit.open code",
+					"${COMMAND-FULL-NAME} --global run.java 21",
+					"${COMMAND-FULL-NAME} format=json");
+		}
 	}
 
-	@CommandDefinition(name = "unset", description = "Remove a configuration value", generateHelp = true)
+	@CommandDefinition(name = "unset", description = "Remove a configuration value")
 	public static class ConfigUnset extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to remove", required = true)
 		String key;
@@ -168,7 +199,7 @@ public class Config extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "List active configuration values", generateHelp = true)
+	@CommandDefinition(name = "list", description = "List active configuration values")
 	public static class ConfigList extends BaseConfigCommand {
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the configuration")
 		boolean showOrigin;

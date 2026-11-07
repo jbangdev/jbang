@@ -31,8 +31,8 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "template", description = "Manage templates for scripts.", groupCommands = {
 		Template.TemplateAdd.class, Template.TemplateList.class,
-		Template.TemplateRemove.class }, generateHelp = true, helpGroup = "Configuration")
-public class Template extends BaseCommand {
+		Template.TemplateRemove.class }, helpGroup = "Configuration")
+public class Template extends BaseCommand implements CommandHelpProvider {
 	public static final Pattern TPL_FILENAME_PATTERN = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
 	public static final Pattern TPL_BASENAME_PATTERN = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
 
@@ -41,14 +41,28 @@ public class Template extends BaseCommand {
 		return missingSubcommand();
 	}
 
+	@Override
+	public String prose() {
+		return "Templates are the starting points `jbang init --template=<name>` creates scripts\n"
+				+ "from. Add your own to a catalog to reuse them across projects.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} add --name logo showlogo.java img.jpg",
+				"${COMMAND-FULL-NAME} remove logo");
+	}
+
 	static abstract class BaseTemplateCommand extends BaseCommand {
 
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add template for script reference.", generateHelp = true)
-	public static class TemplateAdd extends BaseTemplateCommand {
+	@CommandDefinition(name = "add", description = "Add template for script reference.")
+	public static class TemplateAdd extends BaseTemplateCommand implements CommandHelpProvider {
 
 		@Option(shortName = 'd', name = "description", description = "A description for the template")
 		String description;
@@ -221,9 +235,24 @@ public class Template extends BaseCommand {
 				return splitRef;
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Saves one or more files as a named template. The first file becomes the script;\n"
+					+ "the rest are copied alongside it. Use --property for values `jbang init` asks\n"
+					+ "for.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name logo showlogo.java img.jpg",
+					"${COMMAND-FULL-NAME} --global --name tool tool.java",
+					"${COMMAND-FULL-NAME} --name greet -P greeting=Greeting::Hello greet.java");
+		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.")
 	public static class TemplateList extends BaseTemplateCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the template")
@@ -402,7 +431,7 @@ public class Template extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove existing template.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove existing template.")
 	public static class TemplateRemove extends BaseTemplateCommand {
 
 		@Argument(paramLabel = "name", description = "The name of the template", required = true)
