@@ -149,14 +149,22 @@ execute_jbang() {
   export JBANG_STDIN_NOTTY
   export JBANG_LAUNCH_CMD=$0
   
+  ## jbang's output is captured below so it never sees a terminal itself. Force
+  ## colors only when our own stdout is a terminal, so pipes and redirects stay
+  ## plain. Passed via env so it does not leak into the user's process.
+  colorEnv=""
+  if [ -t 1 ]; then
+    colorEnv="CLICOLOR_FORCE=${CLICOLOR_FORCE:-1}"
+  fi
+
   ## run it using command substitution to have just the user process once jbang is done
   if [[ -n "$binaryPath" ]]; then
     # Run native binary
-    output=$(CLICOLOR_FORCE=1 "$binaryPath" "$@")
+    output=$(env $colorEnv "$binaryPath" "$@")
     err=$?
   else
     # Run JAR
-    output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -jar "${jarPath}" "$@")
+    output=$(env $colorEnv "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -jar "${jarPath}" "$@")
     err=$?
   fi
   
