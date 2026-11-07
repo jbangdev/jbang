@@ -12,6 +12,11 @@ rem detect architecture for platform-specific binary lookup
 set "jbang_arch=x64"
 if "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "jbang_arch=aarch64"
 
+if exist "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" (
+  copy /y "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" "%~dp0jbang.bin-windows-%jbang_arch%.exe" > nul 2>&1
+  del /f /q "%~dp0jbang.bin-windows-%jbang_arch%.exe.new"
+)
+
 rem resolve native binary or jar path from script location
 set binaryPath=
 set jarPath=
