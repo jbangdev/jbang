@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +17,7 @@ import java.util.Set;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -65,6 +67,30 @@ public class TestSkill extends BaseTest {
 		out.putArchiveEntry(entry);
 		out.write(data);
 		out.closeArchiveEntry();
+	}
+
+	private void addSymlink(TarArchiveOutputStream out, String name, String linkTarget) throws IOException {
+		TarArchiveEntry entry = new TarArchiveEntry(name, TarConstants.LF_SYMLINK);
+		entry.setLinkName(linkTarget);
+		out.putArchiveEntry(entry);
+		out.closeArchiveEntry();
+	}
+
+	@Test
+	void unpackRejectsSymlinkEscapingTarget(@TempDir Path dir) throws IOException {
+		Path tgz = dir.resolve("symlink-skills.tar.gz");
+		try (TarArchiveOutputStream out = new TarArchiveOutputStream(
+				new GzipCompressorOutputStream(Files.newOutputStream(tgz)))) {
+			out.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+			addFile(out, "repo-main/jbang/SKILL.md", "skill");
+			// a symlink inside the skill pointing outside the extraction root
+			addSymlink(out, "repo-main/jbang/escape", "../../../../../../tmp/evil");
+		}
+		Path target = dir.resolve("out");
+		Files.createDirectories(target);
+		IOException ex = assertThrows(IOException.class,
+				() -> UnpackUtil.unpack(tgz, target, true, Path.of("jbang")));
+		assertThat(ex.getMessage(), containsString("escapes the target dir"));
 	}
 
 	/**
