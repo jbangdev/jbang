@@ -16,13 +16,17 @@ rem resolve native binary or jar path from script location
 set binaryPath=
 set jarPath=
 if "%JBANG_USE_NATIVE%"=="true" (
-  rem Look for platform-specific native binary first, then fall back to jbang.bin.exe
-  if exist "%~dp0jbang.bin-windows-%jbang_arch%.exe" (
-    set binaryPath=%~dp0jbang.bin-windows-%jbang_arch%.exe
-  ) else if exist "%~dp0jbang.bin.exe" (
-    set binaryPath=%~dp0jbang.bin.exe
-  ) else (
-    echo WARNING: JBang native binary (jbang.bin-windows-%jbang_arch%.exe or jbang.bin.exe^) not found in %~dp0 1>&2
+  rem Search local and local .jbang; prefer platform-specific binaries.
+  for %%D in ("%~dp0." "%~dp0.jbang") do (
+    if "!binaryPath!"=="" if exist "%%~fD\jbang.bin-windows-%jbang_arch%.exe" (
+      set binaryPath=%%~fD\jbang.bin-windows-%jbang_arch%.exe
+    )
+    if "!binaryPath!"=="" if exist "%%~fD\jbang.bin.exe" (
+      set binaryPath=%%~fD\jbang.bin.exe
+    )
+  )
+  if "!binaryPath!"=="" (
+    echo WARNING: JBang native binary not found in launcher or .jbang directories 1>&2
   )
 )
 if "!binaryPath!"=="" (
