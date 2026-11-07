@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -173,7 +174,7 @@ public class UnpackUtil {
 					p = p.subpath(1, p.getNameCount());
 				}
 				if (p.equals(relative) && !entry.isDirectory()) {
-					java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					byte[] buf = new byte[8192];
 					int n;
 					while ((n = in.read(buf)) != -1) {

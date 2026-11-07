@@ -210,7 +210,7 @@ public class TestSkill extends BaseTest {
 	void installWithoutDetectedAgentsFails(@TempDir Path dir) throws IOException {
 		// no ~/.claude or ~/.agents in the temp home -> nothing detected
 		int rc = Skill.installFromTarball(fixtureTarball(dir), null, false, false, null, "test/repo");
-		assertEquals(dev.jbang.ExitException.EXIT_GENERIC_ERROR, rc);
+		assertEquals(ExitException.EXIT_GENERIC_ERROR, rc);
 	}
 
 	@Test

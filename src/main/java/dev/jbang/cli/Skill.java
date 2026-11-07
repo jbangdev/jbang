@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Arguments;
@@ -300,7 +301,7 @@ public class Skill extends BaseCommand {
 		if (!Files.isDirectory(skillsDir)) {
 			return found;
 		}
-		try (java.util.stream.Stream<Path> entries = Files.list(skillsDir)) {
+		try (Stream<Path> entries = Files.list(skillsDir)) {
 			entries.filter(p -> Files.isRegularFile(p.resolve(MARKER)))
 				.forEach(p -> found.add(p.getFileName().toString()));
 		} catch (IOException e) {
