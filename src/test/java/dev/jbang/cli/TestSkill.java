@@ -93,6 +93,28 @@ public class TestSkill extends BaseTest {
 		assertThat(ex.getMessage(), containsString("escapes the target dir"));
 	}
 
+	@Test
+	void unpackRejectsChainedSymlinkEscape(@TempDir Path dir) throws IOException {
+		// a -> . then a/b -> .. : each link passes a lexical check but a/b resolves
+		// outside the root once the real path of 'a' is followed.
+		Path tgz = dir.resolve("chain-skills.tar.gz");
+		try (TarArchiveOutputStream out = new TarArchiveOutputStream(
+				new GzipCompressorOutputStream(Files.newOutputStream(tgz)))) {
+			out.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+			addFile(out, "repo-main/jbang/SKILL.md", "skill");
+			addSymlink(out, "repo-main/jbang/a", ".");
+			addSymlink(out, "repo-main/jbang/a/b", "..");
+			addFile(out, "repo-main/jbang/a/b/pwned", "escaped");
+		}
+		Path target = dir.resolve("out");
+		Files.createDirectories(target);
+		IOException ex = assertThrows(IOException.class,
+				() -> UnpackUtil.unpack(tgz, target, true, Path.of("jbang")));
+		assertThat(ex.getMessage(), containsString("escapes the target dir"));
+		// nothing escaped
+		assertThat(Files.exists(dir.resolve("pwned")), is(false));
+	}
+
 	/**
 	 * Simulate a detected agent by creating its parent directory under the (temp)
 	 * user home.

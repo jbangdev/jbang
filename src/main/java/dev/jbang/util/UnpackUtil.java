@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,6 +67,7 @@ public class UnpackUtil {
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
 			ZipFileHandler onZipFile) throws IOException {
 		try (ZipFile zipFile = ZipFile.builder().setFile(zip.toFile()).get()) {
+			Path root = realRoot(outputDir);
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry zipEntry = entries.nextElement();
@@ -89,22 +89,18 @@ public class UnpackUtil {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
 				try {
-					if (zipEntry.isDirectory() && checkValidParent(entry)) {
+					if (zipEntry.isDirectory()) {
+						assertParentInside(root, entry, zipEntry.getName());
 						Files.createDirectories(entry);
 					} else if (zipEntry.isUnixSymlink()) {
 						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
 							String result = s.hasNext() ? s.next() : "";
 							Path linkTarget = Paths.get(result);
-							if (!symlinkStaysInside(outputDir, entry, linkTarget)) {
-								throw new IOException("Symbolic link escapes the target dir: " + zipEntry.getName()
-										+ " -> " + result);
-							}
+							assertSymlinkInside(root, entry, linkTarget, zipEntry.getName());
 							Files.createSymbolicLink(entry, linkTarget);
 						}
 					} else {
-						if (checkValidParent(entry.getParent())) {
-							Files.createDirectories(entry.getParent());
-						}
+						assertParentInside(root, entry, zipEntry.getName());
 						onZipFile.handle(zipFile, zipEntry, entry, null);
 					}
 				} catch (Exception e) {
@@ -115,25 +111,44 @@ public class UnpackUtil {
 	}
 
 	/**
-	 * Verify that a symlink located at {@code linkPath} and pointing at
-	 * {@code linkTarget} resolves to a location inside {@code outputDir}. Rejects
-	 * absolute targets and relative targets that escape via {@code ..}, preventing
-	 * a symlink from being used to write outside the extraction root ("Zip Slip").
+	 * Real (symlink-resolved) path of the extraction root, creating it if needed.
 	 */
-	private static boolean symlinkStaysInside(Path outputDir, Path linkPath, Path linkTarget) {
-		Path base = outputDir.normalize();
-		Path resolved = linkPath.getParent().resolve(linkTarget).normalize();
-		return resolved.startsWith(base);
+	private static Path realRoot(Path outputDir) throws IOException {
+		Files.createDirectories(outputDir);
+		return outputDir.toRealPath();
 	}
 
-	private static boolean checkValidParent(Path path) throws FileAlreadyExistsException {
-		while (path != null && !Files.exists(path)) {
-			path = path.getParent();
+	/**
+	 * Ensure the parent directory of {@code entry} exists and, after following any
+	 * already-extracted symlinks, still lives inside {@code root}. This defeats
+	 * "Zip Slip" escapes that chain symlinks (e.g. {@code a -> .} then
+	 * {@code a/b -> ..}) which pass a purely lexical check. Returns the real
+	 * parent.
+	 */
+	private static Path assertParentInside(Path root, Path entry, String name) throws IOException {
+		Path parent = entry.getParent();
+		if (!Files.exists(parent)) {
+			Files.createDirectories(parent);
 		}
-		if (path != null && !Files.isDirectory(path)) {
-			throw new FileAlreadyExistsException("Parent path is not a directory: " + path);
+		// toRealPath follows any already-extracted symlinks in the ancestor chain,
+		// so a link like a -> . then a/b -> .. is caught here rather than lexically.
+		Path realParent = parent.toRealPath();
+		if (!realParent.startsWith(root)) {
+			throw new IOException("Symbolic link escapes the target dir: " + name);
 		}
-		return true;
+		return realParent;
+	}
+
+	/**
+	 * Verify that a symlink entry {@code entry} pointing at {@code linkTarget}
+	 * resolves (against its real parent) to a location inside {@code root}.
+	 */
+	private static void assertSymlinkInside(Path root, Path entry, Path linkTarget, String name) throws IOException {
+		Path realParent = assertParentInside(root, entry, name);
+		Path resolved = realParent.resolve(linkTarget).normalize();
+		if (!resolved.startsWith(root)) {
+			throw new IOException("Symbolic link escapes the target dir: " + name + " -> " + linkTarget);
+		}
 	}
 
 	public interface ZipFileHandler {
@@ -222,6 +237,7 @@ public class UnpackUtil {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
 				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
 
+			Path root = realRoot(outputDir);
 			TarArchiveEntry targzEntry;
 			while ((targzEntry = tarArchiveInputStream.getNextEntry()) != null) {
 				Path entry = Paths.get(targzEntry.getName()).normalize();
@@ -247,18 +263,13 @@ public class UnpackUtil {
 				}
 
 				if (targzEntry.isDirectory()) {
+					assertParentInside(root, entry, targzEntry.getName());
 					Files.createDirectories(entry);
 				} else if (targzEntry.isSymbolicLink()) {
 					// Handle symbolic links
 					Path linkTarget = Paths.get(targzEntry.getLinkName());
 
-					if (!symlinkStaysInside(outputDir, entry, linkTarget)) {
-						throw new IOException("Symbolic link escapes the target dir: " + targzEntry.getName()
-								+ " -> " + linkTarget);
-					}
-
-					// Ensure parent directory exists
-					Files.createDirectories(entry.getParent());
+					assertSymlinkInside(root, entry, linkTarget, targzEntry.getName());
 
 					// Create symbolic link (only if it doesn't exist)
 					if (!Files.exists(entry)) {
@@ -271,9 +282,7 @@ public class UnpackUtil {
 					}
 				} else {
 					// Regular file extraction
-					if (!Files.isDirectory(entry.getParent())) {
-						Files.createDirectories(entry.getParent());
-					}
+					assertParentInside(root, entry, targzEntry.getName());
 					Files.copy(tarArchiveInputStream, entry, StandardCopyOption.REPLACE_EXISTING);
 
 					int mode = targzEntry.getMode();
