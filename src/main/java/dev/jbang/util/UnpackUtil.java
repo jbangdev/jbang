@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,7 +90,7 @@ public class UnpackUtil {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
 				try {
-					if (zipEntry.isDirectory()) {
+					if (zipEntry.isDirectory() && checkValidParent(entry)) {
 						assertParentInside(root, entry, zipEntry.getName());
 						Files.createDirectories(entry);
 					} else if (zipEntry.isUnixSymlink()) {
@@ -100,7 +101,9 @@ public class UnpackUtil {
 							Files.createSymbolicLink(entry, linkTarget);
 						}
 					} else {
-						assertParentInside(root, entry, zipEntry.getName());
+						if (checkValidParent(entry.getParent())) {
+							assertParentInside(root, entry, zipEntry.getName());
+						}
 						onZipFile.handle(zipFile, zipEntry, entry, null);
 					}
 				} catch (Exception e) {
@@ -108,6 +111,21 @@ public class UnpackUtil {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Walk up to the nearest existing ancestor of {@code path}; if that ancestor
+	 * exists but is not a directory, throw so the caller (e.g. a ZipFileHandler)
+	 * can treat it as a file-vs-directory conflict.
+	 */
+	private static boolean checkValidParent(Path path) throws FileAlreadyExistsException {
+		while (path != null && !Files.exists(path)) {
+			path = path.getParent();
+		}
+		if (path != null && !Files.isDirectory(path)) {
+			throw new FileAlreadyExistsException("Parent path is not a directory: " + path);
+		}
+		return true;
 	}
 
 	/**
