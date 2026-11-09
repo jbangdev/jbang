@@ -5,11 +5,22 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import dev.jbang.ExitException;
+import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
@@ -132,13 +143,18 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			Project project = ctx.getProject();
 			String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
 			MavenCoordinate gav = getPomGav(project);
+
+			List<ArtifactInfo> pomDeps = getDirectDependencies(project);
+			List<Map<String, Object>> managedDeps = extractManagedExclusions(pomDeps);
+
 			String pomfile = pomTemplate
 				.data("baseName", baseName)
 				.data("group", gav.getGroupId())
 				.data("artifact", gav.getArtifactId())
 				.data("version", gav.getVersion())
 				.data("description", project.getDescription().orElse(""))
-				.data("dependencies", ctx.resolveClassPath().getArtifacts())
+				.data("dependencies", pomDeps)
+				.data("managedDeps", managedDeps)
 				.render();
 
 			pomPath = getPomPath(ctx);
@@ -149,14 +165,155 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		return pomPath;
 	}
 
+	private List<Map<String, Object>> extractManagedExclusions(List<ArtifactInfo> directDeps) {
+		Map<String, String> resolvedVersions = new HashMap<>();
+		for (ArtifactInfo art : ctx.resolveClassPath().getArtifacts()) {
+			if (art.getCoordinate() != null) {
+				String key = art.getCoordinate().getGroupId() + ":" + art.getCoordinate().getArtifactId();
+				resolvedVersions.put(key, art.getCoordinate().getVersion());
+			}
+		}
+
+		List<Map<String, Object>> result = new ArrayList<>();
+		for (ArtifactInfo dep : directDeps) {
+			Path jarPath = dep.getFile();
+			String jarName = jarPath.getFileName().toString();
+			if (!jarName.endsWith(".jar")) {
+				continue;
+			}
+			Path pomPath = jarPath.getParent()
+				.resolve(jarName.substring(0, jarName.length() - 4) + ".pom");
+			if (!Files.exists(pomPath)) {
+				continue;
+			}
+			result.addAll(parsePomExclusions(pomPath, resolvedVersions));
+		}
+		return result;
+	}
+
+	private List<Map<String, Object>> parsePomExclusions(Path pomPath, Map<String, String> resolvedVersions) {
+		List<Map<String, Object>> result = new ArrayList<>();
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc;
+			try (InputStream is = Files.newInputStream(pomPath)) {
+				doc = builder.parse(is);
+			}
+			NodeList depNodes = doc.getElementsByTagName("dependency");
+			for (int i = 0; i < depNodes.getLength(); i++) {
+				Element depElem = (Element) depNodes.item(i);
+				if (depElem.getParentNode() == null
+						|| !"dependencies".equals(depElem.getParentNode().getNodeName())) {
+					continue;
+				}
+				if (isInsideDependencyManagement(depElem)) {
+					continue;
+				}
+				NodeList exclusionNodes = depElem.getElementsByTagName("exclusion");
+				if (exclusionNodes.getLength() == 0) {
+					continue;
+				}
+				String groupId = getChildText(depElem, "groupId");
+				String artifactId = getChildText(depElem, "artifactId");
+				if (groupId == null || artifactId == null) {
+					continue;
+				}
+				String version = resolvedVersions.get(groupId + ":" + artifactId);
+				if (version == null) {
+					continue;
+				}
+				List<Map<String, String>> exclusions = new ArrayList<>();
+				for (int j = 0; j < exclusionNodes.getLength(); j++) {
+					Element exElem = (Element) exclusionNodes.item(j);
+					String exGroupId = getChildText(exElem, "groupId");
+					String exArtifactId = getChildText(exElem, "artifactId");
+					if (exGroupId != null && exArtifactId != null) {
+						Map<String, String> ex = new HashMap<>();
+						ex.put("groupId", exGroupId);
+						ex.put("artifactId", exArtifactId);
+						exclusions.add(ex);
+					}
+				}
+				if (!exclusions.isEmpty()) {
+					Map<String, Object> md = new HashMap<>();
+					md.put("groupId", groupId);
+					md.put("artifactId", artifactId);
+					md.put("version", version);
+					md.put("exclusions", exclusions);
+					result.add(md);
+				}
+			}
+		} catch (Exception e) {
+			Util.verboseMsg("Could not parse POM for exclusions: " + pomPath + " - " + e.getMessage());
+		}
+		return result;
+	}
+
+	private static boolean isInsideDependencyManagement(Element elem) {
+		org.w3c.dom.Node parent = elem.getParentNode();
+		while (parent != null) {
+			if (parent instanceof Element && "dependencyManagement".equals(((Element) parent).getTagName())) {
+				return true;
+			}
+			parent = parent.getParentNode();
+		}
+		return false;
+	}
+
+	private static String getChildText(Element parent, String tagName) {
+		NodeList nodes = parent.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			if (nodes.item(i) instanceof Element) {
+				Element elem = (Element) nodes.item(i);
+				if (tagName.equals(elem.getTagName())) {
+					return elem.getTextContent().trim();
+				}
+			}
+		}
+		return null;
+	}
+
+	private List<ArtifactInfo> getDirectDependencies(Project project) {
+		Set<String> directDepKeys = project.getMainSourceSet()
+			.getDependencies()
+			.stream()
+			.map(MavenCoordinate::fromString)
+			.filter(c -> !"pom".equalsIgnoreCase(c.getType()))
+			.map(c -> c.getGroupId() + ":" + c.getArtifactId())
+			.collect(Collectors.toSet());
+
+		return ctx.resolveClassPath()
+			.getArtifacts()
+			.stream()
+			.filter(a -> a.getCoordinate() != null
+					&& directDepKeys.contains(
+							a.getCoordinate().getGroupId() + ":" + a.getCoordinate().getArtifactId()))
+			.collect(Collectors.toList());
+	}
+
+	private static final String QUARKUS_APP_GROUP_ID = "dev.jbang.user";
+	private static final String QUARKUS_APP_ARTIFACT_ID = "quarkus";
+
 	private static MavenCoordinate getPomGav(Project prj) {
 		if (prj.getGav().isPresent()) {
 			return MavenCoordinate.fromString(prj.getGav().get()).withVersion();
+		} else if (hasQuarkusDependencies(prj)) {
+			return new MavenCoordinate(QUARKUS_APP_GROUP_ID, QUARKUS_APP_ARTIFACT_ID,
+					MavenCoordinate.DEFAULT_VERSION);
 		} else {
 			String baseName = Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
 			return new MavenCoordinate(MavenCoordinate.DUMMY_GROUP, baseName, MavenCoordinate.DEFAULT_VERSION);
 		}
+	}
 
+	private static boolean hasQuarkusDependencies(Project prj) {
+		return prj.getMainSourceSet()
+			.getDependencies()
+			.stream()
+			.map(MavenCoordinate::fromString)
+			.anyMatch(c -> c.getGroupId() != null && c.getGroupId().startsWith("io.quarkus"));
 	}
 
 	public static Path getPomPath(BuildContext ctx) {

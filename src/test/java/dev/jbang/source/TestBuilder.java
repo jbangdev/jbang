@@ -10,9 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -30,12 +32,16 @@ import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.spi.IntegrationResult;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
+
+import io.quarkus.qute.Template;
 
 public class TestBuilder extends BaseTest {
 
@@ -482,6 +488,133 @@ public class TestBuilder extends BaseTest {
 			return new IntegrationResult(null, null, null);
 		}, null, null);
 		assertThat(integrationStepCalled.get(), is(false));
+	}
+
+	@Test
+	void testPomWithManagedDepsExclusions() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		List<Map<String, Object>> managedDeps = new ArrayList<>();
+		Map<String, Object> md = new HashMap<>();
+		md.put("groupId", "org.apache.kafka");
+		md.put("artifactId", "connect-runtime");
+		md.put("version", "3.9.1");
+		List<Map<String, String>> exclusions = new ArrayList<>();
+		Map<String, String> ex = new HashMap<>();
+		ex.put("groupId", "org.glassfish.jersey.containers");
+		ex.put("artifactId", "jersey-container-servlet");
+		exclusions.add(ex);
+		md.put("exclusions", exclusions);
+		managedDeps.add(md);
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "quarkus")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("boms", java.util.Collections.emptyList())
+			.data("managedDeps", managedDeps)
+			.render();
+
+		assertThat(pomContent, containsString("<dependencyManagement>"));
+		assertThat(pomContent, containsString("<groupId>org.apache.kafka</groupId>"));
+		assertThat(pomContent, containsString("<artifactId>connect-runtime</artifactId>"));
+		assertThat(pomContent, containsString("<version>3.9.1</version>"));
+		assertThat(pomContent, containsString("<exclusions>"));
+		assertThat(pomContent, containsString("<artifactId>jersey-container-servlet</artifactId>"));
+	}
+
+	@Test
+	void testPomWithMultipleManagedDepsExclusions() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		List<Map<String, Object>> managedDeps = new ArrayList<>();
+		Map<String, Object> md = new HashMap<>();
+		md.put("groupId", "io.debezium");
+		md.put("artifactId", "debezium-embedded");
+		md.put("version", "3.2.2.Final");
+		List<Map<String, String>> exclusions = new ArrayList<>();
+		Map<String, String> ex1 = new HashMap<>();
+		ex1.put("groupId", "org.apache.kafka");
+		ex1.put("artifactId", "connect-runtime");
+		exclusions.add(ex1);
+		Map<String, String> ex2 = new HashMap<>();
+		ex2.put("groupId", "org.apache.kafka");
+		ex2.put("artifactId", "connect-json");
+		exclusions.add(ex2);
+		md.put("exclusions", exclusions);
+		managedDeps.add(md);
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "quarkus")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("managedDeps", managedDeps)
+			.render();
+
+		assertThat(pomContent, containsString("<dependencyManagement>"));
+		assertThat(pomContent, containsString("<artifactId>debezium-embedded</artifactId>"));
+		assertThat(pomContent, containsString("<version>3.2.2.Final</version>"));
+		assertThat(pomContent, containsString("<artifactId>connect-runtime</artifactId>"));
+		assertThat(pomContent, containsString("<artifactId>connect-json</artifactId>"));
+	}
+
+	@Test
+	void testPomWithEmptyManagedDeps() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "test")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("managedDeps", java.util.Collections.emptyList())
+			.render();
+
+		assertThat(pomContent, not(containsString("<dependencyManagement>")));
+	}
+
+	@Test
+	void testPomWithManagedDepsNoVersion() {
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+
+		List<Map<String, Object>> managedDeps = new ArrayList<>();
+		Map<String, Object> md = new HashMap<>();
+		md.put("groupId", "org.apache.kafka");
+		md.put("artifactId", "connect-runtime");
+		md.put("version", null);
+		List<Map<String, String>> exclusions = new ArrayList<>();
+		Map<String, String> ex = new HashMap<>();
+		ex.put("groupId", "org.glassfish.jersey.containers");
+		ex.put("artifactId", "jersey-container-servlet");
+		exclusions.add(ex);
+		md.put("exclusions", exclusions);
+		managedDeps.add(md);
+
+		String pomContent = pomTemplate
+			.data("baseName", "test")
+			.data("group", "dev.jbang.user")
+			.data("artifact", "quarkus")
+			.data("version", "999-SNAPSHOT")
+			.data("description", "")
+			.data("dependencies", java.util.Collections.emptyList())
+			.data("managedDeps", managedDeps)
+			.render();
+
+		assertThat(pomContent, containsString("<dependencyManagement>"));
+		assertThat(pomContent, containsString("<artifactId>connect-runtime</artifactId>"));
+		assertThat(pomContent, not(containsString("<version>null</version>")));
 	}
 
 	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,
