@@ -7,6 +7,21 @@
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
 	<description>{description}</description>
+	{#if boms}
+	<dependencyManagement>
+		<dependencies>
+			{#for bom in boms}
+			<dependency>
+				<groupId>{bom.groupId}</groupId>
+				<artifactId>{bom.artifactId}</artifactId>
+				<version>{bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			{/for}
+		</dependencies>
+	</dependencyManagement>
+	{/if}
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>
