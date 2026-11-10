@@ -20,10 +20,11 @@ class SbtBuildSystem implements BuildSystem {
 		Path dir = buildFile.getParent();
 		// `export` writes the resolved classpath as a single line to stdout;
 		// `--error` silences info logging and `--batch` disables the interactive
-		// shell so the process exits after evaluating the command.
+		// shell so the process exits after evaluating the command. Runtime scope
+		// (compile + runtime dependencies) matches what a script needs to run.
 		List<String> command = Arrays.asList(
 				BuildTools.wrapper(dir, "sbt", "sbt.bat", "sbt"),
-				"--error", "--batch", "export Compile / dependencyClasspath");
+				"--error", "--batch", "export Runtime / dependencyClasspath");
 		String output = BuildTools.run(command, dir);
 		// The last non-blank line should be the classpath. Validate that it looks
 		// like one (contains a path separator or at least a jar reference)

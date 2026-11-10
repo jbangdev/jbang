@@ -12,39 +12,60 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
 
 public class TestBuildSystemClassPaths extends BaseTest {
 
+	@BeforeEach
+	void enablePreview() {
+		// Build-file dependencies are gated behind --preview.
+		Util.setPreview(true);
+	}
+
 	@Test
-	void pomUsesMavenCompileClasspath() throws Exception {
+	void buildFileDepRequiresPreview() throws Exception {
+		assumeFalse(Util.isWindows());
+		Util.setPreview(false);
+		buildFile("pom.xml");
+		Path src = cwdDir.resolve("src/main.java");
+		Files.createDirectories(src.getParent());
+		Files.write(src, Collections.singletonList("//DEPS ../pom.xml\nclass main {}"));
+
+		ExitException error = assertThrows(ExitException.class, () -> Project.builder().build(src));
+		assertThat(error.getMessage(), containsString("--preview"));
+	}
+
+	@Test
+	void pomUsesMavenRuntimeClasspath() throws Exception {
 		assumeFalse(Util.isWindows());
 		Path dep = buildFile("pom.xml");
 		writeWrapper("mvnw",
-				"out=; compile=; for arg in \"$@\"; do case \"$arg\" in -Dmdep.outputFile=*) out=${arg#-Dmdep.outputFile=};; -DincludeScope=compile) compile=yes;; esac; done; test \"$compile\" = yes && echo '"
+				"out=; runtime=; for arg in \"$@\"; do case \"$arg\" in -Dmdep.outputFile=*) out=${arg#-Dmdep.outputFile=};; -DincludeScope=runtime) runtime=yes;; esac; done; test \"$runtime\" = yes && echo '"
 						+ dep + "' > \"$out\"");
 
 		assertClasspath("pom.xml", dep);
 	}
 
 	@Test
-	void gradleUsesCompileClasspath() throws Exception {
+	void gradleUsesRuntimeClasspath() throws Exception {
 		assumeFalse(Util.isWindows());
 		Path dep = buildFile("build.gradle");
-		writeWrapper("gradlew", "grep -q compileClasspath \"$3\" && echo 'JBANG_CLASSPATH=" + dep + "'");
+		writeWrapper("gradlew", "grep -q runtimeClasspath \"$3\" && echo 'JBANG_CLASSPATH=" + dep + "'");
 
 		assertClasspath("build.gradle", dep);
 	}
 
 	@Test
-	void sbtUsesCompileDependencyClasspath() throws Exception {
+	void sbtUsesRuntimeDependencyClasspath() throws Exception {
 		assumeFalse(Util.isWindows());
 		Path dep = buildFile("build.sbt");
 		// The real command runs `sbt --error --batch "export Compile /
@@ -119,6 +140,28 @@ public class TestBuildSystemClassPaths extends BaseTest {
 	}
 
 	@Test
+	void gavMainResourceKeepsBuildFileDeps() throws Exception {
+		// `jbang --deps pom.xml group:artifact:version`: the main resource is a GAV
+		// (resolved into a pre-set classpath) and a build file is added via --deps.
+		// The build-file classpath must survive into the resolved classpath instead
+		// of being shadowed by the pre-resolved GAV classpath. Requires network to
+		// resolve the main GAV (same as the picocli-based tests in TestRun).
+		assumeFalse(Util.isWindows());
+		Path dep = buildFile("pom.xml");
+		writeWrapper("mvnw",
+				"out=; for arg in \"$@\"; do case \"$arg\" in -Dmdep.outputFile=*) out=${arg#-Dmdep.outputFile=};; esac; done; echo '"
+						+ dep + "' > \"$out\"");
+
+		ProjectBuilder builder = Project.builder();
+		builder.additionalDependencies(Collections.singletonList("pom.xml"));
+		Project prj = builder.build("info.picocli:picocli:4.6.3");
+
+		String cp = BuildContext.forProject(prj).resolveClassPath().getClassPath();
+		assertThat(cp, containsString("picocli-4.6.3.jar"));
+		assertThat(cp, containsString(dep.getFileName().toString()));
+	}
+
+	@Test
 	void caretFindsNearestBuildFile() throws Exception {
 		assumeFalse(Util.isWindows());
 		Path project = cwdDir.resolve("project");
@@ -181,6 +224,31 @@ public class TestBuildSystemClassPaths extends BaseTest {
 		Project.builder().build(src);
 
 		assertThat(Files.readAllLines(counter).size(), is(1));
+	}
+
+	@Test
+	void freshForcesReResolution() throws Exception {
+		assumeFalse(Util.isWindows());
+		Path dep = buildFile("pom.xml");
+		Path counter = cwdDir.resolve("calls.txt");
+		writeWrapper("mvnw",
+				"echo x >> \"" + counter + "\"; "
+						+ "out=; for arg in \"$@\"; do case \"$arg\" in -Dmdep.outputFile=*) out=${arg#-Dmdep.outputFile=};; esac; done; "
+						+ "echo '" + dep + "' > \"$out\"");
+		Path src = cwdDir.resolve("src/main.java");
+		Files.createDirectories(src.getParent());
+		Files.write(src, Collections.singletonList("//DEPS ../pom.xml\nclass main {}"));
+
+		Project.builder().build(src);
+		Util.setFresh(true);
+		try {
+			Project.builder().build(src);
+		} finally {
+			Util.setFresh(false);
+		}
+
+		// --fresh must bypass the cache, so the build tool runs both times.
+		assertThat(Files.readAllLines(counter).size(), is(2));
 	}
 
 	@Test

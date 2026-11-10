@@ -25,7 +25,9 @@ class MavenBuildSystem implements BuildSystem {
 					BuildTools.wrapper(dir, "mvnw", "mvnw.cmd", "mvn"),
 					"-q", "-f", pom.toString(),
 					"dependency:build-classpath",
-					"-DincludeScope=compile",
+					// runtime scope == compile + runtime dependencies (what a script
+					// needs to actually run); excludes the project's own output.
+					"-DincludeScope=runtime",
 					"-Dmdep.outputFile=" + outputFile.toAbsolutePath(),
 					"-Dmdep.pathSeparator=" + File.pathSeparator);
 			BuildTools.run(command, dir);

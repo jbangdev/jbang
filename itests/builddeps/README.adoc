@@ -18,12 +18,18 @@ build tool. `Greeter.java` uses `commons-lang3` — the same dependency
 declared in the build file — so it exercises the project's real dependency
 graph, not just a token declaration.
 
-`App.java` at the fixture root is the JBang script under test. It uses
-`//DEPS <build-file>` to borrow the project's declared compile
-dependencies and prints `<tool>-classpath:olleh`. `App.java` does **not**
-reference `Greeter` because the current implementation only reuses
-dependencies — the project's own compiled classes are not included on the
-JBang classpath.
+Each fixture ships two JBang scripts at its root:
+
+`App.java` uses `//DEPS <build-file>` to borrow the project's declared
+dependencies and prints `<tool>-classpath:olleh`. It does **not** reference
+`Greeter` because `//DEPS <build-file>` only reuses dependencies — the
+project's own compiled classes are not put on the JBang classpath.
+
+`AppSources.java` shows how to also use the project's own source: it combines
+`//DEPS <build-file>` (dependencies) with `//SOURCES` (the project's
+`Greeter.java`, which JBang compiles alongside the script) and prints
+`<tool>-greeter:Hello, World!`. This is the recommended way to reference a
+project's own code from a script today.
 
 == Running
 
@@ -32,8 +38,9 @@ https://mise.jdx.dev/[mise] installed:
 
 [source, shell]
 ----
-cd itests/builddeps/maven && mise install   # installs java + maven
-mise exec -- jbang App.java                 # verifies the fixture
+cd itests/builddeps/maven && mise install             # installs java + maven
+mise exec -- jbang --preview App.java                 # dependencies only
+mise exec -- jbang --preview AppSources.java          # dependencies + project source
 ----
 
 The `BuildSystemClassPathsIT` integration test runs `mise install`

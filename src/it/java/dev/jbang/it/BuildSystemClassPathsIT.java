@@ -42,12 +42,36 @@ public class BuildSystemClassPathsIT extends BaseIT {
 		runFixture("mill", "mill-classpath:olleh");
 	}
 
+	@Test
+	public void mavenPomWithSourcesUsesProjectClass() {
+		runFixture("maven", "AppSources.java", "maven-greeter:Hello, World!");
+	}
+
+	@Test
+	public void gradleBuildWithSourcesUsesProjectClass() {
+		runFixture("gradle", "AppSources.java", "gradle-greeter:Hello, World!");
+	}
+
+	@Test
+	public void sbtBuildWithSourcesUsesProjectClass() {
+		runFixture("sbt", "AppSources.java", "sbt-greeter:Hello, World!");
+	}
+
+	@Test
+	public void millBuildWithSourcesUsesProjectClass() {
+		runFixture("mill", "AppSources.java", "mill-greeter:Hello, World!");
+	}
+
 	/**
 	 * Ensures the tools declared in {@code itests/builddeps/<folder>/mise.toml} are
 	 * installed, then runs {@code jbang App.java} inside that folder and asserts
 	 * stdout contains {@code expected}. Skipped when mise itself is unavailable.
 	 */
 	private void runFixture(String folder, String expected) {
+		runFixture(folder, "App.java", expected);
+	}
+
+	private void runFixture(String folder, String script, String expected) {
 		assumeTrue(isOnPath("mise"),
 				"mise is not installed; see https://mise.jdx.dev/getting-started.html");
 		String fixture = baseDir().resolve("builddeps").resolve(folder).toAbsolutePath().toString();
@@ -61,7 +85,7 @@ public class BuildSystemClassPathsIT extends BaseIT {
 		// Install the tools declared for this fixture (cached across runs).
 		installTools(fixture, env);
 
-		assertThat(shell(env, "cd builddeps/" + folder + " && mise exec -- jbang App.java"))
+		assertThat(shell(env, "cd builddeps/" + folder + " && mise exec -- jbang --preview " + script))
 			.succeeded()
 			.outContains(expected);
 	}

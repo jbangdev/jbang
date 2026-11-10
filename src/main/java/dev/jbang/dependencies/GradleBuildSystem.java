@@ -20,17 +20,21 @@ class GradleBuildSystem implements BuildSystem {
 		Path dir = buildFile.getParent();
 		Path init = Files.createTempFile("jbang-classpath-", ".gradle");
 		try {
-			// Fail loud if no subproject applied the java plugin — otherwise the task
-			// would silently produce no output and the user would see a confusing
-			// "Build did not print JBANG_CLASSPATH=" error.
+			// Register a print task on every java subproject (runtime classpath ==
+			// compile + runtime dependencies, without the project's own output). If no
+			// project applies the java plugin, register a fallback task that fails with
+			// an actionable error. The no-java detection runs in `projectsEvaluated`
+			// (configuration phase) instead of `gradle.buildFinished`, which is
+			// incompatible with the Gradle configuration cache.
 			Util.writeString(init,
-					"def jbangPrinted = new java.util.concurrent.atomic.AtomicBoolean(false)\n"
-							+ "allprojects { plugins.withId('java') { tasks.register('jbangPrintClasspath') { doLast {"
-							+ " jbangPrinted.set(true);"
+					"allprojects { plugins.withId('java') { tasks.register('jbangPrintClasspath') { doLast {"
 							+ " println('" + BuildTools.CLASSPATH_MARKER
-							+ "' + sourceSets.main.compileClasspath.asPath) } } } }\n"
-							+ "gradle.buildFinished { if (!jbangPrinted.get()) { throw new GradleException("
-							+ "'No project applies the java plugin; JBang cannot resolve a compile classpath.') } }\n");
+							+ "' + configurations.runtimeClasspath.asPath) } } } }\n"
+							+ "gradle.projectsEvaluated {"
+							+ " if (rootProject.allprojects.every { !it.plugins.hasPlugin('java') }) {"
+							+ " rootProject.tasks.register('jbangPrintClasspath') { doLast {"
+							+ " throw new GradleException("
+							+ "'No project applies the java plugin; JBang cannot resolve a classpath.') } } } }\n");
 			List<String> command = Arrays.asList(
 					BuildTools.wrapper(dir, "gradlew", "gradlew.bat", "gradle"),
 					"-q", "-I", init.toString(), "jbangPrintClasspath");

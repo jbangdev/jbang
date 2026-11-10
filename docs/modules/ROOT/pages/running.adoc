@@ -93,7 +93,9 @@ For Java 8 and if you want to set explicitly only for `jbang` you can also add f
 
 === Classpath from build files (EXPERIMENTAL)
 
-You can use a build file as a dependency. JBang runs the matching build tool and adds its compile dependencies to the script's classpath.
+You can use a build file as a dependency. JBang runs the matching build tool and adds its runtime dependencies (compile + runtime scope) to the script's classpath.
+
+This is an experimental feature and must be enabled with the `--preview` flag, for example `jbang --preview App.java`. Without `--preview`, a build-file dependency fails with an actionable error.
 
 [source, java]
 ----
@@ -110,7 +112,7 @@ Build file paths are resolved relative to the script, like Java source dependenc
 //DEPS ^pom.xml
 ----
 
-The same references can be passed on the command line, for example `jbang run --deps ^pom.xml src/main/java/app.java`.
+The same references can be passed on the command line, for example `jbang --preview run --deps ^pom.xml src/main/java/app.java`.
 
 ==== Why use a build file as a dependency?
 
@@ -135,17 +137,17 @@ This feature does come at a cost: JBang has to actually invoke Maven, Gradle, sb
 
 | Maven
 | `pom.xml`
-| Runs `dependency:build-classpath` and reads the result from a temp file. `<includeScope>compile` so only compile dependencies land on the classpath.
+| Runs `dependency:build-classpath` and reads the result from a temp file. `<includeScope>runtime` so compile + runtime dependencies land on the classpath.
 | `mvnw` / `mvnw.cmd`, else `mvn` on `PATH`
 
 | Gradle
 | `build.gradle`, `build.gradle.kts`
-| Applies a temporary init script that registers a `jbangPrintClasspath` task on any subproject with the `java` plugin and prints `sourceSets.main.compileClasspath`. Fails loudly if no subproject applies the `java` plugin.
+| Applies a temporary init script that registers a `jbangPrintClasspath` task on any subproject with the `java` plugin and prints `configurations.runtimeClasspath`. Fails loudly if no subproject applies the `java` plugin. The init script is Gradle configuration-cache compatible.
 | `gradlew` / `gradlew.bat`, else `gradle` on `PATH`
 
 | sbt
 | `build.sbt`
-| Runs `sbt --error --batch "export Compile / dependencyClasspath"` and takes the last non-blank line (validated to look like a classpath).
+| Runs `sbt --error --batch "export Runtime / dependencyClasspath"` and takes the last non-blank line (validated to look like a classpath).
 | `sbt` / `sbt.bat`
 
 | Mill
@@ -168,7 +170,7 @@ jbang cache clear --projects
 * Only scripts that live on the local filesystem can use build files as dependencies. An embedded `//DEPS build.gradle` in a script fetched from a URL or catalog is rejected, because a single build file cannot be resolved in isolation from the rest of its project tree. Pass the build file via `--deps` on the command line instead.
 * Each strategy requires the matching build tool to be available (via a wrapper in the project or on `PATH`). If the tool is missing, JBang fails with the tool's own error output rather than silently degrading.
 * The first resolution pays the tool's normal cold-start cost (Maven downloads, Gradle daemon startup, sbt/Mill JVM warmup). Subsequent runs use the cache.
-* Only the project's declared compile dependencies are added to the classpath — the project's own compiled classes are not. If you need to reference the project's source from your script, pull the file(s) in directly with `//SOURCES`:
+* Only the project's declared dependencies (compile + runtime scope) are added to the classpath — the project's own compiled classes are not. If you need to reference the project's source from your script, pull the file(s) in directly with `//SOURCES`:
 +
 [source, java]
 ----
@@ -176,7 +178,9 @@ jbang cache clear --projects
 //SOURCES src/main/java/example/Greeter.java
 ----
 +
-A future release may add a scope option (e.g. `compile` vs `runtime`) so the project's own output can be included automatically. Feedback on which scope should be the default is welcome — open an issue at https://github.com/jbangdev/jbang.
+The default is runtime scope (compile + runtime dependencies). A future release may add an explicit scope option and the ability to include the project's own compiled output automatically. Feedback is welcome — open an issue at https://github.com/jbangdev/jbang.
+
+NOTE: Mill resolves `compileClasspath`, which for the common single-module case already covers its normal (compile + runtime) dependencies.
 
 NOTE: Build files can execute code. Only use this feature with build files you trust.
 

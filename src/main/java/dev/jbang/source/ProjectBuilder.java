@@ -353,7 +353,13 @@ public class ProjectBuilder {
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
-			prj.setResolvedClassPath(mcp);
+			// Reusing the pre-resolved GAV classpath skips SourceSet classpaths that
+			// updateProject adds later. When build-file deps are present, don't
+			// pre-set it so resolveClassPath() resolves the full SourceSet (GAV +
+			// build-file classpaths) in one pass.
+			if (!hasBuildFileDeps()) {
+				prj.setResolvedClassPath(mcp);
+			}
 		}
 		return updateProject(importJarMetadata(prj, moduleName != null && moduleName.isEmpty()));
 	}
@@ -397,6 +403,9 @@ public class ProjectBuilder {
 		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
 		for (String srcDep : directives.sourceDependencies()) {
 			if (BuildSystemClassPaths.isBuildFileDependency(srcDep)) {
+				// Gate on --preview first so the message is consistent regardless of
+				// whether the script is local, remote, or uses --deps.
+				BuildSystemClassPaths.requirePreview(srcDep);
 				rejectBuildFileDepFromRemote(resourceRef, srcDep);
 				ss.addClassPaths(BuildSystemClassPaths.classPaths(
 						Collections.singletonList(srcDep), resourceRef.getFile()));
@@ -812,6 +821,10 @@ public class ProjectBuilder {
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
 				new FileResourceResolver());
+	}
+
+	private boolean hasBuildFileDeps() {
+		return replaceAllProps(additionalDeps).stream().anyMatch(BuildSystemClassPaths::isBuildFileDependency);
 	}
 
 	private ModularClassPath resolveDependency(String dep) {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -58,6 +59,9 @@ public class BuildSystemClassPaths {
 		List<String> resolved = new ArrayList<>();
 		for (String dependency : dependencies) {
 			Path buildFile = toBuildFile(dependency, sourceDir);
+			if (buildFile != null || isBuildFileDependency(dependency)) {
+				requirePreview(dependency);
+			}
 			if (buildFile != null) {
 				resolved.addAll(resolve(buildFile));
 			} else if (isBuildFileDependency(dependency)) {
@@ -65,6 +69,16 @@ public class BuildSystemClassPaths {
 			}
 		}
 		return resolved;
+	}
+
+	// Using a build file as a dependency is experimental; it must be opted into
+	// with --preview (same gate as other preview features).
+	public static void requirePreview(String dependency) {
+		if (!Util.isPreview()) {
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Using a build file as a dependency ('" + dependency
+							+ "') is experimental; rerun with --preview to enable it.");
+		}
 	}
 
 	public static boolean isBuildFileDependency(String dependency) {
@@ -85,8 +99,13 @@ public class BuildSystemClassPaths {
 	}
 
 	private static String fileName(String dependency) {
-		Path p = Paths.get(dependency).getFileName();
-		return p == null ? null : p.toString();
+		try {
+			Path p = Paths.get(dependency).getFileName();
+			return p == null ? null : p.toString();
+		} catch (InvalidPathException e) {
+			// e.g. a URL dependency on Windows; not a build file path.
+			return null;
+		}
 	}
 
 	private static BuildSystem find(String fileName) {
@@ -111,7 +130,12 @@ public class BuildSystemClassPaths {
 			}
 			return Util.findNearestWith(sourceDir, Util.acceptFile(name));
 		}
-		Path path = Paths.get(dependency);
+		Path path;
+		try {
+			path = Paths.get(dependency);
+		} catch (InvalidPathException e) {
+			return null;
+		}
 		if (!path.isAbsolute()) {
 			path = sourceDir.resolve(path);
 		}
@@ -122,9 +146,10 @@ public class BuildSystemClassPaths {
 
 	private static List<String> resolve(Path buildFile) {
 		try {
-			List<String> cached = readCache(buildFile);
+			// --fresh forces the build tool to run again instead of reusing the cache.
+			List<String> cached = Util.isFresh() ? null : readCache(buildFile);
 			if (cached != null) {
-				Util.verboseMsg("Using cached compile classpath for " + buildFile);
+				Util.verboseMsg("Using cached classpath for " + buildFile);
 				return cached;
 			}
 			BuildSystem system = find(buildFile.getFileName().toString());
@@ -133,7 +158,7 @@ public class BuildSystemClassPaths {
 				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Unsupported build file: " + buildFile);
 			}
-			Util.infoMsg("Resolving compile classpath from " + buildFile);
+			Util.infoMsg("Resolving classpath from " + buildFile);
 			List<String> result = split(system.resolveClassPath(buildFile));
 			Util.verboseMsg("Resolved classpath: " + String.join(File.pathSeparator, result));
 			writeCache(buildFile, result);
