@@ -95,7 +95,7 @@ For Java 8 and if you want to set explicitly only for `jbang` you can also add f
 
 You can use a build file as a dependency. JBang runs the matching build tool and adds its runtime dependencies (compile + runtime scope) to the script's classpath.
 
-This is an experimental feature and must be enabled with the `--preview` flag, for example `jbang --preview App.java`. Without `--preview`, a build-file dependency fails with an actionable error.
+This is an experimental feature and must be enabled with JBang's `--preview` flag (see <<jbang-preview-features>>), for example `jbang --preview App.java`. Without `--preview`, a build-file dependency fails with an actionable error.
 
 [source, java]
 ----
@@ -183,6 +183,24 @@ The default is runtime scope (compile + runtime dependencies). A future release 
 NOTE: Mill resolves `compileClasspath`, which for the common single-module case already covers its normal (compile + runtime) dependencies.
 
 NOTE: Build files can execute code. Only use this feature with build files you trust.
+
+== jbang preview features
+
+Some newer JBang features are experimental and are only active when you pass the global `--preview` flag (negatable as `--no-preview`). This lets JBang ship and refine a feature before committing to its final behavior.
+
+[source, shell]
+----
+jbang --preview run app.java
+----
+
+Currently `--preview` enables:
+
+* <<classpath-from-build-files-experimental,Using a build file (`pom.xml`, `build.gradle`, `build.sbt`, `build.mill`) as a dependency>>.
+* *`build.jbang` project files (early/incomplete).* A `build.jbang` file is intended to describe a JBang project using the usual directives (`//DEPS`, `//SOURCES`, `//FILES`, `//GAV`, `//JAVA`, ...) in a dedicated file instead of inline in a source file, and pointing JBang at a directory runs its `build.jbang` (falling back to `main.java`). This is still under development and not yet fully functional.
+
+When a preview-only feature is used without `--preview`, JBang fails with an actionable error telling you to re-run with the flag.
+
+NOTE: This JBang-level `--preview` flag is unrelated to Java's own language preview features, which are enabled with `//PREVIEW` / `--enable-preview` (see <<preview>> below).
 
 == Preview
 
