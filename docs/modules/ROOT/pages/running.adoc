@@ -196,7 +196,21 @@ jbang --preview run app.java
 Currently `--preview` enables:
 
 * <<classpath-from-build-files-experimental,Using a build file (`pom.xml`, `build.gradle`, `build.sbt`, `build.mill`) as a dependency>>.
-* *`build.jbang` project files (early/incomplete).* A `build.jbang` file is intended to describe a JBang project using the usual directives (`//DEPS`, `//SOURCES`, `//FILES`, `//GAV`, `//JAVA`, ...) in a dedicated file instead of inline in a source file, and pointing JBang at a directory runs its `build.jbang` (falling back to `main.java`). This is still under development and not yet fully functional.
+* *`build.jbang` project files.* A `build.jbang` file describes a JBang project in a dedicated file instead of inline in a source file. It uses the same directive names but written *bare*, without the leading `//` (e.g. `DEPS`, `SOURCES`, `FILES`, `GAV`, `JAVA`, `MAIN`). Pointing JBang at a directory runs its `build.jbang` if present (otherwise `main.java`):
++
+[source]
+----
+# build.jbang
+DEPS org.apache.commons:commons-lang3:3.14.0
+SOURCES App.java
+MAIN App
+----
++
+[source, shell]
+----
+jbang --preview build.jbang
+jbang --preview .            # runs ./build.jbang (or ./main.java)
+----
 
 When a preview-only feature is used without `--preview`, JBang fails with an actionable error telling you to re-run with the flag.
 
