@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
-@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials")
+@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", stopAtFirstPositional = true, helpGroup = "Essentials")
 public class Run extends BaseBuildCommand {
 
 	/**
@@ -39,7 +40,7 @@ public class Run extends BaseBuildCommand {
 	@Mixin
 	public RunMixin runMixin;
 
-	@Option(shortName = 'c', name = "code", fallbackValue = "", description = "Run the given string as code")
+	@Option(shortName = 'c', name = "code", fallbackValue = "", helpGroup = "Source options", description = "Run the given string as code")
 	public String literalScript;
 
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
@@ -178,5 +179,26 @@ public class Run extends BaseBuildCommand {
 		Map<String, String> result = new HashMap<>();
 		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
 		return result;
+	}
+
+	@Override
+	public String prose() {
+		return "Runs code from almost anywhere: a Maven artifact (GAV coordinate), a `.jar`,\n"
+				+ "a catalog alias, a URL, or a local script in Java, JShell, Kotlin, Groovy\n"
+				+ "or Markdown. jbang resolves any dependencies, builds when needed, then runs it.\n"
+				+ "\n"
+				+ "run is the default command, so `jbang <resource>` is shorthand for\n"
+				+ "`jbang run <resource>`. Anything after the resource is passed to it as\n"
+				+ "arguments rather than to jbang.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} org.example:myapp:1.2.3",
+				"${COMMAND-FULL-NAME} myapp.jar",
+				"${COMMAND-FULL-NAME} gavsearch@jbangdev org.slf4j:slf4j-api",
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} -c 'System.out.println(\"hi\")'");
 	}
 }
