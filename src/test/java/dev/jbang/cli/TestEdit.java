@@ -247,4 +247,13 @@ public class TestEdit extends BaseTest {
 		Edit edit = JBang.parseCommand("edit", "-b", "--no-open", src.toString());
 		edit.doCall();
 	}
+
+	@Test
+	void testEditSandboxWithoutScriptShowsUsage() throws Exception {
+		// used to fail with a NullPointerException
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("edit", "--sandbox"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
+	}
 }
