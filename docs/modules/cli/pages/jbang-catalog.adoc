@@ -1,4 +1,4 @@
-= JBANG-CATALOG
+= JBANG CATALOG
 
 == NAME
 
@@ -8,8 +8,23 @@ jbang catalog -- Manage Catalogs of aliases.
 
 [source]
 ----
-jbang catalog [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang catalog [OPTIONS] [COMMAND]
 ----
+
+Catalogs are jbang-catalog.json files that publish aliases and templates,
+locally or on GitHub, GitLab and other hosts. Once added, run their aliases as
+`jbang <alias>@<catalog>`.
+
+Examples:
+
+[source,bash]
+----
+jbang catalog add --name demo jbangdev
+jbang catalog list
+jbang catalog update
+jbang catalog remove demo
+----
+
 
 == OPTIONS
 
@@ -36,6 +51,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == COMMANDS
 

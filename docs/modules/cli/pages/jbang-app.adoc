@@ -1,4 +1,4 @@
-= JBANG-APP
+= JBANG APP
 
 == NAME
 
@@ -8,8 +8,23 @@ jbang app -- Manage scripts installed on the user's PATH as commands.
 
 [source]
 ----
-jbang app [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang app [OPTIONS] [COMMAND]
 ----
+
+Installs scripts, jars, GAVs or aliases as commands on your PATH, so you can run
+them without typing jbang. Run `jbang app setup` once to put the install folder
+on your PATH.
+
+Examples:
+
+[source,bash]
+----
+jbang app install --name hello hello.java
+jbang app list
+jbang app uninstall hello
+jbang app setup
+----
+
 
 == OPTIONS
 
@@ -36,6 +51,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == COMMANDS
 

@@ -1,4 +1,4 @@
-= JBANG-DEPS
+= JBANG DEPS
 
 == NAME
 
@@ -8,8 +8,21 @@ jbang deps -- Manage dependencies in jbang files.
 
 [source]
 ----
-jbang deps [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang deps [OPTIONS] [COMMAND]
 ----
+
+Finds Maven artifacts and adds them as dependencies to a script's //DEPS lines
+or a build.jbang file.
+
+Examples:
+
+[source,bash]
+----
+jbang deps search jackson
+jbang deps search jackson app.java
+jbang deps add com.fasterxml.jackson.core:jackson-databind:2.17.0 app.java
+----
+
 
 == OPTIONS
 
@@ -36,6 +49,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == COMMANDS
 
