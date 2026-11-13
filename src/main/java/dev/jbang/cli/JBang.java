@@ -1,14 +1,19 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 import org.aesh.AeshRuntimeRunner;
 import org.aesh.command.AeshCommandRuntimeBuilder;
+import org.aesh.command.ArgumentsSection;
 import org.aesh.command.Command;
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.CommandResult;
+import org.aesh.command.CommandRuntime;
 import org.aesh.command.Execution;
 import org.aesh.command.Executor;
+import org.aesh.command.HelpFeature;
+import org.aesh.command.impl.parser.CommandLineParser;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.option.Option;
 import org.aesh.command.registry.CommandRegistry;
@@ -22,10 +27,26 @@ import dev.jbang.util.Util;
 		Cache.class, Export.class, Jdk.class,
 		Config.class, Trust.class, Alias.class, Template.class, Catalog.class, App.class,
 		Completion.class, Info.class, Version.class,
-		Wrapper.class }, generateHelp = true, helpSectionProvider = ExternalCommandsProvider.class)
+		Wrapper.class }, helpSectionProvider = ExternalCommandsProvider.class)
 public class JBang extends BaseCommand {
 
-	@Option(shortName = 'V', name = "version", hasValue = false, description = "Display version info (use `jbang --verbose version` for more details)")
+	/**
+	 * Fleet-wide help formatting applied to every (sub)command: collapse the long
+	 * option list in the synopsis, and print a command's own options before
+	 * inherited global options. Set once here instead of repeating the toggles on
+	 * every {@code @CommandDefinition}.
+	 */
+	public static final EnumSet<HelpFeature> HELP_DEFAULTS = EnumSet.of(
+			HelpFeature.COLLAPSE_SYNOPSIS, HelpFeature.DEFAULT_OPTIONS_FIRST,
+			HelpFeature.HEADER_BEFORE_SYNOPSIS);
+
+	/**
+	 * Render positional arguments in their own "Arguments:" section. In aesh 3.19
+	 * this moved out of {@link HelpFeature} into a separate placement enum.
+	 */
+	public static final ArgumentsSection ARGUMENTS_SECTION = ArgumentsSection.FIRST;
+
+	@Option(shortName = 'V', name = "version", hasValue = false, helpGroup = "Global options", description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
 
 	@Override
@@ -53,6 +74,8 @@ public class JBang extends BaseCommand {
 		try {
 			String[] newArgs = Main.handleDefaultRun(args);
 			CommandResult result = AeshRuntimeRunner.builder()
+				.helpDefaults(HELP_DEFAULTS)
+				.argumentsSectionDefault(ARGUMENTS_SECTION)
 				.command(JBang.class)
 				.args(newArgs)
 				.defaultValueProvider(new JBangDefaultValueProvider())
@@ -77,12 +100,44 @@ public class JBang extends BaseCommand {
 		}
 	}
 
+	/**
+	 * Renders the help text for a (sub)command as it would appear with
+	 * {@code --help}. Pass the command path, e.g. {@code renderHelp("run")} or
+	 * {@code renderHelp("jdk", "install")}. With no arguments the root help is
+	 * returned.
+	 */
+	public static String renderHelp(String... commandPath) {
+		try {
+			CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+				.helpDefaults(HELP_DEFAULTS)
+				.argumentsSectionDefault(ARGUMENTS_SECTION)
+				.command(JBang.class)
+				.create();
+			String rootName = (String) registry.getAllCommandNames().iterator().next();
+			CommandLineParser<?> parser = registry.getCommand(rootName, rootName)
+				.getParser();
+			for (String name : commandPath) {
+				parser = parser.getChildParser(name);
+				if (parser == null) {
+					throw new IllegalArgumentException("Unknown command: " + name);
+				}
+			}
+			return parser.printHelp();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to render help", e);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T extends Command> T parseCommand(String... args) {
 		try {
 			String[] newArgs = Main.handleDefaultRun(args);
-			CommandRegistry registry = AeshCommandRegistryBuilder.builder().command(JBang.class).create();
-			org.aesh.command.CommandRuntime runtime = AeshCommandRuntimeBuilder.builder()
+			CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+				.helpDefaults(HELP_DEFAULTS)
+				.argumentsSectionDefault(ARGUMENTS_SECTION)
+				.command(JBang.class)
+				.create();
+			CommandRuntime runtime = AeshCommandRuntimeBuilder.builder()
 				.commandRegistry(registry)
 				.defaultValueProvider(new JBangDefaultValueProvider())
 				.build();

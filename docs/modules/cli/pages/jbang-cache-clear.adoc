@@ -1,20 +1,31 @@
-= JBANG-CACHE-CLEAR
+= JBANG CACHE CLEAR
 
 == NAME
 
-jbang cache clear -- Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.
+jbang cache clear -- Clear the various caches used by jbang. By default this will clear the JAR, script, stdin, URL and dependency caches.
 
 == SYNOPSIS
 
 [source]
 ----
-jbang cache clear [-h] [--[no-]url] [--[no-]jar] [--[no-]deps] [--[no-]jdk] [--[no-]kotlinc] [--[no-]groovyc] [--[no-]project] [--[no-]script] [--[no-]stdin] [--all] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
+jbang cache clear [OPTIONS]
 ----
 
-== OPTIONS
+Without options it clears the jar, script, stdin, URL and dependency caches.
+Pick specific caches with the flags below, or use --all to also remove JDKs,
+compilers and temporary projects.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang cache clear
+jbang cache clear --jar --url
+jbang cache clear --all
+----
+
+
+== OPTIONS
 
 *--[no-]url*::
 clear URL cache only
@@ -46,6 +57,9 @@ clear stdin cache only
 *--all*::
 clear all caches
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -66,4 +80,10 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 

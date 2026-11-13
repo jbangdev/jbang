@@ -1,4 +1,4 @@
-= JBANG-DEPS-SEARCH
+= JBANG DEPS SEARCH
 
 == NAME
 
@@ -8,13 +8,24 @@ jbang deps search -- Search for artifacts in local and central Maven repositorie
 
 [source]
 ----
-jbang deps search [-h] [--max=<max>] [-q=<query>] [--target=<target>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<args>]
+jbang deps search [OPTIONS] [<args>]
 ----
 
-== OPTIONS
+Interactively searches your local and the central Maven repository. The chosen
+artifact is added to the target file if you give one, otherwise its coordinates
+are printed.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang deps search jackson
+jbang deps search jackson app.java
+jbang deps search --query=jackson --target=build.jbang
+----
+
+
+== OPTIONS
 
 *--max*=<max>::
 Maximum number of results to return.
@@ -26,6 +37,9 @@ Artifact pattern to search for.
 
 *--target*=<target>::
 Target where to add the dependency, i.e. app.java or build.jbang
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -47,6 +61,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 
