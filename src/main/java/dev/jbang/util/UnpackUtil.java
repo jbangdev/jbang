@@ -106,6 +106,11 @@ public class UnpackUtil {
 						}
 						onZipFile.handle(zipFile, zipEntry, entry, null);
 					}
+				} catch (EntryEscapeException e) {
+					// Never route a containment violation to the handler: the default
+					// handler ignores the exception and would copy the entry anyway,
+					// writing through an escaping symlink (Zip Slip).
+					throw e;
 				} catch (Exception e) {
 					onZipFile.handle(zipFile, zipEntry, entry, e);
 				}
@@ -152,7 +157,7 @@ public class UnpackUtil {
 		// so a link like a -> . then a/b -> .. is caught here rather than lexically.
 		Path realParent = parent.toRealPath();
 		if (!realParent.startsWith(root)) {
-			throw new IOException("Symbolic link escapes the target dir: " + name);
+			throw new EntryEscapeException("Symbolic link escapes the target dir: " + name);
 		}
 		return realParent;
 	}
@@ -165,7 +170,18 @@ public class UnpackUtil {
 		Path realParent = assertParentInside(root, entry, name);
 		Path resolved = realParent.resolve(linkTarget).normalize();
 		if (!resolved.startsWith(root)) {
-			throw new IOException("Symbolic link escapes the target dir: " + name + " -> " + linkTarget);
+			throw new EntryEscapeException("Symbolic link escapes the target dir: " + name + " -> " + linkTarget);
+		}
+	}
+
+	/**
+	 * Thrown when an archive entry would resolve outside the extraction root. Kept
+	 * distinct from plain {@link IOException} so {@code unzip} can rethrow it past
+	 * the generic handler instead of letting the handler extract anyway.
+	 */
+	private static final class EntryEscapeException extends IOException {
+		EntryEscapeException(String message) {
+			super(message);
 		}
 	}
 

@@ -18,6 +18,9 @@ import java.util.Set;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarConstants;
+import org.apache.commons.compress.archivers.zip.UnixStat;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -110,6 +113,45 @@ public class TestSkill extends BaseTest {
 		Files.createDirectories(target);
 		IOException ex = assertThrows(IOException.class,
 				() -> UnpackUtil.unpack(tgz, target, true, Path.of("jbang")));
+		assertThat(ex.getMessage(), containsString("escapes the target dir"));
+		// nothing escaped
+		assertThat(Files.exists(dir.resolve("pwned")), is(false));
+	}
+
+	private void addZipFile(ZipArchiveOutputStream out, String name, String content) throws IOException {
+		byte[] data = content.getBytes(StandardCharsets.UTF_8);
+		ZipArchiveEntry entry = new ZipArchiveEntry(name);
+		entry.setSize(data.length);
+		out.putArchiveEntry(entry);
+		out.write(data);
+		out.closeArchiveEntry();
+	}
+
+	private void addZipSymlink(ZipArchiveOutputStream out, String name, String linkTarget) throws IOException {
+		byte[] data = linkTarget.getBytes(StandardCharsets.UTF_8);
+		ZipArchiveEntry entry = new ZipArchiveEntry(name);
+		entry.setUnixMode(UnixStat.LINK_FLAG | 0777);
+		entry.setSize(data.length);
+		out.putArchiveEntry(entry);
+		out.write(data);
+		out.closeArchiveEntry();
+	}
+
+	@Test
+	void unzipRejectsChainedSymlinkEscape(@TempDir Path dir) throws IOException {
+		// Same attack as the tar.gz test, but for the zip path: a check failure must
+		// not be routed to the entry handler (which would copy the file anyway).
+		Path zip = dir.resolve("chain-skills.zip");
+		try (ZipArchiveOutputStream out = new ZipArchiveOutputStream(Files.newOutputStream(zip))) {
+			addZipFile(out, "repo-main/jbang/SKILL.md", "skill");
+			addZipSymlink(out, "repo-main/jbang/a", ".");
+			addZipSymlink(out, "repo-main/jbang/a/b", "..");
+			addZipFile(out, "repo-main/jbang/a/b/pwned", "escaped");
+		}
+		Path target = dir.resolve("out");
+		Files.createDirectories(target);
+		IOException ex = assertThrows(IOException.class,
+				() -> UnpackUtil.unpack(zip, target, true, Path.of("jbang")));
 		assertThat(ex.getMessage(), containsString("escapes the target dir"));
 		// nothing escaped
 		assertThat(Files.exists(dir.resolve("pwned")), is(false));
