@@ -30,6 +30,7 @@ import dev.jbang.net.EditorManager;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
@@ -485,7 +486,10 @@ public class Edit extends BaseCommand {
 			prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
+		String javaVersion = getJavaVersion(prj);
+
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,
+				javaVersion,
 				templateRef,
 				arguments,
 				destination);
@@ -494,6 +498,7 @@ public class Edit extends BaseCommand {
 		templateRef = ResourceRef.forResource("classpath:/.qute.classpath");
 		destination = tmpProjectDir.resolve(".classpath");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				javaVersion,
 				templateRef,
 				arguments,
 				destination);
@@ -501,6 +506,7 @@ public class Edit extends BaseCommand {
 		templateRef = ResourceRef.forResource("classpath:/.qute.project");
 		destination = tmpProjectDir.resolve(".project");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				javaVersion,
 				templateRef,
 				arguments,
 				destination);
@@ -509,6 +515,7 @@ public class Edit extends BaseCommand {
 		destination = tmpProjectDir.resolve(".eclipse/" + baseName + ".launch");
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				javaVersion,
 				templateRef,
 				arguments,
 				destination);
@@ -516,6 +523,7 @@ public class Edit extends BaseCommand {
 		templateRef = ResourceRef.forResource("classpath:/main-port-4004.qute.launch");
 		destination = tmpProjectDir.resolve(".eclipse/" + baseName + "-port-4004.launch");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				javaVersion,
 				templateRef,
 				arguments,
 				destination);
@@ -526,6 +534,7 @@ public class Edit extends BaseCommand {
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					javaVersion,
 					templateRef,
 					arguments,
 					destination);
@@ -537,6 +546,7 @@ public class Edit extends BaseCommand {
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					javaVersion,
 					templateRef,
 					arguments,
 					destination);
@@ -547,6 +557,7 @@ public class Edit extends BaseCommand {
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					javaVersion,
 					templateRef,
 					arguments,
 					destination);
@@ -559,9 +570,20 @@ public class Edit extends BaseCommand {
 		return !file.toFile().exists() && !reload;
 	}
 
+	/**
+	 * Numeric Java major version for Gradle toolchain languageVersion, matching
+	 * export gradle behavior (//JAVA 21 / 21+ → "21").
+	 */
+	private String getJavaVersion(Project prj) {
+		if (prj.getJavaVersion() == null) {
+			return null;
+		}
+		return Integer.toString(JavaUtil.minRequestedVersion(prj.getJavaVersion()));
+	}
+
 	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String fullclassName,
-			String baseName, List<String> resolvedDependencies, List<MavenRepo> repositories, ResourceRef templateRef,
-			List<String> userParams, Path destination)
+			String baseName, List<String> resolvedDependencies, List<MavenRepo> repositories, String javaVersion,
+			ResourceRef templateRef, List<String> userParams, Path destination)
 			throws IOException {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
@@ -576,6 +598,7 @@ public class Edit extends BaseCommand {
 			.data("gradledependencies", gradleify(collectDependencies))
 			.data("baseName", baseName)
 			.data("fullClassName", fullclassName)
+			.data("javaVersion", javaVersion)
 			.data("classpath",
 					resolvedDependencies.stream()
 						.filter(t -> !t.isEmpty())
