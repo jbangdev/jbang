@@ -1,4 +1,4 @@
-= JBANG-BUILD
+= JBANG BUILD
 
 == NAME
 
@@ -8,13 +8,24 @@ jbang build -- Compiles and stores script in the cache.
 
 [source]
 ----
-jbang build [-hn] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+jbang build [OPTIONS] [<scriptOrFile>]
 ----
 
-== OPTIONS
+Resolves dependencies and compiles a script, jar or GAV into jbang's cache
+without running it, so a later `jbang run` starts straight away. Takes the same
+build options as run, including --native.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang build hello.java
+jbang build --fresh hello.java
+jbang build --native hello.java
+----
+
+
+== OPTIONS
 
 *-s*, *--sources*=<sources>::
 Add additional sources.
@@ -23,7 +34,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -88,6 +99,9 @@ Use given directory for build results
 *--enable-preview*::
 Activate Java preview features
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -108,6 +122,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

@@ -2201,19 +2201,19 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testBuildMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Build build = JBang.parseCommand("build");
-			build.doCall();
-		});
+	void testBuildMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("build"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
-	void testRunMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Run run = JBang.parseCommand("run");
-			run.doCall();
-		});
+	void testRunMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test

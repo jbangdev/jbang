@@ -1,4 +1,4 @@
-= JBANG-JDK-EXEC
+= JBANG JDK EXEC
 
 == NAME
 
@@ -8,13 +8,22 @@ jbang jdk exec -- Executes the given command using the default (or specified) JD
 
 [source]
 ----
-jbang jdk exec [-h] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <command>
+jbang jdk exec [OPTIONS] <command>...
 ----
 
-== OPTIONS
+Runs a command with a jbang-managed JDK on PATH and JAVA_HOME: the default JDK,
+or the one given with -j (installed if needed).
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang jdk exec java -version
+jbang jdk exec -j 21 mvn package
+----
+
+
+== OPTIONS
 
 *--jdk-providers*=<jdk-providers>::
 Use the given providers to manage JDKs
@@ -24,6 +33,9 @@ Use the given distributions to install new JDKs
 
 *-j*, *--java*=<java>::
 JDK version to use for executing the command.
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -45,6 +57,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

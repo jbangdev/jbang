@@ -14,22 +14,22 @@ public class BuildMixin {
 	@Mixin
 	public JdkProvidersMixin jdkMixin;
 
-	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
+	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, helpGroup = "JDK options", description = "JDK version to use for running the script.")
 	public String javaVersion;
 
-	@Option(shortName = 'm', name = "main", description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
+	@Option(shortName = 'm', name = "main", helpGroup = "Build options", description = "Main class to use when running. Used primarily for running jar's. Can be a glob pattern using ? and *.")
 	public String main;
 
-	@Option(name = "module", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name")
+	@Option(name = "module", fallbackValue = "", helpGroup = "Build options", description = "Treat resource as a module. Optionally with the given module name")
 	public String module;
 
-	@OptionList(shortName = 'C', name = "compile-option", description = "Options to pass to the compiler")
+	@OptionList(shortName = 'C', name = "compile-option", helpGroup = "Build options", description = "Options to pass to the compiler")
 	public List<String> compileOptions;
 
-	@OptionGroup(name = "manifest", description = "Add entry to the JAR manifest (e.g. --manifest=Main-Class=com.example.Main)")
+	@OptionGroup(name = "manifest", helpGroup = "Build options", description = "Add entry to the JAR manifest (e.g. --manifest=Main-Class=com.example.Main)")
 	public Map<String, String> manifestOptions;
 
-	@Option(name = "integrations", hasValue = false, negatable = true, description = "Enable or disable integration execution (default: true)")
+	@Option(name = "integrations", hasValue = false, negatable = true, helpGroup = "Build options", description = "Enable or disable integration execution (default: true)")
 	Boolean integrations;
 
 	public Boolean getIntegrations() {

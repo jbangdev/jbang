@@ -1,0 +1,75 @@
+= JBANG SKILL
+
+== NAME
+
+jbang skill -- Install JBang agent skills (AI coding agent instructions).
+
+== SYNOPSIS
+
+[source]
+----
+jbang skill [OPTIONS] [COMMAND]
+----
+
+Installs JBang's agent skills - instructions that teach AI coding agents
+(Claude Code, Codex, OpenCode, Pi, ...) how to install and use JBang.
+
+Skills are fetched from https://github.com/jbangdev/agent-skills and copied
+into each detected agent's skills directory: ~/.claude/skills/<skill>/ (Claude
+Code) and ~/.agents/skills/<skill>/ (Codex, OpenCode, Pi, ...). Use --project
+to install into ./.claude and ./.agents in the current repository.
+
+Installs are safe to repeat: an up-to-date skill is left alone, a locally
+modified one is only replaced with --force, and 'uninstall' removes only skills
+JBang installed. Alternatively use a generic installer, e.g.
+`npx skills add jbangdev/agent-skills`.
+
+Examples:
+
+[source,bash]
+----
+jbang skill install
+jbang skill install --project --agent claude
+jbang skill list
+jbang skill uninstall
+----
+
+
+== OPTIONS
+
+*-h*, *--help*::
+Display this help and exit
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--[no-]verbose*::
+jbang will be verbose on what it does.
+
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
+
+== COMMANDS
+
+* xref:jbang:cli:jbang-skill-install.adoc[*install*] - Install JBang agent skill(s) into detected agents.
+* xref:jbang:cli:jbang-skill-uninstall.adoc[*uninstall*] - Remove JBang agent skill(s) from agents.
+* xref:jbang:cli:jbang-skill-list.adoc[*list*] - List available skills and their status in each agent.
+

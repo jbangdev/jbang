@@ -14,19 +14,19 @@ import dev.jbang.source.Source;
 
 public class ScriptMixin {
 
-	@OptionList(shortName = 's', name = "sources", valueSeparator = ',', description = "Add additional sources.")
+	@OptionList(shortName = 's', name = "sources", valueSeparator = ',', helpGroup = "Source options", description = "Add additional sources.")
 	List<String> sources;
 
-	@OptionList(name = "files", valueSeparator = ',', description = "Add additional files.")
+	@OptionList(name = "files", valueSeparator = ',', helpGroup = "Source options", description = "Add additional files.")
 	List<String> resources;
 
-	@Option(shortName = 'T', name = "source-type", description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
+	@Option(shortName = 'T', name = "source-type", helpGroup = "Source options", description = "Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.")
 	Source.Type forceType;
 
-	@Option(name = "jsh", hasValue = false, description = "Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'")
+	@Option(name = "jsh", hasValue = false, helpGroup = "Source options", description = "Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'")
 	Boolean forceJsh;
 
-	@Option(name = "catalog", description = "Path to catalog file to be used instead of the default")
+	@Option(name = "catalog", helpGroup = "Build options", description = "Path to catalog file to be used instead of the default")
 	File catalog;
 
 	@Argument(paramLabel = "scriptOrFile", index = "0", arity = "0..1", description = "A file or URL to a Java code file", completer = ScriptRefCompleter.class)

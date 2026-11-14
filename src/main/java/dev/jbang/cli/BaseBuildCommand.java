@@ -25,11 +25,16 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@Mixin
 	NativeMixin nativeMixin;
 
-	@Option(name = "build-dir", description = "Use given directory for build results")
+	@Option(name = "build-dir", helpGroup = "Build options", description = "Use given directory for build results")
 	String buildDirStr;
 
-	@Option(name = "enable-preview", hasValue = false, description = "Activate Java preview features")
+	@Option(name = "enable-preview", hasValue = false, helpGroup = "Build options", description = "Activate Java preview features")
 	Boolean enablePreviewRequested;
+
+	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptMixin.scriptOrFile);
+	}
 
 	@Override
 	public void afterParse() {
