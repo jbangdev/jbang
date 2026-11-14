@@ -25,7 +25,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "skill", description = "Install JBang agent skills (AI coding agent instructions).", groupCommands = {
 		Skill.SkillInstall.class, Skill.SkillUninstall.class,
-		Skill.SkillList.class }, generateHelp = true, helpGroup = "Configuration", helpSectionProvider = SkillHelpProvider.class)
+		Skill.SkillList.class }, helpGroup = "Configuration")
 public class Skill extends BaseCommand {
 
 	static final String DEFAULT_REPO = "jbangdev/agent-skills";
@@ -82,6 +82,31 @@ public class Skill extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Installs JBang's agent skills - instructions that teach AI coding agents\n"
+				+ "(Claude Code, Codex, OpenCode, Pi, ...) how to install and use JBang.\n"
+				+ "\n"
+				+ "Skills are fetched from https://github.com/jbangdev/agent-skills and copied\n"
+				+ "into each detected agent's skills directory: ~/.claude/skills/<skill>/ (Claude\n"
+				+ "Code) and ~/.agents/skills/<skill>/ (Codex, OpenCode, Pi, ...). Use --project\n"
+				+ "to install into ./.claude and ./.agents in the current repository.\n"
+				+ "\n"
+				+ "Installs are safe to repeat: an up-to-date skill is left alone, a locally\n"
+				+ "modified one is only replaced with --force, and 'uninstall' removes only skills\n"
+				+ "JBang installed. Alternatively use a generic installer, e.g.\n"
+				+ "`npx skills add jbangdev/agent-skills`.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install",
+				"${COMMAND-FULL-NAME} install --project --agent claude",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} uninstall");
 	}
 
 	/**
@@ -176,7 +201,7 @@ public class Skill extends BaseCommand {
 		List<String> agentTokens;
 	}
 
-	@CommandDefinition(name = "install", description = "Install JBang agent skill(s) into detected agents.", generateHelp = true)
+	@CommandDefinition(name = "install", description = "Install JBang agent skill(s) into detected agents.")
 	public static class SkillInstall extends BaseSkillCommand {
 
 		@Option(name = "force", hasValue = false, description = "Overwrite a skill that was modified or is not a JBang skill.")
@@ -256,7 +281,7 @@ public class Skill extends BaseCommand {
 		Files.write(target.resolve(MARKER), ("repo=" + source + System.lineSeparator()).getBytes());
 	}
 
-	@CommandDefinition(name = "uninstall", description = "Remove JBang agent skill(s) from agents.", generateHelp = true)
+	@CommandDefinition(name = "uninstall", description = "Remove JBang agent skill(s) from agents.")
 	public static class SkillUninstall extends BaseSkillCommand {
 
 		@Override
@@ -310,7 +335,7 @@ public class Skill extends BaseCommand {
 		return found;
 	}
 
-	@CommandDefinition(name = "list", description = "List available skills and their status in each agent.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "List available skills and their status in each agent.")
 	public static class SkillList extends BaseCommand {
 
 		@Option(name = "project", hasValue = false, description = "Report on the current project/repository (./.claude, ./.agents) instead of your user home.")

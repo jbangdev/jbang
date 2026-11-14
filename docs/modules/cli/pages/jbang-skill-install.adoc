@@ -1,0 +1,62 @@
+= JBANG SKILL INSTALL
+
+== NAME
+
+jbang skill install -- Install JBang agent skill(s) into detected agents.
+
+== SYNOPSIS
+
+[source]
+----
+jbang skill install [OPTIONS] [<skills>]
+----
+
+== OPTIONS
+
+*--force*::
+Overwrite a skill that was modified or is not a JBang skill.
+
+*--repo*=<repo>::
+Source of the skills: a GitHub owner/repo[@ref] or a full tarball URL (default jbangdev/agent-skills).
+
+*--project*::
+Target the current project/repository (./.claude, ./.agents) instead of your user home.
+
+*--agent*=<agent>::
+Limit to agent(s): claude, agents (repeatable or comma-separated).
+
+*-h*, *--help*::
+Display this help and exit
+
+*--config*=<config>::
+Path to config file to be used instead of the default
+
+*--insecure*::
+Enable insecure trust of all SSL certificates.
+
+*--[no-]verbose*::
+jbang will be verbose on what it does.
+
+*--[no-]quiet*::
+jbang will be quiet, only print when error occurs.
+
+*-o*, *--[no-]offline*::
+Work offline. Fail-fast if dependencies are missing.
+
+*--[no-]fresh*::
+Make sure we use fresh (i.e. non-cached) resources.
+
+*-x*, *--[no-]stacktrace*::
+Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
+
+== ARGUMENTS
+
+*<skills>*::
+Skill name(s); defaults to all skills in the repo
+
