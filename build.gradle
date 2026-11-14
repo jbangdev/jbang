@@ -253,7 +253,7 @@ spotless {
 		target '**/*.xml', '**/*.nuspec'
 	}
 	groovyGradle {
-		target '*.gradle' // Automatically matches settings.gradle and build.gradle
+		target 'build.gradle', 'settings.gradle' // Automatically matches settings.gradle and build.gradle
 		greclipse()       // Optional: formats Groovy code using Eclipse Groovy formatter
 		trimTrailingWhitespace()
 		endWithNewline()
