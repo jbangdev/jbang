@@ -1,4 +1,4 @@
-= JBANG-INFO-TOOLS
+= JBANG INFO TOOLS
 
 == NAME
 
@@ -8,13 +8,22 @@ jbang info tools -- Prints a json description usable for tools/IDE's to get clas
 
 [source]
 ----
-jbang info tools [-h] [--select=<select>] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [--build-dir=<build-dir>] [--module] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+jbang info tools [OPTIONS] [<scriptOrFile>]
 ----
 
-== OPTIONS
+Prints a JSON description of a script (sources, dependencies, class path, Java
+version and more) for IDEs and tools. Use --select to print just one field.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang info tools hello.java
+jbang info tools --select=resolvedDependencies hello.java
+----
+
+
+== OPTIONS
 
 *--select*=<select>::
 Indicate the name of the field to select and return from the full info result
@@ -26,7 +35,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -61,6 +70,9 @@ Use given directory for build results
 *--module*=<module>::
 Treat resource as a module. Optionally with the given module name
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -81,6 +93,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

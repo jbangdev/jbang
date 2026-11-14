@@ -1,4 +1,4 @@
-= JBANG-INFO-DOCS
+= JBANG INFO DOCS
 
 == NAME
 
@@ -8,13 +8,10 @@ jbang info docs -- Open the documentation file in the default browser.
 
 [source]
 ----
-jbang info docs [-h] [--[no-]open] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [--build-dir=<build-dir>] [--module] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+jbang info docs [OPTIONS] [<scriptOrFile>]
 ----
 
 == OPTIONS
-
-*-h*, *--help*::
-Display this help and exit
 
 *--[no-]open*::
 Open the (first) documentation file/link in the default browser
@@ -26,7 +23,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -61,6 +58,9 @@ Use given directory for build results
 *--module*=<module>::
 Treat resource as a module. Optionally with the given module name
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -81,6 +81,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

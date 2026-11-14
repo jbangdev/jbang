@@ -6,10 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.aesh.command.CommandDefinition;
+import org.aesh.command.impl.parser.CommandLineParser;
+import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
+import org.aesh.command.registry.CommandRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,6 +27,153 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
 
 class TestAeshParsing extends BaseTest {
+
+	// --- Help rendering ---
+
+	@Test
+	void testGlobalOptionsAreInOwnHelpSection() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Global options:"));
+		// Global flags live under the Global options section
+		assertThat(help.indexOf("Global options:"), greaterThanOrEqualTo(0));
+		assertThat(help, containsString("--[no-]verbose"));
+		assertThat(help, containsString("--netrc"));
+		assertThat(help, containsString("--config"));
+	}
+
+	@Test
+	void testHelpOptionIsInGlobalOptions() {
+		String help = JBang.renderHelp("run");
+		// -h/--help is provided by us (generateHelp=false) and grouped under Global
+		// options, appearing exactly once.
+		assertThat(help, containsString("-h, --help"));
+		assertThat(help.indexOf("-h, --help"), equalTo(help.lastIndexOf("-h, --help")));
+		assertThat(help.indexOf("-h, --help"), greaterThan(help.indexOf("Global options:")));
+	}
+
+	@Test
+	void testOptionsAreGroupedIntoMeaningfulSections() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Source options:"));
+		assertThat(help, containsString("Dependency options:"));
+		assertThat(help, containsString("Build options:"));
+		assertThat(help, containsString("JDK options:"));
+		assertThat(help, containsString("Runtime options:"));
+		assertThat(help, containsString("Native image options:"));
+	}
+
+	@Test
+	void testRunHelpHasPivotExamplesSection() {
+		String help = JBang.renderHelp("run");
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString("jbang run org.example:myapp:1.2.3"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "export, jbang export fatjar hello.java",
+			"edit, jbang edit --no-open hello.java",
+			"jdk, jbang jdk install 21",
+			"alias, jbang alias add --name hello hello.java",
+			"init, jbang init --template=cli mytool.java",
+			"build, jbang build --native hello.java",
+			"cache, jbang cache clear --all",
+			"config, jbang config set edit.open code",
+			"trust, jbang trust list",
+			"template, jbang template list",
+			"catalog, jbang catalog update",
+			"app, jbang app setup",
+			"info, jbang info tools hello.java",
+			"deps, jbang deps search jackson app.java",
+			"wrapper, jbang wrapper install -d myproject" })
+	void testCommandHelpHasExamplesSection(String command, String example) {
+		String help = JBang.renderHelp(command);
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString(example));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "export local, jbang export local hello.java",
+			"export portable, jbang export portable hello.java",
+			"export fatjar, jbang export fatjar hello.java",
+			"export native, jbang export native hello.java",
+			"export jlink, jbang export jlink hello.java -- --strip-debug",
+			"export mavenrepo, jbang export mavenrepo -g org.acme hello.java",
+			"export gradle, jbang export gradle hello.java",
+			"export maven, jbang export maven hello.java",
+			"jdk install, jbang jdk install 21 /opt/java/jdk-21",
+			"jdk list, jbang jdk list --available",
+			"jdk default, jbang jdk default 21",
+			"jdk java-env, eval $(jbang jdk java-env 21)",
+			"jdk exec, jbang jdk exec -j 21 mvn package",
+			"alias add, jbang alias add --name greet hello.java World",
+			"alias list, jbang alias list --show-origin",
+			"cache clear, jbang cache clear --jar --url",
+			"config set, jbang config set format=json",
+			"trust add, jbang trust add https://github.com/myorg/scripts/",
+			"template add, jbang template add --name greet -P greeting=Greeting::Hello greet.java",
+			"catalog add, jbang catalog add --name demo jbangdev",
+			"app install, jbang app install --name search gavsearch@jbangdev",
+			"app setup, jbang app setup",
+			"info tools, jbang info tools --select=resolvedDependencies hello.java",
+			"deps search, jbang deps search jackson app.java",
+			"deps add, jbang deps add info.picocli:picocli:4.7.6 app.java",
+			"wrapper install, jbang wrapper install --force" })
+	void testSubcommandHelpHasExamplesSection(String commandPath, String example) {
+		String help = JBang.renderHelp(commandPath.split(" "));
+		assertThat(help, containsString("Examples:"));
+		assertThat(help, containsString(example));
+	}
+
+	@Test
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	void testOptionSectionsAreOrderedOptionsFirstGlobalLast() throws Exception {
+		// Every command and subcommand: the command's own (ungrouped) "Options:"
+		// come first and "Global options:" come last.
+		CommandRegistry registry = AeshCommandRegistryBuilder.builder()
+			.helpDefaults(JBang.HELP_DEFAULTS)
+			.argumentsSectionDefault(JBang.ARGUMENTS_SECTION)
+			.command(JBang.class)
+			.create();
+		String root = (String) registry.getAllCommandNames().iterator().next();
+		List<String> problems = new ArrayList<>();
+		checkOptionSections(registry.getCommand(root, root).getParser(), root, problems);
+		assertThat(problems, empty());
+	}
+
+	@Test
+	void testSynopsisCollapsesOptionalFlags() {
+		// Fleet-wide COLLAPSE_SYNOPSIS should fold optional flags into [OPTIONS]
+		// instead of listing every option in the synopsis line.
+		String help = JBang.renderHelp("run").replaceAll("\r\n", "\n").replaceAll("\u001B\\[[0-9;]*m", "");
+		// The synopsis is the Usage: line plus its wrapped continuations, up to
+		// the next blank line.
+		int usage = help.indexOf("Usage:");
+		String synopsis = help.substring(usage,
+				help.indexOf("\n\n", usage) < 0 ? help.length() : help.indexOf("\n\n", usage));
+		assertThat(synopsis, containsString("[OPTIONS]"));
+		assertThat(synopsis, not(containsString("--runtime-option")));
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void checkOptionSections(CommandLineParser parser, String path, List<String> problems) {
+		List<String> headers = new ArrayList<>();
+		for (String line : parser.printHelp().split("\\R")) {
+			String l = line.replaceAll("\u001B\\[[;\\d]*m", "");
+			if (l.equals("Options:") || l.endsWith(" options:")) {
+				headers.add(l);
+			}
+		}
+		if (headers.contains("Options:") && headers.indexOf("Options:") != 0) {
+			problems.add(path + ": 'Options:' is not first " + headers);
+		}
+		if (!headers.isEmpty() && !headers.get(headers.size() - 1).equals("Global options:")) {
+			problems.add(path + ": 'Global options:' is not last " + headers);
+		}
+		for (Object child : parser.getAllChildParsers()) {
+			CommandLineParser cp = (CommandLineParser) child;
+			checkOptionSections(cp, path + " " + cp.getProcessedCommand().name(), problems);
+		}
+	}
 
 	// --- Mutual exclusion (exclusiveWith) ---
 
@@ -338,6 +491,59 @@ class TestAeshParsing extends BaseTest {
 		assertThat(run.runMixin.debugString, hasEntry("address", "7007"));
 	}
 
+	@ParameterizedTest
+	@CsvSource({ "-d5005, 5005", "-d=5005, 5005", "-d 5005, 5005", "--debug 5005, 5005",
+			"--debug=5005, 5005", "-dlocalhost:5005, localhost:5005", "-d, 4004" })
+	void testDebugShortAndLongForms(String debugArgs, String address) {
+		List<String> args = new ArrayList<>();
+		args.add("run");
+		args.addAll(Arrays.asList(debugArgs.split(" ")));
+		args.add("test.java");
+		Run run = JBang.parseCommand(args.toArray(new String[0]));
+		assertThat(run.runMixin.debugString, hasEntry("address", address));
+		assertThat(run.scriptMixin.scriptOrFile, equalTo("test.java"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "-dfoo, foo", "-dx, x" })
+	void testDebugInvalidAttachedValueFails(String arg, String value) {
+		RuntimeException ex = assertThrows(RuntimeException.class,
+				() -> JBang.parseCommand("run", arg, "test.java"));
+		Throwable cause = ex;
+		while (cause.getCause() != null) {
+			cause = cause.getCause();
+		}
+		assertThat(cause.getMessage(), containsString("Invalid value '" + value + "' for option -d/--debug"));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "'-d5005,suspend=n,5006', 5006, n",
+			"'--debug=address=4444,address=2323', 2323, ",
+			"-d 5005 -d 6006, 6006, ",
+			"-d 5005 -d suspend=n, 5005, n" })
+	void testDebugValuesAreAppliedInOrder(String debugArgs, String address, String suspend) {
+		// Debug values (within one comma-separated value and across repeated -d
+		// options) are applied in order, so later entries override earlier ones.
+		List<String> args = new ArrayList<>();
+		args.add("run");
+		args.addAll(Arrays.asList(debugArgs.split(" ")));
+		args.add("test.java");
+		Run run = JBang.parseCommand(args.toArray(new String[0]));
+		assertThat(run.runMixin.debugString, hasEntry("address", address));
+		if (suspend != null) {
+			assertThat(run.runMixin.debugString, hasEntry("suspend", suspend));
+		}
+	}
+
+	@Test
+	void testBareDebugFollowedByOtherOption() {
+		// a bare -d must not swallow the following option
+		Run run = JBang.parseCommand("run", "-d", "--java", "21", "test.java");
+		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
+		assertThat(run.buildMixin.javaVersion, equalTo("21"));
+		assertThat(run.scriptMixin.scriptOrFile, equalTo("test.java"));
+	}
+
 	@Test
 	void testDebugNotSpecified() {
 		Run run = JBang.parseCommand("run", "test.java");
@@ -480,6 +686,16 @@ class TestAeshParsing extends BaseTest {
 		assertThat(result.result, arrayContaining("run", "alis"));
 		assertThat(result.err, containsString("'alis' is not a jbang command. Did you mean 'alias'?"));
 		assertThat(result.err, containsString("See 'jbang --help' for available commands."));
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "--aesh-completion, bash", "--aesh-doc, markdown", "--aesh-complete, --",
+			"--aesh-completion-install, bash" })
+	void testAeshBuiltinsPassThroughUnchanged(String builtin, String arg) {
+		// aesh intercepts these only when they are args[0]; they must not be rewritten
+		// into a default 'run' invocation.
+		String[] result = Main.handleDefaultRun(new String[] { builtin, arg });
+		assertThat(result, arrayContaining(builtin, arg));
 	}
 
 	// --- Subcommand list consistency ---

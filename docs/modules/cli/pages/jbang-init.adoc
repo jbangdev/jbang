@@ -1,4 +1,4 @@
-= JBANG-INIT
+= JBANG INIT
 
 == NAME
 
@@ -8,13 +8,28 @@ jbang init -- Initialize a script.
 
 [source]
 ----
-jbang init [-h] [-j=<java>] [--ai-provider=<ai-provider>] [--ai-api-key=<ai-api-key>] [--ai-endpoint=<ai-endpoint>] [--ai-model=<ai-model>] [-t=<template>] [--force] [--edit] [-D<key>=<value>] [--deps=<deps>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <scriptOrFile> [<params>]
+jbang init [OPTIONS] <scriptOrFile> [<params>...]
 ----
 
-== OPTIONS
+Creates a new script from a template, ready to run with `jbang <file>`. The
+template is picked from the file extension unless you choose one with
+--template; `jbang template list` shows what is available. Give a prompt after
+the file name to have an AI model write the code instead; this needs an AI
+provider and API key (via the --ai-* options or JBANG_AI_* env vars), otherwise
+the normal template is used.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang init hello.java
+jbang init --template=cli mytool.java
+jbang init hello.kt
+jbang init weather.java "a CLI that prints the weather for a city"
+----
+
+
+== OPTIONS
 
 *-j*, *--java*=<java>::
 JDK version to use for running the script.
@@ -22,22 +37,22 @@ JDK version to use for running the script.
 *--ai-provider*=<ai-provider>::
 Provider to use (openai, openrouter, etc.) when using init with a prompt
 +
-Default: `${env:JBANG_AI_PROVIDER:-}`
+Default: ``
 
 *--ai-api-key*=<ai-api-key>::
 API Key/token to use for the AI Provider
 +
-Default: `${env:JBANG_AI_API_KEY:-}`
+Default: ``
 
 *--ai-endpoint*=<ai-endpoint>::
 OpenAI compatible Endpoint to use for the AI Provider when using init with a prompt
 +
-Default: `${env:JBANG_AI_ENDPOINT:-}`
+Default: ``
 
 *--ai-model*=<ai-model>::
 Model string to use for init prompting
 +
-Default: `${env:JBANG_AI_MODEL:-}`
+Default: ``
 
 *-t*, *--template*=<template>::
 Init script with a java class useful for scripting
@@ -53,6 +68,9 @@ set a system property
 
 *--deps*=<deps>::
 Add additional dependencies (Use commas to separate them).
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -74,6 +92,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

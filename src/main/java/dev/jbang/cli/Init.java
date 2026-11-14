@@ -33,7 +33,7 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 
-@CommandDefinition(name = "init", description = "Initialize a script.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing")
 public class Init extends BaseCommand {
 
 	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
@@ -63,10 +63,9 @@ public class Init extends BaseCommand {
 	@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
 	List<String> params;
 
-	public void requireScriptArgument() {
-		if (scriptOrFile == null) {
-			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
-		}
+	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptOrFile);
 	}
 
 	List<String> params() {
@@ -78,8 +77,6 @@ public class Init extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
-
 		if (initTemplate == null) {
 			String extensionTemplate = "hello." + Util.extension(scriptOrFile);
 			initTemplate = dev.jbang.catalog.Template.get(extensionTemplate) != null ? extensionTemplate : "hello";
@@ -305,5 +302,24 @@ public class Init extends BaseCommand {
 			}
 		}
 		return scriptOrFile;
+	}
+
+	@Override
+	public String prose() {
+		return "Creates a new script from a template, ready to run with `jbang <file>`. The\n"
+				+ "template is picked from the file extension unless you choose one with\n"
+				+ "--template; `jbang template list` shows what is available. Give a prompt after\n"
+				+ "the file name to have an AI model write the code instead; this needs an AI\n"
+				+ "provider and API key (via the --ai-* options or JBANG_AI_* env vars), otherwise\n"
+				+ "the normal template is used.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} --template=cli mytool.java",
+				"${COMMAND-FULL-NAME} hello.kt",
+				"${COMMAND-FULL-NAME} weather.java \"a CLI that prints the weather for a city\"");
 	}
 }

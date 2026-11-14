@@ -26,6 +26,7 @@
 ** xref:jbang:ROOT:publishing-app-catalogs.adoc[Publishing App Catalogs]
 ** xref:jbang:ROOT:alias_catalogs.adoc[Aliases & Catalogs]
 ** xref:jbang:ROOT:integration.adoc[Build Integration]
+** xref:jbang:ROOT:agent-skills.adoc[Agent Skills]
 
 * Configuration & Management
 ** xref:jbang:ROOT:configuration.adoc[Configuration]

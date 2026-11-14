@@ -1,4 +1,4 @@
-= JBANG-TEMPLATE
+= JBANG TEMPLATE
 
 == NAME
 
@@ -8,8 +8,21 @@ jbang template -- Manage templates for scripts.
 
 [source]
 ----
-jbang template [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang template [OPTIONS] [COMMAND]
 ----
+
+Templates are the starting points `jbang init --template=<name>` creates scripts
+from. Add your own to a catalog to reuse them across projects.
+
+Examples:
+
+[source,bash]
+----
+jbang template list
+jbang template add --name logo showlogo.java img.jpg
+jbang template remove logo
+----
+
 
 == OPTIONS
 
@@ -36,6 +49,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == COMMANDS
 
