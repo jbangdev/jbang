@@ -9,8 +9,10 @@ import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -23,6 +25,8 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
@@ -595,22 +599,23 @@ public class TestExport extends BaseTest {
 		assertThat(result.err, containsString("DUMMY.RSA"));
 	}
 
-	@Test
-	void testExportFatjarServiceFileMerging(@TempDir Path temp) throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = { "", "\n", "\r\n", "\r" })
+	void testExportFatjarServiceFileMerging(String lineEnding, @TempDir Path temp) throws Exception {
 		// Create two jars with overlapping META-INF/services/ entries
 		String serviceFile = "META-INF/services/com.example.Service";
 
 		Path jar1 = temp.resolve("dep1.jar");
 		try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar1.toFile()))) {
 			jos.putNextEntry(new ZipEntry(serviceFile));
-			jos.write("com.example.Impl1\n".getBytes());
+			jos.write(("com.example.Impl1" + lineEnding).getBytes(StandardCharsets.UTF_8));
 			jos.closeEntry();
 		}
 
 		Path jar2 = temp.resolve("dep2.jar");
 		try (JarOutputStream jos = new JarOutputStream(new FileOutputStream(jar2.toFile()))) {
 			jos.putNextEntry(new ZipEntry(serviceFile));
-			jos.write("com.example.Impl2\n".getBytes());
+			jos.write("com.example.Impl2".getBytes(StandardCharsets.UTF_8));
 			jos.closeEntry();
 		}
 
@@ -635,13 +640,14 @@ public class TestExport extends BaseTest {
 				if (serviceFile.equals(entry.getName())) {
 					byte[] buf = new byte[4096];
 					int n = jis.read(buf);
-					serviceContent = new String(buf, 0, n);
+					serviceContent = new String(buf, 0, n, StandardCharsets.UTF_8);
 					break;
 				}
 			}
 			assertThat("Service file should exist in fatjar", serviceContent, is(notNullValue()));
-			assertThat("Service file should contain Impl1", serviceContent, containsString("com.example.Impl1"));
-			assertThat("Service file should contain Impl2", serviceContent, containsString("com.example.Impl2"));
+			assertThat("Service providers should be on separate lines",
+					Arrays.asList(serviceContent.split("[\\r\\n]+")),
+					contains("com.example.Impl1", "com.example.Impl2"));
 		}
 	}
 
