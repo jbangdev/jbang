@@ -450,15 +450,6 @@ compileJava9Java {
 }
 
 shadowJar {
-	/*minimize() {
-	//exclude(dependency('org.slf4j:slf4j-api:.*'))
-	exclude(dependency('dev.jbang:devkitman:.*'))
-	exclude(dependency('eu.maveniverse.maven.mima:context:.*'))
-	exclude(dependency('eu.maveniverse.maven.mima.runtime:standalone-static:.*'))
-	exclude(dependency('org.slf4j:jcl-over-slf4j:.*'))
-	exclude(dependency('org.slf4j:slf4j-nop:.*'))
-	exclude(dependency('org.jboss.logging:jboss-logging:.*'))
-	}*/
 	mergeServiceFiles()
 	manifest {
 		attributes(
@@ -488,13 +479,6 @@ test {
 		])
 	}
 	jvmArgs = jvmArgsList
-	//testLogging.showStandardStreams = true
-
-	/*testLogging {
-	events "passed", "skipped", "failed"
-	exceptionFormat "full"
-	}*/
-	//timeout.set(Duration.ofSeconds(60))
 
 	jacoco {
 		enabled = false
