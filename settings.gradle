@@ -1,16 +1,16 @@
 pluginManagement {
-repositories {
-	gradlePluginPortal()
-	mavenCentral() // nisse-gradle-plugin is published to Maven Central
-}
+	repositories {
+		gradlePluginPortal()
+		mavenCentral() // nisse-gradle-plugin is published to Maven Central
+	}
 
-resolutionStrategy {
-	eachPlugin {
-		if (requested.id.namespace == 'eu.maveniverse.gradle.plugins') {
-			useModule("eu.maveniverse.gradle.plugins:nisse-gradle-plugin:${requested.version}")
+	resolutionStrategy {
+		eachPlugin {
+			if (requested.id.namespace == 'eu.maveniverse.gradle.plugins') {
+				useModule("eu.maveniverse.gradle.plugins:nisse-gradle-plugin:${requested.version}")
+			}
 		}
 	}
-}
 }
 
 plugins {
