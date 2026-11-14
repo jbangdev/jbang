@@ -237,7 +237,7 @@ spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
-		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
+		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*', '.specs/**/*'
 		// all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
 		leadingSpacesToTabs(4)
