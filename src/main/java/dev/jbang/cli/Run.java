@@ -103,6 +103,10 @@ public class Run extends BaseBuildCommand {
 			prj.setNativeImage(false);
 		}
 
+		return runProject(prj);
+	}
+
+	protected Integer runProject(Project prj) throws IOException {
 		BuildContext ctx = BuildContext.forProject(prj, getBuildDir());
 		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
