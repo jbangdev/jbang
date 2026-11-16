@@ -139,42 +139,39 @@ jobs:
     if: ${{ !inputs.skip_tests }}
     needs: build-shared
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.java-version == 'ea' }}
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
         java-version: [11]
         os: *os_matrix
-        include:
+        include: &latest_jdks
           - os: ubuntu-latest
             java-version: latest
+            setup-java: latest
+          # bump manually until setup-java supports 'latest-ea'
+          # (https://github.com/actions/setup-java/issues/1328)
           - os: ubuntu-latest
             java-version: ea
+            setup-java: '28-ea'
+            experimental: true
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
         with:
           fetch-depth: 0
-      - id: resolve-jdk
-        # 'latest' = most recent GA, 'ea' = latest early-access; resolved from Adoptium so it never needs bumping
-        if: matrix.java-version == 'latest' || matrix.java-version == 'ea'
-        shell: bash
-        run: |
-          json=$(curl -fsSL --retry 3 https://api.adoptium.net/v3/info/available_releases)
-          if [ "${{ matrix.java-version }}" = "ea" ]; then
-            feature=$(echo "$json" | jq -r '.tip_version'); setup="$feature-ea"
-          else
-            feature=$(echo "$json" | jq -r '.most_recent_feature_release'); setup="$feature"
-          fi
-          echo "Resolved ${{ matrix.java-version }} to JDK $setup"
-          echo "feature=$feature" >> "$GITHUB_OUTPUT"
-          echo "setup=$setup" >> "$GITHUB_OUTPUT"
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
-        if: steps.resolve-jdk.outputs.setup != ''
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        if: matrix.setup-java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
-          java-version: ${{ steps.resolve-jdk.outputs.setup }}
+          java-version: ${{ matrix.setup-java }}
           distribution: temurin
+      - id: test-jdk-major
+        if: matrix.setup-java
+        shell: bash
+        run: |
+          v="${{ steps.test-jdk.outputs.version }}"
+          echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -183,7 +180,7 @@ jobs:
           path: build
       - name: test
         run: |
-          ./gradlew --no-daemon test -PtestJavaVersion=${{ steps.resolve-jdk.outputs.feature || matrix.java-version }} ${{ steps.test-jdk.outputs.path && format('-Porg.gradle.java.installations.paths={0}', steps.test-jdk.outputs.path) || '' }}
+          ./gradlew --no-daemon test -PtestJavaVersion=${{ steps.test-jdk-major.outputs.major || matrix.java-version }} ${{ steps.test-jdk.outputs.path && format('-Porg.gradle.java.installations.paths={0}', steps.test-jdk.outputs.path) || '' }}
       - name: Add artifact.ci links
         if: failure()
         shell: bash
@@ -258,38 +255,26 @@ jobs:
               java-version: 17
             - os: macos-latest
               java-version: 21
-        include:
-          - os: ubuntu-latest
-            java-version: latest
-          - os: ubuntu-latest
-            java-version: ea
-    continue-on-error: ${{ matrix.java-version == 'ea' }}
+        include: *latest_jdks
+    continue-on-error: ${{ matrix.experimental == true }}
     name: integration-tests
     steps:
       - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
         with:
           fetch-depth: 0
-      - id: resolve-jdk
-        # 'latest' = most recent GA, 'ea' = latest early-access; resolved from Adoptium so it never needs bumping
-        if: matrix.java-version == 'latest' || matrix.java-version == 'ea'
-        shell: bash
-        run: |
-          json=$(curl -fsSL --retry 3 https://api.adoptium.net/v3/info/available_releases)
-          if [ "${{ matrix.java-version }}" = "ea" ]; then
-            feature=$(echo "$json" | jq -r '.tip_version'); setup="$feature-ea"
-          else
-            feature=$(echo "$json" | jq -r '.most_recent_feature_release'); setup="$feature"
-          fi
-          echo "Resolved ${{ matrix.java-version }} to JDK $setup"
-          echo "feature=$feature" >> "$GITHUB_OUTPUT"
-          echo "setup=$setup" >> "$GITHUB_OUTPUT"
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
-        if: steps.resolve-jdk.outputs.setup != ''
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        if: matrix.setup-java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
-          java-version: ${{ steps.resolve-jdk.outputs.setup }}
+          java-version: ${{ matrix.setup-java }}
           distribution: temurin
+      - id: test-jdk-major
+        if: matrix.setup-java
+        shell: bash
+        run: |
+          v="${{ steps.test-jdk.outputs.version }}"
+          echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -298,7 +283,7 @@ jobs:
           path: build
       - name: integration-test
         env:
-          _JBANG_TEST_JAVA_VERSION: ${{ steps.resolve-jdk.outputs.feature || matrix.java-version }}
+          _JBANG_TEST_JAVA_VERSION: ${{ steps.test-jdk-major.outputs.major || matrix.java-version }}
           _JBANG_TEST_JAVA_HOME: ${{ steps.test-jdk.outputs.path }}
         run: |
           ./gradlew --no-daemon integrationTest
