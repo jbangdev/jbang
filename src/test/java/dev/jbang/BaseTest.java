@@ -25,8 +25,10 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.aesh.command.parser.CommandLineParserException;
@@ -242,7 +244,14 @@ public abstract class BaseTest {
 	 * proxy to WireMock while Maven uses the Apache HttpClient which doesn't use
 	 * the proxy and is unaffected by this method.
 	 */
+	private static SSLSocketFactory previousSocketFactory;
+	private static HostnameVerifier previousHostnameVerifier;
+
 	public static void trustWireMock() {
+		if (previousSocketFactory == null) {
+			previousSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+			previousHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+		}
 		try {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			try (FileInputStream fis = new FileInputStream("misc/wiremock.jks")) {
@@ -265,11 +274,21 @@ public abstract class BaseTest {
 		}
 	}
 
+	private static void restoreHttpsDefaults() {
+		if (previousSocketFactory != null) {
+			HttpsURLConnection.setDefaultSSLSocketFactory(previousSocketFactory);
+			HttpsURLConnection.setDefaultHostnameVerifier(previousHostnameVerifier);
+			previousSocketFactory = null;
+			previousHostnameVerifier = null;
+		}
+	}
+
 	protected void cleanupWireMock() {
 		if (globalwms == null) {
 			return; // Nothing to clean up
 		}
 		globalwms.stop();
+		restoreHttpsDefaults();
 		if ("true".equals(System.getenv("CI"))) {
 			// When running in CI, we want to fail if there are unmatched requests
 			List<LoggedRequest> requests = globalwms.getAllServeEvents()
