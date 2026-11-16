@@ -39,7 +39,8 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 			if ("8".equals(javaVersion)) {
 				javaVersion = "1.8";
 			}
-			at.errFind("Java: .* \\[" + javaVersion + "\\..*\\]")
+			// match e.g. "17.0.2", "27" (first GA build) and "28-ea" (early access)
+			at.errFind("Java: .* \\[" + javaVersion.replace(".", "\\.") + "([.+-].*)?\\]")
 				.as("java.version should be set when not using native image");
 		}
 	}
