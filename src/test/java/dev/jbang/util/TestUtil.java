@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -22,6 +23,24 @@ import dev.jbang.catalog.Catalog;
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
 		Catalog.clearCache();
+	}
+
+	@Test
+	void testRelativizeLinkTargetWithinLinkParent() throws IOException {
+		Path root = Files.createTempDirectory("jbang-link");
+		Path link = root.resolve("current");
+		Path target = root.resolve("cache").resolve("jdks").resolve("21");
+
+		assertEquals(root.relativize(target), Util.relativizeLinkTarget(link, target));
+	}
+
+	@Test
+	void testRelativizeLinkTargetOutsideLinkParent() throws IOException {
+		Path root = Files.createTempDirectory("jbang-link");
+		Path link = root.resolve("links").resolve("current");
+		Path target = root.resolve("targets").resolve("21");
+
+		assertEquals(target.toAbsolutePath(), Util.relativizeLinkTarget(link, target));
 	}
 
 	@Test

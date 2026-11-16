@@ -28,6 +28,8 @@ Once you have jbang installed, it is recommended you run `jbang app setup`. This
 [NOTE]
 ====
 By default `jbang` uses `~/.jbang` for configurations and build cache. This can be changed using the environment variable `JBANG_DIR`.
+
+Symbolic links use relative targets when the target is beneath the link's parent directory. This allows linked directory trees, such as the JBang directory, to remain usable when they are moved or mounted into a container. On Windows, JBang prefers symbolic links for directories when they are available and falls back to directory junctions otherwise.
 ====
 
 == Installation Methods
