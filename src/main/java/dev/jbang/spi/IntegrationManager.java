@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 
@@ -88,7 +89,7 @@ public class IntegrationManager {
 			.map(d -> "//" + (d.getValue() != null ? d.getName() + " " + d.getValue() : d.getName()))
 			.collect(Collectors.toList());
 		PrintStream oldout = System.out;
-		try (URLClassLoader integrationCl = getClassLoader(deps.values())) {
+		try (URLClassLoader integrationCl = getClassLoader(compileDir, deps.values())) {
 			String requestedJavaVersion = prj.getJavaVersion();
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
@@ -121,8 +122,9 @@ public class IntegrationManager {
 	}
 
 	@NonNull
-	private static URLClassLoader getClassLoader(Collection<Path> deps) {
-		URL[] urls = deps.stream().map(path -> {
+	private static URLClassLoader getClassLoader(Path classes, Collection<Path> deps) {
+		Stream<Path> paths = Stream.concat(Stream.of(classes), deps.stream());
+		URL[] urls = paths.map(path -> {
 			try {
 				return path.toUri().toURL();
 			} catch (MalformedURLException e) {
@@ -310,7 +312,7 @@ public class IntegrationManager {
 		String output = "";
 		boolean ok = false;
 		try {
-			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
+			URLClassLoader integrationCl = getClassLoader(input.classes, input.dependencies.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			IntegrationResult result = new IntegrationManager().runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
