@@ -295,6 +295,12 @@ export JBANG_DOWNLOAD_RETRY=10
 +
 This applies to JDK and JBang bootstrap downloads on all platforms (curl, wget, and PowerShell).
 
+When refreshing an expired remote catalog fails because its host cannot be resolved, its connection is refused, or there is no route to the host, JBang warns and uses the cached catalog if one is available.
+The cached catalog is still validated, and relative script references retain their remote base URL.
+The cache age is unchanged, so a later invocation retries the refresh.
+HTTP errors and invalid catalog contents are still reported.
+With `--fresh`, a failed refresh also fails the command.
+
 == Platform-Specific Issues
 
 === Windows Issues
