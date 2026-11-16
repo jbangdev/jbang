@@ -112,6 +112,27 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testCopyJBangFilesCopiesNativeBinariesFromRootAndDotJBang(@TempDir Path tempDir) throws IOException {
+		Path source = Files.createDirectory(tempDir.resolve("source"));
+		Path nestedSource = Files.createDirectory(source.resolve(".jbang"));
+		Path target = Files.createDirectory(tempDir.resolve("target"));
+		Files.writeString(source.resolve("jbang"), "sh");
+		Files.writeString(source.resolve("jbang.cmd"), "cmd");
+		Files.writeString(source.resolve("jbang.ps1"), "ps1");
+		Files.writeString(source.resolve("jbang.jar"), "jar");
+		Files.writeString(source.resolve("jbang.bin-linux-x64"), "root platform binary");
+		Files.writeString(nestedSource.resolve("jbang.bin-linux-x64"), "nested platform binary");
+		Files.writeString(nestedSource.resolve("jbang.bin"), "nested generic binary");
+		Files.writeString(nestedSource.resolve("jbang.bin-linux-x64.sha256"), "not a binary");
+
+		App.AppInstall.copyJBangFiles(source, target);
+
+		assertThat(Files.readString(target.resolve("jbang.bin-linux-x64")), is("root platform binary"));
+		assertThat(Files.readString(target.resolve("jbang.bin")), is("nested generic binary"));
+		assertThat(target.resolve("jbang.bin-linux-x64.sha256").toFile(), not(anExistingFile()));
+	}
+
+	@Test
 	void testAppInstallFile() throws Exception {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		CaptureResult<Integer> result = checkedRun("app", "install", "--no-build", src);
