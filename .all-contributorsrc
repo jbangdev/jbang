@@ -948,6 +948,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "UgurcanGursen",
+      "name": "Uğurcan Gürşen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33179697?v=4",
+      "profile": "http://www.ugurcangursen.com.tr",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
