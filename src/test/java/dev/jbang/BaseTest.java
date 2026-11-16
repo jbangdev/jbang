@@ -255,6 +255,11 @@ public abstract class BaseTest {
 			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(null, tmf.getTrustManagers(), null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			// WireMock 3.x generates per-host certificates using JDK internals that were
+			// removed in Java 21+, after which it falls back to a certificate that doesn't
+			// match the proxied host name. As we only trust the WireMock CA anyway, it is
+			// safe to skip host name verification. Can be removed with WireMock 4.x.
+			HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 		} catch (IOException | GeneralSecurityException e) {
 			throw new RuntimeException(e);
 		}
