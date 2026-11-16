@@ -105,7 +105,7 @@ public class BaseIT {
 		String testJavaHome = System.getenv("_JBANG_TEST_JAVA_HOME");
 		String javaMajorVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
 
-		if (testJavaHome == null) {
+		if (testJavaHome == null || testJavaHome.trim().isEmpty()) {
 			// We want to make sure the "multihome" is added for when we run in GH CI
 			JdkManager jdkMan = JavaUtil.defaultJdkManagerBuilder().provider("multihome").build();
 			// if env not avail it is null and will use default jdk
