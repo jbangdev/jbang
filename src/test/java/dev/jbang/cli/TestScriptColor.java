@@ -16,10 +16,13 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * The bash launcher captures jbang's output, so jbang itself never sees a
@@ -59,8 +62,9 @@ class TestScriptColor extends AbstractScriptTest {
 		assertEquals("CLICOLOR_FORCE=1", result.stdout.trim());
 	}
 
-	@Test
-	void forcesColorOnTerminal() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = { "_JAVA_OPTIONS", "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS" })
+	void forcesColorOnTerminal(String javaOptionsVariable) throws Exception {
 		// run the launcher with a pseudo terminal as stdout via script(1)
 		List<String> cmd = new ArrayList<>();
 		cmd.add("script");
@@ -70,16 +74,27 @@ class TestScriptColor extends AbstractScriptTest {
 			cmd.addAll(List.of("-qec", launcher.toString(), "/dev/null"));
 		}
 		assumeTrue(isScriptAvailable(), "script(1) is not available");
-		Map<String, String> env = env();
-		env.remove("CLICOLOR_FORCE");
-		RunResult result = runProcess(cmd, env);
-		assertEquals(0, result.exitCode, result.stderr);
-		assertEquals("CLICOLOR_FORCE=1", result.stdout.replace("\r", "").replace("^D", "").trim());
+		EnvironmentVariables variables = new EnvironmentVariables();
+		String originalValue = System.getenv(javaOptionsVariable);
+		variables.set(javaOptionsVariable, "-Djbang.color.probe=true");
+		try {
+			Map<String, String> env = env();
+			env.remove("CLICOLOR_FORCE");
+			RunResult result = runProcess(cmd, env);
+			assertEquals(0, result.exitCode, result.stderr);
+			assertEquals("CLICOLOR_FORCE=1", result.stdout.replace("\r", "").replace("^D", "").trim());
+		} finally {
+			variables.set(javaOptionsVariable, originalValue);
+		}
 	}
 
 	private Map<String, String> env() {
 		Map<String, String> env = baseBashEnv("color");
 		env.put("JAVA_HOME", System.getProperty("java.home"));
+		// JVM startup notices appear in stdout when the launcher runs under script(1).
+		env.remove("_JAVA_OPTIONS");
+		env.remove("JAVA_TOOL_OPTIONS");
+		env.remove("JDK_JAVA_OPTIONS");
 		return env;
 	}
 
