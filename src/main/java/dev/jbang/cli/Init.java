@@ -174,6 +174,8 @@ public class Init extends BaseCommand {
 			for (RefTarget refTarget : refTargets) {
 				Util.deletePath(refTarget.to(outDir), true);
 			}
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+					"Could not initialize " + scriptOrFile + ": " + e, e);
 		}
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir, absolute);

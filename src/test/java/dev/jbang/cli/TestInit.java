@@ -77,6 +77,16 @@ public class TestInit extends BaseTest {
 	}
 
 	@Test
+	void testInitWithExistingFileAsParent(@TempDir Path outputDir) throws IOException {
+		Path existing = Files.createFile(outputDir.resolve("existing.java"));
+		Path x = existing.resolve("wonka.java");
+		int result = JBang.execute("init", x.toString());
+		assertThat(result, not(0));
+		assertThat(Files.isRegularFile(existing), is(true));
+		assertThat(Files.exists(x), is(false));
+	}
+
+	@Test
 	void testOldInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("nonexist.java");
 		String s = x.toString();
