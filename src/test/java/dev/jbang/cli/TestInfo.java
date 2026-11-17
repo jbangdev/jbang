@@ -201,4 +201,34 @@ public class TestInfo extends BaseTest {
 			Files.deleteIfExists(warPath);
 		}
 	}
+
+	@Test
+	void testInfoToolsVars() {
+		String src = examplesTestFolder.resolve("vars.java").toString();
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(containsString("commons-io-2.8.0"))));
+	}
+
+	@Test
+	void testInfoToolsVarsOverriddenByD() {
+		String src = examplesTestFolder.resolve("vars.java").toString();
+		Info.Tools tools = JBang.parseCommand("info", "tools", "-Dcommons.version=2.11.0", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(containsString("commons-io-2.11.0"))));
+	}
+
+	@Test
+	void testInfoToolsVarsNestedStrict() {
+		String src = examplesTestFolder.resolve("varstop.java").toString();
+		Info.Tools tools = JBang.parseCommand("info", "tools", src);
+		Info.BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(containsString("commons-io-2.8.0"))));
+	}
 }
