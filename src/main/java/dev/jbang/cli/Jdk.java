@@ -36,12 +36,28 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "jdk", description = "Manage Java Development Kits installed by jbang.", groupCommands = {
 		Jdk.JdkInstall.class, Jdk.JdkList.class, Jdk.JdkUninstall.class,
 		Jdk.JdkHome.class, Jdk.JdkJavaEnv.class, Jdk.JdkExec.class,
-		Jdk.JdkDefault.class }, generateHelp = true, helpGroup = "Caching")
+		Jdk.JdkDefault.class }, helpGroup = "Caching")
 public class Jdk extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Installs and manages the JDKs jbang uses. JDKs are normally fetched on demand\n"
+				+ "when a script needs one; use these commands to pre-install versions, pick the\n"
+				+ "default, or point other tools at a jbang-managed JDK.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install 21",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} default 21",
+				"${COMMAND-FULL-NAME} home 21");
 	}
 
 	static class JdkOut implements Comparable<JdkOut> {
@@ -99,7 +115,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "install", aliases = {
-			"i" }, description = "Installs a JDK.", generateHelp = true)
+			"i" }, description = "Installs a JDK.")
 	public static class JdkInstall extends BaseCommand {
 
 		@Mixin
@@ -228,10 +244,25 @@ public class Jdk extends BaseCommand {
 				throw e;
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Installs a JDK by major version or id. Pass a path (or an installable archive)\n"
+					+ "as well to register a JDK you already have instead of downloading one. If a\n"
+					+ "matching JDK is already installed it is left as-is; use --force to replace it.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} 21",
+					"${COMMAND-FULL-NAME} 21 /opt/java/jdk-21",
+					"${COMMAND-FULL-NAME} --force 21");
+		}
 	}
 
 	@CommandDefinition(name = "list", aliases = {
-			"l" }, description = "Lists installed JDKs.", generateHelp = true)
+			"l" }, description = "Lists installed JDKs.")
 	public static class JdkList extends BaseCommand {
 
 		@Mixin
@@ -356,10 +387,24 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Lists the JDKs jbang has installed. Use --available to see versions you can\n"
+					+ "install.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --available",
+					"${COMMAND-FULL-NAME} --format=json");
+		}
 	}
 
 	@CommandDefinition(name = "uninstall", aliases = {
-			"u" }, description = "Uninstalls an existing JDK.", generateHelp = true)
+			"u" }, description = "Uninstalls an existing JDK.")
 	public static class JdkUninstall extends BaseCommand {
 
 		@Mixin
@@ -388,7 +433,7 @@ public class Jdk extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "home", description = "Prints the folder where the given JDK is installed.", generateHelp = true)
+	@CommandDefinition(name = "home", description = "Prints the folder where the given JDK is installed.")
 	public static class JdkHome extends BaseCommand {
 
 		@Mixin
@@ -411,7 +456,7 @@ public class Jdk extends BaseCommand {
 	}
 
 	@CommandDefinition(name = "java-env", aliases = {
-			"env" }, description = "Prints out the environment variables needed to use the given JDK.", generateHelp = true)
+			"env" }, description = "Prints out the environment variables needed to use the given JDK.")
 	public static class JdkJavaEnv extends BaseCommand {
 
 		@Mixin
@@ -468,10 +513,23 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Prints the shell commands that put a jbang-managed JDK on PATH and set\n"
+					+ "JAVA_HOME. Evaluate the output to use that JDK in your current shell.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"eval $(${COMMAND-FULL-NAME} 21)",
+					"${COMMAND-FULL-NAME} 21");
+		}
 	}
 
 	@CommandDefinition(name = "exec", aliases = {
-			"x" }, description = "Executes the given command using the default (or specified) JDK.", generateHelp = true)
+			"x" }, description = "Executes the given command using the default (or specified) JDK.")
 	public static class JdkExec extends BaseCommand {
 
 		@Mixin
@@ -518,9 +576,22 @@ public class Jdk extends BaseCommand {
 			}
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Runs a command with a jbang-managed JDK on PATH and JAVA_HOME: the default JDK,\n"
+					+ "or the one given with -j (installed if needed).";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} java -version",
+					"${COMMAND-FULL-NAME} -j 21 mvn package");
+		}
 	}
 
-	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.", generateHelp = true)
+	@CommandDefinition(name = "default", description = "Sets the default JDK to be used by JBang.")
 	public static class JdkDefault extends BaseCommand {
 
 		@Mixin
@@ -599,6 +670,19 @@ public class Jdk extends BaseCommand {
 				}
 			}
 			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Sets the JDK jbang uses by default, installing it if needed. Without an argument\n"
+					+ "it shows the current defaults.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} 21",
+					"${COMMAND-FULL-NAME}");
 		}
 	}
 }

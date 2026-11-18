@@ -24,8 +24,7 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 
 	@Override
 	public String getHeader() {
-		return "\n"
-				+ "  ${COMMAND-NAME} init hello.java [args...]\n"
+		return "  ${COMMAND-NAME} init hello.java [args...]\n"
 				+ "        (to initialize a script)\n"
 				+ "  or  ${COMMAND-NAME} edit --open=code --live hello.java\n"
 				+ "        (to edit a script in IDE with live updates)\n"
@@ -36,7 +35,7 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 				+ "  or  ${COMMAND-NAME} group-id:artifact-id:version [args...]\n"
 				+ "        (to run a .jar file found with a GAV id)\n"
 				+ "\n"
-				+ " note: run is the default command. To get help about run use ${COMMAND-NAME} run --help";
+				+ " note: run is the default command. To get help about run use ${COMMAND-NAME} run --help\n";
 	}
 
 	@Override

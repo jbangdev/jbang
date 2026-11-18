@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +27,28 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "catalog", description = "Manage Catalogs of aliases.", groupCommands = {
 		Catalog.CatalogAdd.class, Catalog.CatalogUpdate.class,
 		Catalog.CatalogList.class,
-		Catalog.CatalogRemove.class }, generateHelp = true, helpGroup = "Configuration")
+		Catalog.CatalogRemove.class }, helpGroup = "Configuration")
 public class Catalog extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Catalogs are jbang-catalog.json files that publish aliases and templates,\n"
+				+ "locally or on GitHub, GitLab and other hosts. Once added, run their aliases as\n"
+				+ "`jbang <alias>@<catalog>`.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} add --name demo jbangdev",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} update",
+				"${COMMAND-FULL-NAME} remove demo");
 	}
 
 	static abstract class BaseCatalogCommand extends BaseCommand {
@@ -40,7 +57,7 @@ public class Catalog extends BaseCommand {
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add a catalog.", generateHelp = true)
+	@CommandDefinition(name = "add", description = "Add a catalog.")
 	public static class CatalogAdd extends BaseCatalogCommand {
 
 		@Option(shortName = 'd', name = "description", description = "A description for the catalog")
@@ -78,9 +95,23 @@ public class Catalog extends BaseCommand {
 			info(String.format("Catalog '%s' added to '%s'", name, catFile));
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Registers a catalog under a name. Give a file, a URL, or a short GitHub\n"
+					+ "reference such as `jbangdev` (the jbangdev/jbang-catalog repository).";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name demo jbangdev",
+					"${COMMAND-FULL-NAME} --name team myteam/jbang-tools",
+					"${COMMAND-FULL-NAME} --global --name local ./jbang-catalog.json");
+		}
 	}
 
-	@CommandDefinition(name = "update", description = "Retrieve the latest contents of the catalogs.", generateHelp = true)
+	@CommandDefinition(name = "update", description = "Retrieve the latest contents of the catalogs.")
 	public static class CatalogUpdate extends BaseCatalogCommand {
 
 		@Override
@@ -106,7 +137,7 @@ public class Catalog extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Show currently defined catalogs.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Show currently defined catalogs.")
 	public static class CatalogList extends BaseCatalogCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the catalog")
@@ -312,7 +343,7 @@ public class Catalog extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove existing catalog.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove existing catalog.")
 	public static class CatalogRemove extends BaseCatalogCommand {
 
 		@Argument(paramLabel = "name", description = "The name of the catalog", required = true)

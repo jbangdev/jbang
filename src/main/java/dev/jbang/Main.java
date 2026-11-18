@@ -58,6 +58,8 @@ public class Main {
 		int exitCode = 0;
 		try {
 			CommandResult result = AeshRuntimeRunner.builder()
+				.helpDefaults(JBang.HELP_DEFAULTS)
+				.argumentsSectionDefault(JBang.ARGUMENTS_SECTION)
 				.command(JBang.class)
 				.args(newArgs)
 				.defaultValueProvider(new JBangDefaultValueProvider())
@@ -126,6 +128,7 @@ public class Main {
 			names.add("export");
 			names.add("config");
 			names.add("deps");
+			names.add("skill");
 			subcommandNames = names;
 		}
 		return subcommandNames;
