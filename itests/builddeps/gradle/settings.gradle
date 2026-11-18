@@ -1,0 +1,4 @@
+// Makes this fixture a standalone Gradle build so Gradle does not walk up and
+// attach it to the parent jbang build (which would fail with "not part of the
+// build defined by settings file ...").
+rootProject.name = 'gradle-example'
