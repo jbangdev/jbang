@@ -5,6 +5,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
+import dev.jbang.Settings;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -55,5 +59,23 @@ public class TestVersion extends BaseTest {
 		Integer result = CommandInvoker.validateAndCall(versionCmd);
 		assertThat(result, equalTo(ExitException.EXIT_OK));
 		assertTrue(VersionChecker.isInformed());
+	}
+
+	@Test
+	void testVersionUpdateWhenPendingLauncherExists() throws Exception {
+		if (Util.isWindows() && Util.getShell() == Util.Shell.cmd) {
+			Path binDir = Settings.getConfigBinDir();
+			binDir.toFile().mkdirs();
+			Path launcherUpdate = binDir.resolve("jbang.cmd.new");
+			Files.write(launcherUpdate, Collections.singletonList("echo test"));
+			try {
+				Version versionCmd = new Version();
+				versionCmd.update = true;
+				Integer result = CommandInvoker.validateAndCall(versionCmd);
+				assertThat(result, equalTo(ExitException.EXIT_EXECUTE));
+			} finally {
+				Files.deleteIfExists(launcherUpdate);
+			}
+		}
 	}
 }
