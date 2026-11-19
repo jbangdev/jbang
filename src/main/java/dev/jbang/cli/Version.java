@@ -25,6 +25,11 @@ public class Version extends BaseCommand {
 	public Integer doCall() {
 		boolean updated = false;
 		if (update) {
+			String pendingLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
+			if (pendingLauncherUpdate != null) {
+				System.out.println(pendingLauncherUpdate);
+				return ExitException.EXIT_EXECUTE;
+			}
 			if (VersionChecker.updateOrInform()) {
 				try {
 					App.AppInstall.installJBang(true);
