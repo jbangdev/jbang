@@ -40,29 +40,30 @@ public class VersionChecker {
 
 	/**
 	 * Very specialized function used to check if jbang can be updated. It returns
-	 * `true` when we're running a managed jbang and either there is a newer version
-	 * or `checkForUpdate` was disabled. In all other cases it will return `false`
-	 * and informing the user that either jbang is already up-to-date or telling
-	 * them how to update jbang themselves (if `checkForUpdate` was disabled).
+	 * `true` when we're running a managed jbang and there is a newer version. In
+	 * all other cases it will return `false` and inform the user that jbang is
+	 * already up-to-date or tell them how to update jbang themselves (if not
+	 * running a managed jbang).
 	 * 
-	 * @param checkForUpdate do we check for a new version or not?
 	 * @return do we update jbang or not?
 	 */
-	public static boolean updateOrInform(boolean checkForUpdate) {
+	public static boolean updateOrInform() {
 		try {
+			String latestVersion = retrieveLatestVersionAsync().get();
+			if (latestVersion == null) {
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
+			}
 			if (Util.runningManagedJBang()) {
-				String latestVersion = retrieveLatestVersionAsync().get();
-				if (!checkForUpdate || isNewer(latestVersion)) {
+				if (isNewer(latestVersion)) {
+					informed = true;
 					return true;
-				} else if (checkForUpdate) {
+				} else {
+					System.out.println(Util.getJBangVersion());
 					inform(latestVersion, false);
 				}
 			} else {
-				if (checkForUpdate) {
-					checkNowAndInform();
-				} else if (!informed) {
-					showManualInstallMessage();
-				}
+				System.out.println(Util.getJBangVersion());
+				inform(latestVersion, false);
 			}
 		} catch (ExecutionException e) {
 			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
@@ -166,7 +167,7 @@ public class VersionChecker {
 	 * Checks if we're running the latest version of JBang by comparing its version
 	 * against the latest version on GitHub.
 	 */
-	private static boolean isNewer(String latestVersion) {
+	public static boolean isNewer(String latestVersion) {
 		return (latestVersion != null && compareVersions(latestVersion, Util.getJBangVersion()) > 0);
 	}
 
@@ -191,7 +192,7 @@ public class VersionChecker {
 		return null;
 	}
 
-	private static int compareVersions(String v1, String v2) {
+	public static int compareVersions(String v1, String v2) {
 		String[] v1p = v1.split("\\.");
 		String[] v2p = v2.split("\\.");
 		int maxl = Math.max(v1p.length, v2p.length);
@@ -217,6 +218,34 @@ public class VersionChecker {
 			}
 		}
 		return 0;
+	}
+
+	public static String getLatestVersion() {
+		try {
+			if (versionCheckResult != null) {
+				return versionCheckResult.get();
+			}
+		} catch (ExecutionException | InterruptedException e) {
+			// ignore
+		}
+		return null;
+	}
+
+	public static boolean isInformed() {
+		return informed;
+	}
+
+	public static void setInformed(boolean informed) {
+		VersionChecker.informed = informed;
+	}
+
+	public static void setVersionCheckResult(Future<String> result) {
+		versionCheckResult = result;
+	}
+
+	public static void reset() {
+		versionCheckResult = null;
+		informed = false;
 	}
 
 }

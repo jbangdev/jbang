@@ -23,10 +23,21 @@ public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
+		boolean updated = false;
 		if (update) {
-			if (VersionChecker.updateOrInform(checkForUpdate)) {
+			String pendingLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
+			if (pendingLauncherUpdate != null) {
+				System.out.println(pendingLauncherUpdate);
+				return ExitException.EXIT_EXECUTE;
+			}
+			if (VersionChecker.updateOrInform()) {
 				try {
 					App.AppInstall.installJBang(true);
+					String latest = VersionChecker.getLatestVersion();
+					if (latest != null) {
+						Util.infoMsg("jbang updated to " + latest + ".");
+					}
+					updated = true;
 				} catch (IOException e) {
 					throw new ExitException(ExitException.EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
@@ -50,7 +61,7 @@ public class Version extends BaseCommand {
 			System.err.println("Native Image: " + JavaUtil.inNativeImage());
 		}
 
-		if (update) {
+		if (updated) {
 			String cmdLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
 			if (cmdLauncherUpdate != null) {
 				System.out.println(cmdLauncherUpdate);
