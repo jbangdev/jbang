@@ -121,6 +121,11 @@ public class Util {
 	private static Instant startTime = Instant.now();
 	private static boolean printExceptions = false;
 	private static int askInputTimeout = 30;
+	private static Boolean runningManagedJBang;
+
+	public static void setRunningManagedJBang(Boolean runningManaged) {
+		Util.runningManagedJBang = runningManaged;
+	}
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -1321,6 +1326,9 @@ public class Util {
 	 * install` or not
 	 */
 	public static boolean runningManagedJBang() {
+		if (runningManagedJBang != null) {
+			return runningManagedJBang;
+		}
 		try {
 			return getJarLocation().toRealPath().startsWith(Settings.getConfigBinDir().toRealPath());
 		} catch (IOException e) {
