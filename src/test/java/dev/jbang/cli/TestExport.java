@@ -31,6 +31,12 @@ import dev.jbang.util.Util;
 public class TestExport extends BaseTest {
 
 	@Test
+	void testExportNativeAcceptsUpxOption() {
+		Export.ExportNative command = JBang.parseCommand("export", "native", "--upx", "test.java");
+		assertThat(command.upx, is(true));
+	}
+
+	@Test
 	void testExportFile() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
