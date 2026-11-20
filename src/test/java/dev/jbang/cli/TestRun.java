@@ -91,6 +91,69 @@ import dev.jbang.util.WarTestFixtures;
 public class TestRun extends BaseTest {
 
 	@Test
+	void testVarsInSourcesPath() throws IOException {
+		String arg = examplesTestFolder.resolve("varsbasetop.java").toAbsolutePath().toString();
+
+		Run run = JBang.parseCommand("run", arg);
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+
+		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(2));
+		assertThat(prj.getMainSourceSet()
+			.getSources()
+			.stream()
+			.filter(ref -> ref instanceof ResourceRef.UnresolvableResourceRef)
+			.collect(Collectors.toList()), iterableWithSize(0));
+	}
+
+	@Test
+	void testScopedVarsNestedTree() throws IOException {
+		String arg = examplesTestFolder.resolve("scopetop.java").toAbsolutePath().toString();
+
+		Run run = JBang.parseCommand("run", arg);
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+		String result = Project.codeBuilder(BuildContext.forProject(prj)).build().build().generate();
+
+		assertThat(result, containsString("-Dprobe.top=top"));
+		assertThat(result, containsString("-Dprobe.a.common=top"));
+		assertThat(result, containsString("-Dprobe.a.vtop=2.8.0"));
+		assertThat(result, containsString("-Dprobe.b.common=top"));
+		assertThat(result, containsString("-Dprobe.b.fromb=1"));
+		assertThat(result, containsString("-Dprobe.c.common=top"));
+		assertThat(result, containsString("-Dprobe.c.fromb=1"));
+		assertThat(result, containsString("-Dprobe.c.vtop=2.8.0"));
+	}
+
+	@Test
+	void testPropsDirectiveParentWinsAndCommandLineBeatsAll() throws IOException {
+		String arg = examplesTestFolder.resolve("propstop.java").toAbsolutePath().toString();
+
+		Run run = JBang.parseCommand("run", arg);
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+		String result = Project.codeBuilder(BuildContext.forProject(prj)).build().build().generate();
+
+		assertThat(result, containsString("-Dmy.greeting=hello"));
+		assertThat(result, containsString("-Dmy.fixed=top"));
+		assertThat(result, not(containsString("-Dmy.fixed=child")));
+		assertThat(result, containsString("-Dmy.childonly=yes"));
+	}
+
+	@Test
+	void testPropsDirectiveOverriddenByD() throws IOException {
+		String arg = examplesTestFolder.resolve("propstop.java").toAbsolutePath().toString();
+
+		Run run = JBang.parseCommand("run", "-Dmy.fixed=cli", arg);
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+		String result = Project.codeBuilder(BuildContext.forProject(prj)).build().build().generate();
+
+		assertThat(result, containsString("-Dmy.fixed=cli"));
+		assertThat(result, not(containsString("-Dmy.fixed=top")));
+	}
+
+	@Test
 	void testHelloWorld() throws IOException {
 		testHelloWorld(true);
 	}

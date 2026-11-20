@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,6 +78,7 @@ public class ProjectBuilder {
 	// properties are merged in, so we can tell an explicit -D from an alias
 	// default.
 	private Map<String, String> explicitProperties = Collections.emptyMap();
+	private final Map<String, String> directiveProps = new LinkedHashMap<>();
 	private Source.Type forceType = null;
 	private String mainClass;
 	private String moduleName;
@@ -313,6 +315,8 @@ public class ProjectBuilder {
 					"Self-referencing project dependency found for: '" + resourceRef.getOriginalResource() + "'");
 		}
 
+		directiveProps.clear();
+
 		// Expose an explicit alias:version to the running script as
 		// -Djbang.app.version=<version>
 		// (part of the reserved jbang.app.* namespace; mirrors the JBANG_APP_* env
@@ -436,12 +440,13 @@ public class ProjectBuilder {
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
-		return Source.forResourceRef(resourceRef,
-				propertyReplacer());
+		return Source.forResourceRef(resourceRef, propertyReplacer())
+			.withInheritedProperties(getContextProperties());
 
 	}
 
 	public Project build(Source src) {
+		directiveProps.clear();
 		Project prj = new Project(src);
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
@@ -551,7 +556,9 @@ public class ProjectBuilder {
 				allToFileRef(allToKV(replaceAllProps(additionalResources)), null, ResourceResolver.forResources()));
 		ss.addCompileOptions(compileOptions);
 		ss.addNativeOptions(nativeOptions);
-		prj.putProperties(properties);
+		Map<String, String> mergedProps = new LinkedHashMap<>(directiveProps);
+		mergedProps.putAll(properties);
+		prj.putProperties(mergedProps);
 		prj.getManifestAttributes().putAll(manifestOptions);
 		if (moduleName != null) {
 			if (!moduleName.isEmpty() || !prj.getModuleName().isPresent()) {
@@ -599,12 +606,26 @@ public class ProjectBuilder {
 		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
 	}
 
+	private List<Source> allToScopedSource(List<Directives.ScopedSource> sources, ResourceRef resourceRef,
+			ResourceResolver resolver) {
+		String org = resourceRef != null ? resourceRef.getOriginalResource() : null;
+		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent() : Util.getCwd();
+		return sources.stream()
+			.flatMap(scoped -> Util.explode(org, baseDir, scoped.getValue())
+				.stream()
+				.map(ref -> Source.forResource(resolver, ref, propertyReplacer())
+					.withInheritedProperties(
+							scoped.getScope() != null ? scoped.getScope() : getContextProperties())))
+			.collect(Collectors.toList());
+	}
+
 	private List<Source> allToSource(List<String> sources, ResourceRef resourceRef, ResourceResolver resolver) {
 		String org = resourceRef != null ? resourceRef.getOriginalResource() : null;
 		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent() : Util.getCwd();
 		return sources.stream()
 			.flatMap(line -> Util.explode(org, baseDir, line).stream())
 			.map(ref -> Source.forResource(resolver, ref, propertyReplacer()))
+			.map(src -> src.withInheritedProperties(getContextProperties()))
 			.collect(Collectors.toList());
 	}
 
@@ -713,6 +734,7 @@ public class ProjectBuilder {
 				Util.verboseMsg("Skipping unresolvable source: " + srcRef);
 				return prj;
 			}
+			src.getDirectives().props().forEach(directiveProps::putIfAbsent);
 			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
 			ss.addResources(allToFileRef(src.getDirectives().files(), srcRef, sibRes1));
 			ss.addDependencies(src.collectBinaryDependencies());
@@ -743,7 +765,7 @@ public class ProjectBuilder {
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
-			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
+			List<Source> includedSources = allToScopedSource(src.getDirectives().scopedSources(), srcRef, sibRes2);
 			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
 			}
