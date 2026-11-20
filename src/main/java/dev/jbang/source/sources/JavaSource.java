@@ -15,6 +15,7 @@ import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JavaSource extends Source {
@@ -78,7 +79,7 @@ public class JavaSource extends Source {
 						&& jdk.majorVersion() < 9) {
 					// Make sure we use at least Java 9 when dealing with modules
 					requestedJavaVersion = "9+";
-					jdk = project.projectJdkManager().getOrInstallJdk(requestedJavaVersion);
+					jdk = JavaUtil.getOrInstallJdk(project.projectJdkManager(), requestedJavaVersion);
 				}
 				return resolveInJavaHome("javac", jdk);
 			}

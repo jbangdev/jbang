@@ -51,25 +51,25 @@ if exist "%jarPath%.new" (
   del /f /q "%jarPath%.new"
 )
 
-rem Find/get a JDK (only needed for JAR execution)
+rem Find/get a Java runtime (only needed for JAR execution)
 set JAVA_EXEC=
 if not "%JAVA_HOME%"=="" (
-  rem Determine if a (working) JDK is available in JAVA_HOME
-  if exist "%JAVA_HOME%\bin\javac.exe" (
+  rem A JRE is sufficient to launch JBang
+  if exist "%JAVA_HOME%\bin\java.exe" (
     set JAVA_EXEC=%JAVA_HOME%\bin\java.exe
   ) else (
-    echo JAVA_HOME is set but does not seem to point to a valid Java JDK 1>&2
+    echo JAVA_HOME is set but does not seem to point to a valid Java runtime 1>&2
   )
 )
 if "!JAVA_EXEC!"=="" (
-  rem Determine if a (working) JDK is available on the PATH
-  where javac > nul 2>&1
+  rem Determine if a Java runtime is available on the PATH
+  where java > nul 2>&1
   if !errorlevel! equ 0 (
     set JAVA_HOME=
     set JAVA_EXEC=java.exe
-  ) else if exist "%JBDIR%\currentjdk\bin\javac" (
+  ) else if exist "%JBDIR%\currentjdk\bin\java.exe" (
     set JAVA_HOME=%JBDIR%\currentjdk
-    set JAVA_EXEC=%JBDIR%\currentjdk\bin\java
+    set JAVA_EXEC=%JBDIR%\currentjdk\bin\java.exe
   ) else (
     set JAVA_HOME=%TDIR%\jdks\%javaVersion%
     set JAVA_EXEC=!JAVA_HOME!\bin\java.exe

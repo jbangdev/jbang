@@ -14,6 +14,7 @@ import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
@@ -52,6 +53,7 @@ public class Project {
 	// Cached values
 	private String stableId;
 	private Jdk.InstalledJdk projectJdk;
+	private Jdk.InstalledJdk projectJava;
 	private ModularClassPath resolvedClassPath;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -306,9 +308,19 @@ public class Project {
 
 	public Jdk.InstalledJdk projectJdk() {
 		if (projectJdk == null) {
-			projectJdk = projectJdkManager().getOrInstallJdk(getJavaVersion());
+			projectJdk = JavaUtil.getOrInstallJdk(projectJdkManager(), getJavaVersion());
 		}
 		return projectJdk;
+	}
+
+	public Jdk.InstalledJdk projectJava() {
+		if (projectJdk != null) {
+			return projectJdk;
+		}
+		if (projectJava == null) {
+			projectJava = projectJdkManager().getOrInstallJdk(getJavaVersion());
+		}
+		return projectJava;
 	}
 
 	/**
