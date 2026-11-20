@@ -2,14 +2,20 @@ package dev.jbang.catalog;
 
 import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
+@JsonAdapter(Template.Deserializer.class)
 public class Template extends CatalogItem {
 	@SerializedName(value = "file-refs")
 	public final Map<String, String> fileRefs;
@@ -22,6 +28,21 @@ public class Template extends CatalogItem {
 		this.fileRefs = fileRefs;
 		this.description = description;
 		this.properties = properties;
+	}
+
+	static final class Deserializer implements JsonDeserializer<Template> {
+		@Override
+		public Template deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+			JsonFields fields = context.deserialize(json, JsonFields.class);
+			return new Template(fields.fileRefs, fields.description, fields.properties, null);
+		}
+	}
+
+	private static final class JsonFields {
+		@SerializedName("file-refs")
+		Map<String, String> fileRefs;
+		String description;
+		Map<String, TemplateProperty> properties;
 	}
 
 	public static Template get(String templateName) {
