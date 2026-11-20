@@ -20,6 +20,8 @@ import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
@@ -32,6 +34,7 @@ import dev.jbang.Settings;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
+@JsonAdapter(Catalog.Deserializer.class)
 public class Catalog {
 
 	public static class SkipEmptyMapSerializer<K, V> implements JsonSerializer<Map<K, V>> {
@@ -88,6 +91,28 @@ public class Catalog {
 		aliases.forEach((key, a) -> this.aliases.put(key, a.withCatalog(this)));
 		templates.forEach((key, t) -> this.templates.put(key,
 				new Template(t.fileRefs, t.description, t.properties, this)));
+	}
+
+	static final class Deserializer implements JsonDeserializer<Catalog> {
+		@Override
+		public Catalog deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+			JsonFields fields = context.deserialize(json, JsonFields.class);
+			Catalog catalog = new Catalog(fields.baseRef, fields.description, null, Collections.emptyMap(),
+					Collections.emptyMap(), Collections.emptyMap());
+			catalog.catalogs = fields.catalogs;
+			catalog.aliases = fields.aliases;
+			catalog.templates = fields.templates;
+			return catalog;
+		}
+	}
+
+	private static final class JsonFields {
+		@SerializedName(value = "base-ref", alternate = { "baseRef" })
+		String baseRef;
+		String description;
+		Map<String, CatalogRef> catalogs;
+		Map<String, Alias> aliases;
+		Map<String, Template> templates;
 	}
 
 	public static Catalog empty() {
