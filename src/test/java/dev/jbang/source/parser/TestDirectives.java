@@ -175,4 +175,12 @@ public class TestDirectives {
 		assertThat(tr.props().get("a"), equalTo("b"));
 		assertThat(tr.props().get("msg"), equalTo("hello world"));
 	}
+
+	@Test
+	void testVarsWithoutInheritedProperties() {
+		Directives tr = new Directives.Extended(
+				String.join(System.lineSeparator(), "//VARS v=1", "//DEPS foo:bar:${v}"), null);
+
+		assertThat(tr.binaryDependencies(), containsInAnyOrder("foo:bar:1"));
+	}
 }

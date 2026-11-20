@@ -495,17 +495,30 @@ public abstract class Directives {
 		}
 
 		private Function<String, String> replacer() {
-			if (inherited == null) {
+			if (inherited == null && vars.isEmpty()) {
 				return propertiesReplacer;
 			}
 			Properties layered = new Properties() {
 				@Override
 				public String getProperty(String key) {
-					String val = inherited.getProperty(key);
+					String val = inherited != null ? inherited.getProperty(key) : fallback(key);
 					return val != null ? val : vars.get(key);
 				}
 			};
 			return value -> PropertiesValueResolver.replaceProperties(value, layered);
+		}
+
+		private String fallback(String key) {
+			if (propertiesReplacer == null) {
+				return System.getProperty(key);
+			}
+			String token = "${" + key + "}";
+			try {
+				String resolved = propertiesReplacer.apply(token);
+				return token.equals(resolved) ? null : resolved;
+			} catch (IllegalStateException e) {
+				return null;
+			}
 		}
 
 		private void registerVars(@Nullable String value) {

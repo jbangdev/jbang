@@ -446,6 +446,7 @@ public class ProjectBuilder {
 	}
 
 	public Project build(Source src) {
+		directiveProps.clear();
 		Project prj = new Project(src);
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
