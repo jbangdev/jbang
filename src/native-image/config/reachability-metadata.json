@@ -135,6 +135,84 @@
       "unsafeAllocated": true
     },
     {
+      "type": "dev.jbang.catalog.Alias$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.catalog.Alias$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "scriptRef" },
+        { "name": "description" },
+        { "name": "arguments" },
+        { "name": "runtimeOptions" },
+        { "name": "sources" },
+        { "name": "resources" },
+        { "name": "dependencies" },
+        { "name": "repositories" },
+        { "name": "classpaths" },
+        { "name": "properties" },
+        { "name": "javaVersion" },
+        { "name": "mainClass" },
+        { "name": "moduleName" },
+        { "name": "compileOptions" },
+        { "name": "nativeImage" },
+        { "name": "nativeOptions" },
+        { "name": "forceType" },
+        { "name": "integrations" },
+        { "name": "jfr" },
+        { "name": "debug" },
+        { "name": "cds" },
+        { "name": "interactive" },
+        { "name": "enablePreview" },
+        { "name": "enableAssertions" },
+        { "name": "enableSystemAssertions" },
+        { "name": "manifestOptions" },
+        { "name": "javaAgents" },
+        { "name": "docs" }
+      ]
+    },
+    {
+      "type": "dev.jbang.catalog.Alias$JavaAgent$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.catalog.Alias$JavaAgent$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "agentRef" },
+        { "name": "options" }
+      ]
+    },
+    {
+      "type": "dev.jbang.catalog.Catalog$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.catalog.Catalog$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "baseRef" },
+        { "name": "description" },
+        { "name": "catalogs" },
+        { "name": "aliases" },
+        { "name": "templates" }
+      ]
+    },
+    {
+      "type": "dev.jbang.catalog.Template$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.catalog.Template$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "fileRefs" },
+        { "name": "description" },
+        { "name": "properties" }
+      ]
+    },
+    {
       "type": "dev.jbang.catalog.Alias",
       "fields": [
         { "name": "arguments" },
@@ -202,6 +280,19 @@
     {
       "type": "dev.jbang.catalog.CatalogRef",
       "unsafeAllocated": true,
+      "fields": [
+        { "name": "catalogRef" },
+        { "name": "description" },
+        { "name": "importItems" }
+      ]
+    },
+    {
+      "type": "dev.jbang.catalog.CatalogRef$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.catalog.CatalogRef$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
       "fields": [
         { "name": "catalogRef" },
         { "name": "description" },

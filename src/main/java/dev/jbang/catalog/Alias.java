@@ -2,6 +2,7 @@ package dev.jbang.catalog;
 
 import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,9 @@ import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
@@ -18,6 +22,7 @@ import dev.jbang.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 
+@JsonAdapter(Alias.Deserializer.class)
 public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
 	public final String scriptRef;
@@ -65,6 +70,66 @@ public class Alias extends CatalogItem {
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
 	public final List<String> docs;
 
+	static final class Deserializer implements JsonDeserializer<Alias> {
+		@Override
+		public Alias deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+			JsonFields fields = context.deserialize(json, JsonFields.class);
+			return new Alias(fields.scriptRef, fields.description, fields.arguments, fields.runtimeOptions,
+					fields.sources, fields.resources, fields.dependencies, fields.repositories, fields.classpaths,
+					fields.properties, fields.javaVersion, fields.mainClass, fields.moduleName, fields.compileOptions,
+					fields.nativeImage, fields.nativeOptions, fields.forceType, fields.integrations, fields.jfr,
+					fields.debug, fields.cds, fields.interactive, fields.enablePreview, fields.enableAssertions,
+					fields.enableSystemAssertions, fields.manifestOptions, fields.javaAgents, fields.docs, null);
+		}
+	}
+
+	private static final class JsonFields {
+		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
+		String scriptRef;
+		String description;
+		List<String> arguments;
+		@SerializedName(value = "runtime-options", alternate = { "java-options" })
+		List<String> runtimeOptions;
+		List<String> sources;
+		@SerializedName(value = "files")
+		List<String> resources;
+		List<String> dependencies;
+		List<String> repositories;
+		List<String> classpaths;
+		Map<String, String> properties;
+		@SerializedName(value = "java")
+		String javaVersion;
+		@SerializedName(value = "main")
+		String mainClass;
+		@SerializedName(value = "module")
+		String moduleName;
+		@SerializedName(value = "compile-options")
+		List<String> compileOptions;
+		@SerializedName(value = "native-image")
+		Boolean nativeImage;
+		@SerializedName(value = "native-options")
+		List<String> nativeOptions;
+		@SerializedName(value = "source-type")
+		String forceType;
+		Boolean integrations;
+		String jfr;
+		Map<String, String> debug;
+		Boolean cds;
+		Boolean interactive;
+		@SerializedName(value = "enable-preview")
+		Boolean enablePreview;
+		@SerializedName(value = "enable-assertions")
+		Boolean enableAssertions;
+		@SerializedName(value = "enable-system-assertions")
+		Boolean enableSystemAssertions;
+		@SerializedName(value = "manifest-options")
+		Map<String, String> manifestOptions;
+		@SerializedName(value = "java-agents")
+		List<JavaAgent> javaAgents;
+		List<String> docs;
+	}
+
+	@JsonAdapter(JavaAgent.Deserializer.class)
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
 		@NonNull
@@ -79,6 +144,20 @@ public class Alias extends CatalogItem {
 		public JavaAgent(@NonNull String agentRef, @NonNull String options) {
 			this.agentRef = agentRef;
 			this.options = options;
+		}
+
+		static final class Deserializer implements JsonDeserializer<JavaAgent> {
+			@Override
+			public JavaAgent deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+				JsonFields fields = context.deserialize(json, JsonFields.class);
+				return new JavaAgent(fields.agentRef, fields.options);
+			}
+		}
+
+		private static final class JsonFields {
+			@SerializedName("agent-ref")
+			String agentRef;
+			String options;
 		}
 
 		@Override

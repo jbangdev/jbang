@@ -2,16 +2,22 @@ package dev.jbang.catalog;
 
 import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.util.Util;
 
+@JsonAdapter(CatalogRef.Deserializer.class)
 public class CatalogRef extends CatalogItem {
 	@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
 	public final String catalogRef;
@@ -24,6 +30,24 @@ public class CatalogRef extends CatalogItem {
 		this.catalogRef = catalogRef;
 		this.description = description;
 		this.importItems = importItems;
+	}
+
+	static final class Deserializer implements JsonDeserializer<CatalogRef> {
+		@Override
+		public CatalogRef deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+			JsonFields fields = context.deserialize(json, JsonFields.class);
+			return new CatalogRef(fields.catalogRef, fields.description, fields.importItems, null);
+		}
+	}
+
+	// Gson can populate these fields without changing the final fields of a
+	// CatalogRef.
+	private static final class JsonFields {
+		@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
+		String catalogRef;
+		String description;
+		@SerializedName(value = "import")
+		Boolean importItems;
 	}
 
 	public static CatalogRef get(String catalogRefString) {
