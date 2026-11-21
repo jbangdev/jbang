@@ -56,6 +56,19 @@ Since version `0.92.0` the full path to the JBang script can be acquired by quer
 
 Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
 
+==== Reserved `jbang.app.*` system properties
+
+The `jbang.app.*` namespace carries metadata about the application/script JBang is running (as opposed to JBang itself). It is the system-property counterpart to the `JBANG_APP_*` environment variables used to inject directives.
+
+When an alias is run with an explicit version, e.g. `jbang run myalias:1.2.3`, JBang exposes that version to the script as the `jbang.app.version` system property:
+
+[source,java]
+----
+String version = System.getProperty("jbang.app.version", "dev"); // "1.2.3" when run as myalias:1.2.3
+----
+
+This lets a script decide what to do with the requested version itself, instead of (or in addition to) having the version substituted into the alias `script-ref`. When no version is given, the property is not set.
+
 === Disable integrations
 
 Since version `0.222.0`, the `--no-integrations` flag or the `//NOINTEGRATIONS` directive can be used to prevent JBang from running any of the build integrations.

@@ -18,7 +18,7 @@ import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {
-		Wrapper.WrapperInstall.class }, generateHelp = true)
+		Wrapper.WrapperInstall.class })
 public class Wrapper extends BaseCommand {
 	public static final String DIR_NAME = ".jbang";
 	public static final String JAR_NAME = "jbang.jar";
@@ -29,7 +29,20 @@ public class Wrapper extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder", generateHelp = true)
+	@Override
+	public String prose() {
+		return "Adds jbang wrapper scripts to a folder (usually a project), so anyone can run\n"
+				+ "your scripts with `./jbang` without installing jbang first.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install",
+				"${COMMAND-FULL-NAME} install -d myproject");
+	}
+
+	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder")
 	public static class WrapperInstall extends BaseCommand {
 
 		@Option(shortName = 'd', name = "dir", description = "The folder to install the wrapper into.")
@@ -42,17 +55,18 @@ public class Wrapper extends BaseCommand {
 		public Integer doCall() {
 			Path destPath = dest != null ? dest : Paths.get(".");
 			if (!Files.isDirectory(destPath)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Destination folder does not exist");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Destination folder does not exist");
 			}
 			if ((checkScripts(destPath) || checkJar(destPath.resolve(DIR_NAME))) && !force) {
 				Util.warnMsg("Wrapper already exists. Use --force to install anyway");
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			}
 			try {
 				Path jar = Util.getJarLocation();
 				String jarName = jar.getFileName().toString();
 				if (!jarName.endsWith(".jar") && !jarName.contains("jbang.bin")) {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang install location via " + jar);
+					throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+							"Couldn't find JBang install location via " + jar);
 				}
 				Path parent = jar.getParent();
 				if (checkScripts(parent) && checkJar(parent)) {
@@ -64,11 +78,11 @@ public class Wrapper extends BaseCommand {
 					copyScripts(parent.getParent(), destPath);
 					copyJar(parent, destPath);
 				} else {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang wrapper files");
+					throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't find JBang wrapper files");
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} catch (IOException e) {
-				throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't copy JBang wrapper scripts", e);
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't copy JBang wrapper scripts", e);
 			}
 		}
 
@@ -90,6 +104,21 @@ public class Wrapper extends BaseCommand {
 			Path jbdir = dest.resolve(DIR_NAME);
 			jbdir.toFile().mkdirs();
 			Files.copy(dir.resolve(JAR_NAME), jbdir.resolve(JAR_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
+		}
+
+		@Override
+		public String prose() {
+			return "Copies the jbang wrapper (jbang, jbang.cmd, jbang.ps1 and .jbang/jbang.jar) into\n"
+					+ "the current folder, or the one given with --dir. Commit them so others can use\n"
+					+ "`./jbang`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} -d myproject",
+					"${COMMAND-FULL-NAME} --force");
 		}
 	}
 }

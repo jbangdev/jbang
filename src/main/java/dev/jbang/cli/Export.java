@@ -40,7 +40,7 @@ import io.quarkus.qute.Template;
 		Export.ExportPortable.class, Export.ExportLocal.class, Export.ExportMavenPublish.class,
 		Export.ExportNative.class, Export.ExportFatjar.class, Export.ExportJlink.class,
 		Export.ExportGradleProject.class,
-		Export.ExportMavenProject.class }, generateHelp = true, helpGroup = "Caching")
+		Export.ExportMavenProject.class }, helpGroup = "Caching")
 public class Export extends BaseCommand {
 
 	@Override
@@ -48,10 +48,26 @@ public class Export extends BaseCommand {
 		return missingSubcommand();
 	}
 
+	@Override
+	public String prose() {
+		return "Builds a script, jar or GAV and exports the result in a form you can ship or\n"
+				+ "keep working on: a runnable jar (local, portable or fat), a native executable, a\n"
+				+ "minimized JDK image, a Maven repository layout, or a full Gradle/Maven project.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} fatjar hello.java",
+				"${COMMAND-FULL-NAME} portable -O dist/app.jar hello.java",
+				"${COMMAND-FULL-NAME} native hello.java",
+				"${COMMAND-FULL-NAME} maven -g org.acme hello.java");
+	}
+
 	static abstract class BaseExportCommand extends BaseBuildCommand {
 
 		@Option(shortName = 'O', name = "output", description = "The name or path to use for the exported file.")
-		java.nio.file.Path outputFile;
+		Path outputFile;
 
 		@Option(name = "force", hasValue = false, description = "Force export, i.e. overwrite exported file if already exists")
 		boolean force;
@@ -80,7 +96,6 @@ public class Export extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
-			scriptMixin.validate();
 			ProjectBuilder pb = createExportProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 			BuildContext ctx = BuildContext.forProject(prj);
@@ -110,7 +125,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations", generateHelp = true)
+	@CommandDefinition(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
 	public static class ExportLocal extends BaseExportCommand {
 
 		@Override
@@ -123,7 +138,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -141,11 +156,24 @@ public class Export extends BaseCommand {
 			}
 
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Exports a jar whose manifest Class-Path points at the dependencies in your local\n"
+					+ "jbang/Maven cache. Quick and small, but it only runs on this machine.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O hello.jar hello.java");
 		}
 	}
 
-	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable", generateHelp = true)
+	@CommandDefinition(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
 	public static class ExportPortable extends BaseExportCommand {
 
 		public static final String LIB = "lib";
@@ -160,7 +188,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -189,11 +217,24 @@ public class Export extends BaseCommand {
 						getProjectJdk(prj));
 			}
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Exports a jar plus a lib/ folder holding its dependencies. Copy both together\n"
+					+ "and run it anywhere with `java -jar`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O dist/hello.jar hello.java");
 		}
 	}
 
-	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository", generateHelp = true)
+	@CommandDefinition(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository")
 	public static class ExportMavenPublish extends BaseExportCommand {
 
 		@Option(shortName = 'g', name = "group", description = "The group ID to use for the generated POM.")
@@ -217,13 +258,13 @@ public class Export extends BaseCommand {
 			if (!outPath.toFile().isDirectory()) {
 				if (outPath.toFile().exists()) {
 					Util.errorMsg("Cannot export as maven repository as " + outPath + " is not a directory.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 				if (force) {
 					Util.mkdirs(outPath);
 				} else {
 					Util.errorMsg("Cannot export as " + outPath + " does not exist. Use --force to create.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
@@ -244,7 +285,7 @@ public class Export extends BaseCommand {
 			if (group == null) {
 				Util.errorMsg(
 						"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			Path groupdir = outPath.resolve(Paths.get(group.replace(".", "/")));
 
@@ -267,7 +308,7 @@ public class Export extends BaseCommand {
 					artifactFile.toFile().delete();
 				} else {
 					Util.errorMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 			Util.infoMsg("Writing " + artifactFile);
@@ -297,11 +338,25 @@ public class Export extends BaseCommand {
 			}
 
 			Util.infoMsg("Exported to " + outPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Writes the built jar and a generated POM in Maven repository layout, by default\n"
+					+ "into your local ~/.m2 repository. Needs a group ID (--group) unless the script\n"
+					+ "declares its GAV.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} -g org.acme hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 -O build/repo --force hello.java");
 		}
 	}
 
-	@CommandDefinition(name = "native", description = "Exports native executable", generateHelp = true)
+	@CommandDefinition(name = "native", description = "Exports native executable")
 	public static class ExportNative extends BaseExportCommand {
 
 		@Override
@@ -314,7 +369,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -322,7 +377,7 @@ public class Export extends BaseCommand {
 			Files.copy(source, outputPath);
 
 			Util.infoMsg("Exported to " + outputPath);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		@Override
@@ -340,9 +395,22 @@ public class Export extends BaseCommand {
 			}
 			return outputPath;
 		}
+
+		@Override
+		public String prose() {
+			return "Builds a native executable using GraalVM native-image, so it starts fast and\n"
+					+ "needs no JVM to run. Requires native-image to be available.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O hello hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside", generateHelp = true)
+	@CommandDefinition(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside")
 	public static class ExportFatjar extends BaseExportCommand {
 
 		@Override
@@ -354,7 +422,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			} else {
 				Util.mkdirs(outputPath.getParent());
@@ -396,7 +464,7 @@ public class Export extends BaseCommand {
 			Util.infoMsg("Exported to " + outputPath);
 			Util.infoMsg("This is an experimental feature and might not to work for certain applications!");
 			Util.infoMsg("Help us improve by reporting any issue you find at https://github.com/jbangdev/jbang/issues");
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		public static void handleZipFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile, Exception ex)
@@ -417,6 +485,8 @@ public class Export extends BaseCommand {
 				Util.verboseMsg("Merging service files: " + zipEntry.getName());
 				try (InputStream is = zipFile.getInputStream(zipEntry);
 						FileOutputStream fos = new FileOutputStream(outFile.toFile(), true)) {
+					// Service files may not end with a newline; blank lines are allowed.
+					fos.write('\n');
 					byte[] buf = new byte[8192];
 					int n;
 					while ((n = is.read(buf)) != -1) {
@@ -436,9 +506,22 @@ public class Export extends BaseCommand {
 			}
 			return outputPath;
 		}
+
+		@Override
+		public String prose() {
+			return "Exports a single executable jar with all dependencies merged in (service files\n"
+					+ "are merged, duplicates skipped). Run it with `java -jar`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -O app.jar hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution", generateHelp = true)
+	@CommandDefinition(name = "jlink", description = "Exports a minimized JDK distribution")
 	public static class ExportJlink extends BaseExportCommand {
 
 		@Arguments(paramLabel = "jlinkParams", index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
@@ -479,7 +562,7 @@ public class Export extends BaseCommand {
 					Util.deletePath(outputPath, false);
 				} else {
 					Util.errorMsg("Cannot export as " + relativeOP + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
@@ -517,7 +600,7 @@ public class Export extends BaseCommand {
 			String out = Util.runCommand(args.toArray(new String[] {}));
 			if (out == null) {
 				Util.errorMsg("Unable to export Jdk distribution.");
-				return EXIT_GENERIC_ERROR;
+				return ExitException.EXIT_GENERIC_ERROR;
 			}
 
 			Util.infoMsg("Exported to " + relativeOP);
@@ -525,11 +608,26 @@ public class Export extends BaseCommand {
 				Util.infoMsg(
 						"A launcher has been created which you can run using: " + relativeOP + "/bin/" + launcherName);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private Path getJlinkOutputPath() {
 			return getOutputPath("-jlink");
+		}
+
+		@Override
+		public String prose() {
+			return "Creates a minimized JDK image with only the modules your app needs, plus a\n"
+					+ "launcher when a main class is known. jlink builds a module, so the script\n"
+					+ "must declare a `package` (the default package is not allowed). Works best when\n"
+					+ "the code and its dependencies are modules. Pass extra jlink options after --.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} hello.java -- --strip-debug");
 		}
 	}
 
@@ -555,14 +653,14 @@ public class Export extends BaseCommand {
 					Util.deletePath(projectDir, false);
 				} else {
 					Util.errorMsg("Cannot export as " + projectDir + " already exists. Use --force to overwrite.");
-					return EXIT_INVALID_INPUT;
+					return ExitException.EXIT_INVALID_INPUT;
 				}
 			}
 
 			Project prj = ctx.getProject();
 			if (prj.isExecutableArchive() || prj.getMainSourceSet().getSources().isEmpty()) {
 				Util.errorMsg("You can only export source files");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 
 			if (prj.getGav().isPresent()) {
@@ -591,7 +689,7 @@ public class Export extends BaseCommand {
 			info("Exported as " + getType() + " project to " + projectDir);
 			info("Export to " + getType() + " is a best-effort to try match JBang build.");
 			info("If something can be improved please open issue at open an issue at https://github.com/jbangdev/jbang/issues with reproducer.");
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private void createProjectForExport(BuildContext ctx, Path projectDir) throws IOException {
@@ -667,7 +765,7 @@ public class Export extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "gradle", description = "Exports a Gradle project", generateHelp = true)
+	@CommandDefinition(name = "gradle", description = "Exports a Gradle project")
 	public static class ExportGradleProject extends BaseExportProject {
 
 		@Override
@@ -694,10 +792,11 @@ public class Export extends BaseCommand {
 			TemplateEngine engine = TemplateEngine.instance();
 			Template template = engine.getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Could not locate template named: '" + templateRef + "'");
 			Source.Type srcType = prj.getMainSource().getType();
 			if (!supportedSourceTypes.contains(srcType)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
 			}
 			String kotlinVersion = srcType == Source.Type.kotlin
 					? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
@@ -759,9 +858,22 @@ public class Export extends BaseCommand {
 			}
 			return args.toString();
 		}
+
+		@Override
+		public String prose() {
+			return "Generates a standalone Gradle project (sources plus build.gradle with your\n"
+					+ "dependencies) from a script, for when you outgrow jbang. Source files only.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "maven", description = "Exports a Maven project", generateHelp = true)
+	@CommandDefinition(name = "maven", description = "Exports a Maven project")
 	public static class ExportMavenProject extends BaseExportProject {
 
 		@Override
@@ -791,10 +903,11 @@ public class Export extends BaseCommand {
 			TemplateEngine engine = TemplateEngine.instance();
 			Template template = engine.getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Could not locate template named: '" + templateRef + "'");
 			Source.Type srcType = prj.getMainSource().getType();
 			if (!supportedSourceTypes.contains(srcType)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
 			}
 			String kotlinVersion = srcType == Source.Type.kotlin
 					? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
@@ -835,6 +948,19 @@ public class Export extends BaseCommand {
 			copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
 			copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
 					Paths.get(dir, ".mvn", "wrapper", "maven-wrapper.properties").toString(), false);
+		}
+
+		@Override
+		public String prose() {
+			return "Generates a standalone Maven project (sources plus pom.xml with your\n"
+					+ "dependencies) from a script, for when you outgrow jbang. Source files only.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} -g org.acme -a hello -v 1.0 hello.java");
 		}
 	}
 }

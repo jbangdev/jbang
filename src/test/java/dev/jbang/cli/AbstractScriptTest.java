@@ -97,7 +97,10 @@ abstract class AbstractScriptTest {
 
 	protected static RunResult runProcess(List<String> cmd, Map<String, String> env) throws Exception {
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		pb.environment().putAll(env);
+		Map<String, String> processEnv = pb.environment();
+		// Callers pass a complete snapshot, including intentional removals.
+		processEnv.clear();
+		processEnv.putAll(env);
 		pb.redirectErrorStream(false);
 		Process process = pb.start();
 

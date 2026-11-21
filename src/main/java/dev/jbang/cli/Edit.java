@@ -36,7 +36,7 @@ import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 
-@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "edit", description = "Edit a script in an IDE.", helpGroup = "Editing")
 public class Edit extends BaseCommand {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
@@ -140,6 +140,16 @@ public class Edit extends BaseCommand {
 	}
 
 	@Override
+	protected void validateArguments() {
+		// Normal edit without a script opens the current directory in the editor
+		// (same as `jbang edit .`). Sandbox mode needs an actual script to build
+		// the temporary IDE project around, so require one there.
+		if (scriptMixin.scriptOrFile == null && sandbox) {
+			requireScriptArgument(null);
+		}
+	}
+
+	@Override
 	public Integer doCall() throws IOException {
 		// force download sources when editing
 		Util.setDownloadSources(true);
@@ -159,7 +169,7 @@ public class Edit extends BaseCommand {
 			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
 			Path path = null;
 			if (location == null) {
-				path = locateProjectDir(Paths.get("."));
+				path = locateProjectDir(Util.getCwd().toAbsolutePath());
 			} else {
 				path = locateProjectDir(location.toPath());
 			}
@@ -179,7 +189,7 @@ public class Edit extends BaseCommand {
 			final Project prj = pb.build(scriptMixin.scriptOrFile);
 
 			if (prj.isExecutableArchive() || prj.getMainSourceSet().getSources().isEmpty()) {
-				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "You can only edit source files");
 			}
 
 			Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
@@ -194,7 +204,7 @@ public class Edit extends BaseCommand {
 			} else {
 				Path orginalFile = prj.getResourceRef().getFile();
 				if (!Files.exists(orginalFile)) {
-					throw new ExitException(EXIT_UNEXPECTED_STATE,
+					throw new ExitException(ExitException.EXIT_UNEXPECTED_STATE,
 							"Cannot live edit " + prj.getResourceRef().getOriginalResource());
 				}
 				watchForChanges(orginalFile, () -> {
@@ -211,7 +221,7 @@ public class Edit extends BaseCommand {
 				});
 			}
 		}
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	private void watchForChanges(Path orginalFile, Callable<Object> action) throws IOException {
@@ -234,7 +244,8 @@ public class Edit extends BaseCommand {
 							warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 									+ ee.getMessage());
 						} catch (Exception e) {
-							throw new ExitException(EXIT_GENERIC_ERROR, "Exception when re-generating project. Exiting",
+							throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+									"Exception when re-generating project. Exiting",
 									e);
 						}
 					}
@@ -327,7 +338,7 @@ public class Edit extends BaseCommand {
 				showStartingMsg(ed, true);
 				return Optional.of(ed);
 			} else {
-				throw new ExitException(EXIT_GENERIC_ERROR,
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
 						"No default editor configured and no other option accepted.\n Please try again making a correct choice or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
 			}
 		}
@@ -381,7 +392,7 @@ public class Edit extends BaseCommand {
 		try {
 			int exit = process.waitFor();
 			if (exit > 0) {
-				throw new ExitException(EXIT_INTERNAL_ERROR,
+				throw new ExitException(ExitException.EXIT_INTERNAL_ERROR,
 						"Could not install and setup extensions into VSCodium. Aborting.");
 			}
 		} catch (InterruptedException e) {
@@ -554,7 +565,8 @@ public class Edit extends BaseCommand {
 			throws IOException {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
-			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+					"Could not locate template named: '" + templateRef + "'");
 		String result = template
 			.data("repositories",
 					repositories.stream()
@@ -591,5 +603,27 @@ public class Edit extends BaseCommand {
 		} else {
 			return fileName;
 		}
+	}
+
+	@Override
+	public String prose() {
+		return "Opens your script for editing in an IDE. By default it opens the script's\n"
+				+ "existing location and assumes the editor has JBang support (see\n"
+				+ "https://jbang.dev/ide). With --sandbox (-b) it instead creates a temporary\n"
+				+ "IDE project linking your script and its dependencies, so you get code\n"
+				+ "completion without a build file - handy for editors without JBang support.\n"
+				+ "Choose the editor with --open (or $JBANG_EDITOR); --no-open only prints the\n"
+				+ "path, and --live (sandbox only) regenerates the project when dependencies\n"
+				+ "change.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} --open=code hello.java",
+				"${COMMAND-FULL-NAME} --no-open hello.java",
+				"${COMMAND-FULL-NAME} --sandbox hello.java",
+				"${COMMAND-FULL-NAME} --sandbox --live --open=idea hello.java");
 	}
 }
