@@ -10,14 +10,12 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 @JsonAdapter(Template.Deserializer.class)
 public class Template extends CatalogItem {
-	@SerializedName(value = "file-refs")
 	public final Map<String, String> fileRefs;
 	public final String description;
 	public final Map<String, TemplateProperty> properties;
@@ -39,7 +37,6 @@ public class Template extends CatalogItem {
 	}
 
 	private static final class JsonFields {
-		@SerializedName("file-refs")
 		Map<String, String> fileRefs;
 		String description;
 		Map<String, TemplateProperty> properties;

@@ -43,11 +43,8 @@ public class Alias extends CatalogItem {
 	public final String mainClass;
 	@SerializedName(value = "module")
 	public final String moduleName;
-	@SerializedName(value = "compile-options")
 	public final List<String> compileOptions;
-	@SerializedName(value = "native-image")
 	public final Boolean nativeImage;
-	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
 	@SerializedName(value = "source-type")
 	public final String forceType;
@@ -56,15 +53,10 @@ public class Alias extends CatalogItem {
 	public final Map<String, String> debug;
 	public final Boolean cds;
 	public final Boolean interactive;
-	@SerializedName(value = "enable-preview")
 	public final Boolean enablePreview;
-	@SerializedName(value = "enable-assertions")
 	public final Boolean enableAssertions;
-	@SerializedName(value = "enable-system-assertions")
 	public final Boolean enableSystemAssertions;
-	@SerializedName(value = "manifest-options")
 	public final Map<String, String> manifestOptions;
-	@SerializedName(value = "java-agents")
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
 	public final List<JavaAgent> javaAgents;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
@@ -103,11 +95,8 @@ public class Alias extends CatalogItem {
 		String mainClass;
 		@SerializedName(value = "module")
 		String moduleName;
-		@SerializedName(value = "compile-options")
 		List<String> compileOptions;
-		@SerializedName(value = "native-image")
 		Boolean nativeImage;
-		@SerializedName(value = "native-options")
 		List<String> nativeOptions;
 		@SerializedName(value = "source-type")
 		String forceType;
@@ -116,22 +105,16 @@ public class Alias extends CatalogItem {
 		Map<String, String> debug;
 		Boolean cds;
 		Boolean interactive;
-		@SerializedName(value = "enable-preview")
 		Boolean enablePreview;
-		@SerializedName(value = "enable-assertions")
 		Boolean enableAssertions;
-		@SerializedName(value = "enable-system-assertions")
 		Boolean enableSystemAssertions;
-		@SerializedName(value = "manifest-options")
 		Map<String, String> manifestOptions;
-		@SerializedName(value = "java-agents")
 		List<JavaAgent> javaAgents;
 		List<String> docs;
 	}
 
 	@JsonAdapter(JavaAgent.Deserializer.class)
 	public static class JavaAgent {
-		@SerializedName(value = "agent-ref")
 		@NonNull
 		public final String agentRef;
 		@NonNull
@@ -155,7 +138,6 @@ public class Alias extends CatalogItem {
 		}
 
 		private static final class JsonFields {
-			@SerializedName("agent-ref")
 			String agentRef;
 			String options;
 		}

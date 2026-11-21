@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -113,6 +114,14 @@ public class Catalog {
 		Map<String, CatalogRef> catalogs;
 		Map<String, Alias> aliases;
 		Map<String, Template> templates;
+	}
+
+	/**
+	 * Catalog JSON uses kebab-case names, fields only need a `@SerializedName` when
+	 * the JSON name differs from the kebab-cased field name or has alternates.
+	 */
+	static GsonBuilder gsonBuilder() {
+		return new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES);
 	}
 
 	public static Catalog empty() {
@@ -414,7 +423,7 @@ public class Catalog {
 	}
 
 	private static Catalog read(InputStream is) {
-		Gson parser = new Gson();
+		Gson parser = gsonBuilder().create();
 		Catalog catalog = parser.fromJson(new InputStreamReader(is), Catalog.class);
 		if (catalog != null) {
 			// Validate the result (Gson can't do this)
@@ -451,7 +460,7 @@ public class Catalog {
 
 	static void write(Path catalogPath, Catalog catalog) throws IOException {
 		try (Writer out = Files.newBufferedWriter(catalogPath)) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
+			Gson parser = gsonBuilder().setPrettyPrinting().create();
 			parser.toJson(catalog, out);
 		}
 	}

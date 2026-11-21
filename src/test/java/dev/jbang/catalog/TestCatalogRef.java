@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.ReflectionAccessFilter.FilterResult;
 
@@ -16,7 +15,7 @@ class TestCatalogRef {
 	@ParameterizedTest
 	@ValueSource(strings = { "catalog-ref", "catalogRef" })
 	void readsCatalogReferenceWithoutReflectiveAccess(String referenceKey) {
-		Gson gson = new GsonBuilder()
+		Gson gson = Catalog.gsonBuilder()
 			.addReflectionAccessFilter(type -> type == CatalogRef.class ? FilterResult.BLOCK_ALL
 					: FilterResult.INDECISIVE)
 			.create();
@@ -34,7 +33,7 @@ class TestCatalogRef {
 	void writesCatalogReferenceUsingCanonicalFieldNames() {
 		CatalogRef ref = new CatalogRef("./child/jbang-catalog.json", "Local child", false, Catalog.empty());
 
-		JsonObject json = new Gson().toJsonTree(ref).getAsJsonObject();
+		JsonObject json = Catalog.gsonBuilder().create().toJsonTree(ref).getAsJsonObject();
 
 		assertEquals("./child/jbang-catalog.json", json.get("catalog-ref").getAsString());
 		assertEquals("Local child", json.get("description").getAsString());
