@@ -1,14 +1,9 @@
 package dev.jbang.catalog;
 
+import static dev.jbang.util.JsonFieldsAssert.assertJsonFieldsMatch;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +11,6 @@ import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.ReflectionAccessFilter.FilterResult;
-import com.google.gson.annotations.SerializedName;
 
 class TestCatalogFinalFields {
 	@Test
@@ -64,30 +58,9 @@ class TestCatalogFinalFields {
 	@Test
 	void jsonFieldsMatchTheirCatalogTypes() throws ClassNotFoundException {
 		FieldNamingStrategy naming = Catalog.gsonBuilder().create().fieldNamingStrategy();
-		Class<?>[] types = { Catalog.class, CatalogRef.class, Alias.class, Alias.JavaAgent.class, Template.class };
-		for (Class<?> type : types) {
-			Class<?> jsonFields = Class.forName(type.getName() + "$JsonFields");
-			assertEquals(jsonNames(type, naming), jsonNames(jsonFields, naming),
-					"JSON names and types of " + jsonFields.getName() + " must match " + type.getName());
+		for (Class<?> type : new Class<?>[] { Catalog.class, CatalogRef.class, Alias.class, Alias.JavaAgent.class,
+				Template.class }) {
+			assertJsonFieldsMatch(type, naming);
 		}
-	}
-
-	private static Map<String, Type> jsonNames(Class<?> type, FieldNamingStrategy naming) {
-		Map<String, Type> names = new TreeMap<>();
-		for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
-			for (Field f : c.getDeclaredFields()) {
-				if (Modifier.isStatic(f.getModifiers()) || Modifier.isTransient(f.getModifiers()) || f.isSynthetic()) {
-					continue;
-				}
-				SerializedName sn = f.getAnnotation(SerializedName.class);
-				names.put(sn != null ? sn.value() : naming.translateName(f), f.getGenericType());
-				if (sn != null) {
-					for (String alternate : sn.alternate()) {
-						names.put(alternate, f.getGenericType());
-					}
-				}
-			}
-		}
-		return names;
 	}
 }

@@ -135,6 +135,38 @@
       "unsafeAllocated": true
     },
     {
+      "type": "dev.jbang.spi.IntegrationInput$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.spi.IntegrationInput$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "classes" },
+        { "name": "comments" },
+        { "name": "dependencies" },
+        { "name": "integrationClassName" },
+        { "name": "nativeRequested" },
+        { "name": "pom" },
+        { "name": "repositories" },
+        { "name": "source" },
+        { "name": "verbose" }
+      ]
+    },
+    {
+      "type": "dev.jbang.spi.IntegrationResult$Deserializer",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
+    {
+      "type": "dev.jbang.spi.IntegrationResult$JsonFields",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ],
+      "fields": [
+        { "name": "javaArgs" },
+        { "name": "mainClass" },
+        { "name": "nativeImagePath" }
+      ]
+    },
+    {
       "type": "dev.jbang.catalog.Alias$Deserializer",
       "methods": [ { "name": "<init>", "parameterTypes": [] } ]
     },
