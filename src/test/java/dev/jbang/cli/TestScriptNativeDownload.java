@@ -1,7 +1,15 @@
 package dev.jbang.cli;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -190,6 +198,46 @@ class TestScriptNativeDownload extends AbstractScriptTest {
 			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/custom/my-jbang.tar")));
 			assertTrue(!result.stderr.contains("Error downloading JBang"),
 					"download should have succeeded, stderr: " + result.stderr);
+		}
+
+		/**
+		 * On Windows `jbang version --update` can't overwrite the running native exe,
+		 * so it stages it as .exe.new. Under Git Bash/MSYS the bash launcher must apply
+		 * that staged update, like jbang.cmd and jbang.ps1 do.
+		 */
+		@Test
+		void stagedNativeUpdateIsAppliedOnWindowsBash() throws Exception {
+			// The launcher acts on files next to itself, so run a copy of the real
+			// script from a temporary bin dir.
+			Path binDir = Files.createDirectories(tempSubDir("winbin"));
+			Path script = binDir.resolve("jbang");
+			Files.copy(BASH_SCRIPT, script, StandardCopyOption.REPLACE_EXISTING);
+
+			String newExe = "#!/bin/sh\necho native-NEW 1>&2\n";
+			Path exe = binDir.resolve("jbang.bin-windows-x64.exe");
+			Path staged = binDir.resolve("jbang.bin-windows-x64.exe.new");
+			writeExecutable(exe, "#!/bin/sh\necho native-OLD 1>&2\n");
+			writeExecutable(staged, newExe);
+
+			// Fake uname so the real script believes it runs under Git Bash on Windows
+			Path shimDir = Files.createDirectories(tempSubDir("unameshim"));
+			writeExecutable(shimDir.resolve("uname"),
+					"#!/bin/sh\ncase \"$1\" in -m) echo x86_64;; *) echo MINGW64_NT-10.0;; esac\n");
+
+			Map<String, String> env = bashEnv(true);
+			env.put("PATH", shimDir + File.pathSeparator + System.getenv("PATH"));
+
+			RunResult result = runProcess(Arrays.asList("bash", script.toString(), "version"), env);
+
+			assertTrue(result.stderr.contains("native-NEW"),
+					"staged native update should have been applied, stderr: " + result.stderr);
+			assertFalse(Files.exists(staged), "staged .exe.new should be gone");
+			assertEquals(newExe, new String(Files.readAllBytes(exe), StandardCharsets.UTF_8));
+		}
+
+		private void writeExecutable(Path file, String content) throws Exception {
+			Files.write(file, content.getBytes(StandardCharsets.UTF_8));
+			assertTrue(file.toFile().setExecutable(true), "could not make executable: " + file);
 		}
 	}
 

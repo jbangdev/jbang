@@ -12,9 +12,10 @@ rem detect architecture for platform-specific binary lookup
 set "jbang_arch=x64"
 if "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "jbang_arch=aarch64"
 
+rem apply a staged native binary update; move keeps .new if the exe is still
+rem locked (e.g. another jbang running) so it is retried on the next run
 if exist "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" (
-  copy /y "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" "%~dp0jbang.bin-windows-%jbang_arch%.exe" > nul 2>&1
-  del /f /q "%~dp0jbang.bin-windows-%jbang_arch%.exe.new"
+  move /y "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" "%~dp0jbang.bin-windows-%jbang_arch%.exe" > nul 2>&1
 )
 
 rem resolve native binary or jar path from script location
