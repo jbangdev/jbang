@@ -485,6 +485,8 @@ public class Export extends BaseCommand {
 				Util.verboseMsg("Merging service files: " + zipEntry.getName());
 				try (InputStream is = zipFile.getInputStream(zipEntry);
 						FileOutputStream fos = new FileOutputStream(outFile.toFile(), true)) {
+					// Service files may not end with a newline; blank lines are allowed.
+					fos.write('\n');
 					byte[] buf = new byte[8192];
 					int n;
 					while ((n = is.read(buf)) != -1) {
