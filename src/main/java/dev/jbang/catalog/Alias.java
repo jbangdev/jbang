@@ -20,57 +20,48 @@ import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
-	public final String scriptRef;
-	public final String description;
-	public final List<String> arguments;
+	private String scriptRef;
+	private String description;
+	private List<String> arguments;
 	@SerializedName(value = "runtime-options", alternate = { "java-options" })
-	public final List<String> runtimeOptions;
-	public final List<String> sources;
+	private List<String> runtimeOptions;
+	private List<String> sources;
 	@SerializedName(value = "files")
-	public final List<String> resources;
-	public final List<String> dependencies;
-	public final List<String> repositories;
-	public final List<String> classpaths;
-	public final Map<String, String> properties;
+	private List<String> resources;
+	private List<String> dependencies;
+	private List<String> repositories;
+	private List<String> classpaths;
+	private Map<String, String> properties;
 	@SerializedName(value = "java")
-	public final String javaVersion;
+	private String javaVersion;
 	@SerializedName(value = "main")
-	public final String mainClass;
+	private String mainClass;
 	@SerializedName(value = "module")
-	public final String moduleName;
-	@SerializedName(value = "compile-options")
-	public final List<String> compileOptions;
-	@SerializedName(value = "native-image")
-	public final Boolean nativeImage;
-	@SerializedName(value = "native-options")
-	public final List<String> nativeOptions;
+	private String moduleName;
+	private List<String> compileOptions;
+	private Boolean nativeImage;
+	private List<String> nativeOptions;
 	@SerializedName(value = "source-type")
-	public final String forceType;
-	public final Boolean integrations;
-	public final String jfr;
-	public final Map<String, String> debug;
-	public final Boolean cds;
-	public final Boolean interactive;
-	@SerializedName(value = "enable-preview")
-	public final Boolean enablePreview;
-	@SerializedName(value = "enable-assertions")
-	public final Boolean enableAssertions;
-	@SerializedName(value = "enable-system-assertions")
-	public final Boolean enableSystemAssertions;
-	@SerializedName(value = "manifest-options")
-	public final Map<String, String> manifestOptions;
-	@SerializedName(value = "java-agents")
+	private String forceType;
+	private Boolean integrations;
+	private String jfr;
+	private Map<String, String> debug;
+	private Boolean cds;
+	private Boolean interactive;
+	private Boolean enablePreview;
+	private Boolean enableAssertions;
+	private Boolean enableSystemAssertions;
+	private Map<String, String> manifestOptions;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<JavaAgent> javaAgents;
+	private List<JavaAgent> javaAgents;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<String> docs;
+	private List<String> docs;
 
 	public static class JavaAgent {
-		@SerializedName(value = "agent-ref")
 		@NonNull
-		public final String agentRef;
+		private String agentRef;
 		@NonNull
-		public final String options;
+		private String options;
 
 		public JavaAgent() { // to make gson happy in native image
 			this(null, null);
@@ -79,6 +70,14 @@ public class Alias extends CatalogItem {
 		public JavaAgent(@NonNull String agentRef, @NonNull String options) {
 			this.agentRef = agentRef;
 			this.options = options;
+		}
+
+		public String agentRef() {
+			return agentRef;
+		}
+
+		public String options() {
+			return options;
 		}
 
 		@Override
@@ -160,6 +159,118 @@ public class Alias extends CatalogItem {
 		this.manifestOptions = manifestOptions;
 		this.javaAgents = javaAgents;
 		this.docs = docs;
+	}
+
+	public String scriptRef() {
+		return scriptRef;
+	}
+
+	public String description() {
+		return description;
+	}
+
+	public List<String> arguments() {
+		return arguments;
+	}
+
+	public List<String> runtimeOptions() {
+		return runtimeOptions;
+	}
+
+	public List<String> sources() {
+		return sources;
+	}
+
+	public List<String> resources() {
+		return resources;
+	}
+
+	public List<String> dependencies() {
+		return dependencies;
+	}
+
+	public List<String> repositories() {
+		return repositories;
+	}
+
+	public List<String> classpaths() {
+		return classpaths;
+	}
+
+	public Map<String, String> properties() {
+		return properties;
+	}
+
+	public String javaVersion() {
+		return javaVersion;
+	}
+
+	public String mainClass() {
+		return mainClass;
+	}
+
+	public String moduleName() {
+		return moduleName;
+	}
+
+	public List<String> compileOptions() {
+		return compileOptions;
+	}
+
+	public Boolean nativeImage() {
+		return nativeImage;
+	}
+
+	public List<String> nativeOptions() {
+		return nativeOptions;
+	}
+
+	public String forceType() {
+		return forceType;
+	}
+
+	public Boolean integrations() {
+		return integrations;
+	}
+
+	public String jfr() {
+		return jfr;
+	}
+
+	public Map<String, String> debug() {
+		return debug;
+	}
+
+	public Boolean cds() {
+		return cds;
+	}
+
+	public Boolean interactive() {
+		return interactive;
+	}
+
+	public Boolean enablePreview() {
+		return enablePreview;
+	}
+
+	public Boolean enableAssertions() {
+		return enableAssertions;
+	}
+
+	public Boolean enableSystemAssertions() {
+		return enableSystemAssertions;
+	}
+
+	public Map<String, String> manifestOptions() {
+		return manifestOptions;
+	}
+
+	public List<JavaAgent> javaAgents() {
+		return javaAgents;
+	}
+
+	public List<String> docs() {
+		return docs;
 	}
 
 	/**

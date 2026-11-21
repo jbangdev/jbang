@@ -87,7 +87,7 @@ public class Catalog extends BaseCommand {
 			CatalogRef ref = CatalogRef.get(urlOrFile);
 			Path catFile = catalogOptions.getCatalogOrDefault();
 			if (force || !CatalogUtil.hasCatalogRef(catFile, name)) {
-				CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description, importItems);
+				CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef(), ref.description(), importItems);
 			} else {
 				Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
 				return ExitException.EXIT_INVALID_INPUT;
@@ -121,7 +121,7 @@ public class Catalog extends BaseCommand {
 				.entrySet()
 				.stream()
 				.forEach(e -> {
-					String ref = e.getValue().catalogRef;
+					String ref = e.getValue().catalogRef();
 					System.err.println("Updating catalog '" + e.getKey() + "' from " + ref + "...");
 					Util.freshly(() -> {
 						try {
@@ -313,9 +313,9 @@ public class Catalog extends BaseCommand {
 			out.name = name;
 			out.catalogName = catName;
 			out.fullName = fullName;
-			out.catalogRef = ref.catalogRef;
-			out.description = ref.description;
-			out.importItems = Boolean.TRUE.equals(ref.importItems);
+			out.catalogRef = ref.catalogRef();
+			out.description = ref.description();
+			out.importItems = Boolean.TRUE.equals(ref.importItems());
 			out._catalogRef = ref.catalog.catalogRef;
 			return out;
 		}

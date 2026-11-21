@@ -103,7 +103,7 @@ public class Export extends BaseCommand {
 			if (prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 				Alias alias = ((AliasResourceResolver.AliasedResourceRef) prj.getResourceRef()).getAlias();
 				if (prj.getMainClass() == null) {
-					prj.setMainClass(alias.mainClass);
+					prj.setMainClass(alias.mainClass());
 				}
 			}
 			return apply(ctx);

@@ -373,11 +373,11 @@ public class Template extends BaseCommand {
 			out.name = name;
 			out.catalogName = catName;
 			out.fullName = fullName;
-			out.description = template.description;
-			if (showFiles && template.fileRefs != null) {
+			out.description = template.description();
+			if (showFiles && template.fileRefs() != null) {
 				out.fileRefs = new ArrayList<>();
-				for (String dest : template.fileRefs.keySet()) {
-					String ref = template.fileRefs.get(dest);
+				for (String dest : template.fileRefs().keySet()) {
+					String ref = template.fileRefs().get(dest);
 					if (ref == null || ref.isEmpty()) {
 						ref = dest;
 					}
@@ -388,7 +388,7 @@ public class Template extends BaseCommand {
 					out.fileRefs.add(fro);
 				}
 			}
-			out.properties = showProperties ? template.properties : null;
+			out.properties = showProperties ? template.properties() : null;
 			out._catalogRef = template.catalog.catalogRef;
 			return out;
 		}

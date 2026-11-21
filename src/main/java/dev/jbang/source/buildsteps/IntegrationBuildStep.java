@@ -40,13 +40,13 @@ public class IntegrationBuildStep implements Builder<IntegrationResult> {
 			// TODO the compile step always sets the main class if it can find one
 			// so this check is no longer valid. Figure out if we can make this work
 			// if (project.getMainClass() == null) { // if non-null user forced set main
-			if (integrationResult.mainClass != null) {
-				project.setMainClass(integrationResult.mainClass);
+			if (integrationResult.mainClass() != null) {
+				project.setMainClass(integrationResult.mainClass());
 			}
 			// }
-			if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
+			if (integrationResult.javaArgs() != null && !integrationResult.javaArgs().isEmpty()) {
 				// Add integration options to the java options
-				project.addRuntimeOptions(integrationResult.javaArgs);
+				project.addRuntimeOptions(integrationResult.javaArgs());
 			}
 			return integrationResult;
 		} finally {

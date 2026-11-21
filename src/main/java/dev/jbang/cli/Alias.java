@@ -302,7 +302,7 @@ public class Alias extends BaseCommand {
 			dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
 			String catName = catalogName != null ? Catalog.simplifyRef(catalogName) : CatalogUtil.catalogRef(name);
 			String fullName = catalogName != null ? name + "@" + catName : name;
-			String scriptRef = alias.scriptRef;
+			String scriptRef = alias.scriptRef();
 			if (!catalog.aliases.containsKey(scriptRef)
 					&& !Catalog.isValidCatalogReference(scriptRef)) {
 				scriptRef = alias.resolve();
@@ -313,15 +313,15 @@ public class Alias extends BaseCommand {
 			out.catalogName = catName;
 			out.fullName = fullName;
 			out.scriptRef = scriptRef;
-			out.description = alias.description;
-			out.arguments = alias.arguments;
-			out.javaVersion = alias.javaVersion;
-			out.mainClass = alias.mainClass;
-			out.javaOptions = alias.runtimeOptions;
-			out.properties = alias.properties;
+			out.description = alias.description();
+			out.arguments = alias.arguments();
+			out.javaVersion = alias.javaVersion();
+			out.mainClass = alias.mainClass();
+			out.javaOptions = alias.runtimeOptions();
+			out.properties = alias.properties();
 			out._catalogRef = alias.catalog.catalogRef;
-			out.enablePreview = alias.enablePreview;
-			out.docsRef = alias.docs;
+			out.enablePreview = alias.enablePreview();
+			out.docsRef = alias.docs();
 			return out;
 		}
 

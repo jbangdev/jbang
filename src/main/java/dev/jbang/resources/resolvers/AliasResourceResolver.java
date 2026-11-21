@@ -45,7 +45,7 @@ public class AliasResourceResolver implements ResourceResolver {
 					: Alias.get(aliasRef.alias);
 			if (alias != null) {
 				resolver = resolverFactory.apply(alias);
-				String rawScriptRef = alias.scriptRef;
+				String rawScriptRef = alias.scriptRef();
 				if (aliasRef.requestedVersion != null) {
 					rawScriptRef = AliasVersionPinner.applyVersion(rawScriptRef, aliasRef.requestedVersion,
 							ProjectBuilder.getContextProperties(Collections.emptyMap()));
@@ -57,7 +57,7 @@ public class AliasResourceResolver implements ResourceResolver {
 				if (resolvedRef == null) {
 					throw new IllegalArgumentException(
 							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
-									+ alias.scriptRef);
+									+ alias.scriptRef());
 				}
 				ref = new AliasedResourceRef(resolvedRef, alias, aliasRef.requestedVersion);
 			}
