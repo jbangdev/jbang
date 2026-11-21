@@ -11,29 +11,30 @@ import org.aesh.command.option.OptionList;
 public class RunMixin {
 
 	@OptionList(shortName = 'R', name = "runtime-option", aliases = {
-			"java-options" }, description = "Options to pass to the Java runtime")
+			"java-options" }, helpGroup = "Runtime options", description = "Options to pass to the Java runtime")
 	public List<String> javaRuntimeOptions;
 
-	@Option(name = "jfr", fallbackValue = "", description = "Launch with Java Flight Recorder enabled.")
+	@Option(name = "jfr", fallbackValue = "", helpGroup = "Runtime options", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
-	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, converter = DebugConverter.class, fallbackValue = "4004", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
+	@Option(shortName = 'd', name = "debug", parser = DebugOptionParser.class, converter = DebugConverter.class, fallbackValue = "4004", helpGroup = "Runtime options", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${DEFAULT-VALUE})")
 	public Map<String, String> debugString;
 
-	@Option(name = "enableassertions", aliases = { "ea" }, hasValue = false, description = "Enable assertions")
+	@Option(name = "enableassertions", aliases = {
+			"ea" }, hasValue = false, helpGroup = "Runtime options", description = "Enable assertions")
 	public Boolean enableAssertions;
 
 	@Option(name = "enablesystemassertions", aliases = {
-			"esa" }, hasValue = false, description = "Enable system assertions")
+			"esa" }, hasValue = false, helpGroup = "Runtime options", description = "Enable system assertions")
 	public Boolean enableSystemAssertions;
 
-	@OptionGroup(name = "javaagent", defaultValue = "", description = "Java agent to use")
+	@OptionGroup(name = "javaagent", defaultValue = "", helpGroup = "Runtime options", description = "Java agent to use")
 	public Map<String, String> javaAgentSlots;
 
-	@Option(name = "cds", hasValue = false, negatable = true, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)")
+	@Option(name = "cds", hasValue = false, negatable = true, helpGroup = "Runtime options", description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)")
 	Boolean cds;
 
-	@Option(shortName = 'i', name = "interactive", hasValue = false, description = "Activate interactive mode")
+	@Option(shortName = 'i', name = "interactive", hasValue = false, helpGroup = "Runtime options", description = "Activate interactive mode")
 	public Boolean interactive;
 
 	public Map<String, String> getJavaAgentSlots() {

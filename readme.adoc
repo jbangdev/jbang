@@ -90,6 +90,7 @@ A web server in a single file:
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.javalin:javalin:7.1.0
 //DEPS org.slf4j:slf4j-simple:2.0.17
+//RUNTIME_OPTIONS -Dorg.slf4j.simpleLogger.defaultLogLevel=info
 //JAVA 25+
 
 import io.javalin.Javalin;

@@ -16,6 +16,8 @@ toc::[]
 
 To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.
 
+When no template is specified, JBang uses a `hello.<extension>` template matching the requested file extension when available. For example, `jbang init hello.kt` uses the built-in `hello.kt` template. Otherwise, it uses the Java `hello` template, which supports `.java` and extensionless file names.
+
 Using `jbang init --template=cli helloworld.java` you get a more complete Hello World CLI using https://picocli.info/[picocli] as dependency.
 
 Run `jbang template list` to see the full list of templates that are available.

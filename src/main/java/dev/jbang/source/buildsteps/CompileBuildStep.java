@@ -1,29 +1,20 @@
 package dev.jbang.source.buildsteps;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.Indexer;
-import org.jboss.jandex.Type;
 
 import dev.jbang.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
+import dev.jbang.source.MainClassScanner;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.ModuleUtil;
@@ -37,12 +28,6 @@ import io.quarkus.qute.Template;
  */
 public abstract class CompileBuildStep implements Builder<Project> {
 	protected final BuildContext ctx;
-
-	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
-			Type.Kind.ARRAY);
-	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
-	public static final Type INSTRUMENTATIONTYPE = Type.create(
-			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
 	public CompileBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
@@ -189,26 +174,21 @@ public abstract class CompileBuildStep implements Builder<Project> {
 					.filter(f -> f.toFile().getName().endsWith(".class"))
 					.collect(Collectors.toList());
 
-				Indexer indexer = new Indexer();
-				Index index;
-				for (Path item : items) {
-					try (InputStream stream = new FileInputStream(item.toFile())) {
-						indexer.index(stream);
+				MainClassScanner.MainScan scan = MainClassScanner.scan(consumer -> {
+					for (Path item : items) {
+						try (InputStream stream = Files.newInputStream(item)) {
+							consumer.accept(item.toString(), stream);
+						}
 					}
-				}
-				index = indexer.complete();
-
-				Collection<ClassInfo> classes = index.getKnownClasses();
+				});
 
 				Project project = ctx.getProject();
 				if (project.getMainClass() == null) { // if non-null user forced set main
-					List<ClassInfo> mains = classes.stream()
-						.filter(getMainFinder())
-						.collect(Collectors.toList());
+					List<String> mains = scan.getMainClasses();
 					String mainName = getSuggestedMain();
 					if (mains.size() > 1 && mainName != null) {
-						List<ClassInfo> suggestedmain = mains.stream()
-							.filter(ci -> ci.simpleName().equals(mainName))
+						List<String> suggestedmain = mains.stream()
+							.filter(n -> simpleName(n).equals(mainName))
 							.collect(Collectors.toList());
 						if (!suggestedmain.isEmpty()) {
 							mains = suggestedmain;
@@ -216,43 +196,18 @@ public abstract class CompileBuildStep implements Builder<Project> {
 					}
 
 					if (!mains.isEmpty()) {
-						project.setMainClass(mains.get(0).name().toString());
+						project.setMainClass(mains.get(0));
 						if (mains.size() > 1) {
 							Util.warnMsg(
 									"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
-											+ mains.stream()
-												.map(x -> x.name().toString())
-												.collect(Collectors.joining(",")));
+											+ String.join(",", mains));
 						}
 					}
 				}
 
 				if (project.getMainSource().isAgent()) {
-					Optional<ClassInfo> agentmain = classes.stream()
-						.filter(pubClass -> pubClass.method("agentmain",
-								STRINGTYPE,
-								INSTRUMENTATIONTYPE) != null
-								||
-								pubClass.method("agentmain",
-										STRINGTYPE) != null)
-						.findFirst();
-
-					if (agentmain.isPresent()) {
-						project.setAgentMainClass(agentmain.get().name().toString());
-					}
-
-					Optional<ClassInfo> premain = classes.stream()
-						.filter(pubClass -> pubClass.method("premain",
-								STRINGTYPE,
-								INSTRUMENTATIONTYPE) != null
-								||
-								pubClass.method("premain",
-										STRINGTYPE) != null)
-						.findFirst();
-
-					if (premain.isPresent()) {
-						project.setPreMainClass(premain.get().name().toString());
-					}
+					scan.getAgentMain().ifPresent(project::setAgentMainClass);
+					scan.getPreMain().ifPresent(project::setPreMainClass);
 				}
 			}
 		} catch (IOException e) {
@@ -271,8 +226,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	protected abstract String getMainExtension();
 
-	public static Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> (pubClass.method("main", STRINGARRAYTYPE) != null
-				|| pubClass.method("main") != null);
+	private static String simpleName(String fqcn) {
+		int i = fqcn.lastIndexOf('.');
+		return i < 0 ? fqcn : fqcn.substring(i + 1);
 	}
 }

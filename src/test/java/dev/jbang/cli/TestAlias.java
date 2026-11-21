@@ -20,6 +20,7 @@ import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasRef;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
 
@@ -369,11 +370,11 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			dev.jbang.cli.Alias.AliasAdd add = JBang.parseCommand("alias", "add", "--name=name");
-			add.doCall();
-		});
+	void testAddMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("alias", "add", "--name=name"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
@@ -385,14 +386,14 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile2, "// Test file 2".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		int exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 		exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(exitCode, equalTo(ExitException.EXIT_INVALID_INPUT));
 		exitCode = JBang.execute("alias", "add", "-f", cwd.toString(), "--name=name", "--force", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode, equalTo(ExitException.EXIT_OK));
 		alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test2.java"));
 	}
@@ -552,6 +553,58 @@ public class TestAlias extends BaseTest {
 			assertThat(ex.getMessage(), containsString("seven"));
 		}
 
+	}
+
+	@Test
+	void testParseVersionedAlias() throws IOException {
+		clearSettingsCaches();
+		// Use existing "one" alias from standard catalog
+		AliasRef ref = AliasRef.parse("one:2.0.0");
+		Alias alias = Alias.get(ref.alias);
+
+		assertThat(alias, notNullValue());
+		assertThat(ref.requestedVersion, equalTo("2.0.0"));
+		assertThat(alias.scriptRef, equalTo("http://dummy"));
+	}
+
+	@Test
+	void testParseVersionedAliasFromCatalog() throws IOException {
+		String catalog = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"test\": {\n" +
+				"      \"script-ref\": \"com.example:artifact:1.0.0\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), catalog.getBytes());
+		clearSettingsCaches();
+		Catalog cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
+
+		AliasRef ref = AliasRef.parse("test:2.0.0");
+		Alias alias = Alias.get(cat, ref.alias);
+
+		assertThat(alias, notNullValue());
+		assertThat(ref.requestedVersion, equalTo("2.0.0"));
+	}
+
+	@Test
+	void testGavNotParsedAsVersionedAlias() {
+		Alias alias = Alias.get("io.quarkus:artifact:1.0.0@jar");
+		assertThat(alias, nullValue());
+	}
+
+	@Test
+	void testEmptyVersionThrowsError() {
+		Exception exception = assertThrows(IllegalArgumentException.class,
+				() -> AliasRef.parse("test:@catalog"));
+		assertThat(exception.getMessage(), containsString("Invalid alias syntax"));
+	}
+
+	@Test
+	void testEmptyAliasNameThrowsError() {
+		Exception exception = assertThrows(IllegalArgumentException.class,
+				() -> AliasRef.parse(":1.0@catalog"));
+		assertThat(exception.getMessage(), containsString("Invalid alias"));
 	}
 
 }

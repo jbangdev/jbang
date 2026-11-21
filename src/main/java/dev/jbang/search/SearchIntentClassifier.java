@@ -1,5 +1,6 @@
 package dev.jbang.search;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -96,7 +97,7 @@ public class SearchIntentClassifier {
 		String trimmed = input.trim();
 
 		// Check for Java import statement
-		java.util.regex.Matcher importMatcher = IMPORT.matcher(trimmed);
+		Matcher importMatcher = IMPORT.matcher(trimmed);
 		if (importMatcher.matches()) {
 			String fqcn = importMatcher.group(2);
 			// Strip trailing wildcard: import java.util.* → java.util
@@ -110,7 +111,7 @@ public class SearchIntentClassifier {
 		}
 
 		// Check for javac package error
-		java.util.regex.Matcher pkgMatcher = PACKAGE_ERROR.matcher(trimmed);
+		Matcher pkgMatcher = PACKAGE_ERROR.matcher(trimmed);
 		if (pkgMatcher.find()) {
 			String pkg = pkgMatcher.group(1);
 			return new Intent(IntentType.PACKAGE_ERROR, pkg, pkg,
@@ -118,7 +119,7 @@ public class SearchIntentClassifier {
 		}
 
 		// Check for javac symbol error
-		java.util.regex.Matcher symMatcher = SYMBOL_ERROR.matcher(trimmed);
+		Matcher symMatcher = SYMBOL_ERROR.matcher(trimmed);
 		if (symMatcher.find()) {
 			String sym = symMatcher.group(1);
 			if (SIMPLE_CLASS.matcher(sym).matches()) {

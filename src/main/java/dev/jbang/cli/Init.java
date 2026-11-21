@@ -33,7 +33,7 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 
-@CommandDefinition(name = "init", description = "Initialize a script.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "init", description = "Initialize a script.", helpGroup = "Editing")
 public class Init extends BaseCommand {
 
 	@Option(shortName = 'j', name = "java", validator = JavaVersionValidator.class, description = "JDK version to use for running the script.")
@@ -63,10 +63,9 @@ public class Init extends BaseCommand {
 	@Arguments(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
 	List<String> params;
 
-	public void requireScriptArgument() {
-		if (scriptOrFile == null) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
-		}
+	@Override
+	protected void validateArguments() {
+		requireScriptArgument(scriptOrFile);
 	}
 
 	List<String> params() {
@@ -78,10 +77,9 @@ public class Init extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
-
 		if (initTemplate == null) {
-			initTemplate = "hello";
+			String extensionTemplate = "hello." + Util.extension(scriptOrFile);
+			initTemplate = dev.jbang.catalog.Template.get(extensionTemplate) != null ? extensionTemplate : "hello";
 		}
 
 		Map<String, Object> propsMap = new HashMap<>();
@@ -91,7 +89,7 @@ public class Init extends BaseCommand {
 
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Could not find init template named: " + initTemplate
 							+ ". Try run with --fresh to get latest catalog updates.");
 		}
@@ -115,6 +113,8 @@ public class Init extends BaseCommand {
 		propsMap.put("javaVersion", reqVersion);
 		propsMap.put("compactSourceFiles", reqVersion >= 25);
 
+		validateOutputExtension(tpl.fileRefs, outName);
+
 		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
 			.stream()
 			.map(e -> entry(
@@ -131,7 +131,7 @@ public class Init extends BaseCommand {
 				Path target = refTarget.to(outDir);
 				if (Files.exists(target)) {
 					warn("File " + target + " already exists. Will not initialize.");
-					return EXIT_GENERIC_ERROR;
+					return ExitException.EXIT_GENERIC_ERROR;
 				}
 			}
 		}
@@ -151,7 +151,7 @@ public class Init extends BaseCommand {
 				} catch (IllegalStateException | IOException e) {
 					Util.errorMsg(
 							"Failed to generate code with " + provider.getName(), e);
-					return EXIT_INTERNAL_ERROR;
+					return ExitException.EXIT_INTERNAL_ERROR;
 				}
 			} else {
 				Util.warnMsg(
@@ -189,7 +189,7 @@ public class Init extends BaseCommand {
 					+ "'. If your IDE supports JBang, you can edit the directory instead: 'jbang edit . "
 					+ renderedScriptOrFile + "'. See https://jbang.dev/ide");
 		}
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	private void applyTemplateProperties(dev.jbang.catalog.Template tpl, Map<String, Object> propsMap) {
@@ -202,11 +202,33 @@ public class Init extends BaseCommand {
 		}
 	}
 
+	static void validateOutputExtension(Map<String, String> fileRefs, String outName) {
+		String outExt = Util.extension(outName);
+		if (outExt.isEmpty() || fileRefs.keySet()
+			.stream()
+			.anyMatch(target -> dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(target).find())) {
+			return;
+		}
+		fileRefs.entrySet()
+			.stream()
+			.filter(entry -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(entry.getKey()).find())
+			.findFirst()
+			.ifPresent(entry -> {
+				String targetExt = Util.extension(entry.getKey());
+				if (targetExt.isEmpty()) {
+					targetExt = entry.getValue().endsWith(".qute") ? Util.extension(Util.base(entry.getValue()))
+							: Util.extension(entry.getValue());
+				}
+				if (!outExt.equals(targetExt)) {
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"Template expects " + targetExt + " extension, not " + outExt);
+				}
+			});
+	}
+
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
 		String result = refTarget;
-		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()
-				|| dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
-			String baseName = Util.base(outName);
+		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()) {
 			String outExt = Util.extension(outName);
 			String targetExt = Util.extension(refTarget);
 			if (targetExt.isEmpty()) {
@@ -214,10 +236,13 @@ public class Init extends BaseCommand {
 						: Util.extension(refSource);
 			}
 			if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Template expects " + targetExt + " extension, not " + outExt);
 			}
 			result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
+		}
+		if (dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
+			String baseName = Util.base(outName);
 			result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		}
 		return Paths.get(result);
@@ -227,14 +252,14 @@ public class Init extends BaseCommand {
 			throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templateRef);
 		if (template == null) {
-			throw new ExitException(EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Could not find or load template: " + templateRef);
 		}
 
 		if (outFile.toString().endsWith(".java")) {
 			String basename = Util.getBaseName(outFile.getFileName().toString());
 			if (!SourceVersion.isIdentifier(basename)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"'" + basename + "' is not a valid class name in java. Remove the special characters");
 			}
 		}
@@ -277,5 +302,24 @@ public class Init extends BaseCommand {
 			}
 		}
 		return scriptOrFile;
+	}
+
+	@Override
+	public String prose() {
+		return "Creates a new script from a template, ready to run with `jbang <file>`. The\n"
+				+ "template is picked from the file extension unless you choose one with\n"
+				+ "--template; `jbang template list` shows what is available. Give a prompt after\n"
+				+ "the file name to have an AI model write the code instead; this needs an AI\n"
+				+ "provider and API key (via the --ai-* options or JBANG_AI_* env vars), otherwise\n"
+				+ "the normal template is used.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} --template=cli mytool.java",
+				"${COMMAND-FULL-NAME} hello.kt",
+				"${COMMAND-FULL-NAME} weather.java \"a CLI that prints the weather for a city\"");
 	}
 }

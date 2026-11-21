@@ -75,11 +75,12 @@ Intent is that on merge we squash to get as clean as changelog as possible.
 
 == Source formatting
 
-The build uses the https://github.com/diffplug/spotless[spotless] plugin to ensure Java and other files are formatted uniformly.
-If your build fails due to formatting errors then run `gradle spotlessApply` and it will reformat to be compatible.
+The build uses the https://github.com/diffplug/spotless[Spotless] plugin (layout/formatting) together with the https://docs.openrewrite.org[OpenRewrite] `ShortenFullyQualifiedTypeReferences` recipe (replaces unnecessary fully-qualified type names with imports) to keep sources uniform.
+If your build fails due to formatting errors then run `gradle format` and it will reformat/rewrite to be compatible.
+Use `gradle formatCheck` to verify without changing any files - this is what CI runs.
 
 If you are running on a bash capable system the following pre-commit hook from https://github.com/diffplug/spotless/issues/178#issuecomment-735284262[spotless issues] is useful to help remember applying correct formatting
-before `git push`:
+before `git push` (note: it only runs Spotless; run `gradle format` to also shorten fully-qualified names):
 
 [source,shell]
 ----
@@ -106,7 +107,7 @@ Run a build check to see if things are clean:
 
 [source,shell]
 ----
-$ gradle spotlessApply build clean
+$ gradle format build clean
 ----
 
 if nothing changed (use `git status`) then run:

@@ -84,6 +84,7 @@ public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
+	public static final String JBANG_LAUNCH_CMD = "JBANG_LAUNCH_CMD";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
 	public static final String JBANG_PREFER_GUI = "JBANG_PREFER_GUI";
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
@@ -806,9 +807,9 @@ public class Util {
 				"https://repo1.maven.org/maven2/$1/");
 
 		if (url.equals(originalUrl)) {
-			java.net.URI uri = null;
+			URI uri = null;
 			try {
-				uri = new java.net.URI(url);
+				uri = new URI(url);
 			} catch (URISyntaxException e) {
 				return url;
 			}

@@ -126,7 +126,7 @@ class DependencyResolverTest extends BaseTest {
 			.build()
 			.resolve(deps);
 		assertEquals(2, artifacts.size());
-		assertThat(altrepo.listFiles(), arrayWithSize(4));
+		assertThat(altrepo.listFiles(), arrayWithSize(5)); // +1 is prefix file
 	}
 
 	@Test

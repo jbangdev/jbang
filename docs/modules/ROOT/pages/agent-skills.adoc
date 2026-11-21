@@ -1,0 +1,116 @@
+= Agent Skills
+
+JBang ships a set of https://agentskills.io[Agent Skills] - instructions that teach AI coding agents (such as Claude Code, Codex, OpenCode and others) how to install and drive JBang. The skills are maintained in the https://github.com/jbangdev/agent-skills[jbangdev/agent-skills] repository.
+
+The `jbang skill` command installs these skills directly into the agents on your machine, with no extra tooling required.
+
+The skills follow the common https://agentskills.io[Agent Skills] layout, so you can also install them with a generic skills installer instead of JBang, for example:
+
+[source, bash]
+----
+npx skills add jbangdev/agent-skills
+----
+
+== Where skills are installed
+
+[cols="1,2"]
+|===
+|Agent |Skills directory
+
+|Claude Code
+|`<base>/.claude/skills/<skill>/`
+
+|Codex / OpenCode / Pi / ... (shared convention)
+|`<base>/.agents/skills/<skill>/`
+|===
+
+`<base>` is your user home by default (per-account), or the current directory when you pass `--project` (per-repository). In the per-account default an agent is considered *detected* when its directory (for example `.claude`) already exists under `<base>`; undetected agents are skipped. With `--project` both locations are always targeted (and created as needed), since you are explicitly opting the repository in.
+
+Use `--agent` to limit the command to specific target(s) - `claude` or `agents` (repeatable or comma-separated):
+
+[source, bash]
+----
+jbang skill install --agent claude
+jbang skill install --agent claude,agents
+----
+
+`--repo` points at a different source - a GitHub `owner/repo` (optionally with `@ref` for a branch, tag or commit) or a full tarball URL. It defaults to `jbangdev/agent-skills`:
+
+[source, bash]
+----
+jbang skill install --repo myorg/my-skills
+jbang skill install --repo myorg/my-skills@dev
+jbang skill list    --repo https://example.com/skills.tar.gz
+----
+
+NOTE: `--repo` is mainly intended for testing changes to a skills repository (for example a fork or a feature branch). It installs *all* skills found in that repository, which may not be what you want - for everyday use prefer the default repository and name the specific skills you want.
+
+== Installing skills
+
+[source, bash]
+----
+jbang skill install                 # all skills, into detected agents in your home
+jbang skill install jbang           # a single skill
+jbang skill install jbang jbang-scripting
+jbang skill install --project       # into the current repository instead
+----
+
+For each skill and detected agent, install does one of:
+
+* installs it if missing,
+* leaves it untouched if already up to date,
+* refuses to overwrite a skill that was *modified* locally or a directory that is *not* a JBang skill - pass `--force` to replace it:
+
+[source, bash]
+----
+jbang skill install --force jbang
+----
+
+== Listing skills
+
+[source, bash]
+----
+jbang skill list
+jbang skill list --project
+----
+
+For each skill in the repository, lists every agent location that is checked, its status, and the exact path:
+
+----
+jbang
+  Claude Code                        installed (up to date)       ~/.claude/skills/jbang
+  Agents (Codex/OpenCode/Pi/...)     not installed                ~/.agents/skills/jbang
+----
+
+Status is one of:
+
+[cols="1,3"]
+|===
+|Status |Meaning
+
+|`installed (up to date)`
+|Installed and identical to the current repository version
+
+|`installed (modified/outdated)`
+|Installed but edited locally or from an older version (re-run `install --force` to refresh)
+
+|`not installed`
+|Agent detected, but the skill is absent
+
+|`conflict (not a JBang skill)`
+|A directory with that name exists but was not installed by JBang
+
+|`agent not detected`
+|The agent's directory does not exist under the current base
+|===
+
+== Uninstalling skills
+
+[source, bash]
+----
+jbang skill uninstall               # remove all JBang-installed skills
+jbang skill uninstall jbang         # remove a specific skill
+jbang skill uninstall --project     # from the current repository
+----
+
+Every skill JBang installs carries a small `.jbang-skill` marker file. Uninstall uses that marker, so it works offline (no download) and only ever removes skills that JBang installed - a skill of the same name that you added by other means is left untouched. With no name given, all marker-bearing skills in the selected scope are removed.

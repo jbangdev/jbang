@@ -74,6 +74,17 @@ For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
 Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
 
+=== Updating a JBang-managed installation
+
+If JBang was installed using the universal installation script, update it with:
+
+[source,shell]
+----
+jbang version --update
+----
+
+When JBang was installed using a package manager such as SDKMAN, Homebrew, Chocolatey, or Scoop, use that package manager's upgrade command instead.
+
 === Wrapper install
 
 If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.

@@ -3,7 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
+import static dev.jbang.ExitException.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
@@ -425,6 +425,21 @@ public class TestRun extends BaseTest {
 
 		assertThat(e.getMessage(), startsWith("No main class"));
 		assertThat(e.getMessage(), containsString("- picocli.codegen.docgen.manpage.ManPageGenerator"));
+	}
+
+	@Test
+	void testGAVDependenciesAreResolvedOnceWhenFresh() throws Exception {
+		environmentVariables.clear("JAVA_HOME");
+		Util.setFresh(true);
+
+		CaptureResult<Project> result = captureOutput(() -> {
+			Run run = JBang.parseCommand("run", "--fresh", "info.picocli:picocli-codegen:4.6.3");
+			Project project = run.createProjectBuilderForRun().build("info.picocli:picocli-codegen:4.6.3");
+			BuildContext.forProject(project).resolveClassPath();
+			return project;
+		});
+
+		assertThat(result.err.split("Resolving dependencies\\.\\.\\.", -1).length - 1, equalTo(1));
 	}
 
 	@Test
@@ -2186,19 +2201,19 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testBuildMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Build build = JBang.parseCommand("build");
-			build.doCall();
-		});
+	void testBuildMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("build"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
-	void testRunMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Run run = JBang.parseCommand("run");
-			run.doCall();
-		});
+	void testRunMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package dev.jbang;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,14 +12,28 @@ import java.util.stream.Collectors;
 
 import org.aesh.AeshRuntimeRunner;
 import org.aesh.command.CommandResult;
+import org.aesh.command.validator.OptionValidatorException;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.JBang;
+import dev.jbang.cli.JBangDefaultValueProvider;
+import dev.jbang.search.SearchScorer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
 public class Main {
+	/**
+	 * aesh built-in commands that {@link AeshRuntimeRunner} intercepts, but only
+	 * when they are the first argument (completion script generation, dynamic
+	 * completion, documentation generation). We must pass these through untouched
+	 * so they stay at {@code args[0]} and are not rewritten into a default
+	 * {@code run} invocation.
+	 */
+	private static final Set<String> AESH_BUILTIN_COMMANDS = new LinkedHashSet<>(Arrays.asList(
+			"--aesh-complete", "--aesh-completion", "--aesh-completion-install", "--aesh-doc"));
+
 	public static void main(String... args) {
 		// In native-image mode the JVM never sees JBANG_JAVA_OPTIONS, so
 		// we parse -Dkey=value entries from it here and set them as system
@@ -43,9 +58,11 @@ public class Main {
 		int exitCode = 0;
 		try {
 			CommandResult result = AeshRuntimeRunner.builder()
+				.helpDefaults(JBang.HELP_DEFAULTS)
+				.argumentsSectionDefault(JBang.ARGUMENTS_SECTION)
 				.command(JBang.class)
 				.args(newArgs)
-				.defaultValueProvider(new dev.jbang.cli.JBangDefaultValueProvider())
+				.defaultValueProvider(new JBangDefaultValueProvider())
 				.execute();
 			if (result != null) {
 				exitCode = result.getResultValue();
@@ -61,8 +78,10 @@ public class Main {
 			while (cause.getCause() != null) {
 				cause = cause.getCause();
 			}
-			if (cause instanceof IllegalArgumentException) {
-				// Converter/validation errors from aesh (e.g. invalid enum values)
+			if (cause instanceof IllegalArgumentException
+					|| cause instanceof OptionValidatorException) {
+				// Converter/validation errors from aesh (e.g. invalid enum values,
+				// option validator rejections)
 				Util.errorMsg(cause.getMessage());
 				exitCode = ExitException.EXIT_INVALID_INPUT;
 			} else if (cause instanceof ExitException) {
@@ -109,6 +128,7 @@ public class Main {
 			names.add("export");
 			names.add("config");
 			names.add("deps");
+			names.add("skill");
 			subcommandNames = names;
 		}
 		return subcommandNames;
@@ -122,7 +142,7 @@ public class Main {
 	 */
 	static void applyJavaOptionsFromEnv() {
 		// Only needed in native-image mode — on JVM the launcher handles -D flags
-		if (!dev.jbang.util.JavaUtil.inNativeImage()) {
+		if (!JavaUtil.inNativeImage()) {
 			return;
 		}
 		String opts = System.getenv("JBANG_JAVA_OPTIONS");
@@ -162,6 +182,12 @@ public class Main {
 				}
 			}
 			args = filtered.toArray(new String[0]);
+		}
+		// Let aesh's built-in --aesh-* commands pass through untouched so they remain
+		// at args[0] where AeshRuntimeRunner intercepts them (otherwise a trailing
+		// value like `--aesh-doc markdown` would be rewritten into a default run).
+		if (args.length > 0 && AESH_BUILTIN_COMMANDS.contains(args[0])) {
+			return args;
 		}
 		List<String> leadingOpts = new ArrayList<>();
 		List<String> remainingArgs = new ArrayList<>();
@@ -219,6 +245,16 @@ public class Main {
 					Util.verboseMsg("run plugin: " + cmdLine);
 					System.out.println(cmdLine);
 					throw new ExitException(ExitException.EXIT_EXECUTE, cmdLine);
+				} else {
+					// No alias or external command matched. Before falling through
+					// to implicit "run", check for a typo of a known subcommand. Only
+					// suggest if the input doesn't look like a file/script
+					// reference (no path separators, no extensions, no URLs).
+					String suggestion = findClosestSubcommand(cmd);
+					if (suggestion != null && !looksLikeScriptRef(cmd)) {
+						Util.warnMsg("'" + cmd + "' is not a jbang command. Did you mean '" + suggestion + "'?");
+						Util.infoMsg("See 'jbang --help' for available commands.");
+					}
 				}
 				// In all other cases assume it's an implicit "run"
 				List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);
@@ -255,6 +291,40 @@ public class Main {
 		default:
 			return null;
 		}
+	}
+
+	/**
+	 * Finds the closest matching subcommand for a mistyped input using Levenshtein
+	 * distance. Returns the suggestion if the edit distance is small enough (max 2
+	 * for short commands, max 3 for longer ones), or null if no close match.
+	 */
+	public static String findClosestSubcommand(String input) {
+		String bestMatch = null;
+		int bestDistance = Integer.MAX_VALUE;
+		for (String cmd : getSubcommandNames()) {
+			int distance = SearchScorer.calculate(input.toLowerCase(), cmd.toLowerCase()).distance();
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				bestMatch = cmd;
+			}
+		}
+		// Threshold: max distance 2 for short commands (<=5 chars), 3 for longer
+		int maxDistance = input.length() <= 5 ? 2 : 3;
+		if (bestDistance > 0 && bestDistance <= maxDistance) {
+			return bestMatch;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns true if the input looks like a script/file reference rather than a
+	 * mistyped command. Checks for path separators, file extensions, URLs, and GAV
+	 * coordinates.
+	 */
+	private static boolean looksLikeScriptRef(String input) {
+		return input.contains("/") || input.contains("\\")
+				|| input.contains(".") || input.contains(":")
+				|| input.startsWith("http") || input.startsWith("@");
 	}
 
 	private static List<String> stripNonInheritedJBangOpts(List<String> opts) {
