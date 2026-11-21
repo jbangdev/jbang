@@ -957,6 +957,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "gelatoni-xh",
+      "name": "Gelatoni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/208448107?v=4",
+      "profile": "https://gelatoni.uk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
