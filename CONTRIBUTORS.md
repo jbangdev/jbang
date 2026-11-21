@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-104-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-105-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -144,6 +144,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/arnabnandy7"><img src="https://avatars.githubusercontent.com/u/5053648?v=4&size=100" width="100px" height="100px" alt="Arnab Nandy"/><br /><sub><b>Arnab Nandy</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=arnabnandy7" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.ugurcangursen.com.tr"><img src="https://avatars.githubusercontent.com/u/33179697?v=4&size=100" width="100px" height="100px" alt="Uğurcan Gürşen"/><br /><sub><b>Uğurcan Gürşen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=UgurcanGursen" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://gelatoni.uk"><img src="https://avatars.githubusercontent.com/u/208448107?v=4&size=100" width="100px" height="100px" alt="Gelatoni"/><br /><sub><b>Gelatoni</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=gelatoni-xh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://qxotic.ai"><img src="https://avatars.githubusercontent.com/u/1896283?v=4&size=100" width="100px" height="100px" alt="Alfonso² Peterssen"/><br /><sub><b>Alfonso² Peterssen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=mukel" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
