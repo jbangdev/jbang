@@ -146,42 +146,42 @@ public class CmdGeneratorBuilder {
 
 	private void updateFromAlias(Alias alias) {
 		if (arguments.isEmpty()) {
-			setArguments(handleRemoteFiles(alias.arguments));
-		} else if (alias.arguments != null && !alias.arguments.isEmpty()) {
-			List<String> args = new ArrayList<>(handleRemoteFiles(alias.arguments));
+			setArguments(handleRemoteFiles(alias.arguments()));
+		} else if (alias.arguments() != null && !alias.arguments().isEmpty()) {
+			List<String> args = new ArrayList<>(handleRemoteFiles(alias.arguments()));
 			args.addAll(arguments);
 			setArguments(args);
 		}
 		if (runtimeOptions.isEmpty()) {
-			runtimeOptions(alias.runtimeOptions);
-		} else if (alias.runtimeOptions != null && !alias.runtimeOptions.isEmpty()) {
-			List<String> opts = new ArrayList<>(alias.runtimeOptions);
+			runtimeOptions(alias.runtimeOptions());
+		} else if (alias.runtimeOptions() != null && !alias.runtimeOptions().isEmpty()) {
+			List<String> opts = new ArrayList<>(alias.runtimeOptions());
 			opts.addAll(runtimeOptions);
 			runtimeOptions(opts);
 		}
 		if (mainClass == null) {
-			mainClass(alias.mainClass);
+			mainClass(alias.mainClass());
 		}
 		if (moduleName == null) {
-			moduleName(alias.moduleName);
+			moduleName(alias.moduleName());
 		}
 		if (flightRecorderString == null) {
-			flightRecorderString(alias.jfr);
+			flightRecorderString(alias.jfr());
 		}
 		if (debugString == null) {
-			debugString(alias.debug);
+			debugString(alias.debug());
 		}
 		if (classDataSharing == null) {
-			classDataSharing(alias.cds);
+			classDataSharing(alias.cds());
 		}
 		if (interactive == null) {
-			interactive(alias.interactive);
+			interactive(alias.interactive());
 		}
 		if (enableAssertions == null) {
-			enableAssertions(alias.enableAssertions);
+			enableAssertions(alias.enableAssertions());
 		}
 		if (enableSystemAssertions == null) {
-			enableSystemAssertions(alias.enableSystemAssertions);
+			enableSystemAssertions(alias.enableSystemAssertions());
 		}
 	}
 
