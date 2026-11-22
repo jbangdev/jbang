@@ -966,6 +966,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mukel",
+      "name": "Alfonso² Peterssen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1896283?v=4",
+      "profile": "http://qxotic.ai",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
