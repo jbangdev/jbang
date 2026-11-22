@@ -382,8 +382,11 @@ public class NetUtil {
 					received = fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 				}
 				// A connection that drops early just looks like the end of the stream, so
-				// check against the announced length to not keep (or cache) a partial file
-				long expected = conn.getContentLengthLong();
+				// check against the announced length to not keep (or cache) a partial file.
+				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3), so
+				// only check when there is none. The count is of the raw (undecoded) stream,
+				// so if transparent decompression is ever added, count before decoding.
+				long expected = conn.getHeaderField("Transfer-Encoding") == null ? conn.getContentLengthLong() : -1;
 				if (expected >= 0 && received != expected) {
 					Files.deleteIfExists(file);
 					throw new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
