@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -97,6 +99,7 @@ public class Wrapper extends BaseCommand {
 		private void copyScripts(Path dir, Path dest) throws IOException {
 			for (String nm : SCRIPT_NAMES) {
 				Files.copy(dir.resolve(nm), dest.resolve(nm), COPY_ATTRIBUTES, REPLACE_EXISTING);
+				touch(dest.resolve(nm));
 			}
 		}
 
@@ -104,6 +107,21 @@ public class Wrapper extends BaseCommand {
 			Path jbdir = dest.resolve(DIR_NAME);
 			jbdir.toFile().mkdirs();
 			Files.copy(dir.resolve(JAR_NAME), jbdir.resolve(JAR_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
+			touch(jbdir.resolve(JAR_NAME));
+		}
+
+		/**
+		 * Sets the modification time to now. Release archives are built with fixed 1980
+		 * timestamps (reproducible builds) and COPY_ATTRIBUTES would carry those over.
+		 * Best-effort, like COPY_ATTRIBUTES itself: a filesystem that doesn't allow
+		 * setting it must not make the install fail.
+		 */
+		private static void touch(Path file) {
+			try {
+				Files.setLastModifiedTime(file, FileTime.from(Instant.now()));
+			} catch (IOException e) {
+				Util.verboseMsg("Could not update modification time of " + file + ": " + e.getMessage());
+			}
 		}
 
 		@Override
