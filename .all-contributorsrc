@@ -975,6 +975,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "instreest",
+      "name": "instreest",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47358024?v=4",
+      "profile": "https://github.com/instreest",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
