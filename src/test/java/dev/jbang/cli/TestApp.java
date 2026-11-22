@@ -89,6 +89,20 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testCopyLocalJBangFilesFallsBackToJarWithoutNativeBinary(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = tempDir.resolve("to");
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+
+		App.AppInstall.copyLocalJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(Files.exists(to.resolve(App.AppInstall.getNativeBinaryName())), is(false));
+	}
+
+	@Test
 	void testHasJBangSetup(@TempDir Path tempDir) throws IOException {
 		Path rcFile = tempDir.resolve(".bashrc");
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));

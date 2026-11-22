@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -324,6 +327,38 @@ class TestScriptNativeDownload extends AbstractScriptTest {
 			wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo(expectedPath)));
 			assertTrue(!result.stderr.contains("Error downloading JBang"),
 					"download should have succeeded, stderr: " + result.stderr);
+		}
+
+		/**
+		 * If the staged .exe.new can't be moved into place (e.g. the exe is locked by
+		 * another jbang process) startup must continue and keep the staged file for the
+		 * next run, instead of aborting because of $erroractionpreference='stop'.
+		 */
+		@Test
+		void failedStagedNativeUpdateDoesNotAbortStartup() throws Exception {
+			// The launcher acts on files next to itself, so run a copy of the real
+			// script from a temporary bin dir, made read-only so the move fails.
+			Path binDir = Files.createDirectories(tempSubDir("ps-lockedbin"));
+			Path script = binDir.resolve("jbang.ps1");
+			Files.copy(PS1_SCRIPT, script, StandardCopyOption.REPLACE_EXISTING);
+			Path exe = binDir.resolve("jbang.bin-windows-" + psArch() + ".exe");
+			Path staged = binDir.resolve(exe.getFileName() + ".new");
+			Files.write(exe, Collections.singletonList("old"));
+			Files.write(staged, Collections.singletonList("new"));
+			assumeTrue(binDir.toFile().setWritable(false), "could not make bin dir read-only");
+			try {
+				List<String> cmd = psCmd("version");
+				cmd.set(cmd.size() - 2, script.toString());
+				RunResult result = runProcess(cmd, psEnv(false));
+
+				assertTrue(result.stderr.contains("could not apply staged JBang update"),
+						"expected deferred update warning, stderr: " + result.stderr);
+				assertTrue(Files.exists(staged), "staged .exe.new should be kept for the next run");
+				// startup continued past the update to the jar download
+				wm.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/latest/download/jbang.zip")));
+			} finally {
+				binDir.toFile().setWritable(true);
+			}
 		}
 
 		@Test

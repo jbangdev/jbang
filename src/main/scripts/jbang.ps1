@@ -130,7 +130,13 @@ $jbang_arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchite
 
 $nativeUpdatePath = "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe.new"
 if (Test-Path $nativeUpdatePath) {
-  Move-Item -Path $nativeUpdatePath -Destination "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe" -Force
+  # keep the staged update if the exe is still locked (e.g. another jbang
+  # running) so it is retried on the next run instead of aborting startup
+  try {
+    Move-Item -Path $nativeUpdatePath -Destination "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe" -Force
+  } catch {
+    [Console]::Error.WriteLine("WARNING: could not apply staged JBang update, it will be retried on the next run: $($_.Exception.Message)")
+  }
 }
 
 # resolve native binary or jar path from script location

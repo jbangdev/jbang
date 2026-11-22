@@ -265,7 +265,7 @@ public class App extends BaseCommand {
 					if (fromDir.endsWith(".jbang")) {
 						fromDir = fromDir.getParent();
 					}
-					copyJBangFiles(fromDir, binDir, useNative);
+					copyLocalJBangFiles(fromDir, binDir, useNative);
 				}
 			} else {
 				Util.infoMsg("jbang is already installed.");
@@ -296,6 +296,17 @@ public class App extends BaseCommand {
 				arch = "aarch64";
 			}
 			return os + "-" + arch;
+		}
+
+		// A local jbang distribution might not include the native binary, in which
+		// case we install the jar like before instead of failing
+		static void copyLocalJBangFiles(Path from, Path to, boolean useNative) throws IOException {
+			if (useNative && !Files.isRegularFile(from.resolve(getNativeBinaryName()))) {
+				Util.warnMsg("Native binary " + getNativeBinaryName() + " not found in " + from
+						+ ", installing the jar only");
+				useNative = false;
+			}
+			copyJBangFiles(from, to, useNative);
 		}
 
 		static void copyJBangFiles(Path from, Path to, boolean useNative) throws IOException {
