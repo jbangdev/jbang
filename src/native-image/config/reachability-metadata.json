@@ -125,12 +125,12 @@
     },
     {
       "type": "dev.jbang.spi.IntegrationInput",
-      "allPublicFields": true,
+      "allDeclaredFields": true,
       "allDeclaredConstructors": true
     },
     {
       "type": "dev.jbang.spi.IntegrationResult",
-      "allPublicFields": true,
+      "allDeclaredFields": true,
       "allDeclaredConstructors": true,
       "unsafeAllocated": true
     },

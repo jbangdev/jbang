@@ -5,14 +5,26 @@ import java.util.List;
 
 public class IntegrationResult {
 
-	public final Path nativeImagePath;
-	public final String mainClass;
-	public final List<String> javaArgs;
+	private Path nativeImagePath;
+	private String mainClass;
+	private List<String> javaArgs;
 
 	public IntegrationResult(Path nativeImagePath, String mainClass, List<String> javaArgs) {
 		this.nativeImagePath = nativeImagePath;
 		this.mainClass = mainClass;
 		this.javaArgs = javaArgs;
+	}
+
+	public Path nativeImagePath() {
+		return nativeImagePath;
+	}
+
+	public String mainClass() {
+		return mainClass;
+	}
+
+	public List<String> javaArgs() {
+		return javaArgs;
 	}
 
 	public IntegrationResult merged(IntegrationResult ir) {

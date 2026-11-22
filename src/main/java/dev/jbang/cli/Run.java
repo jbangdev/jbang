@@ -122,9 +122,9 @@ public class Run extends BaseBuildCommand {
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj
 				.getResourceRef();
-			if (aref.getAlias().javaAgents != null) {
+			if (aref.getAlias().javaAgents() != null) {
 				Map<String, String> tmpAgents = new HashMap<>();
-				aref.getAlias().javaAgents.forEach(a -> tmpAgents.put(a.agentRef, a.options));
+				aref.getAlias().javaAgents().forEach(a -> tmpAgents.put(a.agentRef(), a.options()));
 				agents = tmpAgents;
 			}
 		}

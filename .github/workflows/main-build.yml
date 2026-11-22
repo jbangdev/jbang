@@ -28,18 +28,18 @@ jobs:
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
       - name: Download build artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions

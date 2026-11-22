@@ -113,9 +113,10 @@ public class Init extends BaseCommand {
 		propsMap.put("javaVersion", reqVersion);
 		propsMap.put("compactSourceFiles", reqVersion >= 25);
 
-		validateOutputExtension(tpl.fileRefs, outName);
+		validateOutputExtension(tpl.fileRefs(), outName);
 
-		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
+		List<RefTarget> refTargets = tpl.fileRefs()
+			.entrySet()
 			.stream()
 			.map(e -> entry(
 					resolveBaseName(e.getKey(), e.getValue(), outName),
@@ -176,7 +177,7 @@ public class Init extends BaseCommand {
 			}
 		}
 
-		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir, absolute);
+		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs(), refTargets, outDir, absolute);
 		if (edit) {
 			info("File initialized. Opening editor for you. You can also now run it with 'jbang "
 					+ renderedScriptOrFile);
@@ -193,8 +194,8 @@ public class Init extends BaseCommand {
 	}
 
 	private void applyTemplateProperties(dev.jbang.catalog.Template tpl, Map<String, Object> propsMap) {
-		if (tpl.properties != null) {
-			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
+		if (tpl.properties() != null) {
+			for (Map.Entry<String, TemplateProperty> entry : tpl.properties().entrySet()) {
 				if (entry.getValue().getDefaultValue() != null) {
 					propsMap.putIfAbsent(entry.getKey(), entry.getValue().getDefaultValue());
 				}
