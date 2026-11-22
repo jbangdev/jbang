@@ -419,4 +419,14 @@ public class TestApp extends BaseTest {
 		assertThat(result.err, containsString("Command not found: hello"));
 	}
 
+	@Test
+	void testAppSetupJavaFlag() {
+		// --java/--no-java are on/off flags; without them jbang guesses (null)
+		App.AppSetup setup = JBang.parseCommand("app", "setup");
+		assertThat(setup.java, nullValue());
+		setup = JBang.parseCommand("app", "setup", "--java");
+		assertThat(setup.java, is(true));
+		setup = JBang.parseCommand("app", "setup", "--no-java");
+		assertThat(setup.java, is(false));
+	}
 }

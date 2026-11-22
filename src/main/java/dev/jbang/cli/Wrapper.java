@@ -20,7 +20,7 @@ import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "wrapper", description = "Manage jbang wrapper for a folder.", groupCommands = {
-		Wrapper.WrapperInstall.class }, generateHelp = true)
+		Wrapper.WrapperInstall.class })
 public class Wrapper extends BaseCommand {
 	public static final String DIR_NAME = ".jbang";
 	public static final String JAR_NAME = "jbang.jar";
@@ -31,7 +31,20 @@ public class Wrapper extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder", generateHelp = true)
+	@Override
+	public String prose() {
+		return "Adds jbang wrapper scripts to a folder (usually a project), so anyone can run\n"
+				+ "your scripts with `./jbang` without installing jbang first.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install",
+				"${COMMAND-FULL-NAME} install -d myproject");
+	}
+
+	@CommandDefinition(name = "install", description = "Install/Setup jbang as a wrapper script in a folder")
 	public static class WrapperInstall extends BaseCommand {
 
 		@Option(shortName = 'd', name = "dir", description = "The folder to install the wrapper into.")
@@ -95,6 +108,21 @@ public class Wrapper extends BaseCommand {
 			jbdir.toFile().mkdirs();
 			Files.copy(dir.resolve(JAR_NAME), jbdir.resolve(JAR_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
 			Files.setLastModifiedTime(jbdir.resolve(JAR_NAME), FileTime.from(Instant.now()));
+		}
+
+		@Override
+		public String prose() {
+			return "Copies the jbang wrapper (jbang, jbang.cmd, jbang.ps1 and .jbang/jbang.jar) into\n"
+					+ "the current folder, or the one given with --dir. Commit them so others can use\n"
+					+ "`./jbang`.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} -d myproject",
+					"${COMMAND-FULL-NAME} --force");
 		}
 	}
 }

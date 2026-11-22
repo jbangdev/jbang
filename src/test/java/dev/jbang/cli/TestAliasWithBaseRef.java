@@ -44,7 +44,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 	void testGetAliasOne() throws IOException {
 		Alias alias = Alias.get("one");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("foo"));
+		assertThat(alias.scriptRef(), equalTo("foo"));
 		assertThat(alias.resolve(), equalTo("http://dummy/foo"));
 	}
 
@@ -52,7 +52,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 	void testGetAliasTwo() throws IOException {
 		Alias alias = Alias.get("two");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
+		assertThat(alias.scriptRef(), equalTo("foo/bar.java"));
 		assertThat(alias.resolve(), equalTo("http://dummy/foo/bar.java"));
 	}
 
@@ -60,7 +60,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 	void testGetAliasThree() throws IOException {
 		Alias alias = Alias.get("three");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
+		assertThat(alias.scriptRef(), equalTo("http://dummy/baz.java"));
 		assertThat(alias.resolve(), equalTo("http://dummy/baz.java"));
 	}
 
@@ -68,7 +68,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 	void testGetAliasGav() throws IOException {
 		Alias alias = Alias.get("gav");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
+		assertThat(alias.scriptRef(), equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
 	}
 

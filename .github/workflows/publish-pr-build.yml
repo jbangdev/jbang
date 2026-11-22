@@ -44,7 +44,7 @@ jobs:
             }
 
       - name: Download jbang artifact from CI run
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: '*-shared-build-jbang'
           path: jbang-artifact
@@ -65,12 +65,20 @@ jobs:
           tar cf ../jbang.tar jbang
           zip -r ../jbang.zip jbang
 
+      - name: Get token for jbang-pr-builds
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: ${{ vars.PR_BUILDS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.PR_BUILDS_APP_KEY }}
+          repositories: jbang-pr-builds
+
       - name: Create or update release in jbang-pr-builds
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         with:
-          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const fs = require('fs');
             const owner = context.repo.owner;

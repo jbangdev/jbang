@@ -171,14 +171,14 @@ public class IntegrationManager {
 
 	protected IntegrationResult runIntegrationEmbedded_(IntegrationInput input, URLClassLoader integrationCl)
 			throws Exception {
-		Util.infoMsg("Post build with " + input.integrationClassName);
+		Util.infoMsg("Post build with " + input.integrationClassName());
 
-		if (input.source != null) {
+		if (input.source() != null) {
 			// TODO: should we add new properties to the integration method?
-			System.setProperty("jbang.source", input.source.toString());
+			System.setProperty("jbang.source", input.source().toString());
 		}
 
-		Class<?> clazz = Class.forName(input.integrationClassName, true, integrationCl);
+		Class<?> clazz = Class.forName(input.integrationClassName(), true, integrationCl);
 		Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
 				List.class, boolean.class);
 
@@ -194,14 +194,15 @@ public class IntegrationManager {
 		}
 
 		@SuppressWarnings("unchecked")
-		Map<String, Object> result = (Map<String, Object>) method.invoke(null, input.classes, input.pom,
-				mapToList(input.repositories), mapToList(input.dependencies), input.comments, input.nativeRequested);
+		Map<String, Object> result = (Map<String, Object>) method.invoke(null, input.classes(), input.pom(),
+				mapToList(input.repositories()), mapToList(input.dependencies()), input.comments(),
+				input.nativeRequested());
 
 		@SuppressWarnings("unchecked")
 		Map<String, byte[]> files = (Map<String, byte[]>) result.get(FILES);
 		if (files != null) {
 			for (Map.Entry<String, byte[]> entry : files.entrySet()) {
-				Path target = input.classes.resolve(entry.getKey());
+				Path target = input.classes().resolve(entry.getKey());
 				Files.createDirectories(target.getParent());
 				try (OutputStream out = Files.newOutputStream(target)) {
 					out.write(entry.getValue());
@@ -234,7 +235,7 @@ public class IntegrationManager {
 			Jdk jdk)
 			throws Exception {
 		Gson parser = gsonb.create();
-		Util.infoMsg("Running external post build for " + input.integrationClassName);
+		Util.infoMsg("Running external post build for " + input.integrationClassName());
 
 		List<String> args = new ArrayList<>();
 		args.add(resolveInJavaHome("java", jdk)); // TODO
@@ -306,11 +307,11 @@ public class IntegrationManager {
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
-		Util.setVerbose(input.verbose);
+		Util.setVerbose(input.verbose());
 		String output = "";
 		boolean ok = false;
 		try {
-			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
+			URLClassLoader integrationCl = getClassLoader(input.dependencies().values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			IntegrationResult result = new IntegrationManager().runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
@@ -321,7 +322,7 @@ public class IntegrationManager {
 			output = "Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)";
 		} catch (Exception e) {
 			output = "Issue running postBuild()";
-			if (input.verbose) {
+			if (input.verbose()) {
 				e.printStackTrace(System.err);
 			}
 		} finally {
