@@ -30,7 +30,7 @@ jobs:
   format-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - uses: ./.github/actions/shared-build-setup
@@ -41,7 +41,7 @@ jobs:
   build-shared:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
@@ -69,7 +69,7 @@ jobs:
         os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
@@ -81,7 +81,7 @@ jobs:
             distribution: 'graalvm-community' # like to use mandrel but using community for now
             github-token: ${{ secrets.GITHUB_TOKEN }}
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -174,7 +174,7 @@ jobs:
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -277,7 +277,7 @@ jobs:
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -349,14 +349,14 @@ jobs:
     env:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
         with:
           add-job-summary: 'never'
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -397,17 +397,17 @@ jobs:
       JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions
@@ -441,12 +441,12 @@ jobs:
     needs: [unit-test-jvm, integration-test-jvm, build-test-native-image]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
         uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
           path: build/allure-inputs
@@ -475,7 +475,7 @@ jobs:
     needs: [merge-test-reports]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - id: shared-build
