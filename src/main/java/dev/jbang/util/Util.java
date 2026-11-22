@@ -123,7 +123,7 @@ public class Util {
 	private static int askInputTimeout = 30;
 	private static Boolean runningManagedJBang;
 
-	public static void setRunningManagedJBang(Boolean runningManaged) {
+	static void setRunningManagedJBang(Boolean runningManaged) {
 		Util.runningManagedJBang = runningManaged;
 	}
 

@@ -15,11 +15,14 @@ import dev.jbang.util.VersionChecker;
 @CommandDefinition(name = "version", description = "Display version info.")
 public class Version extends BaseCommand {
 
-	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available")
+	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available (ignored if --update is specified)")
 	boolean checkForUpdate;
 
 	@Option(name = "update", hasValue = false, description = "Update jbang to the latest version")
 	boolean update;
+
+	@Option(name = "force", hasValue = false, description = "Force re-install even if already up to date")
+	boolean force;
 
 	@Override
 	public Integer doCall() {
@@ -30,12 +33,14 @@ public class Version extends BaseCommand {
 				System.out.println(pendingLauncherUpdate);
 				return ExitException.EXIT_EXECUTE;
 			}
-			if (VersionChecker.updateOrInform()) {
+			if (VersionChecker.updateOrInform(force)) {
 				try {
 					App.AppInstall.installJBang(true);
 					String latest = VersionChecker.getLatestVersion();
 					if (latest != null) {
 						Util.infoMsg("jbang updated to " + latest + ".");
+					} else {
+						Util.infoMsg("jbang updated.");
 					}
 					updated = true;
 				} catch (IOException e) {

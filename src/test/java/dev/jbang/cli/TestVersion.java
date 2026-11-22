@@ -39,6 +39,7 @@ public class TestVersion extends BaseTest {
 		assertThat(result, equalTo(ExitException.EXIT_OK));
 		assertFalse(versionCmd.update);
 		assertFalse(versionCmd.checkForUpdate);
+		assertFalse(versionCmd.force);
 	}
 
 	@Test

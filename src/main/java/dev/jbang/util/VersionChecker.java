@@ -30,8 +30,22 @@ public class VersionChecker {
 	 */
 	public static void checkNowAndInform() {
 		try {
-			inform(retrieveLatestVersionAsync().get(), false);
+			String latest = retrieveLatestVersionAsync().get();
+			if (latest == null) {
+				if (!Util.runningManagedJBang()) {
+					showManualInstallMessage();
+					informed = true;
+					return;
+				}
+				throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
+			}
+			inform(latest, false);
 		} catch (ExecutionException e) {
+			if (!Util.runningManagedJBang()) {
+				showManualInstallMessage();
+				informed = true;
+				return;
+			}
 			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 		} catch (InterruptedException e) {
 			// Ignore
@@ -48,9 +62,23 @@ public class VersionChecker {
 	 * @return do we update jbang or not?
 	 */
 	public static boolean updateOrInform() {
+		return updateOrInform(false);
+	}
+
+	public static boolean updateOrInform(boolean force) {
+		if (force && Util.runningManagedJBang()) {
+			informed = true;
+			return true;
+		}
 		try {
 			String latestVersion = retrieveLatestVersionAsync().get();
 			if (latestVersion == null) {
+				if (!Util.runningManagedJBang()) {
+					System.out.println(Util.getJBangVersion());
+					showManualInstallMessage();
+					informed = true;
+					return false;
+				}
 				throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 			}
 			if (Util.runningManagedJBang()) {
@@ -66,6 +94,12 @@ public class VersionChecker {
 				inform(latestVersion, false);
 			}
 		} catch (ExecutionException e) {
+			if (!Util.runningManagedJBang()) {
+				System.out.println(Util.getJBangVersion());
+				showManualInstallMessage();
+				informed = true;
+				return false;
+			}
 			throw new ExitException(ExitException.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 		} catch (InterruptedException e) {
 			// Ignore
@@ -118,7 +152,12 @@ public class VersionChecker {
 				if (quiet) {
 					Util.verboseMsg("jbang is up-to-date.");
 				} else {
-					Util.infoMsg("jbang is up-to-date.");
+					if (Util.runningManagedJBang()) {
+						Util.infoMsg(
+								"jbang is up-to-date. Run 'jbang version --update --force' to force re-installation.");
+					} else {
+						Util.infoMsg("jbang is up-to-date.");
+					}
 				}
 			}
 			informed = true;
@@ -167,7 +206,7 @@ public class VersionChecker {
 	 * Checks if we're running the latest version of JBang by comparing its version
 	 * against the latest version on GitHub.
 	 */
-	public static boolean isNewer(String latestVersion) {
+	static boolean isNewer(String latestVersion) {
 		return (latestVersion != null && compareVersions(latestVersion, Util.getJBangVersion()) > 0);
 	}
 
@@ -192,7 +231,7 @@ public class VersionChecker {
 		return null;
 	}
 
-	public static int compareVersions(String v1, String v2) {
+	static int compareVersions(String v1, String v2) {
 		String[] v1p = v1.split("\\.");
 		String[] v2p = v2.split("\\.");
 		int maxl = Math.max(v1p.length, v2p.length);
@@ -235,7 +274,7 @@ public class VersionChecker {
 		return informed;
 	}
 
-	public static void setInformed(boolean informed) {
+	static void setInformed(boolean informed) {
 		VersionChecker.informed = informed;
 	}
 

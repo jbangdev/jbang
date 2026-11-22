@@ -74,4 +74,33 @@ public class TestVersionChecker extends BaseTest {
 		assertFalse(shouldUpdate, "Unmanaged jbang should not perform automated install");
 		assertTrue(VersionChecker.isInformed(), "Should mark informed as true");
 	}
+
+	@Test
+	void testUpdateOrInformWithForce() {
+		Util.setRunningManagedJBang(true);
+		VersionChecker.setVersionCheckResult(CompletableFuture.completedFuture(Util.getJBangVersion()));
+
+		boolean shouldUpdate = VersionChecker.updateOrInform(true);
+		assertTrue(shouldUpdate, "Should update when force is true even if already up to date");
+		assertTrue(VersionChecker.isInformed(), "Should mark informed as true");
+	}
+
+	@Test
+	void testUpdateOrInformUnmanagedOffline() {
+		Util.setRunningManagedJBang(false);
+		VersionChecker.setVersionCheckResult(CompletableFuture.completedFuture(null));
+
+		boolean shouldUpdate = VersionChecker.updateOrInform(false);
+		assertFalse(shouldUpdate, "Should not update when latest version is null");
+		assertTrue(VersionChecker.isInformed(), "Should mark informed as true");
+	}
+
+	@Test
+	void testCheckNowAndInformUnmanagedOffline() {
+		Util.setRunningManagedJBang(false);
+		VersionChecker.setVersionCheckResult(CompletableFuture.completedFuture(null));
+
+		VersionChecker.checkNowAndInform();
+		assertTrue(VersionChecker.isInformed(), "Should mark informed as true for unmanaged install when offline");
+	}
 }
