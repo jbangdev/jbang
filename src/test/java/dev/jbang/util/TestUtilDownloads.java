@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -420,6 +422,50 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
+	}
+
+	@Test
+	void testTruncatedDownloadIsNotCached(WireMockRuntimeInfo wmri) throws IOException {
+		// Server announces more bytes than it sends, like a dropped connection
+		UUID id = UUID.randomUUID();
+		stubFor(get(urlEqualTo("/jdk.tar.gz"))
+			.withId(id)
+			.willReturn(aResponse()
+				.withHeader("ETag", "tag1")
+				.withHeader("Content-Length", "1000")
+				.withBody("partial")));
+
+		String url = wmri.getHttpBaseUrl() + "/jdk.tar.gz";
+		IOException ex = assertThrows(IOException.class, () -> NetUtil.downloadAndCacheFile(url));
+		assertThat(ex.getMessage(), containsString("received 7 of 1000 bytes"));
+
+		// Neither the partial file nor its ETag may end up in the cache, otherwise
+		// it would be reused (and kept by 304 responses)
+		Path saveDir = NetUtil.getUrlCacheDir(url);
+		assertThat(Files.exists(saveDir), is(false));
+		assertThat(Files.exists(NetUtil.getCacheMetaDir(saveDir)), is(false));
+
+		// The next attempt downloads unconditionally and succeeds
+		editStub(get(urlEqualTo("/jdk.tar.gz"))
+			.withId(id)
+			.andMatching(withoutHeader("If-None-Match"))
+			.willReturn(aResponse()
+				.withHeader("ETag", "tag1")
+				.withBody("complete")));
+		Path file = NetUtil.downloadAndCacheFile(url);
+		assertThat(Util.readString(file), is("complete"));
+	}
+
+	@Test
+	void testTruncatedUncachedDownloadLeavesNoFile(WireMockRuntimeInfo wmri, @TempDir Path dir) {
+		stubFor(get(urlEqualTo("/file.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Length", "1000")
+				.withBody("partial")));
+
+		String url = wmri.getHttpBaseUrl() + "/file.zip";
+		assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
+		assertThat(Files.exists(dir.resolve("file.zip")), is(false));
 	}
 
 	/**

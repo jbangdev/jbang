@@ -376,9 +376,18 @@ public class NetUtil {
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
 				Files.createDirectories(metaSaveDir);
+				long received;
 				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
 						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+					received = fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				}
+				// A connection that drops early just looks like the end of the stream, so
+				// check against the announced length to not keep (or cache) a partial file
+				long expected = conn.getContentLengthLong();
+				if (expected >= 0 && received != expected) {
+					Files.deleteIfExists(file);
+					throw new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
+							conn.getURL().toExternalForm(), received, expected));
 				}
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
