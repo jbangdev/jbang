@@ -52,9 +52,9 @@ if not "!binaryPath!"=="" goto :run_with_cli
 if not exist "%jarPath%" goto :run_with_cli
 
 if exist "%jarPath%.new" (
-  rem a new jbang version was found, we replace the old one with it
-  copy /y "%jarPath%.new" "%jarPath%" > nul 2>&1
-  del /f /q "%jarPath%.new"
+  rem a new jbang version was found, we replace the old one with it; move
+  rem keeps .new if the jar is still locked so it is retried on the next run
+  move /y "%jarPath%.new" "%jarPath%" > nul 2>&1
 )
 
 rem Find/get a JDK (only needed for JAR execution)

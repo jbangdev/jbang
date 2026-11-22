@@ -209,8 +209,13 @@ if (-not $binaryPath -and -not $jarPath) {
   break
 }
 if (Test-Path "$jarPath.new") {
-  # a new jbang version was found, we replace the old one with it
-  Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
+  # a new jbang version was found, we replace the old one with it; keep it
+  # for the next run if the jar is still locked instead of aborting startup
+  try {
+    Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
+  } catch {
+    [Console]::Error.WriteLine("WARNING: could not apply staged JBang update, it will be retried on the next run: $($_.Exception.Message)")
+  }
 }
 
 # Find/get a JDK (only needed for JAR execution)

@@ -362,6 +362,28 @@ class TestScriptNativeDownload extends AbstractScriptTest {
 		}
 
 		@Test
+		void failedStagedJarUpdateDoesNotAbortStartup() throws Exception {
+			Path binDir = Files.createDirectories(tempSubDir("ps-lockedjar"));
+			Path script = binDir.resolve("jbang.ps1");
+			Files.copy(PS1_SCRIPT, script, StandardCopyOption.REPLACE_EXISTING);
+			Path staged = binDir.resolve("jbang.jar.new");
+			Files.write(binDir.resolve("jbang.jar"), Collections.singletonList("old"));
+			Files.write(staged, Collections.singletonList("new"));
+			assumeTrue(binDir.toFile().setWritable(false), "could not make bin dir read-only");
+			try {
+				List<String> cmd = psCmd("version");
+				cmd.set(cmd.size() - 2, script.toString());
+				RunResult result = runProcess(cmd, psEnv(false));
+
+				assertTrue(result.stderr.contains("could not apply staged JBang update"),
+						"expected deferred update warning, stderr: " + result.stderr);
+				assertTrue(Files.exists(staged), "staged jbang.jar.new should be kept for the next run");
+			} finally {
+				binDir.toFile().setWritable(true);
+			}
+		}
+
+		@Test
 		void downloadUrlOverrideIgnoresNativeFlag() throws Exception {
 			byte[] zip = createJbangZip();
 			wm.stubFor(WireMock.get(WireMock.urlEqualTo("/custom/my-jbang.zip"))
