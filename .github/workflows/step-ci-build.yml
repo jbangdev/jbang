@@ -255,7 +255,18 @@ jobs:
               java-version: 17
             - os: macos-latest
               java-version: 21
-        include: *latest_jdks
+        include:
+          # ubuntu-26.04 runners no longer ship JDK 8, so install it here rather than
+          # have the tests download it from foojay during setup (flaky: corrupt gzip)
+          - java-version: 8
+            setup-java: '8'
+          - os: ubuntu-latest
+            java-version: latest
+            setup-java: latest
+          - os: ubuntu-latest
+            java-version: ea
+            setup-java: '28-ea'
+            experimental: true
     continue-on-error: ${{ matrix.experimental == true }}
     name: integration-tests
     steps:
