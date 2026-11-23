@@ -379,8 +379,10 @@ public class NetUtil {
 				// some bytes were written and returns the short count, so a stream that fails
 				// half-way (e.g. a truncated chunked response) would look complete
 				long received = 0;
+				boolean opened = false;
 				try (InputStream in = conn.getInputStream();
 						OutputStream out = Files.newOutputStream(file)) {
+					opened = true;
 					byte[] buf = new byte[64 * 1024];
 					int n;
 					while ((n = in.read(buf)) != -1) {
@@ -388,8 +390,12 @@ public class NetUtil {
 						received += n;
 					}
 				} catch (IOException e) {
-					// not every caller downloads into a temp dir that gets cleaned up
-					deleteQuietly(file, e);
+					// not every caller downloads into a temp dir that gets cleaned up, but only
+					// remove what this attempt wrote: if it failed before opening the target,
+					// an existing file is still intact
+					if (opened) {
+						deleteQuietly(file, e);
+					}
 					throw e;
 				}
 				// A connection that drops early can also just look like the end of the

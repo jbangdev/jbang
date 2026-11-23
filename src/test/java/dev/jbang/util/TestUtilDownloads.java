@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -487,6 +488,27 @@ public class TestUtilDownloads extends BaseTest {
 			assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
 			assertThat(Files.exists(dir.resolve("download.tar.gz")), is(false));
 		});
+	}
+
+	@Test
+	void testFailureBeforeWritingKeepsExistingFile(WireMockRuntimeInfo wmri, @TempDir Path dir)
+			throws IOException {
+		// The download fails before it opened the target, so an existing file must
+		// not be deleted by the cleanup of partial downloads
+		Path existing = dir.resolve("file.txt");
+		Files.write(existing, "old".getBytes(StandardCharsets.UTF_8));
+		assumeTrue(existing.toFile().setReadOnly() && !Files.isWritable(existing),
+				"read-only files must not be writable (e.g. not running as root)");
+		try {
+			stubFor(get(urlEqualTo("/file.txt")).willReturn(aResponse().withBody("new")));
+
+			String url = wmri.getHttpBaseUrl() + "/file.txt";
+			assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
+			assertThat(Files.exists(existing), is(true));
+			assertThat(Util.readString(existing), is("old"));
+		} finally {
+			existing.toFile().setWritable(true);
+		}
 	}
 
 	@Test
