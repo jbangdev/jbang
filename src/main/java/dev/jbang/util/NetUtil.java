@@ -387,6 +387,10 @@ public class NetUtil {
 						out.write(buf, 0, n);
 						received += n;
 					}
+				} catch (IOException e) {
+					// not every caller downloads into a temp dir that gets cleaned up
+					deleteQuietly(file, e);
+					throw e;
 				}
 				// A connection that drops early can also just look like the end of the
 				// stream, so check against the announced length to not keep (or cache) a
@@ -409,6 +413,14 @@ public class NetUtil {
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
 				return file;
 			};
+		}
+
+		static void deleteQuietly(Path file, IOException cause) {
+			try {
+				Files.deleteIfExists(file);
+			} catch (IOException e) {
+				cause.addSuppressed(e);
+			}
 		}
 
 		static ResultHandler downloadToTempDir(Path saveDir, Path metaSaveDir,
