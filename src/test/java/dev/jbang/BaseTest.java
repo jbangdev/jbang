@@ -25,8 +25,10 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.aesh.command.parser.CommandLineParserException;
@@ -242,7 +244,14 @@ public abstract class BaseTest {
 	 * proxy to WireMock while Maven uses the Apache HttpClient which doesn't use
 	 * the proxy and is unaffected by this method.
 	 */
+	private static SSLSocketFactory previousSocketFactory;
+	private static HostnameVerifier previousHostnameVerifier;
+
 	public static void trustWireMock() {
+		if (previousSocketFactory == null) {
+			previousSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+			previousHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+		}
 		try {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			try (FileInputStream fis = new FileInputStream("misc/wiremock.jks")) {
@@ -255,8 +264,22 @@ public abstract class BaseTest {
 			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(null, tmf.getTrustManagers(), null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			// WireMock 3.x generates per-host certificates using JDK internals that were
+			// removed in Java 21+, after which it falls back to a certificate that doesn't
+			// match the proxied host name. As we only trust the WireMock CA anyway, it is
+			// safe to skip host name verification. Can be removed with WireMock 4.x.
+			HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 		} catch (IOException | GeneralSecurityException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private static void restoreHttpsDefaults() {
+		if (previousSocketFactory != null) {
+			HttpsURLConnection.setDefaultSSLSocketFactory(previousSocketFactory);
+			HttpsURLConnection.setDefaultHostnameVerifier(previousHostnameVerifier);
+			previousSocketFactory = null;
+			previousHostnameVerifier = null;
 		}
 	}
 
@@ -265,6 +288,7 @@ public abstract class BaseTest {
 			return; // Nothing to clean up
 		}
 		globalwms.stop();
+		restoreHttpsDefaults();
 		if ("true".equals(System.getenv("CI"))) {
 			// When running in CI, we want to fail if there are unmatched requests
 			List<LoggedRequest> requests = globalwms.getAllServeEvents()
