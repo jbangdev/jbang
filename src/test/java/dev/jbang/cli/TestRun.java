@@ -266,7 +266,11 @@ public class TestRun extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(readme.toString());
 
-		assertThat(result.out, containsString("Hello unnamed"));
+		// markdown with a main method must be built as a java app (jar), not run via
+		// jshell
+		assertThat(result.out, containsString("-classpath"));
+		assertThat(result.out, containsString(".jar"));
+		assertThat(result.out, not(containsString("jshell")));
 	}
 
 	@Test
@@ -2069,7 +2073,8 @@ public class TestRun extends BaseTest {
 
 		// todo fix so --deps can use system properties
 		Run run = JBang.parseCommand("run",
-				"--java", "11",
+				// use the running JDK so we don't trigger a JDK download
+				"--java", String.valueOf(JavaUtil.getCurrentMajorJavaVersion()),
 				"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
 				"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
 				"--deps", "eu.hansolo.fx:charts:RELEASE",
@@ -2201,19 +2206,19 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testBuildMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Build build = JBang.parseCommand("build");
-			build.doCall();
-		});
+	void testBuildMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("build"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
-	void testRunMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Run run = JBang.parseCommand("run");
-			run.doCall();
-		});
+	void testRunMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test

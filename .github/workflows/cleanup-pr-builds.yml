@@ -16,10 +16,18 @@ jobs:
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     steps:
-      - name: Delete PR build release
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+      - name: Get token for jbang-pr-builds
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
-          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          client-id: ${{ vars.PR_BUILDS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.PR_BUILDS_APP_KEY }}
+          repositories: jbang-pr-builds
+
+      - name: Delete PR build release
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const owner = context.repo.owner;
             const repo = 'jbang-pr-builds';
@@ -55,10 +63,18 @@ jobs:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
-      - name: Delete releases older than 30 days
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+      - name: Get token for jbang-pr-builds
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
-          github-token: ${{ secrets.PR_BUILDS_TOKEN }}
+          client-id: ${{ vars.PR_BUILDS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.PR_BUILDS_APP_KEY }}
+          repositories: jbang-pr-builds
+
+      - name: Delete releases older than 30 days
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const owner = context.repo.owner;
             const repo = 'jbang-pr-builds';

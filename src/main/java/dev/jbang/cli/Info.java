@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -47,12 +48,27 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "info", description = "Provides info about the script for tools (and humans who are tools).", groupCommands = {
 		Info.Tools.class, Info.ClassPath.class, Info.Jar.class,
-		Info.Docs.class }, generateHelp = true)
+		Info.Docs.class })
 public class Info extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Prints details about a script or application for use by IDEs and other tools:\n"
+				+ "resolved dependencies, class path, jar location and documentation.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} tools hello.java",
+				"${COMMAND-FULL-NAME} classpath hello.java",
+				"${COMMAND-FULL-NAME} jar hello.java",
+				"${COMMAND-FULL-NAME} docs --open hello.java");
 	}
 
 	static abstract class BaseInfoCommand extends BaseCommand {
@@ -259,9 +275,12 @@ public class Info extends BaseCommand {
 
 		private static Set<String> scripts;
 
-		ScriptInfo getInfo(boolean assureJdkInstalled) {
-			scriptMixin.validate();
+		@Override
+		protected void validateArguments() {
+			requireScriptArgument(scriptMixin.scriptOrFile);
+		}
 
+		ScriptInfo getInfo(boolean assureJdkInstalled) {
 			ProjectBuilder pb = createProjectBuilder();
 			Project prj = pb.build(scriptMixin.scriptOrFile);
 
@@ -287,7 +306,7 @@ public class Info extends BaseCommand {
 
 	}
 
-	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.", generateHelp = true)
+	@CommandDefinition(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application.")
 	public static class Tools extends BaseInfoCommand {
 
 		@Option(name = "select", description = "Indicate the name of the field to select and return from the full info result")
@@ -325,9 +344,22 @@ public class Info extends BaseCommand {
 
 			return ExitException.EXIT_OK;
 		}
+
+		@Override
+		public String prose() {
+			return "Prints a JSON description of a script (sources, dependencies, class path, Java\n"
+					+ "version and more) for IDEs and tools. Use --select to print just one field.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} --select=resolvedDependencies hello.java");
+		}
 	}
 
-	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.", generateHelp = true)
+	@CommandDefinition(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.")
 	public static class ClassPath extends BaseInfoCommand {
 
 		@Option(name = "deps-only", hasValue = false, description = "Only include the dependencies in the output, not the application jar itself")
@@ -351,7 +383,7 @@ public class Info extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "jar", description = "Prints the path to this application's JAR file.", generateHelp = true)
+	@CommandDefinition(name = "jar", description = "Prints the path to this application's JAR file.")
 	public static class Jar extends BaseInfoCommand {
 
 		@Override
@@ -362,7 +394,7 @@ public class Info extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.", generateHelp = true)
+	@CommandDefinition(name = "docs", description = "Open the documentation file in the default browser.")
 	public static class Docs extends BaseInfoCommand {
 
 		@Option(name = "open", hasValue = false, negatable = true, description = "Open the (first) documentation file/link in the default browser")

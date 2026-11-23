@@ -32,7 +32,7 @@ public class TestImplicitAlias extends BaseTest {
 	public void testImplictURLAlias() {
 
 		Alias url = Alias.get("tree@xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef(), Matchers.equalTo("tree/main.java"));
 
 	}
 
@@ -40,7 +40,7 @@ public class TestImplicitAlias extends BaseTest {
 	public void testImplictExplicitURLAlias() {
 
 		Alias url = Alias.get("tree@https://xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef(), Matchers.equalTo("tree/main.java"));
 
 	}
 
@@ -60,7 +60,7 @@ public class TestImplicitAlias extends BaseTest {
 
 		Alias alias = Alias.get(url);
 
-		assertThat(alias.scriptRef, Matchers.equalTo("helloworld.java"));
+		assertThat(alias.scriptRef(), Matchers.equalTo("helloworld.java"));
 
 	}
 }

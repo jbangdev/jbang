@@ -12,7 +12,7 @@ import org.aesh.util.completer.ShellCompletionGenerator.ShellType;
 import dev.jbang.ExitException;
 import dev.jbang.cli.Completion.CompletionHelpSectionsProvider;
 
-@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for jbang.", generateHelp = true, helpSectionProvider = CompletionHelpSectionsProvider.class)
+@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for jbang.", helpSectionProvider = CompletionHelpSectionsProvider.class)
 public class Completion extends BaseCommand {
 
 	static class CompletionHelpSectionsProvider extends ExternalCommandsProvider {

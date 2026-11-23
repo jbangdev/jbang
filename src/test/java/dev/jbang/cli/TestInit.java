@@ -30,6 +30,7 @@ import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
@@ -140,6 +141,14 @@ public class TestInit extends BaseTest {
 		assertThat(fileContent, Matchers.containsString("//DEPS org.another.company:dep:0.1"));
 	}
 
+	/**
+	 * The default template uses a compact source file (no class) when running on
+	 * Java 25+, so what we expect depends on the Java version running the tests.
+	 */
+	private static String expectedDefaultInit(String className) {
+		return JavaUtil.getCurrentMajorJavaVersion() >= 25 ? "void main(" : "class " + className;
+	}
+
 	@Test
 	void testDefaultInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
@@ -147,7 +156,7 @@ public class TestInit extends BaseTest {
 		int result = JBang.execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class edit"));
+		assertThat(Util.readString(x), Matchers.containsString(expectedDefaultInit("edit")));
 	}
 
 	@ParameterizedTest
@@ -167,7 +176,7 @@ public class TestInit extends BaseTest {
 		int result = JBang.execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class XyzPlug"));
+		assertThat(Util.readString(x), Matchers.containsString(expectedDefaultInit("XyzPlug")));
 	}
 
 	@Test
@@ -177,7 +186,7 @@ public class TestInit extends BaseTest {
 		int result = JBang.execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class xyzplug"));
+		assertThat(Util.readString(x), Matchers.containsString(expectedDefaultInit("xyzplug")));
 	}
 
 	@Test

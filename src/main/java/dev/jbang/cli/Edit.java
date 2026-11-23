@@ -36,7 +36,7 @@ import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 
-@CommandDefinition(name = "edit", description = "Setup a temporary project to edit script in an IDE.", generateHelp = true, helpGroup = "Editing")
+@CommandDefinition(name = "edit", description = "Edit a script in an IDE.", helpGroup = "Editing")
 public class Edit extends BaseCommand {
 
 	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
@@ -140,6 +140,16 @@ public class Edit extends BaseCommand {
 	}
 
 	@Override
+	protected void validateArguments() {
+		// Normal edit without a script opens the current directory in the editor
+		// (same as `jbang edit .`). Sandbox mode needs an actual script to build
+		// the temporary IDE project around, so require one there.
+		if (scriptMixin.scriptOrFile == null && sandbox) {
+			requireScriptArgument(null);
+		}
+	}
+
+	@Override
 	public Integer doCall() throws IOException {
 		// force download sources when editing
 		Util.setDownloadSources(true);
@@ -159,7 +169,7 @@ public class Edit extends BaseCommand {
 			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
 			Path path = null;
 			if (location == null) {
-				path = locateProjectDir(Paths.get("."));
+				path = locateProjectDir(Util.getCwd().toAbsolutePath());
 			} else {
 				path = locateProjectDir(location.toPath());
 			}
@@ -593,5 +603,27 @@ public class Edit extends BaseCommand {
 		} else {
 			return fileName;
 		}
+	}
+
+	@Override
+	public String prose() {
+		return "Opens your script for editing in an IDE. By default it opens the script's\n"
+				+ "existing location and assumes the editor has JBang support (see\n"
+				+ "https://jbang.dev/ide). With --sandbox (-b) it instead creates a temporary\n"
+				+ "IDE project linking your script and its dependencies, so you get code\n"
+				+ "completion without a build file - handy for editors without JBang support.\n"
+				+ "Choose the editor with --open (or $JBANG_EDITOR); --no-open only prints the\n"
+				+ "path, and --live (sandbox only) regenerates the project when dependencies\n"
+				+ "change.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} --open=code hello.java",
+				"${COMMAND-FULL-NAME} --no-open hello.java",
+				"${COMMAND-FULL-NAME} --sandbox hello.java",
+				"${COMMAND-FULL-NAME} --sandbox --live --open=idea hello.java");
 	}
 }

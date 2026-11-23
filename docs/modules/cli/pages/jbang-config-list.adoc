@@ -1,4 +1,4 @@
-= JBANG-CONFIG-LIST
+= JBANG CONFIG LIST
 
 == NAME
 
@@ -8,13 +8,10 @@ jbang config list -- List active configuration values
 
 [source]
 ----
-jbang config list [-hg] [--show-origin] [--show-available] [--format=<format>] [-f=<file>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
+jbang config list [OPTIONS]
 ----
 
 == OPTIONS
-
-*-h*, *--help*::
-Display this help and exit
 
 *--show-origin*::
 Show the origin of the configuration
@@ -30,6 +27,9 @@ Use the global (user) config file
 
 *-f*, *--file*=<file>::
 Path to the config file to use
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -51,4 +51,10 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 

@@ -77,6 +77,26 @@ which jbang
    export JBANG_DEFAULT_JAVA_VERSION=17
    ----
 
+=== Java Download or Install Fails
+
+**Problem**: JBang reports `Unable to download or install JDK version ...`, and retrying gives the same error
+
+**Cause**: The JDK archive was corrupted or only partially downloaded (for example, because the connection dropped). Downloads are cached, so a retry may reuse the bad archive.
+
+**Solutions**:
+1. **Force a fresh download**:
+   [source,bash]
+   ----
+   jbang --fresh jdk install 21
+   ----
+2. **Clear the download cache** and try again:
+   [source,bash]
+   ----
+   jbang cache clear --url
+   ----
+
+JBang rejects downloads that end before the size announced by the server, so an interrupted download is no longer cached.
+
 == Script Execution Issues
 
 === Script Won't Run
@@ -324,6 +344,17 @@ This applies to JDK and JBang bootstrap downloads on all platforms (curl, wget, 
 1. **Install dependencies**: Ensure curl, java are available
 2. **Check shell compatibility**: Verify with bash/zsh
 3. **User permissions**: Use user-space installation methods
+
+=== Color Codes in Output
+
+**Problem**: Output piped to a file or another command (e.g. `jbang --help | less`) contains escape codes such as `^[[0;33m`
+
+**Solution**: Set `NO_COLOR` to turn colors off:
+
+[source,bash]
+----
+NO_COLOR=1 jbang --help > help.txt
+----
 
 == Cache and Storage Issues
 

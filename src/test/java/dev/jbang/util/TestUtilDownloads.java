@@ -4,8 +4,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -14,9 +22,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -420,6 +432,154 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
+	}
+
+	@Test
+	void testTruncatedDownloadIsNotCached(WireMockRuntimeInfo wmri) throws IOException {
+		// Server announces more bytes than it sends, like a dropped connection
+		UUID id = UUID.randomUUID();
+		stubFor(get(urlEqualTo("/jdk.tar.gz"))
+			.withId(id)
+			.willReturn(aResponse()
+				.withHeader("ETag", "tag1")
+				.withHeader("Content-Length", "1000")
+				.withBody("partial")));
+
+		String url = wmri.getHttpBaseUrl() + "/jdk.tar.gz";
+		IOException ex = assertThrows(IOException.class, () -> NetUtil.downloadAndCacheFile(url));
+		assertThat(ex.getMessage(), containsString("received 7 of 1000 bytes"));
+
+		// Neither the partial file nor its ETag may end up in the cache, otherwise
+		// it would be reused (and kept by 304 responses)
+		Path saveDir = NetUtil.getUrlCacheDir(url);
+		assertThat(Files.exists(saveDir), is(false));
+		assertThat(Files.exists(NetUtil.getCacheMetaDir(saveDir)), is(false));
+
+		// The next attempt downloads unconditionally and succeeds
+		editStub(get(urlEqualTo("/jdk.tar.gz"))
+			.withId(id)
+			.andMatching(withoutHeader("If-None-Match"))
+			.willReturn(aResponse()
+				.withHeader("ETag", "tag1")
+				.withBody("complete")));
+		Path file = NetUtil.downloadAndCacheFile(url);
+		assertThat(Util.readString(file), is("complete"));
+	}
+
+	// One valid chunk, then the connection drops in the middle of the next one.
+	// WireMock (Jetty) controls the chunk framing so it can't produce this; the
+	// failure must happen after some bytes were written to be meaningful.
+	private static final String TRUNCATED_CHUNKED_RESPONSE = "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n"
+			+ "ETag: \"tag1\"\r\nConnection: close\r\n\r\n" + "5\r\nhello\r\n" + "10\r\npart";
+
+	@Test
+	@Timeout(30)
+	void testTruncatedChunkedDownloadIsNotCached() throws Exception {
+		withRawResponse(TRUNCATED_CHUNKED_RESPONSE, url -> {
+			assertThrows(IOException.class, () -> NetUtil.downloadAndCacheFile(url));
+			assertNotCached(url);
+		});
+	}
+
+	@Test
+	@Timeout(30)
+	void testTruncatedChunkedUncachedDownloadLeavesNoFile(@TempDir Path dir) throws Exception {
+		withRawResponse(TRUNCATED_CHUNKED_RESPONSE, url -> {
+			assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
+			assertThat(Files.exists(dir.resolve("download.tar.gz")), is(false));
+		});
+	}
+
+	@Test
+	void testFailureBeforeWritingKeepsExistingFile(WireMockRuntimeInfo wmri, @TempDir Path dir)
+			throws IOException {
+		// The download fails before it opened the target, so an existing file must
+		// not be deleted by the cleanup of partial downloads
+		Path existing = dir.resolve("file.txt");
+		Files.write(existing, "old".getBytes(StandardCharsets.UTF_8));
+		assumeTrue(existing.toFile().setReadOnly() && !Files.isWritable(existing),
+				"read-only files must not be writable (e.g. not running as root)");
+		try {
+			stubFor(get(urlEqualTo("/file.txt")).willReturn(aResponse().withBody("new")));
+
+			String url = wmri.getHttpBaseUrl() + "/file.txt";
+			assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
+			assertThat(Files.exists(existing), is(true));
+			assertThat(Util.readString(existing), is("old"));
+		} finally {
+			existing.toFile().setWritable(true);
+		}
+	}
+
+	@Test
+	@Timeout(30)
+	void testContentLengthCheckedWithNonChunkedTransferEncoding() throws Exception {
+		// The JDK only decodes "chunked"; for anything else the body is read by
+		// Content-Length, so a short body must still be rejected
+		withRawResponse("HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip\r\nContent-Length: 1000\r\n"
+				+ "ETag: \"tag1\"\r\nConnection: close\r\n\r\n" + "partial", url -> {
+					assertThrows(IOException.class, () -> NetUtil.downloadAndCacheFile(url));
+					assertNotCached(url);
+				});
+	}
+
+	private static void assertNotCached(String url) {
+		Path saveDir = NetUtil.getUrlCacheDir(url);
+		assertThat(Files.exists(saveDir), is(false));
+		assertThat(Files.exists(NetUtil.getCacheMetaDir(saveDir)), is(false));
+	}
+
+	private interface UrlClient {
+		void run(String url) throws Exception;
+	}
+
+	/**
+	 * Serves a raw, hand-written HTTP response (for framing WireMock can't produce)
+	 * to the given client. Afterwards it verifies the response was actually
+	 * delivered, so a broken fixture can't make an expected client failure pass.
+	 */
+	private static void withRawResponse(String response, UrlClient client) throws Exception {
+		try (ServerSocket server = new ServerSocket(0, 5, InetAddress.getLoopbackAddress())) {
+			CompletableFuture<Void> delivered = new CompletableFuture<>();
+			// Serve every connection (HttpURLConnection may retry a GET), so a failing
+			// fixture makes the client fail fast instead of hanging on a retry
+			Thread t = new Thread(() -> {
+				while (!server.isClosed()) {
+					try (Socket s = server.accept()) {
+						BufferedReader in = new BufferedReader(
+								new InputStreamReader(s.getInputStream(), StandardCharsets.US_ASCII));
+						String line;
+						while ((line = in.readLine()) != null && !line.isEmpty()) {
+							// skip request headers
+						}
+						s.getOutputStream().write(response.getBytes(StandardCharsets.US_ASCII));
+						s.getOutputStream().flush();
+						delivered.complete(null);
+					} catch (Throwable e) {
+						if (!server.isClosed()) {
+							delivered.completeExceptionally(e);
+						}
+					}
+				}
+			});
+			t.setDaemon(true);
+			t.start();
+
+			client.run("http://localhost:" + server.getLocalPort() + "/download.tar.gz");
+			delivered.get(10, TimeUnit.SECONDS);
+		}
+	}
+
+	@Test
+	void testTruncatedUncachedDownloadLeavesNoFile(WireMockRuntimeInfo wmri, @TempDir Path dir) {
+		stubFor(get(urlEqualTo("/file.zip"))
+			.willReturn(aResponse()
+				.withHeader("Content-Length", "1000")
+				.withBody("partial")));
+
+		String url = wmri.getHttpBaseUrl() + "/file.zip";
+		assertThrows(IOException.class, () -> NetUtil.downloadFile(url, dir));
+		assertThat(Files.exists(dir.resolve("file.zip")), is(false));
 	}
 
 	/**

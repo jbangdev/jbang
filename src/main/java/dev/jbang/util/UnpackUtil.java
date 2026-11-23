@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +68,7 @@ public class UnpackUtil {
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
 			ZipFileHandler onZipFile) throws IOException {
 		try (ZipFile zipFile = ZipFile.builder().setFile(zip.toFile()).get()) {
+			Path root = realRoot(outputDir);
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry zipEntry = entries.nextElement();
@@ -84,23 +86,31 @@ public class UnpackUtil {
 					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
 				entry = outputDir.resolve(entry).normalize();
-				if (!entry.startsWith(outputDir)) {
+				if (!entry.startsWith(outputDir.normalize())) {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
 				try {
 					if (zipEntry.isDirectory() && checkValidParent(entry)) {
+						assertParentInside(root, entry, zipEntry.getName());
 						Files.createDirectories(entry);
 					} else if (zipEntry.isUnixSymlink()) {
 						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
 							String result = s.hasNext() ? s.next() : "";
-							Files.createSymbolicLink(entry, Paths.get(result));
+							Path linkTarget = Paths.get(result);
+							assertSymlinkInside(root, entry, linkTarget, zipEntry.getName());
+							Files.createSymbolicLink(entry, linkTarget);
 						}
 					} else {
 						if (checkValidParent(entry.getParent())) {
-							Files.createDirectories(entry.getParent());
+							assertParentInside(root, entry, zipEntry.getName());
 						}
 						onZipFile.handle(zipFile, zipEntry, entry, null);
 					}
+				} catch (EntryEscapeException e) {
+					// Never route a containment violation to the handler: the default
+					// handler ignores the exception and would copy the entry anyway,
+					// writing through an escaping symlink (Zip Slip).
+					throw e;
 				} catch (Exception e) {
 					onZipFile.handle(zipFile, zipEntry, entry, e);
 				}
@@ -108,6 +118,11 @@ public class UnpackUtil {
 		}
 	}
 
+	/**
+	 * Walk up to the nearest existing ancestor of {@code path}; if that ancestor
+	 * exists but is not a directory, throw so the caller (e.g. a ZipFileHandler)
+	 * can treat it as a file-vs-directory conflict.
+	 */
 	private static boolean checkValidParent(Path path) throws FileAlreadyExistsException {
 		while (path != null && !Files.exists(path)) {
 			path = path.getParent();
@@ -116,6 +131,58 @@ public class UnpackUtil {
 			throw new FileAlreadyExistsException("Parent path is not a directory: " + path);
 		}
 		return true;
+	}
+
+	/**
+	 * Real (symlink-resolved) path of the extraction root, creating it if needed.
+	 */
+	private static Path realRoot(Path outputDir) throws IOException {
+		Files.createDirectories(outputDir);
+		return outputDir.toRealPath();
+	}
+
+	/**
+	 * Ensure the parent directory of {@code entry} exists and, after following any
+	 * already-extracted symlinks, still lives inside {@code root}. This defeats
+	 * "Zip Slip" escapes that chain symlinks (e.g. {@code a -> .} then
+	 * {@code a/b -> ..}) which pass a purely lexical check. Returns the real
+	 * parent.
+	 */
+	private static Path assertParentInside(Path root, Path entry, String name) throws IOException {
+		Path parent = entry.getParent();
+		if (!Files.exists(parent)) {
+			Files.createDirectories(parent);
+		}
+		// toRealPath follows any already-extracted symlinks in the ancestor chain,
+		// so a link like a -> . then a/b -> .. is caught here rather than lexically.
+		Path realParent = parent.toRealPath();
+		if (!realParent.startsWith(root)) {
+			throw new EntryEscapeException("Symbolic link escapes the target dir: " + name);
+		}
+		return realParent;
+	}
+
+	/**
+	 * Verify that a symlink entry {@code entry} pointing at {@code linkTarget}
+	 * resolves (against its real parent) to a location inside {@code root}.
+	 */
+	private static void assertSymlinkInside(Path root, Path entry, Path linkTarget, String name) throws IOException {
+		Path realParent = assertParentInside(root, entry, name);
+		Path resolved = realParent.resolve(linkTarget).normalize();
+		if (!resolved.startsWith(root)) {
+			throw new EntryEscapeException("Symbolic link escapes the target dir: " + name + " -> " + linkTarget);
+		}
+	}
+
+	/**
+	 * Thrown when an archive entry would resolve outside the extraction root. Kept
+	 * distinct from plain {@link IOException} so {@code unzip} can rethrow it past
+	 * the generic handler instead of letting the handler extract anyway.
+	 */
+	private static final class EntryEscapeException extends IOException {
+		EntryEscapeException(String message) {
+			super(message);
+		}
 	}
 
 	public interface ZipFileHandler {
@@ -134,11 +201,77 @@ public class UnpackUtil {
 		}
 	}
 
+	/**
+	 * Reads a single entry from a .tar.gz archive, optionally after stripping the
+	 * single root folder (as GitHub source tarballs have). Returns {@code null} if
+	 * the entry is not found.
+	 */
+	public static byte[] readEntry(Path targz, boolean stripRootFolder, Path relative) throws IOException {
+		try (TarArchiveInputStream in = new TarArchiveInputStream(
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+			TarArchiveEntry entry;
+			while ((entry = in.getNextEntry()) != null) {
+				Path p = Paths.get(entry.getName()).normalize();
+				// Ignore entries that would escape the archive root ("Zip Slip")
+				if (p.isAbsolute() || p.startsWith("..")) {
+					continue;
+				}
+				if (stripRootFolder) {
+					if (p.getNameCount() == 1) {
+						continue;
+					}
+					p = p.subpath(1, p.getNameCount());
+				}
+				if (p.equals(relative) && !entry.isDirectory()) {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					byte[] buf = new byte[8192];
+					int n;
+					while ((n = in.read(buf)) != -1) {
+						bos.write(buf, 0, n);
+					}
+					return bos.toByteArray();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Lists the top-level folder names inside a .tar.gz archive, optionally after
+	 * stripping the single root folder (as GitHub source tarballs have).
+	 */
+	public static Set<String> listTopFolders(Path targz, boolean stripRootFolder) throws IOException {
+		Set<String> folders = new LinkedHashSet<>();
+		try (TarArchiveInputStream in = new TarArchiveInputStream(
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+			TarArchiveEntry entry;
+			while ((entry = in.getNextEntry()) != null) {
+				Path p = Paths.get(entry.getName()).normalize();
+				// Ignore entries that would escape the archive root ("Zip Slip")
+				if (p.isAbsolute() || p.startsWith("..")) {
+					continue;
+				}
+				if (stripRootFolder) {
+					if (p.getNameCount() == 1) {
+						continue;
+					}
+					p = p.subpath(1, p.getNameCount());
+				}
+				// only count paths with content below them, i.e. actual folders
+				if (p.getNameCount() >= 2) {
+					folders.add(p.getName(0).toString());
+				}
+			}
+		}
+		return folders;
+	}
+
 	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
 				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
 
+			Path root = realRoot(outputDir);
 			TarArchiveEntry targzEntry;
 			while ((targzEntry = tarArchiveInputStream.getNextEntry()) != null) {
 				Path entry = Paths.get(targzEntry.getName()).normalize();
@@ -159,18 +292,18 @@ public class UnpackUtil {
 
 				entry = outputDir.resolve(entry).normalize();
 
-				if (!entry.startsWith(outputDir)) {
+				if (!entry.startsWith(outputDir.normalize())) {
 					throw new IOException("Entry is outside of the target dir: " + targzEntry.getName());
 				}
 
 				if (targzEntry.isDirectory()) {
+					assertParentInside(root, entry, targzEntry.getName());
 					Files.createDirectories(entry);
 				} else if (targzEntry.isSymbolicLink()) {
 					// Handle symbolic links
 					Path linkTarget = Paths.get(targzEntry.getLinkName());
 
-					// Ensure parent directory exists
-					Files.createDirectories(entry.getParent());
+					assertSymlinkInside(root, entry, linkTarget, targzEntry.getName());
 
 					// Create symbolic link (only if it doesn't exist)
 					if (!Files.exists(entry)) {
@@ -183,9 +316,7 @@ public class UnpackUtil {
 					}
 				} else {
 					// Regular file extraction
-					if (!Files.isDirectory(entry.getParent())) {
-						Files.createDirectories(entry.getParent());
-					}
+					assertParentInside(root, entry, targzEntry.getName());
 					Files.copy(tarArchiveInputStream, entry, StandardCopyOption.REPLACE_EXISTING);
 
 					int mode = targzEntry.getMode();

@@ -12,7 +12,7 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
-@CommandDefinition(name = "version", description = "Display version info.", generateHelp = true)
+@CommandDefinition(name = "version", description = "Display version info.")
 public class Version extends BaseCommand {
 
 	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available")

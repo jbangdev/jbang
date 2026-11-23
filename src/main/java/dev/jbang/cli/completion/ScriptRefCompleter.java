@@ -227,7 +227,7 @@ public class ScriptRefCompleter implements OptionCompleter<CompleterInvocation> 
 			for (String name : merged.aliases.keySet()) {
 				if (name.startsWith(partial)) {
 					Alias alias = merged.aliases.get(name);
-					String desc = (alias != null && alias.description != null) ? alias.description : "Alias";
+					String desc = (alias != null && alias.description() != null) ? alias.description() : "Alias";
 					candidates.add(described(name, desc));
 				}
 			}
