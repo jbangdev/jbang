@@ -76,10 +76,10 @@ public class TestCatalogNearest extends BaseTest {
 				"jbanghub"));
 		assertThat(catalog.catalogs.keySet().containsAll(keys), is(true));
 
-		assertThat(catalog.catalogs.get("global").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("dotparent").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("dotlocal").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("local").catalogRef, is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("global").catalogRef(), is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("dotparent").catalogRef(), is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("dotlocal").catalogRef(), is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("local").catalogRef(), is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("jbanghub").catalog, is(Catalog.getBuiltin()));
 
 		catalog.catalogs.keySet().removeAll(keys);
@@ -113,7 +113,7 @@ public class TestCatalogNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		assertThat(catalog.catalogs.get("new").catalogRef(), equalTo(result));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class TestCatalogNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("new").catalogRef(), equalTo(aliasesFile.toString()));
 	}
 
 	@Test
@@ -142,7 +142,7 @@ public class TestCatalogNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		assertThat(catalog.catalogs.get("new").catalogRef(), equalTo(result));
 	}
 
 	@Test
@@ -163,7 +163,7 @@ public class TestCatalogNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		assertThat(catalog.catalogs.get("new").catalogRef(), equalTo(result));
 	}
 
 	@Test
@@ -186,7 +186,7 @@ public class TestCatalogNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(Settings.getUserCatalogFile());
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		assertThat(catalog.catalogs.get("new").catalogRef(), equalTo(result));
 	}
 
 	@Test

@@ -153,6 +153,10 @@ sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
 	implementation "dev.jbang:devkitman:${devkitmanVersion}"
+	constraints {
+		// Devkitman still depends on HttpClient 5.6; upgrade its cache parent for the client/core security fixes.
+		runtimeOnly 'org.apache.httpcomponents.client5:httpclient5-cache:5.6.4'
+	}
 
 	implementation 'org.jspecify:jspecify:1.0.1'
 	implementation 'org.apache.commons:commons-text:1.15.0'
@@ -165,7 +169,7 @@ dependencies {
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.5.2'
 	implementation 'com.google.code.gson:gson:2.13.2'
-	implementation 'org.jsoup:jsoup:1.17.1'
+	implementation 'org.jsoup:jsoup:1.23.2'
 	implementation 'org.codejive:java-properties:0.0.7'
 
 	implementation "org.slf4j:slf4j-nop:2.0.20"

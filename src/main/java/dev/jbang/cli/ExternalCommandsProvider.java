@@ -67,7 +67,7 @@ public class ExternalCommandsProvider implements HelpSectionProvider {
 			Catalog cat = Catalog.getMerged(true, false);
 			for (String name : cat.aliases.keySet()) {
 				if (name.startsWith("jbang-")) {
-					result.put(name.substring(6), cat.aliases.get(name).description);
+					result.put(name.substring(6), cat.aliases.get(name).description());
 				}
 			}
 		} catch (Exception ex) {
