@@ -6,7 +6,13 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -454,6 +460,54 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("complete")));
 		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(Util.readString(file), is("complete"));
+	}
+
+	@Test
+	void testTruncatedChunkedDownloadIsNotCached() throws Exception {
+		// One valid chunk, then the connection drops in the middle of the next one.
+		// WireMock (Jetty) controls the chunk framing so it can't produce this; the
+		// failure must happen after some bytes were written to be meaningful.
+		assertRawResponseFailsAndIsNotCached("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nETag: \"tag1\"\r\n"
+				+ "Connection: close\r\n\r\n" + "5\r\nhello\r\n" + "10\r\npart");
+	}
+
+	@Test
+	void testContentLengthCheckedWithNonChunkedTransferEncoding() throws Exception {
+		// The JDK only decodes "chunked"; for anything else the body is read by
+		// Content-Length, so a short body must still be rejected
+		assertRawResponseFailsAndIsNotCached("HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip\r\nContent-Length: 1000\r\n"
+				+ "ETag: \"tag1\"\r\nConnection: close\r\n\r\n" + "partial");
+	}
+
+	/**
+	 * Serves a raw, hand-written HTTP response (for framing WireMock can't produce)
+	 * and asserts the download fails without leaving anything in the cache.
+	 */
+	private static void assertRawResponseFailsAndIsNotCached(String response) throws Exception {
+		try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+			Thread t = new Thread(() -> {
+				try (Socket s = server.accept()) {
+					BufferedReader in = new BufferedReader(
+							new InputStreamReader(s.getInputStream(), StandardCharsets.US_ASCII));
+					String line;
+					while ((line = in.readLine()) != null && !line.isEmpty()) {
+						// skip request headers
+					}
+					s.getOutputStream().write(response.getBytes(StandardCharsets.US_ASCII));
+					s.getOutputStream().flush();
+				} catch (IOException e) {
+					// test fails on the client side if this goes wrong
+				}
+			});
+			t.setDaemon(true);
+			t.start();
+
+			String url = "http://localhost:" + server.getLocalPort() + "/download.tar.gz";
+			assertThrows(IOException.class, () -> NetUtil.downloadAndCacheFile(url));
+			Path saveDir = NetUtil.getUrlCacheDir(url);
+			assertThat(Files.exists(saveDir), is(false));
+			assertThat(Files.exists(NetUtil.getCacheMetaDir(saveDir)), is(false));
+		}
 	}
 
 	@Test

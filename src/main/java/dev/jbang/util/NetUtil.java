@@ -15,16 +15,15 @@ import static dev.jbang.util.Util.writeString;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -376,17 +375,27 @@ public class NetUtil {
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
 				Files.createDirectories(metaSaveDir);
-				long received;
-				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
-						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-					received = fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				// Plain copy loop on purpose: FileChannel.transferFrom() swallows errors once
+				// some bytes were written and returns the short count, so a stream that fails
+				// half-way (e.g. a truncated chunked response) would look complete
+				long received = 0;
+				try (InputStream in = conn.getInputStream();
+						OutputStream out = Files.newOutputStream(file)) {
+					byte[] buf = new byte[64 * 1024];
+					int n;
+					while ((n = in.read(buf)) != -1) {
+						out.write(buf, 0, n);
+						received += n;
+					}
 				}
-				// A connection that drops early just looks like the end of the stream, so
-				// check against the announced length to not keep (or cache) a partial file.
-				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3), so
-				// only check when there is none. The count is of the raw (undecoded) stream,
-				// so if transparent decompression is ever added, count before decoding.
-				long expected = conn.getHeaderField("Transfer-Encoding") == null ? conn.getContentLengthLong() : -1;
+				// A connection that drops early can also just look like the end of the
+				// stream, so check against the announced length to not keep (or cache) a
+				// partial file. The JDK decodes only "chunked", in which case
+				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3). The
+				// count is of the raw (undecoded) stream, so if transparent decompression is
+				// ever added, count before decoding.
+				boolean chunked = "chunked".equalsIgnoreCase(conn.getHeaderField("Transfer-Encoding"));
+				long expected = chunked ? -1 : conn.getContentLengthLong();
 				if (expected >= 0 && received != expected) {
 					Files.deleteIfExists(file);
 					throw new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
