@@ -56,7 +56,7 @@ Since version `0.92.0` the full path to the JBang script can be acquired by quer
 
 Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
 
-==== Reserved `jbang.app.*` system properties
+=== Reserved `jbang.app.*` system properties
 
 The `jbang.app.*` namespace carries metadata about the application/script JBang is running (as opposed to JBang itself). It is the system-property counterpart to the `JBANG_APP_*` environment variables used to inject directives.
 
