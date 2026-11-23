@@ -375,6 +375,14 @@ public class NetUtil {
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
 				Files.createDirectories(metaSaveDir);
+				// A connection that drops early can also just look like the end of the
+				// stream, so check against the announced length to not keep (or cache) a
+				// partial file. The JDK decodes only "chunked", in which case
+				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3). The
+				// count is of the raw (undecoded) stream, so if transparent decompression is
+				// ever added, count before decoding.
+				boolean chunked = "chunked".equalsIgnoreCase(conn.getHeaderField("Transfer-Encoding"));
+				long expected = chunked ? -1 : conn.getContentLengthLong();
 				// Plain copy loop on purpose: FileChannel.transferFrom() swallows errors once
 				// some bytes were written and returns the short count, so a stream that fails
 				// half-way (e.g. a truncated chunked response) would look complete
@@ -396,20 +404,16 @@ public class NetUtil {
 					if (opened) {
 						deleteQuietly(file, e);
 					}
+					// JDK 24+ (JDK-8335135) throws "Premature EOF" for a body shorter than its
+					// Content-Length instead of ending the stream, report it the same way
+					if (opened && expected >= 0 && received < expected) {
+						throw incompleteDownload(conn, received, expected, e);
+					}
 					throw e;
 				}
-				// A connection that drops early can also just look like the end of the
-				// stream, so check against the announced length to not keep (or cache) a
-				// partial file. The JDK decodes only "chunked", in which case
-				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3). The
-				// count is of the raw (undecoded) stream, so if transparent decompression is
-				// ever added, count before decoding.
-				boolean chunked = "chunked".equalsIgnoreCase(conn.getHeaderField("Transfer-Encoding"));
-				long expected = chunked ? -1 : conn.getContentLengthLong();
 				if (expected >= 0 && received != expected) {
 					Files.deleteIfExists(file);
-					throw new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
-							conn.getURL().toExternalForm(), received, expected));
+					throw incompleteDownload(conn, received, expected, null);
 				}
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
@@ -419,6 +423,11 @@ public class NetUtil {
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
 				return file;
 			};
+		}
+
+		static IOException incompleteDownload(URLConnection conn, long received, long expected, IOException cause) {
+			return new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
+					conn.getURL().toExternalForm(), received, expected), cause);
 		}
 
 		static void deleteQuietly(Path file, IOException cause) {
