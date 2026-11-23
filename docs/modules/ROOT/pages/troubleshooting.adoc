@@ -77,6 +77,26 @@ which jbang
    export JBANG_DEFAULT_JAVA_VERSION=17
    ----
 
+=== Java Download or Install Fails
+
+**Problem**: JBang reports `Unable to download or install JDK version ...`, and retrying gives the same error
+
+**Cause**: The JDK archive was corrupted or only partially downloaded (for example, because the connection dropped). Downloads are cached, so a retry may reuse the bad archive.
+
+**Solutions**:
+1. **Force a fresh download**:
+   [source,bash]
+   ----
+   jbang --fresh jdk install 21
+   ----
+2. **Clear the download cache** and try again:
+   [source,bash]
+   ----
+   jbang cache clear --url
+   ----
+
+JBang rejects downloads that end before the size announced by the server, so an interrupted download is no longer cached.
+
 == Script Execution Issues
 
 === Script Won't Run
