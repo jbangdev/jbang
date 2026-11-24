@@ -103,6 +103,25 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testCopyLocalJBangFilesRemovesOlderNativeBinaryOnJarFallback(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = Files.createDirectory(tempDir.resolve("to"));
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+		Path oldNative = to.resolve(App.AppInstall.getNativeBinaryName());
+		Path staged = to.resolve(App.AppInstall.getNativeBinaryName() + ".new");
+		Files.write(oldNative, Collections.singletonList("old native"));
+		Files.write(staged, Collections.singletonList("old staged native"));
+
+		App.AppInstall.copyLocalJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(Files.exists(oldNative), is(false));
+		assertThat(Files.exists(staged), is(false));
+	}
+
+	@Test
 	void testHasJBangSetup(@TempDir Path tempDir) throws IOException {
 		Path rcFile = tempDir.resolve(".bashrc");
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));

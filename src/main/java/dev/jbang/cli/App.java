@@ -305,6 +305,17 @@ public class App extends BaseCommand {
 				Util.warnMsg("Native binary " + getNativeBinaryName() + " not found in " + from
 						+ ", installing the jar only");
 				useNative = false;
+				// the launchers prefer an existing native binary over the jar, so an older one
+				// left behind (or staged as .new on Windows) would keep running instead of the
+				// version we install now
+				Path oldNative = to.resolve(getNativeBinaryName());
+				try {
+					Files.deleteIfExists(oldNative.resolveSibling(oldNative.getFileName() + ".new"));
+					Files.deleteIfExists(oldNative);
+				} catch (IOException e) {
+					Util.warnMsg("Could not remove the older native binary " + oldNative
+							+ ", it will keep being used while JBANG_USE_NATIVE=true. Remove it or update again once no other jbang is running.");
+				}
 			}
 			copyJBangFiles(from, to, useNative);
 		}
