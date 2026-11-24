@@ -128,6 +128,17 @@ function Invoke-JBang {
 # detect architecture for platform-specific binary lookup
 $jbang_arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "aarch64" } else { "x64" }
 
+$nativeUpdatePath = "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe.new"
+if (Test-Path $nativeUpdatePath) {
+  # keep the staged update if the exe is still locked (e.g. another jbang
+  # running) so it is retried on the next run instead of aborting startup
+  try {
+    Move-Item -Path $nativeUpdatePath -Destination "$PSScriptRoot\jbang.bin-windows-${jbang_arch}.exe" -Force
+  } catch {
+    [Console]::Error.WriteLine("WARNING: could not apply staged JBang update, it will be retried on the next run: $($_.Exception.Message)")
+  }
+}
+
 # resolve native binary or jar path from script location
 $binaryPath=""
 $jarPath=""
@@ -198,8 +209,13 @@ if (-not $binaryPath -and -not $jarPath) {
   break
 }
 if (Test-Path "$jarPath.new") {
-  # a new jbang version was found, we replace the old one with it
-  Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
+  # a new jbang version was found, we replace the old one with it; keep it
+  # for the next run if the jar is still locked instead of aborting startup
+  try {
+    Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
+  } catch {
+    [Console]::Error.WriteLine("WARNING: could not apply staged JBang update, it will be retried on the next run: $($_.Exception.Message)")
+  }
 }
 
 # Find/get a JDK (only needed for JAR execution)

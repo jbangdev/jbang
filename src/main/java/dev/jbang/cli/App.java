@@ -37,6 +37,7 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -80,7 +81,7 @@ public class App extends BaseCommand {
 	@CommandDefinition(name = "install", description = "Install a script as a command.")
 	public static class AppInstall extends BaseBuildCommand {
 
-		private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
+		private static final String jbangDownloadBaseUrl = "https://www.jbang.dev/releases/latest/download/";
 
 		@Mixin
 		RunMixin runMixin;
@@ -231,6 +232,7 @@ public class App extends BaseCommand {
 		public static boolean installJBang(boolean force) throws IOException {
 			Path binDir = Settings.getConfigBinDir();
 			boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
+			boolean useNative = shouldUseNative();
 
 			if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
 				Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
@@ -242,13 +244,13 @@ public class App extends BaseCommand {
 					Util.withCacheEvict(() -> {
 						// Download JBang and unzip to ~/.jbang/bin/
 						Util.infoMsg("Downloading and installing jbang...");
-						Path zipFile = NetUtil.downloadAndCacheFile(jbangUrl);
+						Path zipFile = NetUtil.downloadAndCacheFile(getJBangUrl(useNative));
 						Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 						Util.deletePath(urlsDir.resolve("jbang"), true);
 						UnpackUtil.unpack(zipFile, urlsDir);
 						App.deleteCommandFiles("jbang");
 						Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-						copyJBangFiles(fromDir, binDir);
+						copyJBangFiles(fromDir, binDir, useNative);
 						return 0;
 					});
 				} else {
@@ -263,7 +265,7 @@ public class App extends BaseCommand {
 					if (fromDir.endsWith(".jbang")) {
 						fromDir = fromDir.getParent();
 					}
-					copyJBangFiles(fromDir, binDir);
+					copyLocalJBangFiles(fromDir, binDir, useNative);
 				}
 			} else {
 				Util.infoMsg("jbang is already installed.");
@@ -271,9 +273,60 @@ public class App extends BaseCommand {
 			return true;
 		}
 
-		static void copyJBangFiles(Path from, Path to) throws IOException {
+		static boolean shouldUseNative() {
+			return JavaUtil.inNativeImage() || Boolean.parseBoolean(System.getenv(Settings.ENV_USE_NATIVE));
+		}
+
+		static String getJBangUrl(boolean useNative) {
+			return jbangDownloadBaseUrl + (useNative ? "jbang-" + getNativePlatform() + ".zip" : "jbang.zip");
+		}
+
+		static String getNativeBinaryName() {
+			String name = "jbang.bin-" + getNativePlatform();
+			return Util.isWindows() ? name + ".exe" : name;
+		}
+
+		private static String getNativePlatform() {
+			String os = Util.getOS().name();
+			if (os.equals("alpine_linux")) {
+				os = "linux";
+			}
+			String arch = Util.getArch().name();
+			if (arch.equals("arm64")) {
+				arch = "aarch64";
+			}
+			return os + "-" + arch;
+		}
+
+		// A local jbang distribution might not include the native binary, in which
+		// case we install the jar like before instead of failing
+		static void copyLocalJBangFiles(Path from, Path to, boolean useNative) throws IOException {
+			if (useNative && !Files.isRegularFile(from.resolve(getNativeBinaryName()))) {
+				Util.warnMsg("Native binary " + getNativeBinaryName() + " not found in " + from
+						+ ", installing the jar only");
+				useNative = false;
+				// the launchers prefer an existing native binary over the jar, so an older one
+				// left behind (or staged as .new on Windows) would keep running instead of the
+				// version we install now
+				Path oldNative = to.resolve(getNativeBinaryName());
+				try {
+					Files.deleteIfExists(oldNative.resolveSibling(oldNative.getFileName() + ".new"));
+					Files.deleteIfExists(oldNative);
+				} catch (IOException e) {
+					Util.warnMsg("Could not remove the older native binary " + oldNative
+							+ ", it will keep being used while JBANG_USE_NATIVE=true. Remove it or update again once no other jbang is running.");
+				}
+			}
+			copyJBangFiles(from, to, useNative);
+		}
+
+		static void copyJBangFiles(Path from, Path to, boolean useNative) throws IOException {
 			to.toFile().mkdirs();
-			Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+			Stream<String> files = Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar");
+			if (useNative) {
+				files = Stream.concat(files, Stream.of(getNativeBinaryName()));
+			}
+			files
 				.map(Paths::get)
 				.forEach(f -> {
 					try {
@@ -290,6 +343,9 @@ public class App extends BaseCommand {
 							if (Util.isWindows() && Files.isRegularFile(top)) {
 								top = to.resolve("jbang.jar.new");
 							}
+						} else if (Util.isWindows() && f.toString().equals(getNativeBinaryName())
+								&& Files.isRegularFile(top)) {
+							top = to.resolve(f.toString() + ".new");
 						}
 						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
 								StandardCopyOption.COPY_ATTRIBUTES);
