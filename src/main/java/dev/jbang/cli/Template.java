@@ -43,7 +43,7 @@ public class Template extends BaseCommand {
 
 	@Override
 	public String prose() {
-		return "Templates are the starting points `jbang init --template=<name>` creates scripts\n"
+		return "Templates are the starting points `${ROOT-COMMAND-NAME} init --template=<name>` creates scripts\n"
 				+ "from. Add your own to a catalog to reuse them across projects.";
 	}
 
@@ -239,7 +239,7 @@ public class Template extends BaseCommand {
 		@Override
 		public String prose() {
 			return "Saves one or more files as a named template. The first file becomes the script;\n"
-					+ "the rest are copied alongside it. Use --property for values `jbang init` asks\n"
+					+ "the rest are copied alongside it. Use --property for values `${ROOT-COMMAND-NAME} init` asks\n"
 					+ "for.";
 		}
 

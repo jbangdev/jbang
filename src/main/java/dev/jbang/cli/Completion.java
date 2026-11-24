@@ -20,9 +20,9 @@ public class Completion extends BaseCommand {
 		public String getHeader() {
 			return "Run the following to enable TAB completion in the current shell:\n"
 					+ "\n"
-					+ "  bash/zsh:  source <(jbang completion)\n"
-					+ "  fish:      jbang completion | source\n"
-					+ "  pwsh:      (jbang completion) -join \"`n\" | Invoke-Expression  (experimental)\n"
+					+ "  bash/zsh:  source <(${ROOT-COMMAND-NAME} completion)\n"
+					+ "  fish:      ${ROOT-COMMAND-NAME} completion | source\n"
+					+ "  pwsh:      (${ROOT-COMMAND-NAME} completion) -join \"`n\" | Invoke-Expression  (experimental)\n"
 					+ "\n"
 					+ "The shell is auto-detected. To make it permanent, see the\n"
 					+ "comments at the end of the generated script.";

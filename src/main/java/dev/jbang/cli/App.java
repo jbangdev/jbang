@@ -54,7 +54,7 @@ public class App extends BaseCommand {
 	@Override
 	public String prose() {
 		return "Installs scripts, jars, GAVs or aliases as commands on your PATH, so you can run\n"
-				+ "them without typing jbang. Run `jbang app setup` once to put the install folder\n"
+				+ "them without typing ${ROOT-COMMAND-NAME}. Run `${ROOT-COMMAND-NAME} app setup` once to put the install folder\n"
 				+ "on your PATH.";
 	}
 
