@@ -4,6 +4,7 @@ import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
@@ -11,7 +12,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
@@ -126,10 +126,7 @@ class DependencyResolverTest extends BaseTest {
 			.build()
 			.resolve(deps);
 		assertEquals(2, artifacts.size());
-		// only check what we asked for: how many other poms the resolver reads while
-		// evaluating the 1.2+ range differs between resolver versions
-		assertThat(new File(altrepo, "com/offbytwo/docopt/0.6.0.20150202/docopt-0.6.0.20150202.jar"), anExistingFile());
-		assertThat(new File(altrepo, "log4j/log4j/1.2.17/log4j-1.2.17.jar"), anExistingFile());
+		assertThat(altrepo.listFiles(), arrayWithSize(6)); // +1 is prefix file
 	}
 
 	@Test
