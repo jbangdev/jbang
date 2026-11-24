@@ -18,8 +18,7 @@ public class RunIT extends BaseIT {
 		assertThat(shell("jbang version --verbose"))
 			.errContains("Cache: " + scratch().toString())
 			.errContains("Config: " + scratch().toString())
-			.errContains(
-					"Repository: " + scratch().resolve("itest-m2").toString())
+			.errContains("Repository: " + baseEnv.get("JBANG_REPO"))
 			.succeeded();
 	}
 
