@@ -46,7 +46,7 @@ public class JBang extends BaseCommand {
 	 */
 	public static final ArgumentsSection ARGUMENTS_SECTION = ArgumentsSection.FIRST;
 
-	@Option(shortName = 'V', name = "version", hasValue = false, helpGroup = "Global options", description = "Display version info (use `jbang --verbose version` for more details)")
+	@Option(shortName = 'V', name = "version", hasValue = false, helpGroup = "Global options", description = "Display version info (use `${ROOT-COMMAND-NAME} --verbose version` for more details)")
 	boolean versionRequested;
 
 	@Override

@@ -187,9 +187,9 @@ public class Run extends BaseBuildCommand {
 				+ "a catalog alias, a URL, or a local script in Java, JShell, Kotlin, Groovy\n"
 				+ "or Markdown. jbang resolves any dependencies, builds when needed, then runs it.\n"
 				+ "\n"
-				+ "run is the default command, so `jbang <resource>` is shorthand for\n"
-				+ "`jbang run <resource>`. Anything after the resource is passed to it as\n"
-				+ "arguments rather than to jbang.";
+				+ "run is the default command, so `${ROOT-COMMAND-NAME} <resource>` is shorthand for\n"
+				+ "`${ROOT-COMMAND-NAME} run <resource>`. Anything after the resource is passed to it as\n"
+				+ "arguments rather than to ${ROOT-COMMAND-NAME}.";
 	}
 
 	@Override
