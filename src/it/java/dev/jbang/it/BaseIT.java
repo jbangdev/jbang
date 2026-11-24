@@ -78,7 +78,8 @@ public class BaseIT {
 		// the same artifacts from Maven Central for every test class (which gets rate
 		// limited with 429s)
 		String testRepo = System.getenv("_JBANG_TEST_REPO");
-		env.put("JBANG_REPO", testRepo != null ? testRepo : scratch + sep + "itest-m2");
+		env.put("JBANG_REPO",
+				testRepo != null ? Paths.get(testRepo).toAbsolutePath().toString() : scratch + sep + "itest-m2");
 		env.put("JBANG_DIR", scratch + sep + "itest-jbang");
 		env.put("JBANG_NO_VERSION_CHECK", "true");
 		env.put("NO_COLOR", "1");
