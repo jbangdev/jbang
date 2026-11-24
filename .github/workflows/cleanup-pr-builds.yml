@@ -25,7 +25,7 @@ jobs:
           repositories: jbang-pr-builds
 
       - name: Delete PR build release
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
@@ -72,7 +72,7 @@ jobs:
           repositories: jbang-pr-builds
 
       - name: Delete releases older than 30 days
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
