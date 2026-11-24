@@ -74,7 +74,11 @@ public class BaseIT {
 		String sep = File.separator;
 
 		env.put("SCRATCH", scratch.toString());
-		env.put("JBANG_REPO", scratch + sep + "itest-m2");
+		// CI points this at a repo it caches between runs, so the tests don't download
+		// the same artifacts from Maven Central for every test class (which gets rate
+		// limited with 429s)
+		String testRepo = System.getenv("_JBANG_TEST_REPO");
+		env.put("JBANG_REPO", testRepo != null ? testRepo : scratch + sep + "itest-m2");
 		env.put("JBANG_DIR", scratch + sep + "itest-jbang");
 		env.put("JBANG_NO_VERSION_CHECK", "true");
 		env.put("NO_COLOR", "1");
