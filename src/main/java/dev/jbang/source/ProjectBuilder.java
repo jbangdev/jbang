@@ -606,6 +606,20 @@ public class ProjectBuilder {
 		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
 	}
 
+	private Properties childScope(Properties scope) {
+		Properties context = getContextProperties();
+		if (scope == null) {
+			return context;
+		}
+		return new Properties() {
+			@Override
+			public String getProperty(String key) {
+				String val = context.getProperty(key);
+				return val != null ? val : scope.getProperty(key);
+			}
+		};
+	}
+
 	private List<Source> allToScopedSource(List<Directives.ScopedSource> sources, ResourceRef resourceRef,
 			ResourceResolver resolver) {
 		String org = resourceRef != null ? resourceRef.getOriginalResource() : null;
@@ -615,7 +629,7 @@ public class ProjectBuilder {
 				.stream()
 				.map(ref -> Source.forResource(resolver, ref, propertyReplacer())
 					.withInheritedProperties(
-							scoped.getScope() != null ? scoped.getScope() : getContextProperties())))
+							childScope(scoped.getScope()))))
 			.collect(Collectors.toList());
 	}
 

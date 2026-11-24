@@ -183,4 +183,20 @@ public class TestDirectives {
 
 		assertThat(tr.binaryDependencies(), containsInAnyOrder("foo:bar:1"));
 	}
+
+	@Test
+	void testVarsDefaultEvaluatedWithoutReplacer() {
+		Directives tr = new Directives.Extended(
+				String.join(System.lineSeparator(), "//VARS version=${missing:1}", "//DEPS foo:bar:${version}"), null);
+
+		assertThat(tr.binaryDependencies(), containsInAnyOrder("foo:bar:1"));
+	}
+
+	@Test
+	void testUnresolvedReferenceKeptWithoutReplacer() {
+		Directives tr = new Directives.Extended(
+				String.join(System.lineSeparator(), "//VARS a=1", "//DESCRIPTION ${x}"), null);
+
+		assertThat(tr.description(), equalTo("${x}"));
+	}
 }

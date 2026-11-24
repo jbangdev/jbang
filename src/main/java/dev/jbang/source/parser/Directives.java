@@ -498,6 +498,18 @@ public abstract class Directives {
 			if (inherited == null && vars.isEmpty()) {
 				return propertiesReplacer;
 			}
+			return layeredReplacer();
+		}
+
+		private Function<String, String> replacerFor(String directive) {
+			// //VARS values are always evaluated, so defaults like x:1 are resolved before
+			// storage
+			boolean isVars = directive.startsWith(Names.VARS) && directive.length() > Names.VARS.length()
+					&& Character.isWhitespace(directive.charAt(Names.VARS.length()));
+			return isVars ? layeredReplacer() : replacer();
+		}
+
+		private Function<String, String> layeredReplacer() {
 			Properties layered = new Properties() {
 				@Override
 				public String getProperty(String key) {
@@ -505,7 +517,19 @@ public abstract class Directives {
 					return val != null ? val : vars.get(key);
 				}
 			};
-			return value -> PropertiesValueResolver.replaceProperties(value, layered);
+			Function<String, String> resolver = value -> PropertiesValueResolver.replaceProperties(value, layered);
+			if (inherited != null) {
+				return resolver;
+			}
+			// no inherited properties: keep supplied replacer behaviour for unresolved
+			// references
+			return value -> {
+				try {
+					return resolver.apply(value);
+				} catch (IllegalStateException e) {
+					return propertiesReplacer != null ? propertiesReplacer.apply(value) : value;
+				}
+			};
 		}
 
 		private String fallback(String key) {
@@ -604,7 +628,7 @@ public abstract class Directives {
 			} else if (line.contains(REPOS_ANNOT_PREFIX)) {
 				return parseReposAnnotation(line);
 			} else {
-				Directive d = super.toDirective(line.substring(2), replacer());
+				Directive d = super.toDirective(line.substring(2), replacerFor(line.substring(2)));
 				if (d == null) {
 					return null;
 				}
