@@ -199,4 +199,20 @@ public class TestDirectives {
 
 		assertThat(tr.description(), equalTo("${x}"));
 	}
+
+	@Test
+	void testMixedReferencesKeepResolvedOnes() {
+		Directives tr = new Directives.Extended(
+				String.join(System.lineSeparator(), "//VARS a=1", "//DESCRIPTION ${a} ${missing}"), null);
+
+		assertThat(tr.description(), equalTo("1 ${missing}"));
+	}
+
+	@Test
+	void testEscapedDollarIsNotResolved() {
+		Directives tr = new Directives.Extended(
+				String.join(System.lineSeparator(), "//VARS a=1", "//DESCRIPTION $${a} ${a}"), null);
+
+		assertThat(tr.description(), equalTo("$${a} 1"));
+	}
 }

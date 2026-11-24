@@ -521,15 +521,44 @@ public abstract class Directives {
 			if (inherited != null) {
 				return resolver;
 			}
-			// no inherited properties: keep supplied replacer behaviour for unresolved
-			// references
-			return value -> {
-				try {
-					return resolver.apply(value);
-				} catch (IllegalStateException e) {
-					return propertiesReplacer != null ? propertiesReplacer.apply(value) : value;
+			// no inherited properties: resolve each reference on its own so that one
+			// unresolved reference does not undo the others
+			return value -> resolveLeniently(value, resolver);
+		}
+
+		private String resolveLeniently(String value, Function<String, String> resolver) {
+			StringBuilder out = new StringBuilder();
+			int pos = 0;
+			while (true) {
+				int open = value.indexOf("${", pos);
+				while (open > 0 && value.charAt(open - 1) == '$') {
+					open = value.indexOf("${", open + 1);
 				}
-			};
+				int close = open < 0 ? -1 : value.indexOf('}', open);
+				if (open < 0 || close < 0) {
+					out.append(value, pos, value.length());
+					return out.toString();
+				}
+				out.append(value, pos, open);
+				String token = value.substring(open, close + 1);
+				out.append(resolveToken(token, resolver));
+				pos = close + 1;
+			}
+		}
+
+		private String resolveToken(String token, Function<String, String> resolver) {
+			try {
+				return resolver.apply(token);
+			} catch (IllegalStateException e) {
+				if (propertiesReplacer == null) {
+					return token;
+				}
+				try {
+					return propertiesReplacer.apply(token);
+				} catch (IllegalStateException e2) {
+					return token;
+				}
+			}
 		}
 
 		private String fallback(String key) {
