@@ -137,6 +137,19 @@ public class Init extends BaseCommand {
 			}
 		}
 
+		List<Path> preexisting = new ArrayList<>();
+		for (RefTarget refTarget : refTargets) {
+			Path target = refTarget.to(outDir);
+			Path notADir = findNonDirectoryAncestor(target.getParent());
+			if (notADir != null) {
+				warn("Cannot create " + target + " because " + notADir + " is not a directory. Will not initialize.");
+				return ExitException.EXIT_GENERIC_ERROR;
+			}
+			if (Files.exists(target)) {
+				preexisting.add(target);
+			}
+		}
+
 		if (!params().isEmpty()) {
 			AIProvider provider = new AIProviderFactory(aiOptions.provider, aiOptions.apiKey,
 					aiOptions.endpoint, aiOptions.model)
@@ -162,6 +175,7 @@ public class Init extends BaseCommand {
 
 		applyTemplateProperties(tpl, propsMap);
 
+		boolean written = false;
 		try {
 			for (RefTarget refTarget : refTargets) {
 				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
@@ -171,12 +185,14 @@ public class Init extends BaseCommand {
 					refTarget.copy(outDir);
 				}
 			}
+			written = true;
 		} catch (IOException e) {
-			for (RefTarget refTarget : refTargets) {
-				Util.deletePath(refTarget.to(outDir), true);
-			}
 			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
 					"Could not initialize " + scriptOrFile + ": " + e, e);
+		} finally {
+			if (!written) {
+				cleanupPartialInit(refTargets, outDir, preexisting);
+			}
 		}
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs(), refTargets, outDir, absolute);
@@ -251,6 +267,44 @@ public class Init extends BaseCommand {
 		return Paths.get(result);
 	}
 
+	/**
+	 * Removes the files a failed init created. Files that existed before (--force)
+	 * are never removed. With --verbose everything is kept for inspection, which
+	 * helps when debugging a template.
+	 */
+	static void cleanupPartialInit(List<RefTarget> refTargets, Path outDir, List<Path> preexisting) {
+		List<Path> created = new ArrayList<>();
+		for (RefTarget refTarget : refTargets) {
+			Path target = refTarget.to(outDir);
+			if (!preexisting.contains(target) && Files.exists(target)) {
+				created.add(target);
+			}
+		}
+		if (created.isEmpty()) {
+			return;
+		}
+		if (Util.isVerbose()) {
+			Util.warnMsg("Keeping partially initialized files for inspection (--verbose): " + created);
+			return;
+		}
+		for (Path target : created) {
+			Util.deletePath(target, true);
+		}
+	}
+
+	/**
+	 * Returns the nearest existing ancestor of {@code dir} (or {@code dir} itself)
+	 * if it is not a directory, otherwise null.
+	 */
+	static Path findNonDirectoryAncestor(Path dir) {
+		for (Path p = dir; p != null; p = p.getParent()) {
+			if (Files.exists(p)) {
+				return Files.isDirectory(p) ? null : p;
+			}
+		}
+		return null;
+	}
+
 	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> propsMap)
 			throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templateRef);
@@ -267,16 +321,17 @@ public class Init extends BaseCommand {
 			}
 		}
 
+		// render first so a template error leaves no empty or truncated file
+		TemplateInstance templateWithData = template.instance();
+		propsMap.forEach(templateWithData::data);
+		Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + propsMap);
+		String result = templateWithData.render();
+
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
-			TemplateInstance templateWithData = template.instance();
-			propsMap.forEach(templateWithData::data);
-			Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + propsMap);
-			String result = templateWithData.render();
-
 			writer.write(result);
-			outFile.toFile().setExecutable(true);
 		}
+		outFile.toFile().setExecutable(true);
 	}
 
 	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets, Path outDir,
