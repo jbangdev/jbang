@@ -306,14 +306,16 @@ public class TestInit extends BaseTest {
 	@Test
 	void testInitFailureRemovesCreatedFilesWhenCopyFails() throws Exception {
 		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
-		// a non-empty directory where the plain file3.md goes makes RefTarget.copy()
-		// fail
+		// a non-empty dir where the plain file3.md goes makes RefTarget.copy() fail
 		Path file3 = Files.createDirectory(outFile.resolveSibling("file3.md"));
 		Files.createFile(file3.resolve("keep.txt"));
 
-		int result = JBang.execute("init", "--force", "-t=name", outFile.toString());
+		CaptureResult<Integer> result = captureOutput(
+				() -> JBang.execute("init", "--force", "-t=name", outFile.toString()));
 
-		assertThat(result, not(0));
+		assertThat(result.result, not(0));
+		assertThat(result.err, containsString("Removing partially initialized files:"));
+		assertThat(result.err, containsString("  " + outFile));
 		assertThat(Files.exists(file3.resolve("keep.txt")), is(true));
 		// files written by this run before the failure must be removed again
 		assertThat(Files.exists(outFile), is(false));
@@ -348,7 +350,8 @@ public class TestInit extends BaseTest {
 				() -> JBang.execute("--verbose", "init", "--force", "-t=name", outFile.toString()));
 
 		assertThat(result.result, not(0));
-		assertThat(result.err, containsString("Keeping partially initialized files for inspection"));
+		assertThat(result.err, containsString("Keeping partially initialized files for inspection (--verbose):"));
+		assertThat(result.err, containsString("  " + outFile));
 		assertThat(Files.exists(outFile), is(true));
 	}
 

@@ -93,7 +93,9 @@ When developing a template it can help to look at what was generated before the 
 ----
 $ jbang --verbose init -t mytemplate hello.java
 ...
-[jbang] [WARN] Keeping partially initialized files for inspection (--verbose): [.../hello.java]
+[jbang] [WARN] Keeping partially initialized files for inspection (--verbose):
+  .../hello.java
+  .../README.md
 ----
 
 == AI-Powered Code Generation

@@ -283,10 +283,13 @@ public class Init extends BaseCommand {
 		if (created.isEmpty()) {
 			return;
 		}
+		String files = created.stream().map(p -> "  " + p).collect(Collectors.joining(System.lineSeparator()));
 		if (Util.isVerbose()) {
-			Util.warnMsg("Keeping partially initialized files for inspection (--verbose): " + created);
+			Util.warnMsg(
+					"Keeping partially initialized files for inspection (--verbose):" + System.lineSeparator() + files);
 			return;
 		}
+		Util.infoMsg("Removing partially initialized files:" + System.lineSeparator() + files);
 		for (Path target : created) {
 			Util.deletePath(target, true);
 		}
