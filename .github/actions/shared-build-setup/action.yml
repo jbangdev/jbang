@@ -27,9 +27,13 @@ runs:
       with:
         java-version: ${{ inputs.java-version }}
         distribution: temurin
+    # Caches the Gradle User Home; see "Caching" in .github/workflows/step-ci-build.yml.
+    # Defaults we rely on: cache-read-only (only the default branch writes, PRs restore)
+    # and cache-cleanup: on-success (stale files are removed before saving).
     - name: setup-gradle
-      uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+      uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
       with:
+          # restore even if the runner already has a Gradle User Home
           cache-overwrite-existing: true
           add-job-summary: ${{ inputs.add-job-summary }}
     - name: Setup tmate session
