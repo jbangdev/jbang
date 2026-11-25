@@ -37,7 +37,7 @@ runs:
           cache-overwrite-existing: true
           add-job-summary: ${{ inputs.add-job-summary }}
     - name: Setup tmate session
-      uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+      uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
       with:
         limit-access-to-actor: true
