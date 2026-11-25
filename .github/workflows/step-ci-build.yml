@@ -62,10 +62,10 @@ jobs:
   format-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
-      - uses: ./.github/actions/shared-build-setup
+      - uses: $/.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
         run: ./gradlew --no-daemon formatCheck
@@ -73,11 +73,11 @@ jobs:
   build-shared:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
@@ -101,19 +101,19 @@ jobs:
         os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1
+        uses: graalvm/setup-graalvm@v1.5.3
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
             github-token: ${{ secrets.GITHUB_TOKEN }}
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -146,7 +146,7 @@ jobs:
       - name: cache test maven repo
         if: ${{ !inputs.skip_tests }}
         # see "Caching" at the top of this file
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
           key: jbang-test-m2-native-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
@@ -165,7 +165,7 @@ jobs:
           ./gradlew --no-daemon integrationTest
       - name: Arcive test results
         if: ${{ !inputs.skip_tests && always() }}
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
@@ -198,7 +198,7 @@ jobs:
             setup-java: '28-ea'
             experimental: true
     steps:
-      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
@@ -215,8 +215,8 @@ jobs:
           v="${{ steps.test-jdk.outputs.version }}"
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -254,7 +254,7 @@ jobs:
             done
           fi
       - name: Arcive test results
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
@@ -267,7 +267,7 @@ jobs:
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
+        uses: mikepenz/action-junit-report@v6.4.1
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -312,7 +312,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental == true }}
     name: integration-tests
     steps:
-      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
@@ -329,14 +329,14 @@ jobs:
           v="${{ steps.test-jdk.outputs.version }}"
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
         # see "Caching" at the top of this file
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
           key: jbang-test-m2-it-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
@@ -380,7 +380,7 @@ jobs:
             done
           fi
       - name: Arcive test results
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
@@ -393,7 +393,7 @@ jobs:
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
+        uses: mikepenz/action-junit-report@v6.4.1
         with:
           report_paths: 'build/test-results/integrationTest/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -411,20 +411,20 @@ jobs:
     env:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
         with:
           add-job-summary: 'never'
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
         # see "Caching" at the top of this file
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ${{ runner.temp }}/jbang-test-m2
@@ -471,17 +471,17 @@ jobs:
       JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions
@@ -515,12 +515,12 @@ jobs:
     needs: [unit-test-jvm, integration-test-jvm, build-test-native-image]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
           path: build/allure-inputs
@@ -539,7 +539,7 @@ jobs:
           echo "ALLURE_MERGE_DIRS=$DIRS" >> $GITHUB_ENV
       - name: Archive test results
         if: env.ALLURE_MERGE_DIRS != ''
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
           suffix: ""
@@ -549,11 +549,11 @@ jobs:
     needs: [merge-test-reports]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: Create test results summary
         run: |
           SHA_PREFIX="${{ steps.shared-build.outputs.github-short-sha }}"
