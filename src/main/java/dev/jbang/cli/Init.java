@@ -175,6 +175,8 @@ public class Init extends BaseCommand {
 			for (RefTarget refTarget : refTargets) {
 				Util.deletePath(refTarget.to(outDir), true);
 			}
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+					"Could not initialize " + scriptOrFile + ": " + e, e);
 		}
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs(), refTargets, outDir, absolute);
@@ -309,7 +311,7 @@ public class Init extends BaseCommand {
 	public String prose() {
 		return "Creates a new script from a template, ready to run with `jbang <file>`. The\n"
 				+ "template is picked from the file extension unless you choose one with\n"
-				+ "--template; `jbang template list` shows what is available. Give a prompt after\n"
+				+ "--template; `${ROOT-COMMAND-NAME} template list` shows what is available. Give a prompt after\n"
 				+ "the file name to have an AI model write the code instead; this needs an AI\n"
 				+ "provider and API key (via the --ai-* options or JBANG_AI_* env vars), otherwise\n"
 				+ "the normal template is used.";

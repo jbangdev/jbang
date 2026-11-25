@@ -111,6 +111,14 @@ jobs:
             build/distributions/*-${{ runner.os == 'macOS' && 'mac' || runner.os == 'Windows' && 'windows' || 'linux' }}-*.tar
           if-no-files-found: error
       
+      - name: cache test maven repo
+        if: ${{ !inputs.skip_tests }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-${{ runner.os }}-
       - name: create install with native binary
         if: ${{ !inputs.skip_tests }}
         run: |
@@ -119,6 +127,7 @@ jobs:
         if: ${{ !inputs.skip_tests }}
         env:
           JBANG_USE_NATIVE: true
+          _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
         run: |
           ./gradlew --no-daemon integrationTest
       - name: Arcive test results
@@ -292,8 +301,16 @@ jobs:
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
+      - name: cache test maven repo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-${{ runner.os }}-
       - name: integration-test
         env:
+          _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
           _JBANG_TEST_JAVA_VERSION: ${{ steps.test-jdk-major.outputs.major || matrix.java-version }}
           _JBANG_TEST_JAVA_HOME: ${{ steps.test-jdk.outputs.path }}
         run: |
@@ -371,6 +388,15 @@ jobs:
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
+      - name: cache test maven repo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-${{ runner.os }}-
+      - name: use cached test maven repo
+        run: echo "JBANG_REPO=${{ runner.temp }}/jbang-test-m2" >> "$GITHUB_ENV"
       - name: smoke-test
         run: |
           java -version
