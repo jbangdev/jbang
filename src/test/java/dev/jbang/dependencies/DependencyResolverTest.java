@@ -16,12 +16,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.jar.JarOutputStream;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,7 +130,53 @@ class DependencyResolverTest extends BaseTest {
 			.build()
 			.resolve(deps);
 		assertEquals(2, artifacts.size());
-		assertThat(altrepo.listFiles(), arrayWithSize(5)); // +1 is prefix file
+		assertThat(altrepo.listFiles(), arrayWithSize(6)); // +1 is prefix file
+	}
+
+	/**
+	 * apache/maven-resolver#2325: b declares a hard range c:[1.0,2.0) inside the a
+	 * <-> b cycle while c:2.0 is nearer to the root. The classic conflict resolver
+	 * ignores the range and picks c:2.0, the path conflict resolver we use honors
+	 * it.
+	 */
+	@Test
+	void testHardVersionRangeInsideCycleIsHonored(@TempDir Path tmp) throws IOException {
+		Path repo = tmp.resolve("repo");
+		writePom(repo, "p", "1.0", dep("a", "1.0"));
+		writePom(repo, "a", "1.0", dep("b", "1.0"));
+		writePom(repo, "b", "1.0", dep("a", "1.0") + dep("c", "[1.0,2.0)"));
+		writePom(repo, "c", "1.0", "");
+		writePom(repo, "c", "2.0", "");
+		Files.write(repo.resolve("example/c/maven-metadata.xml"), Collections.singletonList(
+				"<metadata><groupId>example</groupId><artifactId>c</artifactId><versioning><versions>"
+						+ "<version>1.0</version><version>2.0</version></versions></versioning></metadata>"));
+
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder
+			.create()
+			.localFolder(tmp.resolve("local"))
+			.repositories(Collections.singletonList(new MavenRepo("testrepo", repo.toUri().toString())))
+			.build()
+			.resolve(Arrays.asList("example:p:1.0", "example:c:2.0"));
+
+		assertThat(artifacts.stream().map(a -> a.getCoordinate().toCanonicalForm()).collect(Collectors.toList()),
+				hasItem("example:c:jar:1.0"));
+	}
+
+	private static String dep(String artifactId, String version) {
+		return "<dependency><groupId>example</groupId><artifactId>" + artifactId + "</artifactId><version>" + version
+				+ "</version></dependency>";
+	}
+
+	private static void writePom(Path repo, String artifactId, String version, String deps) throws IOException {
+		Path dir = Files.createDirectories(repo.resolve("example").resolve(artifactId).resolve(version));
+		Files.write(dir.resolve(artifactId + "-" + version + ".pom"), Collections.singletonList(
+				"<project xmlns=\"http://maven.apache.org/POM/4.0.0\"><modelVersion>4.0.0</modelVersion>"
+						+ "<groupId>example</groupId><artifactId>" + artifactId + "</artifactId><version>" + version
+						+ "</version><dependencies>" + deps + "</dependencies></project>"));
+		try (JarOutputStream jar = new JarOutputStream(
+				Files.newOutputStream(dir.resolve(artifactId + "-" + version + ".jar")))) {
+			// empty jar
+		}
 	}
 
 	@Test

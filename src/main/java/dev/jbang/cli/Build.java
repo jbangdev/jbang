@@ -31,7 +31,7 @@ public class Build extends BaseBuildCommand {
 	@Override
 	public String prose() {
 		return "Resolves dependencies and compiles a script, jar or GAV into jbang's cache\n"
-				+ "without running it, so a later `jbang run` starts straight away. Takes the same\n"
+				+ "without running it, so a later `${ROOT-COMMAND-NAME} run` starts straight away. Takes the same\n"
 				+ "build options as run, including --native.";
 	}
 

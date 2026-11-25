@@ -12,6 +12,12 @@ rem detect architecture for platform-specific binary lookup
 set "jbang_arch=x64"
 if "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "jbang_arch=aarch64"
 
+rem apply a staged native binary update; move keeps .new if the exe is still
+rem locked (e.g. another jbang running) so it is retried on the next run
+if exist "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" (
+  move /y "%~dp0jbang.bin-windows-%jbang_arch%.exe.new" "%~dp0jbang.bin-windows-%jbang_arch%.exe" > nul 2>&1
+)
+
 rem resolve native binary or jar path from script location
 set binaryPath=
 set jarPath=
@@ -46,9 +52,9 @@ if not "!binaryPath!"=="" goto :run_with_cli
 if not exist "%jarPath%" goto :run_with_cli
 
 if exist "%jarPath%.new" (
-  rem a new jbang version was found, we replace the old one with it
-  copy /y "%jarPath%.new" "%jarPath%" > nul 2>&1
-  del /f /q "%jarPath%.new"
+  rem a new jbang version was found, we replace the old one with it; move
+  rem keeps .new if the jar is still locked so it is retried on the next run
+  move /y "%jarPath%.new" "%jarPath%" > nul 2>&1
 )
 
 rem Find/get a JDK (only needed for JAR execution)

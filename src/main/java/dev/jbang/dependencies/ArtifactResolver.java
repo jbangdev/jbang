@@ -139,6 +139,10 @@ public class ArtifactResolver implements Closeable {
 		// because of the word "Java" in the User-Agent
 		userProperties.put("aether.connector.userAgent", Util.getAgentString());
 
+		// the "path" conflict resolver is faster than the classic one and fixes long
+		// standing issues with version ranges (apache/maven-resolver#2325)
+		userProperties.put("aether.conflictResolver.impl", "path");
+
 		final List<RemoteRepository> partialRepos; // always have reposes, at least Central if no user defined ones
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
