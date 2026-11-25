@@ -6,6 +6,12 @@
     'config:best-practices',
     'group:monorepos',
   ],
+  // Actions are pinned by .github/workflows/actions.lock (gh actions-lock) instead of
+  // inline digests, so workflows keep readable version tags. Renovate regenerates the
+  // lockfile when it updates an action: https://docs.renovatebot.com/modules/manager/github-actions/
+  ignorePresets: [
+    'helpers:pinGitHubActionDigests',
+  ],
   packageRules: [
     {
       description: 'Qute 2.0 requires Java 17',
