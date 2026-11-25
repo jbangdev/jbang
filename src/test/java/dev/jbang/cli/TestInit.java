@@ -7,10 +7,12 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -31,6 +33,7 @@ import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.source.RefTarget;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -109,6 +112,28 @@ public class TestInit extends BaseTest {
 				"--ai-endpoint=http://127.0.0.1:1/v1", "--ai-model=x", x.toString(), "a hello world");
 		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
 		assertThat(result.err, containsString(existing + " is not a directory"));
+	}
+
+	@Test
+	void testInitWithDanglingSymlinkParentChecksBeforeCallingAI(@TempDir Path outputDir) throws Exception {
+		Path link = outputDir.resolve("link");
+		assumeTrue(createSymlink(link, outputDir.resolve("missing")), "symlinks not supported");
+		Path x = link.resolve("wonka.java");
+		// closed port: if the AI step ran, init would fail with EXIT_INTERNAL_ERROR
+		// first
+		CaptureResult<Integer> result = checkedRun("init", "--ai-provider=openai", "--ai-api-key=dummy",
+				"--ai-endpoint=http://127.0.0.1:1/v1", "--ai-model=x", x.toString(), "a hello world");
+		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(result.err, containsString(link + " is not a directory"));
+	}
+
+	private static boolean createSymlink(Path link, Path target) {
+		try {
+			Files.createSymbolicLink(link, target);
+			return true;
+		} catch (IOException | UnsupportedOperationException e) {
+			return false;
+		}
 	}
 
 	@Test
@@ -320,6 +345,47 @@ public class TestInit extends BaseTest {
 		// files written by this run before the failure must be removed again
 		assertThat(Files.exists(outFile), is(false));
 		assertThat(Files.exists(outFile.resolveSibling("file2.java")), is(false));
+	}
+
+	@Test
+	void testInitFailureKeepsPreexistingDanglingSymlinkTarget() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		// a dangling symlink "exists" too: --force replaces it, but a failed init must
+		// not then delete what is there
+		assumeTrue(createSymlink(outFile, outFile.resolveSibling("missing.java")), "symlinks not supported");
+		Path file3 = Files.createDirectory(outFile.resolveSibling("file3.md"));
+		Files.createFile(file3.resolve("keep.txt"));
+
+		int result = JBang.execute("init", "--force", "-t=name", outFile.toString());
+
+		assertThat(result, not(0));
+		assertThat(Files.exists(outFile, LinkOption.NOFOLLOW_LINKS), is(true));
+		// file2.java was created by this run and is removed again
+		assertThat(Files.exists(outFile.resolveSibling("file2.java")), is(false));
+	}
+
+	@Test
+	void testWriteFilesNeitherOverwritesNorRemovesFileItDidNotCreate() throws Exception {
+		Path cwd = Util.getCwd();
+		Path src1 = Files.write(cwd.resolve("src1.txt"), "one".getBytes());
+		Path src2 = Files.write(cwd.resolve("src2.txt"), "two".getBytes());
+		Path outDir = Files.createDirectory(cwd.resolve("out"));
+		List<RefTarget> refTargets = Arrays.asList(
+				RefTarget.create(ResourceRef.forFile(src1), Paths.get("first.txt")),
+				RefTarget.create(ResourceRef.forFile(src2), Paths.get("second.txt")));
+		// appeared after init's own "already exists" check, e.g. while waiting for the
+		// AI
+		Path second = Files.write(outDir.resolve("second.txt"), "theirs".getBytes());
+		// BaseTest runs verbose, which keeps partial files for inspection
+		Util.setVerbose(false);
+
+		ExitException e = assertThrows(ExitException.class,
+				() -> new Init().writeFiles(refTargets, outDir, Collections.emptyMap()));
+
+		assertThat(e.getMessage(), containsString(second + " already exists"));
+		assertThat(Util.readString(second), is("theirs"));
+		// first.txt was created by this call and is removed again
+		assertThat(Files.exists(outDir.resolve("first.txt")), is(false));
 	}
 
 	@Test

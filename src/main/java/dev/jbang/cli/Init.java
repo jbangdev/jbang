@@ -4,6 +4,7 @@ import static dev.jbang.util.Util.entry;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -130,23 +131,19 @@ public class Init extends BaseCommand {
 		if (!force) {
 			for (RefTarget refTarget : refTargets) {
 				Path target = refTarget.to(outDir);
-				if (Files.exists(target)) {
+				if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)) {
 					warn("File " + target + " already exists. Will not initialize.");
 					return ExitException.EXIT_GENERIC_ERROR;
 				}
 			}
 		}
 
-		List<Path> preexisting = new ArrayList<>();
 		for (RefTarget refTarget : refTargets) {
 			Path target = refTarget.to(outDir);
 			Path notADir = findNonDirectoryAncestor(target.getParent());
 			if (notADir != null) {
 				warn("Cannot create " + target + " because " + notADir + " is not a directory. Will not initialize.");
 				return ExitException.EXIT_GENERIC_ERROR;
-			}
-			if (Files.exists(target)) {
-				preexisting.add(target);
 			}
 		}
 
@@ -175,25 +172,7 @@ public class Init extends BaseCommand {
 
 		applyTemplateProperties(tpl, propsMap);
 
-		boolean written = false;
-		try {
-			for (RefTarget refTarget : refTargets) {
-				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
-					Path out = refTarget.to(outDir);
-					renderQuteTemplate(out, refTarget.getSource(), propsMap);
-				} else {
-					refTarget.copy(outDir);
-				}
-			}
-			written = true;
-		} catch (IOException e) {
-			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
-					"Could not initialize " + scriptOrFile + ": " + e, e);
-		} finally {
-			if (!written) {
-				cleanupPartialInit(refTargets, outDir, preexisting);
-			}
-		}
+		writeFiles(refTargets, outDir, propsMap);
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs(), refTargets, outDir, absolute);
 		if (edit) {
@@ -268,18 +247,51 @@ public class Init extends BaseCommand {
 	}
 
 	/**
-	 * Removes the files a failed init created. Files that existed before (--force)
-	 * are never removed. With --verbose everything is kept for inspection, which
-	 * helps when debugging a template.
+	 * Writes the template's files. If that fails, the files this call created are
+	 * removed again. Ownership is recorded right before each file is written, not
+	 * inferred afterwards, so a file that existed before (--force) or that appeared
+	 * in the meantime (e.g. while waiting for the AI) is never removed. Without
+	 * --force such a file is not overwritten either.
 	 */
-	static void cleanupPartialInit(List<RefTarget> refTargets, Path outDir, List<Path> preexisting) {
+	void writeFiles(List<RefTarget> refTargets, Path outDir, Map<String, Object> propsMap) {
 		List<Path> created = new ArrayList<>();
-		for (RefTarget refTarget : refTargets) {
-			Path target = refTarget.to(outDir);
-			if (!preexisting.contains(target) && Files.exists(target)) {
-				created.add(target);
+		boolean written = false;
+		try {
+			for (RefTarget refTarget : refTargets) {
+				Path out = refTarget.to(outDir);
+				if (!Files.exists(out, LinkOption.NOFOLLOW_LINKS)) {
+					// recorded before writing, so a file that fails half-way is removed too
+					created.add(out);
+				} else if (!force) {
+					throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+							"File " + out + " already exists. Will not initialize.");
+				}
+				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
+					renderQuteTemplate(out, refTarget.getSource(), propsMap);
+				} else {
+					refTarget.copy(outDir);
+				}
+			}
+			written = true;
+		} catch (IOException e) {
+			throw new ExitException(ExitException.EXIT_GENERIC_ERROR,
+					"Could not initialize " + scriptOrFile + ": " + e, e);
+		} finally {
+			if (!written) {
+				cleanupPartialInit(created);
 			}
 		}
+	}
+
+	/**
+	 * Removes the given files a failed init created, as far as they exist. With
+	 * --verbose everything is kept for inspection, which helps when debugging a
+	 * template.
+	 */
+	static void cleanupPartialInit(List<Path> createdTargets) {
+		List<Path> created = createdTargets.stream()
+			.filter(p -> Files.exists(p, LinkOption.NOFOLLOW_LINKS))
+			.collect(Collectors.toList());
 		if (created.isEmpty()) {
 			return;
 		}
@@ -301,7 +313,9 @@ public class Init extends BaseCommand {
 	 */
 	static Path findNonDirectoryAncestor(Path dir) {
 		for (Path p = dir; p != null; p = p.getParent()) {
-			if (Files.exists(p)) {
+			// a dangling symlink exists but isn't a directory; a link to a directory is
+			// fine
+			if (Files.exists(p, LinkOption.NOFOLLOW_LINKS)) {
 				return Files.isDirectory(p) ? null : p;
 			}
 		}
