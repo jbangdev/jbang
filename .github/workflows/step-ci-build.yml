@@ -1,3 +1,35 @@
+# Caching
+#
+# Gradle (gradle/actions/setup-gradle in .github/actions/shared-build-setup):
+#   gradle-home-v1|<os>|<job>[...]-<sha>
+#       Per-job Gradle User Home state. A new entry per run, since cache entries can't be
+#       updated in place; the next run restores the newest one for the same job and OS.
+#   gradle-dependencies-v1-<hash>, gradle-transforms-v1-<hash>, gradle-wrapper-zips-v1-<hash>
+#       The bulky content, keyed by content hash and shared between jobs. New entries only
+#       when dependencies or the Gradle version change.
+#   Only the default branch writes these (setup-gradle's default); PRs restore them.
+#   Test jobs deliberately keep writing too: a read-only job restores another job's entry
+#   and re-downloads whatever that lacks (test dependencies, macOS/Windows), which is the
+#   Maven Central traffic that gets us rate limited.
+#
+# Test Maven repos (actions/cache, "cache test maven repo" steps):
+#   jbang-test-m2-it-<os>-<hash>      integration tests   ${{ runner.temp }}/jbang-test-m2
+#   jbang-test-m2-native-<os>-<hash>  native image ITs    ${{ runner.temp }}/jbang-test-m2
+#   jbang-test-m2-smoke-<os>-<hash>   smoke tests         ${{ runner.temp }}/jbang-test-m2
+#                                                         + ~/.m2/repository
+#   The repo jbang resolves into during tests (_JBANG_TEST_REPO / JBANG_REPO), so test runs
+#   don't download the same artifacts from Maven Central every time (HTTP 429). <hash>
+#   covers itests/, src/it/ and src/main/resources/ (templates); restore-keys start from
+#   the previous entry, so a change only downloads the delta.
+#   One key per job type: an entry is immutable and only the first job to save a key wins,
+#   so with a shared key the smoke tests' artifacts (Quarkus) were never saved. Jobs of the
+#   same type resolve the same artifacts, so their race doesn't matter.
+#   Smoke tests also cache ~/.m2/repository because Quarkus' build integration (qcli
+#   template) resolves its deployment artifacts with its own resolver into the default
+#   Maven repo, not into JBANG_REPO.
+#
+# All caches share the repository's 10 GB limit and are evicted least recently used first.
+
 name: step-ci-build
 on:
   workflow_dispatch:
@@ -113,12 +145,13 @@ jobs:
       
       - name: cache test maven repo
         if: ${{ !inputs.skip_tests }}
+        # see "Caching" at the top of this file
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          key: jbang-test-m2-native-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-native-${{ runner.os }}-
       - name: create install with native binary
         if: ${{ !inputs.skip_tests }}
         run: |
@@ -302,12 +335,13 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
+        # see "Caching" at the top of this file
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          key: jbang-test-m2-it-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-it-${{ runner.os }}-
       - name: integration-test
         env:
           _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
@@ -389,12 +423,15 @@ jobs:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
+        # see "Caching" at the top of this file
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          path: |
+            ${{ runner.temp }}/jbang-test-m2
+            ~/.m2/repository
+          key: jbang-test-m2-smoke-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-smoke-${{ runner.os }}-
       - name: use cached test maven repo
         run: echo "JBANG_REPO=${{ runner.temp }}/jbang-test-m2" >> "$GITHUB_ENV"
       - name: smoke-test
