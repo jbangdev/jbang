@@ -167,4 +167,14 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		Project prj = Project.builder().setProperties(Collections.singletonMap("version", "1")).build(source);
 		assertThat(prj.getMainSourceSet().getDependencies(), hasItem("foo:bar:1"));
 	}
+
+	@Test
+	void testBuilderPropertiesOverrideRootVarsInBuildSource() throws IOException {
+		Path rootPath = TestSource.createTmpFileWithContent("", "VersionRoot.java",
+				"//VARS version=1\n//DEPS foo:bar:${version}\n\npublic class VersionRoot {\n}\n");
+		ResourceRef resourceRef = ResourceRef.forResolvedResource(rootPath.toString(), rootPath);
+		Source source = Source.forResourceRef(resourceRef, null);
+		Project prj = Project.builder().setProperties(Collections.singletonMap("version", "2")).build(source);
+		assertThat(prj.getMainSourceSet().getDependencies(), hasItem("foo:bar:2"));
+	}
 }
