@@ -92,7 +92,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		Jdk jdk = project.projectJava();
+		Jdk jdk = project.projectJdk();
 		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
 		if (jdk.majorVersion() >= 9) {

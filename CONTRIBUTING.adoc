@@ -67,18 +67,6 @@ Some tests may be skipped in your local environment if symbolic linking is not e
 OR if your test process does not have the required permissions for a directory.
 See the configuration guidelines in the link:readme.adoc#usage-on-windows[Usage on Windows] section.
 
-=== Developing with devkitman
-
-The JRE support in this branch requires devkitman's new tag filter API. Until that API is released, use a checkout of the corresponding devkitman branch as a Gradle composite build:
-
-[source,powershell]
-----
-.\gradlew.bat test formatCheck --include-build ..\jbang-devkitman
-.\gradlew.bat integrationTest --tests dev.jbang.it.JreIT --include-build ..\jbang-devkitman
-----
-
-Gradle substitutes the local devkitman project for the dependency, without publishing it or changing machine-wide settings. The `--include-build` option also works with `build` and `format`. To use a published development artifact instead, override its version with `-PdevkitmanVersion=<version>`.
-
 == Conventional Commits + squash and merge
 
 To make releasing as automated and fast as possible we (since 2020-09-13) use https://www.conventionalcommits.org. On Pull-request we have https://github.com/zeke/semantic-pull-requests running to sanitize that at least PR title or one commit uses the conventional commit format.
@@ -156,4 +144,5 @@ When all is good - go to https://github.com/jbangdev/jbang/releases and check al
 do final (cosmetic) edits on the release message and save.
 
 When saved, a github action workflow will get triggered. That workflow will push update the distribution mechanism for chocolatey, brew, container, scoop, sdkman etc.
+
 

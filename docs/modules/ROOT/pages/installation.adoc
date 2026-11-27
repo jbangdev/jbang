@@ -16,9 +16,9 @@ toc::[]
 
 To use `jbang` Java 8 is the minimum required version, however Java 17 or higher is recommended.
 
-A JRE is sufficient to launch JBang and run precompiled applications. The startup scripts use `java` from `JAVA_HOME`, then `PATH`, then the JBang-managed default installation; they do not require `javac`.
+A JRE is sufficient to launch JBang. The startup scripts use `java` from `JAVA_HOME`, then `PATH`, then the JBang-managed default installation; they do not require `javac`.
 
-Note: `jbang` will download and install a JDK from Eclipse Temurin if no `java` is available. Compiling source code and using JShell also require a JDK, which JBang selects or installs when needed.
+Note: `jbang` will download and install a JDK from Eclipse Temurin if no `java` is available. Compiling source code and using JShell still require a JDK.
 
 There are multiple ways to install jbang. See below for all available options.
 
