@@ -78,27 +78,27 @@ unpack() {
   fi
 }
 
-javaInPath() {
-  [[ -x "$(command -v java)" ]] && ( [[ $os != "mac" ]] || java -version &> /dev/null )
+javacInPath() {
+  [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
-# Determines the Java runtime/JAVA_EXEC to use
+# Determines the JDK/JAVA_EXEC to use
 setup_java_exec() {
   unset JAVA_EXEC
   if [[ -n "$JAVA_HOME" ]]; then
-    # A JRE is sufficient to launch JBang
-    if [ -x "$JAVA_HOME/bin/java" ]; then
+    # Determine if a (working) JDK is available in JAVA_HOME
+    if [ -x "$(command -v "$JAVA_HOME"/bin/javac)" ]; then
       JAVA_EXEC="$JAVA_HOME/bin/java"
     else
-      echo "JAVA_HOME is set but does not seem to point to a valid Java runtime" 1>&2
+      echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
     fi
   fi
   if [[ -z "$JAVA_EXEC" ]]; then
-    # Determine if a Java runtime is available on the PATH
-    if javaInPath; then
+    # Determine if a (working) JDK is available on the PATH
+    if javacInPath; then
       unset JAVA_HOME
       JAVA_EXEC="java"
-    elif [ -x "$JBDIR/currentjdk/bin/java" ]; then
+    elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
       export JAVA_HOME="$JBDIR/currentjdk"
       JAVA_EXEC="$JBDIR/currentjdk/bin/java"
     else

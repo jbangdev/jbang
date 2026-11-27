@@ -202,27 +202,27 @@ if (Test-Path "$jarPath.new") {
   Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
 }
 
-# Find/get a Java runtime (only needed for JAR execution)
+# Find/get a JDK (only needed for JAR execution)
 $JAVA_EXEC=""
 $oldJavaHome=$env:JAVA_HOME
 if (-not $binaryPath) {
   if (Test-Path env:JAVA_HOME) {
-    # A JRE is sufficient to launch JBang
-    if (Test-Path "$env:JAVA_HOME\bin\java.exe" -PathType Leaf) {
+    # Determine if a (working) JDK is available in JAVA_HOME
+    if (Test-Path "$env:JAVA_HOME\bin\javac.exe") {
       $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
     } else {
-      [Console]::Error.WriteLine("JAVA_HOME is set but does not seem to point to a valid Java runtime")
+      [Console]::Error.WriteLine("JAVA_HOME is set but does not seem to point to a valid Java JDK")
     }
   }
   if ($JAVA_EXEC -eq "") {
-    # Determine if a Java runtime is available on the PATH
-    $ok=$null -ne (Get-Command "java.exe" -CommandType Application -ErrorAction SilentlyContinue)
+    # Determine if a (working) JDK is available on the PATH
+    $ok=$false; try { if (Get-Command "javac") { $ok=$true } } catch {}
     if ($ok) {
       $env:JAVA_HOME=""
       $JAVA_EXEC="java.exe"
-    } elseif (Test-Path "$JBDIR\currentjdk\bin\java.exe" -PathType Leaf) {
+    } elseif (Test-Path "$JBDIR\currentjdk\bin\javac") {
       $env:JAVA_HOME="$JBDIR\currentjdk"
-      $JAVA_EXEC="$JBDIR\currentjdk\bin\java.exe"
+      $JAVA_EXEC="$JBDIR\currentjdk\bin\java"
     } else {
       $env:JAVA_HOME="$TDIR\jdks\$javaVersion"
       $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"

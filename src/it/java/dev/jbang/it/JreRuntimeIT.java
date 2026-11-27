@@ -25,7 +25,7 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class JreIT extends BaseIT {
+class JreRuntimeIT extends BaseIT {
 	private Path jreHome;
 	private Path jbangDir;
 
@@ -63,20 +63,27 @@ class JreIT extends BaseIT {
 				+ "    System.out.println(String.join(\" \", args));\n"
 				+ "  }\n"
 				+ "}\n");
-		Map<String, String> buildEnv = runtimeEnv(true);
+		Map<String, String> buildEnv = runtimeEnv();
 		buildEnv.put("JAVA_HOME", javaHome.toString());
 		String launcher = bin.resolve(Util.isWindows() ? "jbang.cmd" : "jbang").toString();
 		CommandResult build = shell(buildEnv, "\"" + launcher + "\" export local --output runtime-app.jar jreapp.java");
 		assertTrue(build.exitCode() == 0, build.err() + build.out());
 	}
 
-	private Map<String, String> runtimeEnv(boolean javaHome) {
+	private Map<String, String> runtimeEnv() {
 		Map<String, String> env = new HashMap<>(baseEnv);
-		env.put("JAVA_HOME", javaHome ? jreHome.toString() : "");
+		System.getenv()
+			.keySet()
+			.stream()
+			.filter(name -> name.startsWith("JAVA_HOME_"))
+			.forEach(name -> env.put(name, ""));
+		// Launch JBang on a JDK; runtime selection is independent of startup support.
+		env.put("JAVA_HOME", System.getProperty("java.home"));
+		env.put("JAVA_HOME_JRE", jreHome.toString());
 		env.put("JBANG_DIR", jbangDir.toString());
 		env.put("JBANG_CACHE_DIR", jbangDir.resolve("cache").toString());
 		env.put("JBANG_USE_NATIVE", "false");
-		String path = jreHome.resolve("bin").toString();
+		String path = Paths.get(System.getProperty("java.home")).resolve("bin").toString();
 		if (Util.isWindows()) {
 			path += File.pathSeparator + Paths.get(System.getenv("SystemRoot"), "System32")
 					+ File.pathSeparator
@@ -88,8 +95,8 @@ class JreIT extends BaseIT {
 		return env;
 	}
 
-	private CommandResult launch(String script, boolean javaHome, String... arguments) {
-		return launch(runtimeEnv(javaHome), script, arguments);
+	private CommandResult launch(String script, String... arguments) {
+		return launch(runtimeEnv(), script, arguments);
 	}
 
 	private CommandResult launch(Map<String, String> env, String script, String... arguments) {
@@ -114,8 +121,11 @@ class JreIT extends BaseIT {
 		return run(baseDir(), env, command);
 	}
 
-	private void assertJreRun(String script, boolean javaHome) {
-		CommandResult result = launch(script, javaHome, "run", "--java", JavaUtil.getCurrentMajorJavaVersion() + "",
+	@Test
+	void runsArchiveOnJre() {
+		String script = Util.isWindows() ? "jbang.cmd" : "jbang";
+		CommandResult result = launch(script, "run", "--jdk-providers", "multihome",
+				"--java", JavaUtil.getCurrentMajorJavaVersion() + "",
 				"runtime-app.jar", "hello", "JRE");
 		assertTrue(result.exitCode() == 0, result.err() + result.out());
 		assertThat(result)
@@ -129,43 +139,9 @@ class JreIT extends BaseIT {
 	}
 
 	@Test
-	void bashUsesJreFromJavaHome() {
-		assertJreRun("jbang", true);
-	}
-
-	@Test
-	void bashUsesJreFromPath() {
-		assertJreRun("jbang", false);
-	}
-
-	@Test
-	void cmdUsesJreFromJavaHome() {
-		assumeTrue(Util.isWindows());
-		assertJreRun("jbang.cmd", true);
-	}
-
-	@Test
-	void cmdUsesJreFromPath() {
-		assumeTrue(Util.isWindows());
-		assertJreRun("jbang.cmd", false);
-	}
-
-	@Test
-	void powershellUsesJreFromJavaHome() {
-		assumeTrue(Util.isWindows());
-		assertJreRun("jbang.ps1", true);
-	}
-
-	@Test
-	void powershellUsesJreFromPath() {
-		assumeTrue(Util.isWindows());
-		assertJreRun("jbang.ps1", false);
-	}
-
-	@Test
 	void reusesCachedScriptOnJre() {
 		String script = Util.isWindows() ? "jbang.cmd" : "jbang";
-		assertThat(launch(script, true, "jreapp.java", "cached"))
+		assertThat(launch(script, "run", "--jdk-providers", "multihome", "jreapp.java", "cached"))
 			.succeeded()
 			.outContains(jreHome.toString())
 			.outContains("true")
@@ -175,16 +151,11 @@ class JreIT extends BaseIT {
 	}
 
 	@Test
-	void buildsAndRunsWithSameJdkWhenLaunchedOnJre() {
-		Map<String, String> env = runtimeEnv(true);
-		System.getenv()
-			.keySet()
-			.stream()
-			.filter(name -> name.startsWith("JAVA_HOME_"))
-			.forEach(name -> env.put(name, ""));
-		env.put("JAVA_HOME_" + JavaUtil.getCurrentMajorJavaVersion() + "_X64", System.getProperty("java.home"));
+	void buildsAndRunsWithSameJdkWhenJreIsAvailable() {
+		Map<String, String> env = runtimeEnv();
+		env.put("JAVA_HOME_COMPILER", System.getProperty("java.home"));
 		String script = Util.isWindows() ? "jbang.cmd" : "jbang";
-		assertThat(launch(env, script, "run", "--fresh", "--jdk-providers", "current,javahome,multihome",
+		assertThat(launch(env, script, "run", "--fresh", "--jdk-providers", "multihome",
 				"jreapp.java", "rebuilt"))
 			.succeeded()
 			.outContains(System.getProperty("java.home"))
@@ -196,8 +167,8 @@ class JreIT extends BaseIT {
 	@Test
 	void runsArchiveAliasOnJre() {
 		String script = Util.isWindows() ? "jbang.cmd" : "jbang";
-		assertThat(launch(script, true, "alias", "add", "--name", "runtime-app", "runtime-app.jar")).succeeded();
-		assertThat(launch(script, true, "runtime-app", "alias"))
+		assertThat(launch(script, "alias", "add", "--name", "runtime-app", "runtime-app.jar")).succeeded();
+		assertThat(launch(script, "run", "--jdk-providers", "multihome", "runtime-app", "alias"))
 			.succeeded()
 			.outContains(jreHome.toString())
 			.outContains("true")

@@ -74,7 +74,7 @@ The JRE support in this branch requires devkitman's new tag filter API. Until th
 [source,powershell]
 ----
 .\gradlew.bat test formatCheck --include-build ..\jbang-devkitman
-.\gradlew.bat integrationTest --tests dev.jbang.it.JreIT --include-build ..\jbang-devkitman
+.\gradlew.bat integrationTest --tests dev.jbang.it.JreRuntimeIT --include-build ..\jbang-devkitman
 ----
 
 Gradle substitutes the local devkitman project for the dependency, without publishing it or changing machine-wide settings. The `--include-build` option also works with `build` and `format`. To use a published development artifact instead, override its version with `-PdevkitmanVersion=<version>`.
@@ -156,4 +156,3 @@ When all is good - go to https://github.com/jbangdev/jbang/releases and check al
 do final (cosmetic) edits on the release message and save.
 
 When saved, a github action workflow will get triggered. That workflow will push update the distribution mechanism for chocolatey, brew, container, scoop, sdkman etc.
-
