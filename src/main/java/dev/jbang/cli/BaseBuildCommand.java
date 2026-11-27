@@ -10,7 +10,6 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
-import dev.jbang.util.JavaUtil;
 
 public abstract class BaseBuildCommand extends BaseCommand {
 
@@ -50,7 +49,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	public Jdk getProjectJdk(Project project) {
 		Jdk jdk = project.projectJdk();
 		if (buildMixin.javaVersion != null) {
-			jdk = JavaUtil.getOrInstallJdk(getJdkManager(), buildMixin.javaVersion);
+			jdk = getJdkManager().getOrInstallJdk(buildMixin.javaVersion);
 		}
 		return jdk;
 	}

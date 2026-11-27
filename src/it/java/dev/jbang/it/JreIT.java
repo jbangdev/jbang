@@ -89,8 +89,11 @@ class JreIT extends BaseIT {
 	}
 
 	private CommandResult launch(String script, boolean javaHome, String... arguments) {
+		return launch(runtimeEnv(javaHome), script, arguments);
+	}
+
+	private CommandResult launch(Map<String, String> env, String script, String... arguments) {
 		Path path = Paths.get("src/main/scripts").resolve(script).toAbsolutePath();
-		Map<String, String> env = runtimeEnv(javaHome);
 		List<String> command = new ArrayList<>();
 		if ("jbang.cmd".equals(script)) {
 			command.addAll(Arrays.asList(System.getenv("ComSpec"), "/c", path.toString()));
@@ -168,6 +171,25 @@ class JreIT extends BaseIT {
 			.outContains("true")
 			.outContains("cached")
 			.errNotContains("Building jar")
+			.errNotContains("Downloading JDK");
+	}
+
+	@Test
+	void buildsAndRunsWithSameJdkWhenLaunchedOnJre() {
+		Map<String, String> env = runtimeEnv(true);
+		System.getenv()
+			.keySet()
+			.stream()
+			.filter(name -> name.startsWith("JAVA_HOME_"))
+			.forEach(name -> env.put(name, ""));
+		env.put("JAVA_HOME_" + JavaUtil.getCurrentMajorJavaVersion() + "_X64", System.getProperty("java.home"));
+		String script = Util.isWindows() ? "jbang.cmd" : "jbang";
+		assertThat(launch(env, script, "run", "--fresh", "--jdk-providers", "current,javahome,multihome",
+				"jreapp.java", "rebuilt"))
+			.succeeded()
+			.outContains(System.getProperty("java.home"))
+			.outContains("false")
+			.outContains("rebuilt")
 			.errNotContains("Downloading JDK");
 	}
 

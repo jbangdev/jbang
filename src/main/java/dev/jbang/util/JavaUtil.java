@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -19,7 +18,6 @@ import dev.jbang.Settings;
 import dev.jbang.devkitman.*;
 import dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller;
 import dev.jbang.devkitman.jdkproviders.*;
-import dev.jbang.devkitman.util.JavaUtils;
 import dev.jbang.devkitman.util.RemoteAccessProvider;
 
 public class JavaUtil {
@@ -274,26 +272,6 @@ public class JavaUtil {
 
 	public static int getCurrentMajorJavaVersion() {
 		return parseJavaVersion(System.getProperty("java.version"));
-	}
-
-	public static Jdk.InstalledJdk getOrInstallJdk(JdkManager manager, String versionOrId) {
-		Jdk.InstalledJdk jdk = manager.getOrInstallJdk(versionOrId);
-		if (JavaUtils.hasJavacCmd(jdk.home())) {
-			return jdk;
-		}
-		Util.verboseMsg("The selected Java runtime has no compiler; looking for a JDK.");
-		Predicate<Jdk.InstalledJdk> requested = versionOrId == null
-				? Jdk.Predicates.forVersion(0, true)
-				: isRequestedVersion(versionOrId)
-						? Jdk.Predicates.forVersion(versionOrId)
-						: Jdk.Predicates.id(versionOrId);
-		try (Stream<Jdk.InstalledJdk> installed = manager.providers().stream().flatMap(p -> p.listInstalled())) {
-			return installed
-				.filter(requested)
-				.filter(candidate -> JavaUtils.hasJavacCmd(candidate.home()))
-				.findFirst()
-				.orElseGet(() -> manager.getOrInstallJdk(versionOrId, provider -> false));
-		}
 	}
 
 	public static String resolveInJavaHome(@NonNull String cmd, @NonNull Jdk jdk) {

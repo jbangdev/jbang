@@ -3,6 +3,7 @@ package dev.jbang.source;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +21,8 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.jdkproviders.BaseJdkProvider;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.source.generators.JarCmdGenerator;
+import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -112,5 +115,46 @@ class TestJavaRuntime extends BaseTest {
 		assertEquals(cwdDir.resolve("jre"), project.projectJava().home());
 		assertEquals(17, project.projectJdk().majorVersion());
 		assertSame(project.projectJdk(), project.projectJava());
+	}
+
+	@Test
+	void jarCommandUsesJre() throws IOException {
+		Project project = project(null, true);
+		project.setMainClass("Main");
+		String command = new JarCmdGenerator(BuildContext.forProject(project)).generate();
+		assertTrue(command.contains(JavaUtil.resolveInJavaHome("java", project.projectJava())), command);
+		assertEquals(cwdDir.resolve("jre"), project.projectJava().home());
+	}
+
+	@Test
+	void jarCommandKeepsBuildJdkEvenAfterRuntimeWasSelected() throws IOException {
+		Project project = project(null, true);
+		project.setMainClass("Main");
+		assertEquals(cwdDir.resolve("jre"), project.projectJava().home());
+		Jdk.InstalledJdk buildJdk = project.projectJdk();
+		String command = new JarCmdGenerator(BuildContext.forProject(project)).generate();
+		assertTrue(command.contains(JavaUtil.resolveInJavaHome("java", buildJdk)), command);
+		assertSame(buildJdk, project.projectJava());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "17", "compiler" })
+	void runtimeRespectsRequestedVersionOrId(String requestedVersion) throws IOException {
+		Project project = project(requestedVersion, true);
+		assertEquals(cwdDir.resolve("jdk"), project.projectJava().home());
+	}
+
+	@Test
+	void runtimeDoesNotIgnoreUnavailableRequestedVersion() throws IOException {
+		Project project = project("21", true);
+		assertThrows(IllegalArgumentException.class, project::projectJava);
+	}
+
+	@Test
+	void jshellRequiresJdkRatherThanSelectedJre() throws IOException {
+		Project project = project(null, false);
+		assertEquals(cwdDir.resolve("jre"), project.projectJava().home());
+		assertThrows(IllegalArgumentException.class,
+				() -> new JshCmdGenerator(BuildContext.forProject(project)).generate());
 	}
 }

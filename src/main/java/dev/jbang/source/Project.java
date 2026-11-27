@@ -12,9 +12,9 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.devkitman.Jdk;
+import dev.jbang.devkitman.JdkFilter;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.resources.ResourceRef;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
@@ -308,17 +308,19 @@ public class Project {
 
 	public Jdk.InstalledJdk projectJdk() {
 		if (projectJdk == null) {
-			projectJdk = JavaUtil.getOrInstallJdk(projectJdkManager(), getJavaVersion());
+			projectJdk = projectJdkManager().getOrInstallJdk(getJavaVersion());
 		}
 		return projectJdk;
 	}
 
 	public Jdk.InstalledJdk projectJava() {
 		if (projectJdk != null) {
+			// Use the build JDK to keep bytecode, preview features and runtime aligned.
 			return projectJdk;
 		}
 		if (projectJava == null) {
-			projectJava = projectJdkManager().getOrInstallJdk(getJavaVersion());
+			projectJava = projectJdkManager().getOrInstallJdk(getJavaVersion(),
+					JdkFilter.or(JdkFilter.tag("Jdk"), JdkFilter.tag("Jre")));
 		}
 		return projectJava;
 	}
