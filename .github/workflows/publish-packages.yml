@@ -79,7 +79,7 @@ jobs:
           setup-java: false
       - name: JReleaser publish output
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: jreleaser-publish
           path: |
@@ -102,14 +102,14 @@ jobs:
           setup-java: false
       - name: JReleaser announce output
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: build-choco
           path: build/choco
@@ -125,7 +125,7 @@ jobs:
           path: build/choco
       - uses: actions/setup-dotnet@v4.3.1
         with:
-          dotnet-version: '2.2.204' # SDK Version to use.
+          dotnet-version: '2.2.402' # SDK Version to use.
       - name: choco-build
         run: |
           powershell

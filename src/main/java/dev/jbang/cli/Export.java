@@ -839,7 +839,7 @@ public class Export extends BaseCommand {
 		}
 
 		private List<String> gradleify(List<String> collectDependencies) {
-			return collectDependencies.stream().map(item -> {
+			return collectDependencies.stream().map(DependencyUtil::toGradleGav).map(item -> {
 				if (item.endsWith("@pom")) {
 					return "implementation platform ('" + item.substring(0, item.lastIndexOf("@pom")) + "')";
 				} else {

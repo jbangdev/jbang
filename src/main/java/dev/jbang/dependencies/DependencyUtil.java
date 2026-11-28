@@ -173,6 +173,29 @@ public class DependencyUtil {
 		}
 	}
 
+	/**
+	 * Gradle doesn't know Maven's RELEASE and LATEST meta versions, it uses
+	 * latest.release and latest.integration instead. This returns the given
+	 * dependency with those versions replaced so it can be used in a build.gradle
+	 * file. Any other dependency is returned unchanged.
+	 */
+	public static String toGradleGav(String gav) {
+		Matcher m = lenientGavPattern.matcher(gav);
+		if (!m.matches() || m.group("version") == null) {
+			return gav;
+		}
+		String version = m.group("version");
+		String gradleVersion;
+		if ("RELEASE".equals(version)) {
+			gradleVersion = "latest.release";
+		} else if ("LATEST".equals(version)) {
+			gradleVersion = "latest.integration";
+		} else {
+			return gav;
+		}
+		return gav.substring(0, m.start("version")) + gradleVersion + gav.substring(m.end("version"));
+	}
+
 	public static String removeLastCharOptional(String s) {
 		return Optional.ofNullable(s)
 			.filter(str -> str.length() != 0)

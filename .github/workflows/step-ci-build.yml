@@ -13,13 +13,15 @@
 #   Maven Central traffic that gets us rate limited.
 #
 # Test Maven repos (actions/cache, "cache test maven repo" steps):
+#   jbang-test-m2-unit-<os>-<hash>    unit tests          ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-it-<os>-<hash>      integration tests   ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-native-<os>-<hash>  native image ITs    ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-smoke-<os>-<hash>   smoke tests         ${{ runner.temp }}/jbang-test-m2
 #                                                         + ~/.m2/repository
 #   The repo jbang resolves into during tests (_JBANG_TEST_REPO / JBANG_REPO), so test runs
 #   don't download the same artifacts from Maven Central every time (HTTP 429). <hash>
-#   covers itests/, src/it/ and src/main/resources/ (templates); restore-keys start from
+#   covers itests/, src/it/ (src/test/ for unit tests) and src/main/resources/
+#   (templates); restore-keys start from
 #   the previous entry, so a change only downloads the delta.
 #   One key per job type: an entry is immutable and only the first job to save a key wins,
 #   so with a shared key the smoke tests' artifacts (Quarkus) were never saved. Jobs of the
@@ -81,13 +83,13 @@ jobs:
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
@@ -124,7 +126,7 @@ jobs:
         run: |
             chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
@@ -135,7 +137,7 @@ jobs:
           ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
 
       - name: upload-native-bundles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -170,7 +172,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
@@ -204,7 +206,7 @@ jobs:
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -220,7 +222,17 @@ jobs:
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
+      - name: cache test maven repo
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-unit-${{ runner.os }}-${{ hashFiles('itests/**', 'src/test/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-unit-${{ runner.os }}-
       - name: test
+        env:
+          _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
         run: |
           ./gradlew --no-daemon test -PtestJavaVersion=${{ steps.test-jdk-major.outputs.major || matrix.java-version }} ${{ steps.test-jdk.outputs.path && format('-Porg.gradle.java.installations.paths={0}', steps.test-jdk.outputs.path) || '' }}
       - name: Add artifact.ci links
@@ -260,7 +272,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -290,9 +302,12 @@ jobs:
             - os: windows-latest
               java-version: 21
 
-            # macOS should only run Java 11 and 25
+            # macOS only runs Java 25 (the main LTS); Java 11 on macOS is covered by
+            # unit-test-jvm, and macOS launcher/binary specifics by build-test-native-image
             - os: macos-latest
               java-version: 8
+            - os: macos-latest
+              java-version: 11
             - os: macos-latest
               java-version: 17
             - os: macos-latest
@@ -318,7 +333,7 @@ jobs:
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -386,7 +401,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -504,7 +519,7 @@ jobs:
           arguments: release --dry-run --yolo
           setup-java: false
       - name: Upload release artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts

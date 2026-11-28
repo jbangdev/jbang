@@ -11,27 +11,30 @@ workflows:
         - 'actions/github-script@v7.1.0'
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v5.1.0'
-        - 'github/codeql-action@v4.39.1'
+        - 'actions/setup-java@v6.3.0'
+        - 'github/codeql-action@v4.39.5'
+        - 'gradle/actions@v6.4.1'
+        - 'mxschmitt/action-tmate@v3.23'
     '.github/workflows/install-tests.yml':
         - 'actions/checkout@v5.1.0'
     '.github/workflows/main-build.yml':
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
-        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
-        - 'actions/upload-artifact@v7.0.1'
-        - 'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c'
+        - 'actions/setup-java@v6.3.0'
+        - 'actions/upload-artifact@v7.0.2'
+        - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
-        - 'mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101'
+        - 'mxschmitt/action-tmate@v3.23'
     '.github/workflows/publish-packages.yml':
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
         - 'actions/setup-dotnet@v4.3.1'
-        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/setup-java@v6.3.0'
+        - 'actions/upload-artifact@v7.0.2'
         - 'docker/login-action@v3.7.0'
-        - 'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c'
+        - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
-        - 'mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101'
+        - 'mxschmitt/action-tmate@v3.23'
     '.github/workflows/publish-pr-build.yml':
         - 'actions/create-github-app-token@v3.4.0'
         - 'actions/download-artifact@v8.0.2'
@@ -44,22 +47,22 @@ workflows:
         - 'actions/cache@v6.1.0'
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
-        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
-        - 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        - 'actions/setup-java@v6.3.0'
+        - 'actions/upload-artifact@v7.0.2'
         - 'graalvm/setup-graalvm@v1.5.3'
-        - 'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c'
+        - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
         - 'mikepenz/action-junit-report@v6.4.1'
-        - 'mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101'
+        - 'mxschmitt/action-tmate@v3.23'
     '.github/workflows/tag-and-release.yml':
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
-        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/setup-java@v6.3.0'
+        - 'actions/upload-artifact@v7.0.2'
         - 'graalvm/setup-graalvm@v1.5.3'
-        - 'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c'
+        - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
-        - 'mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101'
+        - 'mxschmitt/action-tmate@v3.23'
 dependencies:
     'actions/cache@v6.1.0':
         ref: 'v6.1.0'
@@ -91,24 +94,19 @@ dependencies:
         commit: 'sha1-67a3573c9a986a3f9c594539f4ab511d57bb3ce9'
         owner_id: 44036562
         repo_id: 192625306
-    'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880':
-        ref: 'v6.3.0'
-        commit: 'sha1-d1374f8ac74474200d16ef8ecee22c7ae7a51880'
-        owner_id: 44036562
-        repo_id: 196057608
     'actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165':
         ref: 'v5.0.0'
         commit: 'sha1-dded0888837ed1f317902acf8a20df0ad188d165'
         owner_id: 44036562
         repo_id: 196057608
-    'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a':
-        ref: 'v7.0.1'
-        commit: 'sha1-043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+    'actions/setup-java@v6.3.0':
+        ref: 'v6.3.0'
+        commit: 'sha1-d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         owner_id: 44036562
-        repo_id: 192625955
-    'actions/upload-artifact@v7.0.1':
-        ref: 'v7.0.1'
-        commit: 'sha1-043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        repo_id: 196057608
+    'actions/upload-artifact@v7.0.2':
+        ref: 'v7.0.2'
+        commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         owner_id: 44036562
         repo_id: 192625955
     'docker/login-action@v3.7.0':
@@ -116,9 +114,9 @@ dependencies:
         commit: 'sha1-c94ce9fb468520275223c153574b00df6fe4bcc9'
         owner_id: 5429470
         repo_id: 287743349
-    'github/codeql-action@v4.39.1':
-        ref: 'v4.39.1'
-        commit: 'sha1-9b3254085494b55a0f7c4c2b3d2d52cc712ce370'
+    'github/codeql-action@v4.39.5':
+        ref: 'v4.39.5'
+        commit: 'sha1-915412ff23e8b7659517e607487dbeae018f2934'
         owner_id: 9919
         repo_id: 259445878
     'graalvm/setup-graalvm@v1.5.3':
@@ -126,7 +124,7 @@ dependencies:
         commit: 'sha1-bef4b0e916c7dd079bf60fb95d49139f67e32c5f'
         owner_id: 10176827
         repo_id: 443997241
-    'gradle/actions@8da46b539cd8fe6ab27ca75128919a18d757604c':
+    'gradle/actions@v6.4.1':
         ref: 'v6.4.1'
         commit: 'sha1-8da46b539cd8fe6ab27ca75128919a18d757604c'
         owner_id: 124156
@@ -143,7 +141,7 @@ dependencies:
         commit: 'sha1-3a81627bfac62268172037048872e8ebd4207e6d'
         owner_id: 1476232
         repo_id: 330384746
-    'mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101':
+    'mxschmitt/action-tmate@v3.23':
         ref: 'v3.23'
         commit: 'sha1-c0afd6f790e3a5564914980036ebf83216678101'
         owner_id: 17984549
