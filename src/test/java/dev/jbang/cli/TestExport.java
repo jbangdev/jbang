@@ -108,7 +108,7 @@ public class TestExport extends BaseTest {
 			Manifest mf = jarStream.getManifest();
 
 			String cp = mf.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-			assertThat(cp, containsString("jbang_tests_maven"));
+			assertThat(cp, containsString(mavenTempDir.getFileName().toString()));
 		}
 		Files.delete(jar.toPath());
 

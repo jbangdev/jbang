@@ -7,13 +7,16 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -30,6 +33,7 @@ import dev.jbang.ExitException;
 import dev.jbang.ai.AIProvider;
 import dev.jbang.ai.AIProviderFactory;
 import dev.jbang.resources.ResourceRef;
+import dev.jbang.source.RefTarget;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -78,13 +82,58 @@ public class TestInit extends BaseTest {
 	}
 
 	@Test
-	void testInitWithExistingFileAsParent(@TempDir Path outputDir) throws IOException {
+	void testInitWithExistingFileAsParent(@TempDir Path outputDir) throws Exception {
 		Path existing = Files.createFile(outputDir.resolve("existing.java"));
 		Path x = existing.resolve("wonka.java");
-		int result = JBang.execute("init", x.toString());
-		assertThat(result, not(0));
+		CaptureResult<Integer> result = checkedRun("init", x.toString());
+		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(result.err, containsString(existing + " is not a directory"));
 		assertThat(Files.isRegularFile(existing), is(true));
 		assertThat(Files.exists(x), is(false));
+	}
+
+	@Test
+	void testInitWithExistingFileAsAncestor(@TempDir Path outputDir) throws Exception {
+		Path existing = Files.createFile(outputDir.resolve("existing.java"));
+		Path x = existing.resolve("sub").resolve("wonka.java");
+		CaptureResult<Integer> result = checkedRun("init", x.toString());
+		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(result.err, containsString(existing + " is not a directory"));
+		assertThat(Files.isRegularFile(existing), is(true));
+	}
+
+	@Test
+	void testInitChecksTargetBeforeCallingAI(@TempDir Path outputDir) throws Exception {
+		Path existing = Files.createFile(outputDir.resolve("existing.java"));
+		Path x = existing.resolve("wonka.java");
+		// closed port: if the AI step ran, init would fail with EXIT_INTERNAL_ERROR
+		// first
+		CaptureResult<Integer> result = checkedRun("init", "--ai-provider=openai", "--ai-api-key=dummy",
+				"--ai-endpoint=http://127.0.0.1:1/v1", "--ai-model=x", x.toString(), "a hello world");
+		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(result.err, containsString(existing + " is not a directory"));
+	}
+
+	@Test
+	void testInitWithDanglingSymlinkParentChecksBeforeCallingAI(@TempDir Path outputDir) throws Exception {
+		Path link = outputDir.resolve("link");
+		assumeTrue(createSymlink(link, outputDir.resolve("missing")), "symlinks not supported");
+		Path x = link.resolve("wonka.java");
+		// closed port: if the AI step ran, init would fail with EXIT_INTERNAL_ERROR
+		// first
+		CaptureResult<Integer> result = checkedRun("init", "--ai-provider=openai", "--ai-api-key=dummy",
+				"--ai-endpoint=http://127.0.0.1:1/v1", "--ai-model=x", x.toString(), "a hello world");
+		assertThat(result.result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(result.err, containsString(link + " is not a directory"));
+	}
+
+	private static boolean createSymlink(Path link, Path target) {
+		try {
+			Files.createSymbolicLink(link, target);
+			return true;
+		} catch (IOException | UnsupportedOperationException e) {
+			return false;
+		}
 	}
 
 	@Test
@@ -260,6 +309,134 @@ public class TestInit extends BaseTest {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(expectedResult));
+	}
+
+	@Test
+	void testInitFailureKeepsPreexistingFiles() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		// pre-existing file that --force overwrites; a failed init must not delete it
+		Path edit = Files.write(outFile, "mine".getBytes());
+		// a non-empty directory where the qute template file2.java goes makes rendering
+		// fail
+		Path file2 = Files.createDirectory(outFile.resolveSibling("file2.java"));
+		Path keep = Files.createFile(file2.resolve("keep.txt"));
+
+		int result = JBang.execute("init", "--force", "-t=name", outFile.toString());
+
+		assertThat(result, is(ExitException.EXIT_GENERIC_ERROR));
+		assertThat(Files.exists(edit), is(true));
+		assertThat(Files.exists(keep), is(true));
+	}
+
+	@Test
+	void testInitFailureRemovesCreatedFilesWhenCopyFails() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		// a non-empty dir where the plain file3.md goes makes RefTarget.copy() fail
+		Path file3 = Files.createDirectory(outFile.resolveSibling("file3.md"));
+		Files.createFile(file3.resolve("keep.txt"));
+
+		CaptureResult<Integer> result = captureOutput(
+				() -> JBang.execute("init", "--force", "-t=name", outFile.toString()));
+
+		assertThat(result.result, not(0));
+		assertThat(result.err, containsString("Removing partially initialized files:"));
+		assertThat(result.err, containsString("  " + outFile));
+		assertThat(Files.exists(file3.resolve("keep.txt")), is(true));
+		// files written by this run before the failure must be removed again
+		assertThat(Files.exists(outFile), is(false));
+		assertThat(Files.exists(outFile.resolveSibling("file2.java")), is(false));
+	}
+
+	@Test
+	void testInitFailureKeepsPreexistingDanglingSymlinkTarget() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		// a dangling symlink "exists" too: --force replaces it, but a failed init must
+		// not then delete what is there
+		assumeTrue(createSymlink(outFile, outFile.resolveSibling("missing.java")), "symlinks not supported");
+		Path file3 = Files.createDirectory(outFile.resolveSibling("file3.md"));
+		Files.createFile(file3.resolve("keep.txt"));
+
+		int result = JBang.execute("init", "--force", "-t=name", outFile.toString());
+
+		assertThat(result, not(0));
+		assertThat(Files.exists(outFile, LinkOption.NOFOLLOW_LINKS), is(true));
+		// file2.java was created by this run and is removed again
+		assertThat(Files.exists(outFile.resolveSibling("file2.java")), is(false));
+	}
+
+	@Test
+	void testWriteFilesNeitherOverwritesNorRemovesFileItDidNotCreate() throws Exception {
+		Path cwd = Util.getCwd();
+		Path src1 = Files.write(cwd.resolve("src1.txt"), "one".getBytes());
+		Path src2 = Files.write(cwd.resolve("src2.txt"), "two".getBytes());
+		Path outDir = Files.createDirectory(cwd.resolve("out"));
+		List<RefTarget> refTargets = Arrays.asList(
+				RefTarget.create(ResourceRef.forFile(src1), Paths.get("first.txt")),
+				RefTarget.create(ResourceRef.forFile(src2), Paths.get("second.txt")));
+		// appeared after init's own "already exists" check, e.g. while waiting for the
+		// AI
+		Path second = Files.write(outDir.resolve("second.txt"), "theirs".getBytes());
+		// BaseTest runs verbose, which keeps partial files for inspection
+		Util.setVerbose(false);
+
+		ExitException e = assertThrows(ExitException.class,
+				() -> new Init().writeFiles(refTargets, outDir, Collections.emptyMap()));
+
+		assertThat(e.getMessage(), containsString(second + " already exists"));
+		assertThat(Util.readString(second), is("theirs"));
+		// first.txt was created by this call and is removed again
+		assertThat(Files.exists(outDir.resolve("first.txt")), is(false));
+	}
+
+	@Test
+	void testInitTemplateRenderFailureLeavesNothingBehind() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		Path tpl = outFile.getParent().getParent().resolve("tpl").resolve("file2.java.qute");
+		// fails while rendering (not while parsing), after other files were already
+		// written
+		Util.writeString(tpl, "{#include nothere /}");
+
+		int result = JBang.execute("init", "-t=name", outFile.toString());
+
+		assertThat(result, not(0));
+		// nothing left behind, so a plain retry (no --force) is not refused with
+		// "already exists"
+		try (Stream<Path> files = Files.list(outFile.getParent())) {
+			assertThat(files.count(), is(0L));
+		}
+	}
+
+	@Test
+	void testInitFailureKeepsCreatedFilesWhenVerbose() throws Exception {
+		Path outFile = setupInitMultipleFiles("{filename}", "edit.java", false);
+		Path file3 = Files.createDirectory(outFile.resolveSibling("file3.md"));
+		Files.createFile(file3.resolve("keep.txt"));
+
+		CaptureResult<Integer> result = captureOutput(
+				() -> JBang.execute("--verbose", "init", "--force", "-t=name", outFile.toString()));
+
+		assertThat(result.result, not(0));
+		assertThat(result.err, containsString("Keeping partially initialized files for inspection (--verbose):"));
+		assertThat(result.err, containsString("  " + outFile));
+		assertThat(Files.exists(outFile), is(true));
+	}
+
+	@Test
+	void testRenderErrorDoesNotCreateOrTruncateFile() throws Exception {
+		Path cwd = Util.getCwd();
+		Path tpl = Files.write(cwd.resolve("broken.java.qute"), "{#include nothere /}".getBytes());
+		ResourceRef ref = ResourceRef.forFile(tpl);
+		Map<String, Object> props = Collections.emptyMap();
+
+		Path newFile = cwd.resolve("fresh.java");
+		assertThrows(RuntimeException.class,
+				() -> new Init().renderQuteTemplate(newFile, ref, props));
+		assertThat(Files.exists(newFile), is(false));
+
+		Path existing = Files.write(cwd.resolve("existing.java"), "mine".getBytes());
+		assertThrows(RuntimeException.class,
+				() -> new Init().renderQuteTemplate(existing, ref, props));
+		assertThat(Util.readString(existing), is("mine"));
 	}
 
 	Path setupInitMultipleFiles(String targetName, String initName, boolean abs) throws IOException {
