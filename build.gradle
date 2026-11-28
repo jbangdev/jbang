@@ -516,7 +516,7 @@ task benchmark(type: Test) {
 }
 
 jacoco {
-	toolVersion = '0.8.14' // 0.8.14 supports java 25
+	toolVersion = '0.8.16' // 0.8.14 supports java 25
 }
 
 jacocoTestReport {
