@@ -125,7 +125,7 @@ jobs:
           path: build/choco
       - uses: actions/setup-dotnet@v4.3.1
         with:
-          dotnet-version: '2.2.204' # SDK Version to use.
+          dotnet-version: '2.2.402' # SDK Version to use.
       - name: choco-build
         run: |
           powershell
