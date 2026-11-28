@@ -574,6 +574,10 @@ testing {
 
 tasks.named('integrationTest') {
 	dependsOn("installDist") // todo: move to after buildDist
+	// the ITs run the installed launcher scripts and copy the itests folder,
+	// neither of which is on the test classpath
+	inputs.files(tasks.named('installDist')).withPathSensitivity(PathSensitivity.RELATIVE)
+	inputs.dir('itests').withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 tasks.named('compileIntegrationTestJava') {
