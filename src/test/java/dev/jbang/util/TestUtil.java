@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,42 @@ import dev.jbang.catalog.Catalog;
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
 		Catalog.clearCache();
+	}
+
+	@Test
+	void testRelativizeLinkTargetWithinLinkParent() throws IOException {
+		Path root = Files.createTempDirectory("jbang-link");
+		Path link = root.resolve("current");
+		Path target = root.resolve("cache").resolve("jdks").resolve("21");
+
+		assertEquals(root.relativize(target), Util.relativizeLinkTarget(link, target));
+	}
+
+	@Test
+	void testRelativizeLinkTargetOutsideLinkParent() throws IOException {
+		Path root = Files.createTempDirectory("jbang-link");
+		Path link = root.resolve("links").resolve("current");
+		Path target = root.resolve("targets").resolve("21");
+
+		assertEquals(target.toAbsolutePath(), Util.relativizeLinkTarget(link, target));
+	}
+
+	@Test
+	void testRelativizeLinkTargetEqualToLinkParent() {
+		Path root = Paths.get("sandbox").toAbsolutePath();
+
+		assertEquals(Paths.get("."), Util.relativizeLinkTarget(root.resolve("current"), root));
+	}
+
+	@Test
+	void testRelativizeLinkTargetPreservesParentTraversal() {
+		Path root = Paths.get("sandbox").toAbsolutePath();
+		Path target = root.resolve("A.java");
+		Path throughAlias = root.resolve("alias").resolve("..");
+
+		assertEquals(throughAlias.resolve("A.java"),
+				Util.relativizeLinkTarget(root.resolve("current"), throughAlias.resolve("A.java")));
+		assertEquals(target, Util.relativizeLinkTarget(throughAlias.resolve("current"), target));
 	}
 
 	@Test

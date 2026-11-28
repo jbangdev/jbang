@@ -1063,14 +1063,18 @@ public class Util {
 
 	public static void createLink(Path link, Path target) {
 		if (!Files.exists(link)) {
-			// On Windows we use junction for directories because their
-			// creation doesn't require any special privileges.
+			Path linkTarget = relativizeLinkTarget(link, target);
 			if (isWindows() && Files.isDirectory(target)) {
+				// Prefer symbolic links when Windows Developer Mode or sufficient
+				// privileges make them available, but retain junctions as a fallback.
+				if (createSymbolicLink(link, linkTarget, false)) {
+					return;
+				}
 				if (createJunction(link, target.toAbsolutePath())) {
 					return;
 				}
 			} else {
-				if (createSymbolicLink(link, target.toAbsolutePath())) {
+				if (createSymbolicLink(link, linkTarget, true)) {
 					return;
 				}
 			}
@@ -1079,12 +1083,39 @@ public class Util {
 		}
 	}
 
-	private static boolean createSymbolicLink(Path link, Path target) {
+	static Path relativizeLinkTarget(Path link, Path target) {
+		Path absoluteLink = link.toAbsolutePath();
+		Path absoluteTarget = target.toAbsolutePath();
+		// A parent traversal after a symlink can resolve differently after
+		// normalization.
+		if (hasParentTraversal(absoluteLink) || hasParentTraversal(absoluteTarget)) {
+			return absoluteTarget;
+		}
+		Path linkParent = absoluteLink.normalize().getParent();
+		Path normalizedTarget = absoluteTarget.normalize();
+		if (linkParent != null && normalizedTarget.startsWith(linkParent)) {
+			return linkParent.equals(normalizedTarget) ? link.getFileSystem().getPath(".")
+					: linkParent.relativize(normalizedTarget);
+		}
+		return absoluteTarget;
+	}
+
+	private static boolean hasParentTraversal(Path path) {
+		for (Path name : path) {
+			if ("..".equals(name.toString())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean createSymbolicLink(Path link, Path target, boolean reportWindowsFailure) {
 		try {
 			Files.createSymbolicLink(link, target);
 			return true;
 		} catch (IOException e) {
-			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")) {
+			if (reportWindowsFailure && isWindows() && e instanceof AccessDeniedException
+					&& e.getMessage().contains("privilege")) {
 				infoMsg(String.format("Creation of symbolic link failed %s -> %s", link, target));
 				infoMsg("This is a known issue with trying to create symbolic links on Windows.");
 				infoMsg("See the information available at the link below for a solution:");
