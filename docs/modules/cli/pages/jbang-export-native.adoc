@@ -1,4 +1,4 @@
-= JBANG-EXPORT-NATIVE
+= JBANG EXPORT NATIVE
 
 == NAME
 
@@ -8,13 +8,22 @@ jbang export native -- Exports native executable
 
 [source]
 ----
-jbang export native [-hn] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+jbang export native [OPTIONS] [<scriptOrFile>]
 ----
 
-== OPTIONS
+Builds a native executable using GraalVM native-image, so it starts fast and
+needs no JVM to run. Requires native-image to be available.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang export native hello.java
+jbang export native -O hello hello.java
+----
+
+
+== OPTIONS
 
 *-O*, *--output*=<output>::
 The name or path to use for the exported file.
@@ -29,7 +38,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -94,6 +103,9 @@ Use given directory for build results
 *--enable-preview*::
 Activate Java preview features
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -114,6 +126,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

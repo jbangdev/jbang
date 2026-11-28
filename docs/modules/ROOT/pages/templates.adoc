@@ -83,6 +83,21 @@ Any key specified via `-Dkey=value` becomes available as `\{key}` inside the tem
 
 It is recommended you write templates where there is some kind of valid default or fallback on behavior as users might not be aware there is need for a key.
 
+== Debugging Templates
+
+If `jbang init` fails part-way, for example because a template throws an error while rendering, the files it already created are removed again so you are not left with a half-initialized project. Files that existed before (when using `--force`) are never removed.
+
+When developing a template it can help to look at what was generated before the failure. Run with `--verbose` and JBang keeps the partially initialized files and lists them:
+
+[source,bash]
+----
+$ jbang --verbose init -t mytemplate hello.java
+...
+[jbang] [WARN] Keeping partially initialized files for inspection (--verbose):
+  .../hello.java
+  .../README.md
+----
+
 == AI-Powered Code Generation
 
 JBang supports 100% optional AI-powered code generation when using the `init` command. When you pass parameters to `jbang init`, JBang will attempt to use an AI provider to generate code based on your description.

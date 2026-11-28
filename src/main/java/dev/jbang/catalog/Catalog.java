@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -74,8 +75,8 @@ public class Catalog {
 	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
-	public final String baseRef;
-	public final String description;
+	private String baseRef;
+	private String description;
 	public transient ResourceRef catalogRef;
 
 	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, CatalogRef> catalogs,
@@ -84,10 +85,26 @@ public class Catalog {
 		this.description = description;
 		this.catalogRef = catalogRef;
 		catalogs.forEach((key, c) -> this.catalogs.put(key,
-				new CatalogRef(c.catalogRef, c.description, c.importItems, this)));
+				new CatalogRef(c.catalogRef(), c.description(), c.importItems(), this)));
 		aliases.forEach((key, a) -> this.aliases.put(key, a.withCatalog(this)));
 		templates.forEach((key, t) -> this.templates.put(key,
-				new Template(t.fileRefs, t.description, t.properties, this)));
+				new Template(t.fileRefs(), t.description(), t.properties(), this)));
+	}
+
+	public String baseRef() {
+		return baseRef;
+	}
+
+	public String description() {
+		return description;
+	}
+
+	/**
+	 * Catalog JSON uses kebab-case names, fields only need a `@SerializedName` when
+	 * the JSON name differs from the kebab-cased field name or has alternates.
+	 */
+	static GsonBuilder gsonBuilder() {
+		return new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES);
 	}
 
 	public static Catalog empty() {
@@ -171,7 +188,7 @@ public class Catalog {
 	public static Catalog getByName(String catalogName) {
 		CatalogRef catalogRef = CatalogRef.get(simplifyRef(catalogName));
 		if (catalogRef != null) {
-			return getByRef(catalogRef.catalogRef);
+			return getByRef(catalogRef.catalogRef());
 		} else {
 			throw new ExitException(EXIT_INVALID_INPUT, "Unknown catalog '" + catalogName + "'");
 		}
@@ -320,14 +337,14 @@ public class Catalog {
 
 	static Catalog findImportedCatalogsWith(Catalog catalog, Function<Catalog, Catalog> accept) {
 		for (CatalogRef cr : catalog.catalogs.values()) {
-			if (cr.importItems == Boolean.TRUE) {
+			if (cr.importItems() == Boolean.TRUE) {
 				try {
-					Catalog cat = Catalog.getByRef(cr.catalogRef);
+					Catalog cat = Catalog.getByRef(cr.catalogRef());
 					Catalog result = accept.apply(cat);
 					if (result != null)
 						return result;
 				} catch (Exception e) {
-					Util.verboseMsg("Unable to read catalog " + cr.catalogRef + ": " + e.getMessage(), e);
+					Util.verboseMsg("Unable to read catalog " + cr.catalogRef() + ": " + e.getMessage(), e);
 				}
 			}
 		}
@@ -389,7 +406,7 @@ public class Catalog {
 	}
 
 	private static Catalog read(InputStream is) {
-		Gson parser = new Gson();
+		Gson parser = gsonBuilder().create();
 		Catalog catalog = parser.fromJson(new InputStreamReader(is), Catalog.class);
 		if (catalog != null) {
 			// Validate the result (Gson can't do this)
@@ -405,18 +422,18 @@ public class Catalog {
 			for (String catName : catalog.catalogs.keySet()) {
 				CatalogRef cat = catalog.catalogs.get(catName);
 				cat.catalog = catalog;
-				check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+				check(cat.catalogRef() != null, "Missing required attribute 'catalogs.catalogRef'");
 			}
 			for (String aliasName : catalog.aliases.keySet()) {
 				Alias alias = catalog.aliases.get(aliasName);
 				alias.catalog = catalog;
-				check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
+				check(alias.scriptRef() != null, "Missing required attribute 'aliases.script-ref'");
 			}
 			for (String tplName : catalog.templates.keySet()) {
 				Template tpl = catalog.templates.get(tplName);
 				tpl.catalog = catalog;
-				check(tpl.fileRefs != null, "Missing required attribute 'templates.file-refs'");
-				check(!tpl.fileRefs.isEmpty(), "Attribute 'templates.file-refs' has no elements");
+				check(tpl.fileRefs() != null, "Missing required attribute 'templates.file-refs'");
+				check(!tpl.fileRefs().isEmpty(), "Attribute 'templates.file-refs' has no elements");
 			}
 		} else {
 			catalog = Catalog.empty();
@@ -426,7 +443,7 @@ public class Catalog {
 
 	static void write(Path catalogPath, Catalog catalog) throws IOException {
 		try (Writer out = Files.newBufferedWriter(catalogPath)) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
+			Gson parser = gsonBuilder().setPrettyPrinting().create();
 			parser.toJson(catalog, out);
 		}
 	}

@@ -1,4 +1,4 @@
-= JBANG-EXPORT-MAVENREPO
+= JBANG EXPORT MAVENREPO
 
 == NAME
 
@@ -8,13 +8,23 @@ jbang export mavenrepo -- Exports directory that can be used to publish as a mav
 
 [source]
 ----
-jbang export mavenrepo [-hn] [-g=<group>] [-a=<artifact>] [-v=<version>] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>]
+jbang export mavenrepo [OPTIONS] [<scriptOrFile>]
 ----
 
-== OPTIONS
+Writes the built jar and a generated POM in Maven repository layout, by default
+into your local ~/.m2 repository. Needs a group ID (--group) unless the script
+declares its GAV.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang export mavenrepo -g org.acme hello.java
+jbang export mavenrepo -g org.acme -a hello -v 1.0 -O build/repo --force hello.java
+----
+
+
+== OPTIONS
 
 *-g*, *--group*=<group>::
 The group ID to use for the generated POM.
@@ -38,7 +48,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -103,6 +113,9 @@ Use given directory for build results
 *--enable-preview*::
 Activate Java preview features
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -123,6 +136,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

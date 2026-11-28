@@ -37,18 +37,35 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 @CommandDefinition(name = "app", description = "Manage scripts installed on the user's PATH as commands.", groupCommands = {
 		App.AppInstall.class, App.AppList.class, App.AppUninstall.class,
-		App.AppSetup.class }, generateHelp = true, helpGroup = "Configuration")
+		App.AppSetup.class }, helpGroup = "Configuration")
 public class App extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Installs scripts, jars, GAVs or aliases as commands on your PATH, so you can run\n"
+				+ "them without typing ${ROOT-COMMAND-NAME}. Run `${ROOT-COMMAND-NAME} app setup` once to put the install folder\n"
+				+ "on your PATH.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} install --name hello hello.java",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} uninstall hello",
+				"${COMMAND-FULL-NAME} setup");
 	}
 
 	public static void deleteCommandFiles(String name) {
@@ -61,9 +78,10 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "install", description = "Install a script as a command.", generateHelp = true)
+	@CommandDefinition(name = "install", description = "Install a script as a command.")
 	public static class AppInstall extends BaseBuildCommand {
-		private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
+
+		private static final String jbangDownloadBaseUrl = "https://www.jbang.dev/releases/latest/download/";
 
 		@Mixin
 		RunMixin runMixin;
@@ -82,7 +100,6 @@ public class App extends BaseCommand {
 
 		@Override
 		public Integer doCall() throws IOException {
-			scriptMixin.validate();
 			boolean installed = false;
 			try {
 				if ("jbang".equals(scriptMixin.scriptOrFile)) {
@@ -215,6 +232,7 @@ public class App extends BaseCommand {
 		public static boolean installJBang(boolean force) throws IOException {
 			Path binDir = Settings.getConfigBinDir();
 			boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
+			boolean useNative = shouldUseNative();
 
 			if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
 				Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
@@ -226,13 +244,13 @@ public class App extends BaseCommand {
 					Util.withCacheEvict(() -> {
 						// Download JBang and unzip to ~/.jbang/bin/
 						Util.infoMsg("Downloading and installing jbang...");
-						Path zipFile = NetUtil.downloadAndCacheFile(jbangUrl);
+						Path zipFile = NetUtil.downloadAndCacheFile(getJBangUrl(useNative));
 						Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 						Util.deletePath(urlsDir.resolve("jbang"), true);
 						UnpackUtil.unpack(zipFile, urlsDir);
 						App.deleteCommandFiles("jbang");
 						Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-						copyJBangFiles(fromDir, binDir);
+						copyJBangFiles(fromDir, binDir, useNative);
 						return 0;
 					});
 				} else {
@@ -247,7 +265,7 @@ public class App extends BaseCommand {
 					if (fromDir.endsWith(".jbang")) {
 						fromDir = fromDir.getParent();
 					}
-					copyJBangFiles(fromDir, binDir);
+					copyLocalJBangFiles(fromDir, binDir, useNative);
 				}
 			} else {
 				Util.infoMsg("jbang is already installed.");
@@ -255,9 +273,60 @@ public class App extends BaseCommand {
 			return true;
 		}
 
-		static void copyJBangFiles(Path from, Path to) throws IOException {
+		static boolean shouldUseNative() {
+			return JavaUtil.inNativeImage() || Boolean.parseBoolean(System.getenv(Settings.ENV_USE_NATIVE));
+		}
+
+		static String getJBangUrl(boolean useNative) {
+			return jbangDownloadBaseUrl + (useNative ? "jbang-" + getNativePlatform() + ".zip" : "jbang.zip");
+		}
+
+		static String getNativeBinaryName() {
+			String name = "jbang.bin-" + getNativePlatform();
+			return Util.isWindows() ? name + ".exe" : name;
+		}
+
+		private static String getNativePlatform() {
+			String os = Util.getOS().name();
+			if (os.equals("alpine_linux")) {
+				os = "linux";
+			}
+			String arch = Util.getArch().name();
+			if (arch.equals("arm64")) {
+				arch = "aarch64";
+			}
+			return os + "-" + arch;
+		}
+
+		// A local jbang distribution might not include the native binary, in which
+		// case we install the jar like before instead of failing
+		static void copyLocalJBangFiles(Path from, Path to, boolean useNative) throws IOException {
+			if (useNative && !Files.isRegularFile(from.resolve(getNativeBinaryName()))) {
+				Util.warnMsg("Native binary " + getNativeBinaryName() + " not found in " + from
+						+ ", installing the jar only");
+				useNative = false;
+				// the launchers prefer an existing native binary over the jar, so an older one
+				// left behind (or staged as .new on Windows) would keep running instead of the
+				// version we install now
+				Path oldNative = to.resolve(getNativeBinaryName());
+				try {
+					Files.deleteIfExists(oldNative.resolveSibling(oldNative.getFileName() + ".new"));
+					Files.deleteIfExists(oldNative);
+				} catch (IOException e) {
+					Util.warnMsg("Could not remove the older native binary " + oldNative
+							+ ", it will keep being used while JBANG_USE_NATIVE=true. Remove it or update again once no other jbang is running.");
+				}
+			}
+			copyJBangFiles(from, to, useNative);
+		}
+
+		static void copyJBangFiles(Path from, Path to, boolean useNative) throws IOException {
 			to.toFile().mkdirs();
-			Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+			Stream<String> files = Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar");
+			if (useNative) {
+				files = Stream.concat(files, Stream.of(getNativeBinaryName()));
+			}
+			files
 				.map(Paths::get)
 				.forEach(f -> {
 					try {
@@ -274,6 +343,9 @@ public class App extends BaseCommand {
 							if (Util.isWindows() && Files.isRegularFile(top)) {
 								top = to.resolve("jbang.jar.new");
 							}
+						} else if (Util.isWindows() && f.toString().equals(getNativeBinaryName())
+								&& Files.isRegularFile(top)) {
+							top = to.resolve(f.toString() + ".new");
 						}
 						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
 								StandardCopyOption.COPY_ATTRIBUTES);
@@ -308,9 +380,24 @@ public class App extends BaseCommand {
 				Files.move(launcherUpdate, launcher, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Creates a command that runs the given script, jar, GAV or alias, keeping any run\n"
+					+ "options you pass. It is built up front unless you use --no-build.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} hello.java",
+					"${COMMAND-FULL-NAME} --name search gavsearch@jbangdev",
+					"${COMMAND-FULL-NAME} --name blaze com.fizzed:blaze-lite:RELEASE",
+					"${COMMAND-FULL-NAME} --native --name mytool mytool.java");
+		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists installed commands.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Lists installed commands.")
 	public static class AppList extends BaseCommand {
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
@@ -358,7 +445,7 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "uninstall", description = "Removes a previously installed command.", generateHelp = true)
+	@CommandDefinition(name = "uninstall", description = "Removes a previously installed command.")
 	public static class AppUninstall extends BaseCommand {
 
 		@Argument(paramLabel = "name", index = "0", arity = "1", description = "The name of the command", required = true)
@@ -386,10 +473,10 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.", generateHelp = true)
+	@CommandDefinition(name = "setup", description = "Make jbang commands available for the user.")
 	public static class AppSetup extends BaseCommand {
 
-		@Option(name = "java", negatable = true, description = "Add JBang's Java to the user's environment as well")
+		@Option(name = "java", hasValue = false, negatable = true, description = "Add JBang's Java to the user's environment as well")
 		Boolean java;
 
 		@Option(name = "force", hasValue = false, description = "Force setup to be performed even when existing configuration has been detected")
@@ -598,6 +685,19 @@ public class App extends BaseCommand {
 			} else {
 				return path.toString();
 			}
+		}
+
+		@Override
+		public String prose() {
+			return "Adds the folder holding installed commands to your PATH (and optionally jbang's\n"
+					+ "Java) by updating your shell setup. Open a new shell afterwards.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --java");
 		}
 	}
 }

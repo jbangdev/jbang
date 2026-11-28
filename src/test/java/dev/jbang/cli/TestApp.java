@@ -51,6 +51,77 @@ public class TestApp extends BaseTest {
 			"jbang run 'com.h2database:h2:1.4.200' @args");
 
 	@Test
+	void testNativeUpdateSelection() {
+		environmentVariables.clear(Settings.ENV_USE_NATIVE);
+		assertThat(App.AppInstall.shouldUseNative(), is(false));
+
+		environmentVariables.set(Settings.ENV_USE_NATIVE, "true");
+		assertThat(App.AppInstall.shouldUseNative(), is(true));
+	}
+
+	@Test
+	void testJBangUpdateUrlMatchesRuntime() {
+		assertThat(App.AppInstall.getJBangUrl(false),
+				equalTo("https://www.jbang.dev/releases/latest/download/jbang.zip"));
+		assertThat(App.AppInstall.getJBangUrl(true),
+				equalTo("https://www.jbang.dev/releases/latest/download/jbang-"
+						+ App.AppInstall.getNativeBinaryName().replace("jbang.bin-", "").replace(".exe", "") + ".zip"));
+	}
+
+	@Test
+	void testCopyNativeJBangFiles(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = tempDir.resolve("to");
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar",
+				App.AppInstall.getNativeBinaryName())) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+
+		App.AppInstall.copyJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(to.resolve(App.AppInstall.getNativeBinaryName()).toFile(), anExistingFile());
+		if (Util.isWindows()) {
+			Files.write(from.resolve(App.AppInstall.getNativeBinaryName()), Collections.singletonList("updated"));
+			App.AppInstall.copyJBangFiles(from, to, true);
+			assertThat(to.resolve(App.AppInstall.getNativeBinaryName() + ".new").toFile(), anExistingFile());
+		}
+	}
+
+	@Test
+	void testCopyLocalJBangFilesFallsBackToJarWithoutNativeBinary(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = tempDir.resolve("to");
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+
+		App.AppInstall.copyLocalJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(Files.exists(to.resolve(App.AppInstall.getNativeBinaryName())), is(false));
+	}
+
+	@Test
+	void testCopyLocalJBangFilesRemovesOlderNativeBinaryOnJarFallback(@TempDir Path tempDir) throws IOException {
+		Path from = Files.createDirectory(tempDir.resolve("from"));
+		Path to = Files.createDirectory(tempDir.resolve("to"));
+		for (String file : Arrays.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")) {
+			Files.write(from.resolve(file), Collections.singletonList(file));
+		}
+		Path oldNative = to.resolve(App.AppInstall.getNativeBinaryName());
+		Path staged = to.resolve(App.AppInstall.getNativeBinaryName() + ".new");
+		Files.write(oldNative, Collections.singletonList("old native"));
+		Files.write(staged, Collections.singletonList("old staged native"));
+
+		App.AppInstall.copyLocalJBangFiles(from, to, true);
+
+		assertThat(to.resolve("jbang.jar").toFile(), anExistingFile());
+		assertThat(Files.exists(oldNative), is(false));
+		assertThat(Files.exists(staged), is(false));
+	}
+
+	@Test
 	void testHasJBangSetup(@TempDir Path tempDir) throws IOException {
 		Path rcFile = tempDir.resolve(".bashrc");
 		assertThat(App.AppSetup.hasJBangSetup(rcFile), is(false));
@@ -76,7 +147,7 @@ public class TestApp extends BaseTest {
 		Files.writeString(target.resolve("jbang.jar"), "running jar");
 		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
 
-		App.AppInstall.copyJBangFiles(source, target);
+		App.AppInstall.copyJBangFiles(source, target, false);
 
 		assertThat(Files.readString(target.resolve("jbang.cmd")), is("running cmd"));
 		assertThat(Files.readString(target.resolve("jbang.cmd.new")), is("new cmd"));
@@ -105,7 +176,7 @@ public class TestApp extends BaseTest {
 		Files.writeString(target.resolve("jbang.cmd"), "old cmd");
 		environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
 
-		App.AppInstall.copyJBangFiles(source, target);
+		App.AppInstall.copyJBangFiles(source, target, false);
 
 		assertThat(Files.readString(target.resolve("jbang.cmd")), is("new cmd"));
 		assertThat(target.resolve("jbang.cmd.new").toFile(), not(anExistingFile()));
@@ -419,4 +490,14 @@ public class TestApp extends BaseTest {
 		assertThat(result.err, containsString("Command not found: hello"));
 	}
 
+	@Test
+	void testAppSetupJavaFlag() {
+		// --java/--no-java are on/off flags; without them jbang guesses (null)
+		App.AppSetup setup = JBang.parseCommand("app", "setup");
+		assertThat(setup.java, nullValue());
+		setup = JBang.parseCommand("app", "setup", "--java");
+		assertThat(setup.java, is(true));
+		setup = JBang.parseCommand("app", "setup", "--no-java");
+		assertThat(setup.java, is(false));
+	}
 }

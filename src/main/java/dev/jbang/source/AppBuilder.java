@@ -109,8 +109,10 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 		}
 
 		if (nativeBuildRequired) {
-			if (integrationResult.nativeImagePath != null) {
-				Files.move(integrationResult.nativeImagePath, ctx.getNativeImageFile());
+			Path outputDir = ctx.getNativeImageFile().getParent();
+			outputDir.toFile().mkdirs();
+			if (integrationResult.nativeImagePath() != null) {
+				Files.move(integrationResult.nativeImagePath(), ctx.getNativeImageFile());
 			} else {
 				getNativeBuildStep().build();
 			}

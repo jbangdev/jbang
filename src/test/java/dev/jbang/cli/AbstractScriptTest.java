@@ -97,7 +97,10 @@ abstract class AbstractScriptTest {
 
 	protected static RunResult runProcess(List<String> cmd, Map<String, String> env) throws Exception {
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		pb.environment().putAll(env);
+		Map<String, String> processEnv = pb.environment();
+		// Callers pass a complete snapshot, including intentional removals.
+		processEnv.clear();
+		processEnv.putAll(env);
 		pb.redirectErrorStream(false);
 		Process process = pb.start();
 
@@ -196,8 +199,8 @@ abstract class AbstractScriptTest {
 
 	/**
 	 * Returns a base environment map for bash tests with JBANG_DIR,
-	 * JBANG_CACHE_DIR, and JBANG_NO_VERSION_CHECK set. JAVA_HOME is removed.
-	 * Subclasses should add their specific env vars on top.
+	 * JBANG_CACHE_DIR, and JBANG_NO_VERSION_CHECK set. Native mode is disabled and
+	 * JAVA_HOME is removed. Subclasses should add their specific env vars on top.
 	 */
 	protected Map<String, String> baseBashEnv(String suffix) {
 		Path jbdir = tempSubDir("jbdir-" + suffix);
@@ -206,14 +209,15 @@ abstract class AbstractScriptTest {
 		env.put("JBANG_DIR", jbdir.toString());
 		env.put("JBANG_CACHE_DIR", tdir.toString());
 		env.put("JBANG_NO_VERSION_CHECK", "true");
+		env.put("JBANG_USE_NATIVE", "false");
 		env.remove("JAVA_HOME");
 		return env;
 	}
 
 	/**
 	 * Returns a base environment map for PowerShell tests with JBANG_DIR,
-	 * JBANG_CACHE_DIR, and JBANG_NO_VERSION_CHECK set. JAVA_HOME is removed.
-	 * Subclasses should add their specific env vars on top.
+	 * JBANG_CACHE_DIR, and JBANG_NO_VERSION_CHECK set. Native mode is disabled and
+	 * JAVA_HOME is removed. Subclasses should add their specific env vars on top.
 	 */
 	protected Map<String, String> basePsEnv(String suffix) {
 		Path jbdir = tempSubDir("jbdir-" + suffix);
@@ -222,6 +226,7 @@ abstract class AbstractScriptTest {
 		env.put("JBANG_DIR", jbdir.toString());
 		env.put("JBANG_CACHE_DIR", tdir.toString());
 		env.put("JBANG_NO_VERSION_CHECK", "true");
+		env.put("JBANG_USE_NATIVE", "false");
 		env.remove("JAVA_HOME");
 		return env;
 	}

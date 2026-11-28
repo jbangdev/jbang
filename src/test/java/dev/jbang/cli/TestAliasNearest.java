@@ -123,19 +123,19 @@ public class TestAliasNearest extends BaseTest {
 				"local1"));
 		assertThat(catalog.aliases.keySet(), equalTo(keys));
 
-		assertThat(catalog.aliases.get("global1").scriptRef, is("global1ref"));
-		assertThat(catalog.aliases.get("global2").scriptRef, is("global2inparent"));
-		assertThat(catalog.aliases.get("global3").scriptRef, is("global3indotlocal"));
-		assertThat(catalog.aliases.get("global4").scriptRef, is("global4inlocal"));
+		assertThat(catalog.aliases.get("global1").scriptRef(), is("global1ref"));
+		assertThat(catalog.aliases.get("global2").scriptRef(), is("global2inparent"));
+		assertThat(catalog.aliases.get("global3").scriptRef(), is("global3indotlocal"));
+		assertThat(catalog.aliases.get("global4").scriptRef(), is("global4inlocal"));
 
-		assertThat(catalog.aliases.get("parent1").scriptRef, is("parent1ref"));
-		assertThat(catalog.aliases.get("parent2").scriptRef, is("parent2indotlocal"));
-		assertThat(catalog.aliases.get("parent3").scriptRef, is("parent3inlocal"));
+		assertThat(catalog.aliases.get("parent1").scriptRef(), is("parent1ref"));
+		assertThat(catalog.aliases.get("parent2").scriptRef(), is("parent2indotlocal"));
+		assertThat(catalog.aliases.get("parent3").scriptRef(), is("parent3inlocal"));
 
-		assertThat(catalog.aliases.get("dotlocal1").scriptRef, is("dotlocal1ref"));
-		assertThat(catalog.aliases.get("dotlocal2").scriptRef, is("dotlocal2inlocal"));
+		assertThat(catalog.aliases.get("dotlocal1").scriptRef(), is("dotlocal1ref"));
+		assertThat(catalog.aliases.get("dotlocal2").scriptRef(), is("dotlocal2inlocal"));
 
-		assertThat(catalog.aliases.get("local1").scriptRef, is("local1ref"));
+		assertThat(catalog.aliases.get("local1").scriptRef(), is("local1ref"));
 	}
 
 	@Test
@@ -155,7 +155,7 @@ public class TestAliasNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo(result));
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class TestAliasNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("dummy.java"));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo("dummy.java"));
 	}
 
 	@Test
@@ -189,7 +189,7 @@ public class TestAliasNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo(result));
 	}
 
 	@Test
@@ -215,7 +215,7 @@ public class TestAliasNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo(result));
 	}
 
 	@Test
@@ -245,7 +245,7 @@ public class TestAliasNearest extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(Settings.getUserCatalogFile());
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo(result));
 	}
 
 	@Test

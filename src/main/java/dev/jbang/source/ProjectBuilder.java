@@ -793,53 +793,53 @@ public class ProjectBuilder {
 
 	private void updateFromAlias(Alias alias) {
 		if (additionalSources.isEmpty()) {
-			additionalSources(alias.sources);
+			additionalSources(alias.sources());
 		}
 		if (additionalResources.isEmpty()) {
-			additionalResources(alias.resources);
+			additionalResources(alias.resources());
 		}
 		if (additionalDeps.isEmpty()) {
-			additionalDependencies(alias.dependencies);
+			additionalDependencies(alias.dependencies());
 		}
 		if (additionalRepos.isEmpty()) {
-			additionalRepositories(alias.repositories);
+			additionalRepositories(alias.repositories());
 		}
 		if (additionalClasspaths.isEmpty()) {
-			additionalClasspaths(alias.classpaths);
+			additionalClasspaths(alias.classpaths());
 		}
-		if (alias.properties != null && !alias.properties.isEmpty()) {
+		if (alias.properties() != null && !alias.properties().isEmpty()) {
 			// Merge per-key: alias properties are defaults, caller/-D properties win.
-			Map<String, String> merged = new HashMap<>(alias.properties);
+			Map<String, String> merged = new HashMap<>(alias.properties());
 			merged.putAll(properties);
 			properties = merged;
 			contextProperties = null;
 		}
 		if (javaVersion == null) {
-			javaVersion(alias.javaVersion);
+			javaVersion(alias.javaVersion());
 		}
 		if (compileOptions.isEmpty()) {
-			compileOptions(alias.compileOptions);
+			compileOptions(alias.compileOptions());
 		}
 		if (nativeImage == null) {
-			nativeImage(alias.nativeImage);
+			nativeImage(alias.nativeImage());
 		}
 		if (nativeOptions.isEmpty()) {
-			nativeOptions(alias.nativeOptions);
+			nativeOptions(alias.nativeOptions());
 		}
-		if (forceType == null && alias.forceType != null) {
-			forceType(Source.Type.valueOf(alias.forceType));
+		if (forceType == null && alias.forceType() != null) {
+			forceType(Source.Type.valueOf(alias.forceType()));
 		}
 		if (integrations == null) {
-			integrations(alias.integrations);
+			integrations(alias.integrations());
 		}
 		if (manifestOptions.isEmpty()) {
-			manifestOptions(alias.manifestOptions);
+			manifestOptions(alias.manifestOptions());
 		}
 		if (enablePreview == null) {
-			enablePreview(alias.enablePreview);
+			enablePreview(alias.enablePreview());
 		}
 		if (docs == null) {
-			docs(alias.docs);
+			docs(alias.docs());
 		}
 	}
 

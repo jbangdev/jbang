@@ -3,6 +3,10 @@
     { "type": "org.jboss.jandex.AnnotationInstance[]" },
     { "type": "org.jboss.jandex.ClassInfo[]" },
     { "type": "java.util.HashMap" },
+    {
+      "type": "java.util.LinkedHashMap",
+      "methods": [ { "name": "<init>", "parameterTypes": [] } ]
+    },
     { "type": "java.util.Map" },
     {
       "type": "java.util.ArrayList",
@@ -125,12 +129,12 @@
     },
     {
       "type": "dev.jbang.spi.IntegrationInput",
-      "allPublicFields": true,
+      "allDeclaredFields": true,
       "allDeclaredConstructors": true
     },
     {
       "type": "dev.jbang.spi.IntegrationResult",
-      "allPublicFields": true,
+      "allDeclaredFields": true,
       "allDeclaredConstructors": true,
       "unsafeAllocated": true
     },

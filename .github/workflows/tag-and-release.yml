@@ -10,7 +10,7 @@ jobs:
     outputs:
       debug_enabled: ${{ steps.check-msg.outputs.debug_enabled }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
       - name: Extract tag commit message and set debug flag
         id: check-msg
         run: |
@@ -25,7 +25,7 @@ jobs:
   validate-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - name: Verify commit is on main
@@ -66,15 +66,15 @@ jobs:
     needs: validate-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: build
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -87,19 +87,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1
+        uses: graalvm/setup-graalvm@v1.5.3
         with:
             java-version: '25'
             distribution: 'graalvm-community'
             github-token: ${{ secrets.GITHUB_TOKEN }}
             set-java-home: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -110,7 +110,7 @@ jobs:
       - name: build-native-bundles
         run: ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
       - name: upload-native-bundles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -124,12 +124,12 @@ jobs:
     env:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -161,20 +161,20 @@ jobs:
       JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
         with:
           java-version: 11
       - name: Download build artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions
@@ -197,7 +197,7 @@ jobs:
           setup-java: false
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: jreleaser-release
           path: |
@@ -206,6 +206,6 @@ jobs:
 
       - name: Start tmate session
         if: always() && needs.check-debug.outputs.debug_enabled == 'true'
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        uses: mxschmitt/action-tmate@v3.23
         with:
             limit-access-to-actor: true

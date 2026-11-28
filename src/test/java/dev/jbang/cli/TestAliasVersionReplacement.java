@@ -22,7 +22,7 @@ import dev.jbang.util.PropertiesValueResolver;
 public class TestAliasVersionReplacement extends BaseTest {
 
 	private static String resolveWithVersion(Alias alias, AliasRef ref) {
-		String raw = alias.scriptRef;
+		String raw = alias.scriptRef();
 		if (ref.requestedVersion != null) {
 			raw = AliasVersionPinner.applyVersion(raw, ref.requestedVersion);
 		} else {
@@ -411,14 +411,14 @@ public class TestAliasVersionReplacement extends BaseTest {
 		Alias alias = Alias.get(cat, ref.alias, ref.requestedVersion);
 
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("com.example:artifact:1.0.0"));
+		assertThat(alias.scriptRef(), equalTo("com.example:artifact:1.0.0"));
 
 		cat = Catalog.get(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON));
 		ref = AliasRef.parse("wrapper:3.0.0");
 		alias = Alias.get(cat, ref.alias, ref.requestedVersion);
 
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("com.example:artifact:3.0.0"));
+		assertThat(alias.scriptRef(), equalTo("com.example:artifact:3.0.0"));
 
 	}
 

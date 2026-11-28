@@ -54,7 +54,7 @@ public class TestCatalog extends BaseTest {
 		assertThat(cat, containsString("test-catalog.json\""));
 
 		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
-		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef,
+		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef(),
 				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
@@ -67,14 +67,14 @@ public class TestCatalog extends BaseTest {
 	void testGetAlias() throws IOException {
 		Alias alias = Alias.get("one@test");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.scriptRef(), equalTo("http://dummy"));
 	}
 
 	@Test
 	void testGetFatJar() throws IOException {
 		Alias alias = Alias.get("fj@test");
 		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
+		assertThat(alias.scriptRef(), equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
 	}
 
 	@Test

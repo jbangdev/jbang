@@ -1,4 +1,4 @@
-= JBANG-CACHE
+= JBANG CACHE
 
 == NAME
 
@@ -8,8 +8,21 @@ jbang cache -- Manage compiled scripts in the local cache.
 
 [source]
 ----
-jbang cache [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang cache [OPTIONS] [COMMAND]
 ----
+
+jbang caches downloaded scripts, built jars, dependencies and JDKs to make later
+runs fast. Use these commands to clear them when something looks stale.
+
+Examples:
+
+[source,bash]
+----
+jbang cache clear
+jbang cache clear --deps
+jbang cache clear --all
+----
+
 
 == OPTIONS
 
@@ -37,7 +50,13 @@ Make sure we use fresh (i.e. non-cached) resources.
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
 
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
+
 == COMMANDS
 
-* xref:jbang:cli:jbang-cache-clear.adoc[*clear*] - Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.
+* xref:jbang:cli:jbang-cache-clear.adoc[*clear*] - Clear the various caches used by jbang. By default this will clear the JAR, script, stdin, URL and dependency caches.
 
