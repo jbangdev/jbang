@@ -5,7 +5,6 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -17,7 +16,8 @@ public class RunWinIT extends BaseIT {
 	public void shouldReturnCorrectErrorCodeWithPowershell() {
 		System.setProperty("jbang.it.usePowershell", "true");
 		try {
-			assertThat(shell("jbang run -c \"System.exit(42)\"")).outIsExactly("");
+			// single quotes, powershell -Command drops double quotes
+			assertThat(shell("jbang run -c 'System.exit(42)'")).exitedWith(42).outIsExactly("");
 		} finally {
 			System.clearProperty("jbang.it.usePowershell");
 		}
@@ -36,7 +36,6 @@ public class RunWinIT extends BaseIT {
 	}
 
 	@Test
-	@Disabled("Doesn't work in CI for some reason")
 	public void shouldNotLeaveVariablesPowershell() {
 		System.setProperty("jbang.it.usePowershell", "true");
 		try {
