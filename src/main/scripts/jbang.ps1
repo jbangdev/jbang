@@ -100,26 +100,33 @@ function Invoke-Download {
 function Invoke-JBang {
     param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
     
-    $oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
-    $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
+    $oldShell, $oldNotty, $oldCmd, $oldExecFile=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE
+    # jbang writes the command to execute (exit code 255) to this file instead of
+    # stdout, so we don't need to capture stdout and interactive commands keep
+    # their console
+    $execFile=[System.IO.Path]::GetTempFileName()
+    $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE="powershell", $MyInvocation.ExpectingInput, $PSCommandPath, $execFile
     
     if ($binaryPath) {
         # Run native binary
-        $output = & "$binaryPath" $args
+        & "$binaryPath" $args
         $err=$LASTEXITCODE
     } else {
         # Run JAR
-        $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
         $err=$LASTEXITCODE
     }
+    $env:JBANG_EXECUTE_FILE=$oldExecFile
     
     $erroractionpreference=$old_erroractionpreference
     $global:progresspreference=$old_progresspreference
     
     if ($err -eq 255) {
+      $output=[System.IO.File]::ReadAllText($execFile, [Console]::OutputEncoding).Trim()
+      Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
       Invoke-Expression "& $output"
-    } elseif ($output -ne "") {
-      Write-Output $output
+    } else {
+      Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
     }
     
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd

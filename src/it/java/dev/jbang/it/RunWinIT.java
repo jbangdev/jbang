@@ -2,6 +2,9 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -30,9 +33,35 @@ public class RunWinIT extends BaseIT {
 				"%JAVA_HOME%",
 				"%JBANG_RUNTIME_SHELL%",
 				"%JBANG_STDIN_NOTTY%",
-				"%JBANG_LAUNCH_CMD%"))
-			.outMatches(Pattern.compile(".*fake_home.*%JBANG_RUNTIME_SHELL%.*%JBANG_STDIN_NOTTY%.*%JBANG_LAUNCH_CMD%.*",
+				"%JBANG_LAUNCH_CMD%",
+				"%JBANG_EXECUTE_FILE%"))
+			.outMatches(Pattern.compile(
+					".*fake_home.*%JBANG_RUNTIME_SHELL%.*%JBANG_STDIN_NOTTY%.*%JBANG_LAUNCH_CMD%.*%JBANG_EXECUTE_FILE%.*",
 					Pattern.DOTALL));
+	}
+
+	@Test
+	public void shouldNotPassExecuteFileToAppCmd() throws IOException {
+		assertThat(shell("jbang", executeFileScript().toString())).succeeded().outContains("[null]");
+	}
+
+	@Test
+	public void shouldNotPassExecuteFileToAppPowershell() throws IOException {
+		Path script = executeFileScript();
+		System.setProperty("jbang.it.usePowershell", "true");
+		try {
+			assertThat(shell("jbang", script.toString())).succeeded().outContains("[null]");
+		} finally {
+			System.clearProperty("jbang.it.usePowershell");
+		}
+	}
+
+	private Path executeFileScript() throws IOException {
+		Path script = scratch().resolve("executefile.java");
+		Files.write(script, ("class executefile { public static void main(String... args) { "
+				+ "System.out.println(\"[\" + System.getenv(\"JBANG_EXECUTE_FILE\") + \"]\"); } }")
+			.getBytes());
+		return script;
 	}
 
 	@Test

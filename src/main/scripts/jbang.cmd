@@ -96,14 +96,16 @@ set JBANG_LAUNCH_CMD=%~f0
 rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 
-rem execute jbang and redirect output to temporary file
+rem execute jbang, it writes the command to execute (exit code 255) to a temporary
+rem file instead of stdout so interactive commands keep their console
 rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
 if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+set JBANG_EXECUTE_FILE=%tmpfile%
 
 set CMD=!JAVA_EXEC!
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %* || goto :handleError
+"%CMD%" %JBANG_JAVA_OPTIONS% -jar "%jarPath%" %*
 set ERROR=%ERRORLEVEL%
 goto :onwards
 
@@ -114,21 +116,17 @@ set JBANG_LAUNCH_CMD=%~f0
 rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 
-rem execute jbang and redirect output to temporary file
+rem execute jbang, it writes the command to execute (exit code 255) to a temporary file
 if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+set JBANG_EXECUTE_FILE=%tmpfile%
 
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%binaryPath%" > "%tmpfile%" %* || goto :handleError
+"%binaryPath%" %*
 set ERROR=%ERRORLEVEL%
-goto :onwards
 
-:handleError
-set ERROR=%ERRORLEVEL%
-rem if exit code is 0 but we got here in the error handling, there is something wrong
-rem this can happen, for example, when the redirect to the temp file fails
-if %ERROR% EQU 0 exit /b 1
 :onwards
+set JBANG_EXECUTE_FILE=
 
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 
@@ -143,7 +141,6 @@ if %ERROR% EQU 255 (
   %OUTPUT%
   exit /b %ERRORLEVEL%
 ) else (
-  type "%tmpfile%"
-  del /f /q "%tmpfile%"
+  if exist "%tmpfile%" del /f /q "%tmpfile%"
   exit /b %ERROR%
 )
