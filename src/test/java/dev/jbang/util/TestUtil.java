@@ -31,7 +31,8 @@ public class TestUtil extends BaseTest {
 	void testMessageHeaderIsLocaleIndependent() {
 		Locale defaultLocale = Locale.getDefault();
 		try {
-			Locale.setDefault(Locale.forLanguageTag("ar"));
+			// ar-SA, not ar: since Java 25 plain ar formats with Latin digits
+			Locale.setDefault(Locale.forLanguageTag("ar-SA"));
 			assertTrue(Util.getMsgHeader().matches("\\[jbang\\] \\[[0-9]+:[0-9]{3}\\] "));
 		} finally {
 			Locale.setDefault(defaultLocale);
