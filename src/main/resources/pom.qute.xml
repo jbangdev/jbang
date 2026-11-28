@@ -7,12 +7,33 @@
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
 	<description>{description}</description>
+	{#if managedDeps.orEmpty}
+	<dependencyManagement>
+		<dependencies>
+			{#for md in managedDeps.orEmpty}
+			<dependency>
+				<groupId>{md.groupId}</groupId>
+				<artifactId>{md.artifactId}</artifactId>
+				{#if md.version}<version>{md.version}</version>{/if}
+				<exclusions>
+					{#for ex in md.exclusions}
+					<exclusion>
+						<groupId>{ex.groupId}</groupId>
+						<artifactId>{ex.artifactId}</artifactId>
+					</exclusion>
+					{/for}
+				</exclusions>
+			</dependency>
+			{/for}
+		</dependencies>
+	</dependencyManagement>
+	{/if}
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>
 			<groupId>{item.coordinate.groupId}</groupId>
 			<artifactId>{item.coordinate.artifactId}</artifactId>
-			<version>{item.coordinate.version}</version>
+			{#if item.coordinate.version}<version>{item.coordinate.version}</version>{/if}
 			<scope>compile</scope>
 		</dependency>
 		{/for}
