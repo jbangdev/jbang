@@ -104,7 +104,8 @@ function Invoke-JBang {
     # jbang writes the command to execute (exit code 255) to this file instead of
     # stdout, so we don't need to capture stdout and interactive commands keep
     # their console
-    $execFile=[System.IO.Path]::GetTempFileName()
+    New-Item -ItemType Directory -Force -Path "$TDIR" -ErrorAction Ignore >$null 2>&1
+    $execFile="$TDIR\$([guid]::NewGuid()).jbang.tmp"
     $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE="powershell", $MyInvocation.ExpectingInput, $PSCommandPath, $execFile
     
     if ($binaryPath) {
@@ -121,12 +122,10 @@ function Invoke-JBang {
     $erroractionpreference=$old_erroractionpreference
     $global:progresspreference=$old_progresspreference
     
-    if ($err -eq 255) {
+    if ($err -eq 255 -and (Test-Path -LiteralPath $execFile)) {
       $output=[System.IO.File]::ReadAllText($execFile, [Console]::OutputEncoding).Trim()
       Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
       Invoke-Expression "& $output"
-    } else {
-      Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
     }
     
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
