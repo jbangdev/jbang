@@ -8,10 +8,10 @@ import org.aesh.command.option.OptionList;
 
 public class NativeMixin {
 
-	@Option(shortName = 'n', name = "native", hasValue = false, description = "Build using native-image")
+	@Option(shortName = 'n', name = "native", hasValue = false, helpGroup = "Native image options", description = "Build using native-image")
 	public Boolean nativeImage;
 
-	@OptionList(shortName = 'N', name = "native-option", description = "Options to pass to the native image tool")
+	@OptionList(shortName = 'N', name = "native-option", helpGroup = "Native image options", description = "Options to pass to the native image tool")
 	public List<String> nativeOptions;
 
 	public List<String> opts() {

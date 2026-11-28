@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,13 +31,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class TestJdk extends BaseTest {
 
-	private static final int SUCCESS_EXIT = BaseCommand.EXIT_OK;
+	private static final int SUCCESS_EXIT = ExitException.EXIT_OK;
 	private static final String[] DEFAULT_PROVIDERS = { "--jdk-providers", "default,jbang,linked" };
 
 	@BeforeEach
@@ -59,7 +62,7 @@ public class TestJdk extends BaseTest {
 		String[] suffix = { "--jdk-providers", "default,jbang,linked", "--jdk-installer",
 				"mock;versions=11.1,17.7,24.4" };
 		int start = 0;
-		java.util.List<String> newArgs = new java.util.ArrayList<>();
+		List<String> newArgs = new ArrayList<>();
 		newArgs.add("jdk");
 		if (args.length > 0 && "jdk".equals(args[0])) {
 			start = 1;
@@ -319,7 +322,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.getShell(), Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
 	}
@@ -331,7 +334,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.Shell.bash, Settings.getDefaultJdkDir(), "java", "-version") + "\n"));
 	}
@@ -343,7 +346,7 @@ public class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(withProviders("jdk", "exec", "java", "-version"));
 
-		assertThat(result.result, equalTo(BaseCommand.EXIT_EXECUTE));
+		assertThat(result.result, equalTo(ExitException.EXIT_EXECUTE));
 		assertThat(result.normalizedOut(),
 				equalTo(expectedExecCommand(Util.Shell.powershell, Settings.getDefaultJdkDir(), "java", "-version")
 						+ "\n"));

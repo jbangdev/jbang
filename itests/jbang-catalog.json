@@ -15,6 +15,12 @@
         "-showversion"
       ]
     },
+    "versiondefault": {
+      "script-ref": "helloworld.java",
+      "properties": {
+        "jbang.app.version": "2.7.4"
+      }
+    },
     "echo": {
       "script-ref": "echo.java",
       "description": "echo echo echo description"

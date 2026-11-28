@@ -101,7 +101,14 @@ JBang supports Kotlin scripts using the Kotlin compiler.
 
 === Basic Kotlin Usage
 
-Create a file called `hello.kt`:
+Initialize a Kotlin script:
+
+[source,bash]
+----
+jbang init hello.kt
+----
+
+This creates `hello.kt` using the built-in Kotlin Hello World template. You can also create the file manually:
 
 [source,kotlin]
 ----

@@ -5,16 +5,13 @@ import static dev.jbang.ExitException.EXIT_INVALID_INPUT;
 import java.nio.file.Path;
 import java.util.Map;
 
-import com.google.gson.annotations.SerializedName;
-
 import dev.jbang.ExitException;
 import dev.jbang.util.Util;
 
 public class Template extends CatalogItem {
-	@SerializedName(value = "file-refs")
-	public final Map<String, String> fileRefs;
-	public final String description;
-	public final Map<String, TemplateProperty> properties;
+	private Map<String, String> fileRefs;
+	private String description;
+	private Map<String, TemplateProperty> properties;
 
 	public Template(Map<String, String> fileRefs, String description, Map<String, TemplateProperty> properties,
 			Catalog catalog) {
@@ -22,6 +19,18 @@ public class Template extends CatalogItem {
 		this.fileRefs = fileRefs;
 		this.description = description;
 		this.properties = properties;
+	}
+
+	public Map<String, String> fileRefs() {
+		return fileRefs;
+	}
+
+	public String description() {
+		return description;
+	}
+
+	public Map<String, TemplateProperty> properties() {
+		return properties;
 	}
 
 	public static Template get(String templateName) {

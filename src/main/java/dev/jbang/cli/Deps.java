@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,7 +24,7 @@ import dev.jbang.source.update.FileUpdaters;
 
 @CommandDefinition(name = "deps", description = "Manage dependencies in jbang files.", groupCommands = {
 		Deps.DepsSearch.class,
-		Deps.DepsAdd.class }, generateHelp = true, helpGroup = "Editing")
+		Deps.DepsAdd.class }, helpGroup = "Editing")
 public class Deps extends BaseCommand {
 
 	@Override
@@ -31,7 +32,21 @@ public class Deps extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.", generateHelp = true)
+	@Override
+	public String prose() {
+		return "Finds Maven artifacts and adds them as dependencies to a script's //DEPS lines\n"
+				+ "or a build.jbang file.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} search jackson",
+				"${COMMAND-FULL-NAME} search jackson app.java",
+				"${COMMAND-FULL-NAME} add com.fasterxml.jackson.core:jackson-databind:2.17.0 app.java");
+	}
+
+	@CommandDefinition(name = "search", description = "Search for artifacts in local and central Maven repositories.")
 	public static class DepsSearch extends BaseCommand {
 
 		@Option(name = "max", description = "Maximum number of results to return.", defaultValue = "100")
@@ -52,7 +67,8 @@ public class Deps extends BaseCommand {
 
 		private void updateTarget(String a0) throws IOException {
 			if (target != null) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Cannot provide both target as as parameter and as option");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Cannot provide both target as as parameter and as option");
 			} else {
 				target = a0;
 			}
@@ -60,7 +76,8 @@ public class Deps extends BaseCommand {
 
 		private void updateQuery(String a0) {
 			if (query != null) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Cannot provide both query as as parameter and as option");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"Cannot provide both query as as parameter and as option");
 			} else {
 				query = a0;
 			}
@@ -83,7 +100,7 @@ public class Deps extends BaseCommand {
 
 			Path targetPath = target != null ? Paths.get(target) : null;
 			if (targetPath != null && !Files.exists(targetPath)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + targetPath);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Target file does not exist: " + targetPath);
 			}
 
 			try {
@@ -99,18 +116,33 @@ public class Deps extends BaseCommand {
 					System.out.printf("%s:%s:%s%n", artifact.getGroupId(), artifact.getArtifactId(),
 							artifact.getVersion());
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} catch (IOError e) {
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 
 		private static String artifactGav(Artifact artifact) {
 			return artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
 		}
+
+		@Override
+		public String prose() {
+			return "Interactively searches your local and the central Maven repository. The chosen\n"
+					+ "artifact is added to the target file if you give one, otherwise its coordinates\n"
+					+ "are printed.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} jackson",
+					"${COMMAND-FULL-NAME} jackson app.java",
+					"${COMMAND-FULL-NAME} --query=jackson --target=build.jbang");
+		}
 	}
 
-	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.", generateHelp = true)
+	@CommandDefinition(name = "add", description = "Add dependencies to a jbang file.")
 	public static class DepsAdd extends BaseCommand {
 
 		@Arguments(paramLabel = "deps target", arity = "2..*", description = "Dependencies to add (groupId:artifactId:version) and target file (.java or build.jbang)")
@@ -119,7 +151,8 @@ public class Deps extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			if (parameters.size() < 2) {
-				throw new ExitException(EXIT_INVALID_INPUT, "At least one dependency and target file are required");
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+						"At least one dependency and target file are required");
 			}
 
 			// Last parameter is the target file
@@ -127,28 +160,41 @@ public class Deps extends BaseCommand {
 			List<String> dependencies = parameters.subList(0, parameters.size() - 1);
 
 			if (!Files.exists(targetFile)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Target file does not exist: " + targetFile);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Target file does not exist: " + targetFile);
 			}
 
 			updateFile(targetFile, dependencies);
 
 			info("Added dependencies to " + targetFile);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static public void updateFile(Path file, List<String> dependencies) throws IOException {
 			// Validate dependencies
 			for (String dep : dependencies) {
 				if (!DependencyUtil.looksLikeAGav(dep)) {
-					throw new ExitException(EXIT_INVALID_INPUT, "Invalid dependency format: " + dep);
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Invalid dependency format: " + dep);
 				}
 			}
 			if (!Files.exists(file)) {
-				throw new ExitException(EXIT_INVALID_INPUT, "File does not exist: " + file);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "File does not exist: " + file);
 			}
 
 			FileUpdateStrategy strategy = FileUpdaters.forFile(file);
 			strategy.updateFile(file, dependencies);
+		}
+
+		@Override
+		public String prose() {
+			return "Adds one or more groupId:artifactId:version dependencies to the target file,\n"
+					+ "which comes last.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} info.picocli:picocli:4.7.6 app.java",
+					"${COMMAND-FULL-NAME} org.slf4j:slf4j-api:2.0.13 org.slf4j:slf4j-simple:2.0.13 build.jbang");
 		}
 	}
 }

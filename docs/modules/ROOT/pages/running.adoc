@@ -58,6 +58,19 @@ by the filename and then added `maxage=24h` to flight recording options.
 
 If you want further control use `//COMPILE_OPTIONS -XX:StartFlightRecording=<your options>` instead.
 
+== VisualVM
+
+To make an application started with JBang easier to identify in https://visualvm.github.io/[VisualVM],
+set the `visualvm.display.name` system property when running it:
+
+[source, bash]
+----
+jbang run -Dvisualvm.display.name=My-Java-App myapp.java
+----
+
+While the application is running, look for `My-Java-App` under *Local* in VisualVM's *Applications* window.
+This also works when running a JAR file: replace `myapp.java` with the path to your JAR.
+
 == `java`, `javac` and `nativeimage` Options
 
 You can pass options directly from JBang to the compiler and runtime tools that it uses to build and run your code.

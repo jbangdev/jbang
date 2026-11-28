@@ -3,7 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
+import static dev.jbang.ExitException.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
@@ -266,7 +266,11 @@ public class TestRun extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(readme.toString());
 
-		assertThat(result.out, containsString("Hello unnamed"));
+		// markdown with a main method must be built as a java app (jar), not run via
+		// jshell
+		assertThat(result.out, containsString("-classpath"));
+		assertThat(result.out, containsString(".jar"));
+		assertThat(result.out, not(containsString("jshell")));
 	}
 
 	@Test
@@ -418,13 +422,28 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
 		assertThat(e.getMessage(), startsWith("No main class"));
 		assertThat(e.getMessage(), containsString("- picocli.codegen.docgen.manpage.ManPageGenerator"));
+	}
+
+	@Test
+	void testGAVDependenciesAreResolvedOnceWhenFresh() throws Exception {
+		environmentVariables.clear("JAVA_HOME");
+		Util.setFresh(true);
+
+		CaptureResult<Project> result = captureOutput(() -> {
+			Run run = JBang.parseCommand("run", "--fresh", "info.picocli:picocli-codegen:4.6.3");
+			Project project = run.createProjectBuilderForRun().build("info.picocli:picocli-codegen:4.6.3");
+			BuildContext.forProject(project).resolveClassPath();
+			return project;
+		});
+
+		assertThat(result.err.split("Resolving dependencies\\.\\.\\.", -1).length - 1, equalTo(1));
 	}
 
 	@Test
@@ -440,7 +459,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.*"));
@@ -499,7 +518,8 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar"));
+				matchesPattern(
+						".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*eclipse.jgit.pgm.*.jar"));
 
 		run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
@@ -524,7 +544,7 @@ public class TestRun extends BaseTest {
 		assertThat(cmd, endsWith("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -547,7 +567,7 @@ public class TestRun extends BaseTest {
 		assertThat(cmd, endsWith("info.picocli.codegen/picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		assertThat(cmd, matchesPattern(".* -p .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -2054,7 +2074,8 @@ public class TestRun extends BaseTest {
 
 		// todo fix so --deps can use system properties
 		Run run = JBang.parseCommand("run",
-				"--java", "11",
+				// use the running JDK so we don't trigger a JDK download
+				"--java", String.valueOf(JavaUtil.getCurrentMajorJavaVersion()),
 				"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
 				"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
 				"--deps", "eu.hansolo.fx:charts:RELEASE",
@@ -2186,19 +2207,19 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testBuildMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Build build = JBang.parseCommand("build");
-			build.doCall();
-		});
+	void testBuildMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("build"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
-	void testRunMissingScript() {
-		assertThrows(ExitException.class, () -> {
-			Run run = JBang.parseCommand("run");
-			run.doCall();
-		});
+	void testRunMissingScript() throws Exception {
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("run"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 
 	@Test
@@ -2501,7 +2522,8 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		// assertThat(code.getResourceRef().getFile().toString(),
-		// matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		// matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) +
+		// ".*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
