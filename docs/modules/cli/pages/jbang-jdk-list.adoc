@@ -1,4 +1,4 @@
-= JBANG-JDK-LIST
+= JBANG JDK LIST
 
 == NAME
 
@@ -8,13 +8,23 @@ jbang jdk list -- Lists installed JDKs.
 
 [source]
 ----
-jbang jdk list [-haPDd] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [--format=<format>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace]
+jbang jdk list [OPTIONS]
 ----
 
-== OPTIONS
+Lists the JDKs jbang has installed. Use --available to see versions you can
+install.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang jdk list
+jbang jdk list --available
+jbang jdk list --format=json
+----
+
+
+== OPTIONS
 
 *--jdk-providers*=<jdk-providers>::
 Use the given providers to manage JDKs
@@ -39,6 +49,9 @@ Aliases: `--details`
 *--format*=<format>::
 Specify output format ('text' or 'json')
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -59,4 +72,10 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 

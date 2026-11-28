@@ -79,6 +79,8 @@ The following IDE's have dedicated support (at time of writing):
 
 == Sandbox edit support
 
+The sandbox project links to your sources. JBang uses relative symbolic links when the source is beneath the link's parent directory and the paths do not contain parent traversal (`..`). On Windows it prefers symbolic links for directories and falls back to directory junctions when symbolic links aren't available.
+
 The sandbox `edit -b` feature using temporary directory and symbolic links been tested with the following IDE's:
 
 :sicons: https://simpleicons.org/icons

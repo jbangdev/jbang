@@ -31,7 +31,7 @@ import dev.jbang.util.Util;
 
 @CommandDefinition(name = "template", description = "Manage templates for scripts.", groupCommands = {
 		Template.TemplateAdd.class, Template.TemplateList.class,
-		Template.TemplateRemove.class }, generateHelp = true, helpGroup = "Configuration")
+		Template.TemplateRemove.class }, helpGroup = "Configuration")
 public class Template extends BaseCommand {
 	public static final Pattern TPL_FILENAME_PATTERN = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
 	public static final Pattern TPL_BASENAME_PATTERN = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
@@ -41,13 +41,27 @@ public class Template extends BaseCommand {
 		return missingSubcommand();
 	}
 
+	@Override
+	public String prose() {
+		return "Templates are the starting points `${ROOT-COMMAND-NAME} init --template=<name>` creates scripts\n"
+				+ "from. Add your own to a catalog to reuse them across projects.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} add --name logo showlogo.java img.jpg",
+				"${COMMAND-FULL-NAME} remove logo");
+	}
+
 	static abstract class BaseTemplateCommand extends BaseCommand {
 
 		@Mixin
 		CatalogFileOptionsMixin catalogOptions;
 	}
 
-	@CommandDefinition(name = "add", description = "Add template for script reference.", generateHelp = true)
+	@CommandDefinition(name = "add", description = "Add template for script reference.")
 	public static class TemplateAdd extends BaseTemplateCommand {
 
 		@Option(shortName = 'd', name = "description", description = "A description for the template")
@@ -68,7 +82,7 @@ public class Template extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			if (name != null && !Catalog.isValidName(name)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Invalid template name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 			}
 
@@ -100,7 +114,7 @@ public class Template extends BaseCommand {
 					splitRefs.set(0, entry(target, firstRef.getValue()));
 					warn("No explicit target pattern was set, using first file: " + target + "=" + firstRef.getValue());
 				} else {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"A target pattern is required. Prefix at least one of the files with '{filename}=' or '{basename}.ext='");
 				}
 			}
@@ -124,10 +138,10 @@ public class Template extends BaseCommand {
 				CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 			} else {
 				Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 			info(String.format("Template '%s' added to '%s'", name, catFile));
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static Map<String, TemplateProperty> parseProperties(List<String> propStrings) {
@@ -184,11 +198,11 @@ public class Template extends BaseCommand {
 				target = ref[0];
 				Path t = Paths.get(target).normalize();
 				if (t.isAbsolute()) {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Target name may not be absolute: '" + target + "'");
 				}
 				if (t.normalize().startsWith("..")) {
-					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Target may not refer to parent folders: '" + target + "'");
 				}
 			} else {
@@ -202,7 +216,7 @@ public class Template extends BaseCommand {
 			String source = splitRef.getValue();
 			ResourceRef resourceRef = ResourceRef.forResource(source);
 			if (resourceRef == null || !Files.isReadable(resourceRef.getFile())) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"File could not be found or read: '" + source + "'");
 			}
 			return true;
@@ -221,9 +235,24 @@ public class Template extends BaseCommand {
 				return splitRef;
 			}
 		}
+
+		@Override
+		public String prose() {
+			return "Saves one or more files as a named template. The first file becomes the script;\n"
+					+ "the rest are copied alongside it. Use --property for values `${ROOT-COMMAND-NAME} init` asks\n"
+					+ "for.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} --name logo showlogo.java img.jpg",
+					"${COMMAND-FULL-NAME} --global --name tool tool.java",
+					"${COMMAND-FULL-NAME} --name greet -P greeting=Greeting::Hello greet.java");
+		}
 	}
 
-	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Lists locally defined templates or from the given catalog.")
 	public static class TemplateList extends BaseTemplateCommand {
 
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the template")
@@ -262,7 +291,7 @@ public class Template extends BaseCommand {
 				printTemplates(out, catalogName, catalog, showFiles,
 						showProperties, format);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
@@ -283,7 +312,7 @@ public class Template extends BaseCommand {
 		}
 
 		static List<dev.jbang.cli.Catalog.CatalogList.CatalogOut> getTemplatesWithOrigin(String catalogName,
-				dev.jbang.catalog.Catalog catalog, boolean showFiles,
+				Catalog catalog, boolean showFiles,
 				boolean showProperties) {
 			Map<ResourceRef, List<TemplateOut>> groups = catalog.templates
 				.keySet()
@@ -301,7 +330,7 @@ public class Template extends BaseCommand {
 				.collect(Collectors.toList());
 		}
 
-		static void printTemplatesWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
+		static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog,
 				boolean showFiles,
 				boolean showProperties, OutputFormat format) {
 			List<dev.jbang.cli.Catalog.CatalogList.CatalogOut> catalogs = getTemplatesWithOrigin(catalogName, catalog,
@@ -311,7 +340,7 @@ public class Template extends BaseCommand {
 				parser.toJson(catalogs, out);
 			} else {
 				catalogs.forEach(cat -> {
-					out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
+					out.println(ConsoleOutput.bold(Catalog.simplifyRef(cat.resourceRef)));
 					cat.templates.forEach(t -> printTemplate(out, t, 1));
 				});
 			}
@@ -333,10 +362,10 @@ public class Template extends BaseCommand {
 			String destination;
 		}
 
-		private static TemplateOut getTemplateOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name,
+		private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 				boolean showFiles, boolean showProperties) {
 			dev.jbang.catalog.Template template = catalog.templates.get(name);
-			String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
+			String catName = catalogName != null ? Catalog.simplifyRef(catalogName)
 					: CatalogUtil.catalogRef(name);
 			String fullName = catalogName != null ? name + "@" + catName : name;
 
@@ -344,11 +373,11 @@ public class Template extends BaseCommand {
 			out.name = name;
 			out.catalogName = catName;
 			out.fullName = fullName;
-			out.description = template.description;
-			if (showFiles && template.fileRefs != null) {
+			out.description = template.description();
+			if (showFiles && template.fileRefs() != null) {
 				out.fileRefs = new ArrayList<>();
-				for (String dest : template.fileRefs.keySet()) {
-					String ref = template.fileRefs.get(dest);
+				for (String dest : template.fileRefs().keySet()) {
+					String ref = template.fileRefs().get(dest);
 					if (ref == null || ref.isEmpty()) {
 						ref = dest;
 					}
@@ -359,7 +388,7 @@ public class Template extends BaseCommand {
 					out.fileRefs.add(fro);
 				}
 			}
-			out.properties = showProperties ? template.properties : null;
+			out.properties = showProperties ? template.properties() : null;
 			out._catalogRef = template.catalog.catalogRef;
 			return out;
 		}
@@ -402,7 +431,7 @@ public class Template extends BaseCommand {
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove existing template.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove existing template.")
 	public static class TemplateRemove extends BaseTemplateCommand {
 
 		@Argument(paramLabel = "name", description = "The name of the template", required = true)
@@ -416,7 +445,7 @@ public class Template extends BaseCommand {
 			} else {
 				CatalogUtil.removeNearestTemplate(name);
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 }

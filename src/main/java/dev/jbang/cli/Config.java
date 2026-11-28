@@ -24,7 +24,7 @@ import dev.jbang.util.Util;
 @CommandDefinition(name = "config", description = "Read and write configuration options.", groupCommands = {
 		Config.ConfigGet.class, Config.ConfigSet.class,
 		Config.ConfigUnset.class,
-		Config.ConfigList.class }, generateHelp = true, helpGroup = "Configuration")
+		Config.ConfigList.class }, helpGroup = "Configuration")
 public class Config extends BaseCommand {
 
 	// IMPORTANT: These options have to be maintained manually! Make sure to add
@@ -39,6 +39,22 @@ public class Config extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		return missingSubcommand();
+	}
+
+	@Override
+	public String prose() {
+		return "Reads and writes jbang settings in jbang.properties. A setting named\n"
+				+ "`<command>.<option>` becomes the default for that option, e.g. `edit.open`.\n"
+				+ "Changes go to the nearest config file unless you choose --global or --file.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} set edit.open code",
+				"${COMMAND-FULL-NAME} get edit.open",
+				"${COMMAND-FULL-NAME} unset edit.open");
 	}
 
 	static abstract class BaseConfigCommand extends BaseCommand {
@@ -77,14 +93,15 @@ public class Config extends BaseCommand {
 					cfg = cfgPath;
 				}
 				if (strict && cfg != null && !Files.isRegularFile(cfg)) {
-					throw new ExitException(EXIT_INVALID_INPUT, "Config file not found at: " + configFile);
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
+							"Config file not found at: " + configFile);
 				}
 			}
 			return cfg;
 		}
 	}
 
-	@CommandDefinition(name = "get", description = "Get a configuration value", generateHelp = true)
+	@CommandDefinition(name = "get", description = "Get a configuration value")
 	public static class ConfigGet extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to get", required = true)
 		String key;
@@ -95,16 +112,17 @@ public class Config extends BaseCommand {
 			if (cfg.containsKey(key)) {
 				String res = Objects.toString(cfg.get(key));
 				System.out.println(res);
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else {
 				Util.infoMsg("No configuration option found with that name: " + key);
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 	}
 
-	@CommandDefinition(name = "set", description = "Set a configuration value", generateHelp = true)
+	@CommandDefinition(name = "set", description = "Set a configuration value")
 	public static class ConfigSet extends BaseConfigCommand {
+
 		@Argument(paramLabel = "key", index = "0", arity = "1", description = "The name of the configuration option to set", required = true)
 		String keyOrKeyValue;
 
@@ -124,7 +142,7 @@ public class Config extends BaseCommand {
 					key = keyOrKeyValue.substring(0, eqIdx);
 					val = keyOrKeyValue.substring(eqIdx + 1);
 				} else {
-					throw new ExitException(EXIT_INVALID_INPUT,
+					throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 							"Expected key=value format or separate key and value arguments");
 				}
 			}
@@ -135,11 +153,26 @@ public class Config extends BaseCommand {
 				cfgFile = ConfigUtil.setNearestConfigValue(key, val);
 			}
 			Util.infoMsg("Option '" + key + "' set to '" + val + "' in " + cfgFile);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Sets a configuration value, either as separate key and value or as key=value. A\n"
+					+ "key of the form `<command>.<option>` (option name with any dashes removed) sets\n"
+					+ "the default for that option.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} edit.open code",
+					"${COMMAND-FULL-NAME} --global run.java 21",
+					"${COMMAND-FULL-NAME} format=json");
 		}
 	}
 
-	@CommandDefinition(name = "unset", description = "Remove a configuration value", generateHelp = true)
+	@CommandDefinition(name = "unset", description = "Remove a configuration value")
 	public static class ConfigUnset extends BaseConfigCommand {
 		@Argument(paramLabel = "key", arity = "1", description = "The name of the configuration option to remove", required = true)
 		String key;
@@ -159,15 +192,15 @@ public class Config extends BaseCommand {
 				} else {
 					Util.warnMsg("Cannot remove built-in option '" + key + "'");
 				}
-				return EXIT_OK;
+				return ExitException.EXIT_OK;
 			} else {
 				Util.infoMsg("No configuration option found with that name: " + key);
-				return EXIT_INVALID_INPUT;
+				return ExitException.EXIT_INVALID_INPUT;
 			}
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "List active configuration values", generateHelp = true)
+	@CommandDefinition(name = "list", description = "List active configuration values")
 	public static class ConfigList extends BaseConfigCommand {
 		@Option(name = "show-origin", hasValue = false, description = "Show the origin of the configuration")
 		boolean showOrigin;
@@ -182,7 +215,7 @@ public class Config extends BaseCommand {
 		public Integer doCall() throws IOException {
 			PrintStream out = System.out;
 			if (showAvailable && showOrigin) {
-				throw new ExitException(EXIT_INVALID_INPUT,
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 						"Options '--show-available' and '--show-origin' cannot be used together");
 			}
 			if (showAvailable) {
@@ -206,7 +239,7 @@ public class Config extends BaseCommand {
 					printConfig(out, cfg, format);
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		@SuppressWarnings("unchecked")

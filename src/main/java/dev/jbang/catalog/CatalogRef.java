@@ -14,16 +14,28 @@ import dev.jbang.util.Util;
 
 public class CatalogRef extends CatalogItem {
 	@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
-	public final String catalogRef;
-	public final String description;
+	private String catalogRef;
+	private String description;
 	@SerializedName(value = "import")
-	public final Boolean importItems;
+	private Boolean importItems;
 
 	CatalogRef(String catalogRef, String description, Boolean importItems, Catalog catalog) {
 		super(catalog);
 		this.catalogRef = catalogRef;
 		this.description = description;
 		this.importItems = importItems;
+	}
+
+	public String catalogRef() {
+		return catalogRef;
+	}
+
+	public String description() {
+		return description;
+	}
+
+	public Boolean importItems() {
+		return importItems;
 	}
 
 	public static CatalogRef get(String catalogRefString) {
@@ -61,7 +73,7 @@ public class CatalogRef extends CatalogItem {
 			}
 			if (Files.isRegularFile(p)) {
 				Catalog cat = Catalog.getByRef(p.toString());
-				catalogRef = new CatalogRef(p.toString(), cat.description, null, cat);
+				catalogRef = new CatalogRef(p.toString(), cat.description(), null, cat);
 			}
 		}
 		return catalogRef;
@@ -83,7 +95,7 @@ public class CatalogRef extends CatalogItem {
 				// Store the resolved URL for future reference
 				Catalog implicitCatalog = Catalog.getByRef(url.get());
 				catalogRef = CatalogUtil.addCatalogRef(Settings.getUserImplicitCatalogFile(), catalogRefString,
-						url.get(), implicitCatalog.description, null);
+						url.get(), implicitCatalog.description(), null);
 			}
 		}
 		return catalogRef;

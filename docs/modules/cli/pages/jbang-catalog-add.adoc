@@ -1,4 +1,4 @@
-= JBANG-CATALOG-ADD
+= JBANG CATALOG ADD
 
 == NAME
 
@@ -8,13 +8,23 @@ jbang catalog add -- Add a catalog.
 
 [source]
 ----
-jbang catalog add [-hg] [-d=<description>] [--name=<name>] [--force] [--import] [-f=<file>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <fileOrURL>
+jbang catalog add [OPTIONS] <fileOrURL>
 ----
 
-== OPTIONS
+Registers a catalog under a name. Give a file, a URL, or a short GitHub
+reference such as `jbangdev` (the jbangdev/jbang-catalog repository).
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang catalog add --name demo jbangdev
+jbang catalog add --name team myteam/jbang-tools
+jbang catalog add --global --name local ./jbang-catalog.json
+----
+
+
+== OPTIONS
 
 *-d*, *--description*=<description>::
 A description for the catalog
@@ -33,6 +43,9 @@ Use the global (user) catalog file
 
 *-f*, *--file*=<file>::
 Path to the catalog file to use
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -54,6 +67,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

@@ -1,9 +1,8 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
-
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,12 +13,13 @@ import org.aesh.command.option.Option;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.net.TrustedSources;
 
 @CommandDefinition(name = "trust", description = "Manage which domains you trust to run scripts from.", groupCommands = {
 		Trust.TrustAdd.class, Trust.TrustList.class,
-		Trust.TrustRemove.class }, generateHelp = true, helpGroup = "Configuration")
+		Trust.TrustRemove.class }, helpGroup = "Configuration")
 public class Trust extends BaseCommand {
 
 	@Override
@@ -27,7 +27,21 @@ public class Trust extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "add", description = "Add trust domains.", generateHelp = true)
+	@Override
+	public String prose() {
+		return "jbang only runs scripts from remote URLs you trust, and asks the first time it\n"
+				+ "meets a new one. These commands manage that list of trusted URL prefixes.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} add https://github.com/jbangdev/",
+				"${COMMAND-FULL-NAME} list",
+				"${COMMAND-FULL-NAME} remove https://github.com/jbangdev/");
+	}
+
+	@CommandDefinition(name = "add", description = "Add trust domains.")
 	public static class TrustAdd extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
@@ -36,11 +50,24 @@ public class Trust extends BaseCommand {
 		@Override
 		public Integer doCall() throws IOException {
 			TrustedSources.instance().add(rules);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
+		}
+
+		@Override
+		public String prose() {
+			return "Trusts scripts whose URL starts with one of the given prefixes. Keep the prefix\n"
+					+ "as narrow as you can, e.g. a user or repository instead of a whole site.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME} https://github.com/jbangdev/",
+					"${COMMAND-FULL-NAME} https://github.com/myorg/scripts/");
 		}
 	}
 
-	@CommandDefinition(name = "list", description = "Show defined trust domains.", generateHelp = true)
+	@CommandDefinition(name = "list", description = "Show defined trust domains.")
 	public static class TrustList extends BaseCommand {
 
 		@Option(name = "format", description = "Specify output format ('text' or 'json')")
@@ -58,11 +85,11 @@ public class Trust extends BaseCommand {
 					out.println(++idx + " = " + src);
 				}
 			}
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 	}
 
-	@CommandDefinition(name = "remove", description = "Remove trust domains.", generateHelp = true)
+	@CommandDefinition(name = "remove", description = "Remove trust domains.")
 	public static class TrustRemove extends BaseCommand {
 
 		@Arguments(paramLabel = "rules", arity = "1..*", description = "Rules for trusted sources", required = true)
@@ -74,7 +101,7 @@ public class Trust extends BaseCommand {
 				.map(this::toDomain)
 				.collect(Collectors.toList());
 			TrustedSources.instance().remove(newrules, Settings.getTrustedSourcesFile().toFile());
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private String toDomain(String src) {

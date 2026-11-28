@@ -139,6 +139,10 @@ public class ArtifactResolver implements Closeable {
 		// because of the word "Java" in the User-Agent
 		userProperties.put("aether.connector.userAgent", Util.getAgentString());
 
+		// the "path" conflict resolver is faster than the classic one and fixes long
+		// standing issues with version ranges (apache/maven-resolver#2325)
+		userProperties.put("aether.conflictResolver.impl", "path");
+
 		final List<RemoteRepository> partialRepos; // always have reposes, at least Central if no user defined ones
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
@@ -164,8 +168,11 @@ public class ArtifactResolver implements Closeable {
 					ContextOverrides.AddRepositoriesOp.REPLACE) // ignore
 																// settings.xml
 																// reposes
-			.snapshotUpdatePolicy(builder.updateCache
-					? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+			.artifactUpdatePolicy(builder.updateCache
+					? ContextOverrides.UpdatePolicy.ALWAYS
+					: null)
+			.metadataUpdatePolicy(builder.updateCache
+					? ContextOverrides.UpdatePolicy.ALWAYS
 					: null)
 			.repositoryListener(listener);
 
@@ -192,7 +199,7 @@ public class ArtifactResolver implements Closeable {
 					.setRepositories(
 							context.remoteRepositories()));
 		} catch (ArtifactResolutionException e) {
-			Util.verboseMsg("Could not resolve sources for " + artifact.toString());
+			Util.verboseMsg("Could not resolve sources for " + artifact);
 		}
 	}
 
@@ -300,7 +307,7 @@ public class ArtifactResolver implements Closeable {
 				Set<String> ids = (Set<String>) session.getData()
 					.computeIfAbsent("ids", () -> new HashSet<>(depIds));
 				Set<String> printed = (Set<String>) session.getData()
-					.computeIfAbsent("printed", () -> new HashSet<>());
+					.computeIfAbsent("printed", HashSet::new);
 
 				String id = coord(groupId, artId, null, null, classifier);
 				if (!printed.contains(id)) {
@@ -322,7 +329,7 @@ public class ArtifactResolver implements Closeable {
 				if (version != null && !version.isEmpty()) {
 					res += ":" + version;
 				}
-				if (classifier != null && classifier.length() > 0) {
+				if (classifier != null && !classifier.isEmpty()) {
 					res += "-" + classifier;
 				}
 				if ("pom".equals(type)) {
@@ -437,7 +444,7 @@ public class ArtifactResolver implements Closeable {
 	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
 		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
 				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
-		return new ArtifactInfo(coord, artifact.getFile().toPath());
+		return new ArtifactInfo(coord, artifact.getPath());
 	}
 
 	public static Path getLocalMavenRepo() {
@@ -445,8 +452,7 @@ public class ArtifactResolver implements Closeable {
 			return ar.context
 				.repositorySystemSession()
 				.getLocalRepository()
-				.getBasedir()
-				.toPath();
+				.getBasePath();
 		}
 	}
 }

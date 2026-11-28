@@ -40,7 +40,7 @@ public class CatalogFileOptionsMixin {
 				cat = catPath;
 			}
 			if (strict && cat != null && !Files.isRegularFile(cat)) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Catalog file not found at: " + catalogFile);
+				throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Catalog file not found at: " + catalogFile);
 			}
 		}
 		return cat;

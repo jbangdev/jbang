@@ -81,8 +81,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		JBang.execute("--verbose", "init", s);
-		assertThat(new File(s).exists(), is(true));
+		writePlainScript(p);
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
@@ -99,6 +98,8 @@ public class TestEdit extends BaseTest {
 		assertThat(buildGradle, containsString("mainClass = 'edit'"));
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
+		// no //JAVA directive → sandbox build.gradle must not force a toolchain
+		assertThat(buildGradle, not(containsString("JavaLanguageVersion")));
 
 		Path java = project.resolve("src/edit.java");
 
@@ -107,6 +108,57 @@ public class TestEdit extends BaseTest {
 		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
 		assertThat(Files.isSameFile(java, p), equalTo(true));
+	}
+
+	@Test
+	void testEditJavaVersionToolchain(@TempDir Path outputDir) throws IOException {
+		// //JAVA must surface as a Gradle toolchain in edit --sandbox build.gradle
+		// (#2023)
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		writePlainScript(p);
+
+		Util.writeString(p, "//JAVA 21\n" + Util.readString(p));
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
+		assertThat(prj.getJavaVersion(), equalTo("21"));
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
+		assertThat(buildGradle, containsString("JavaLanguageVersion.of(21)"));
+		assertThat(buildGradle, containsString("toolchain"));
+	}
+
+	@Test
+	void testEditJavaVersionPlusToolchain(@TempDir Path outputDir) throws IOException {
+		// //JAVA 17+ should use min major version 17 for the toolchain
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		writePlainScript(p);
+
+		Util.writeString(p, "//JAVA 17+\n" + Util.readString(p));
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
+		assertThat(prj.getJavaVersion(), equalTo("17+"));
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		String buildGradle = Util.readString(project.resolve("build.gradle"));
+		assertThat(buildGradle, containsString("JavaLanguageVersion.of(17)"));
+	}
+
+	/**
+	 * A script without any directives. Not created with `jbang init`, whose default
+	 * template depends on the Java version running the tests (it adds `//JAVA 25+`
+	 * on Java 25+).
+	 */
+	private static void writePlainScript(Path p) throws IOException {
+		Util.writeString(p, "class edit {\n\tpublic static void main(String... args) {\n\t}\n}\n");
 	}
 
 	@Test
@@ -164,6 +216,34 @@ public class TestEdit extends BaseTest {
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
 		assertThat(buildGradle, containsString("implementation 'com.github.oldskoolsh:libvirt-schema:0.0.2'"));
+	}
+
+	@Test
+	void testEditDepsReleaseAndLatest(@TempDir Path outputDir) throws IOException {
+		Path repo = outputDir.resolve("repo");
+		writeTestArtifact(repo, "rel", "1.0");
+		writeTestArtifact(repo, "lat", "1.0");
+		writeTestArtifact(repo, "spring", "1.0.RELEASE");
+
+		Path p = outputDir.resolve("edit.java");
+		Util.writeString(p, "//REPOS testrepo=" + repo.toUri() + "\n"
+				+ "//DEPS example:rel:RELEASE\n"
+				+ "//DEPS example:lat:LATEST\n"
+				+ "//DEPS example:spring:1.0.RELEASE\n"
+				+ "class edit { public static void main(String... args) {} }\n");
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(p.toString());
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		// Gradle doesn't know Maven's RELEASE and LATEST, it uses latest.release and
+		// latest.integration instead
+		String buildGradle = Util.readString(project.resolve("build.gradle"));
+		assertThat(buildGradle, containsString("implementation 'example:rel:latest.release'"));
+		assertThat(buildGradle, containsString("implementation 'example:lat:latest.integration'"));
+		// a regular version that merely ends in RELEASE is left alone
+		assertThat(buildGradle, containsString("implementation 'example:spring:1.0.RELEASE'"));
 	}
 
 	@Test
@@ -246,5 +326,14 @@ public class TestEdit extends BaseTest {
 		Path src = examplesTestFolder.resolve("helloworld.java");
 		Edit edit = JBang.parseCommand("edit", "-b", "--no-open", src.toString());
 		edit.doCall();
+	}
+
+	@Test
+	void testEditSandboxWithoutScriptShowsUsage() throws Exception {
+		// used to fail with a NullPointerException
+		CaptureResult<Integer> result = captureOutput(() -> JBang.execute("edit", "--sandbox"));
+		assertThat(result.result, equalTo(ExitException.EXIT_INVALID_INPUT));
+		assertThat(result.err, containsString("Missing required parameter"));
+		assertThat(result.err, containsString("Usage:"));
 	}
 }

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Keep CodeRabbit short: review comments on the code, no walkthrough extras.
+# Options: https://docs.coderabbit.ai/reference/configuration
+tone_instructions: 'Be brief and concrete. Only comment on real problems; skip praise, summaries and restating the diff.'
+reviews:
+  profile: chill
+  # don't write release notes into the PR description
+  high_level_summary: false
+  # status/info/details boilerplate
+  review_status: false
+  review_info: false
+  review_details: false
+  in_progress_fortune: false
+  # walkthrough comment: keep it collapsed and without extras
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  assess_linked_issues: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  poem: false
+  # the long "Prompt for AI agents" blocks under each inline comment
+  enable_prompt_for_ai_agents: false
+  # the "Pre-merge checks" table (title/description/linked issue checks)
+  pre_merge_checks:
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+  # checkboxes offering generated unit tests / automatic fixes
+  finishing_touches:
+    unit_tests:
+      enabled: false
+    autofix:
+      enabled: false
+chat:
+  art: false

@@ -1,4 +1,4 @@
-= JBANG-EXPORT-JLINK
+= JBANG EXPORT JLINK
 
 == NAME
 
@@ -8,13 +8,24 @@ jbang export jlink -- Exports a minimized JDK distribution
 
 [source]
 ----
-jbang export jlink [-hn] [-O=<output>] [--force] [-s=<sources>] [--files=<files>] [-T=<source-type>] [--jsh] [--catalog=<catalog>] [--jdk-providers=<jdk-providers>] [--jdk-distros=<jdk-distros>] [-j=<java>] [-m=<main>] [--module] [-C=<compile-option>] [--manifest<key>=<value>] [--[no-]integrations] [-D<key>=<value>] [--deps=<deps>] [--repos=<repos>] [--cp=<cp>] [--ignore-transitive-repositories] [-N=<native-option>] [--build-dir=<build-dir>] [--enable-preview] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [<scriptOrFile>] [<jlinkParams>]
+jbang export jlink [OPTIONS] [<scriptOrFile>] [<jlinkParams>...]
 ----
 
-== OPTIONS
+Creates a minimized JDK image with only the modules your app needs, plus a
+launcher when a main class is known. jlink builds a module, so the script
+must declare a `package` (the default package is not allowed). Works best when
+the code and its dependencies are modules. Pass extra jlink options after --.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang export jlink hello.java
+jbang export jlink hello.java -- --strip-debug
+----
+
+
+== OPTIONS
 
 *-O*, *--output*=<output>::
 The name or path to use for the exported file.
@@ -29,7 +40,7 @@ Add additional sources.
 Add additional files.
 
 *-T*, *--source-type*=<source-type>::
-Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+Force input to be interpreted as the given type. One of: java, jshell, kotlin, groovy, markdown.
 
 *--jsh*::
 Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
@@ -94,6 +105,9 @@ Use given directory for build results
 *--enable-preview*::
 Activate Java preview features
 
+*-h*, *--help*::
+Display this help and exit
+
 *--config*=<config>::
 Path to config file to be used instead of the default
 
@@ -114,6 +128,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

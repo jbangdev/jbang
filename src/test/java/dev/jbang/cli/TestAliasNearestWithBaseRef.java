@@ -69,7 +69,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo("local.java"));
 	}
 
 	@Test
@@ -83,7 +83,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo("local.java"));
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef.replace('\\', '/'), equalTo("../test/scripts/local.java"));
+		assertThat(catalog.aliases.get("new").scriptRef().replace('\\', '/'), equalTo("../test/scripts/local.java"));
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("parent.java"));
+		assertThat(catalog.aliases.get("new").scriptRef(), equalTo("parent.java"));
 	}
 
 }

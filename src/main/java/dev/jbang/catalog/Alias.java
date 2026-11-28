@@ -20,57 +20,48 @@ import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
-	public final String scriptRef;
-	public final String description;
-	public final List<String> arguments;
+	private String scriptRef;
+	private String description;
+	private List<String> arguments;
 	@SerializedName(value = "runtime-options", alternate = { "java-options" })
-	public final List<String> runtimeOptions;
-	public final List<String> sources;
+	private List<String> runtimeOptions;
+	private List<String> sources;
 	@SerializedName(value = "files")
-	public final List<String> resources;
-	public final List<String> dependencies;
-	public final List<String> repositories;
-	public final List<String> classpaths;
-	public final Map<String, String> properties;
+	private List<String> resources;
+	private List<String> dependencies;
+	private List<String> repositories;
+	private List<String> classpaths;
+	private Map<String, String> properties;
 	@SerializedName(value = "java")
-	public final String javaVersion;
+	private String javaVersion;
 	@SerializedName(value = "main")
-	public final String mainClass;
+	private String mainClass;
 	@SerializedName(value = "module")
-	public final String moduleName;
-	@SerializedName(value = "compile-options")
-	public final List<String> compileOptions;
-	@SerializedName(value = "native-image")
-	public final Boolean nativeImage;
-	@SerializedName(value = "native-options")
-	public final List<String> nativeOptions;
+	private String moduleName;
+	private List<String> compileOptions;
+	private Boolean nativeImage;
+	private List<String> nativeOptions;
 	@SerializedName(value = "source-type")
-	public final String forceType;
-	public final Boolean integrations;
-	public final String jfr;
-	public final Map<String, String> debug;
-	public final Boolean cds;
-	public final Boolean interactive;
-	@SerializedName(value = "enable-preview")
-	public final Boolean enablePreview;
-	@SerializedName(value = "enable-assertions")
-	public final Boolean enableAssertions;
-	@SerializedName(value = "enable-system-assertions")
-	public final Boolean enableSystemAssertions;
-	@SerializedName(value = "manifest-options")
-	public final Map<String, String> manifestOptions;
-	@SerializedName(value = "java-agents")
+	private String forceType;
+	private Boolean integrations;
+	private String jfr;
+	private Map<String, String> debug;
+	private Boolean cds;
+	private Boolean interactive;
+	private Boolean enablePreview;
+	private Boolean enableAssertions;
+	private Boolean enableSystemAssertions;
+	private Map<String, String> manifestOptions;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<JavaAgent> javaAgents;
+	private List<JavaAgent> javaAgents;
 	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
-	public final List<String> docs;
+	private List<String> docs;
 
 	public static class JavaAgent {
-		@SerializedName(value = "agent-ref")
 		@NonNull
-		public final String agentRef;
+		private String agentRef;
 		@NonNull
-		public final String options;
+		private String options;
 
 		public JavaAgent() { // to make gson happy in native image
 			this(null, null);
@@ -79,6 +70,14 @@ public class Alias extends CatalogItem {
 		public JavaAgent(@NonNull String agentRef, @NonNull String options) {
 			this.agentRef = agentRef;
 			this.options = options;
+		}
+
+		public String agentRef() {
+			return agentRef;
+		}
+
+		public String options() {
+			return options;
 		}
 
 		@Override
@@ -162,6 +161,118 @@ public class Alias extends CatalogItem {
 		this.docs = docs;
 	}
 
+	public String scriptRef() {
+		return scriptRef;
+	}
+
+	public String description() {
+		return description;
+	}
+
+	public List<String> arguments() {
+		return arguments;
+	}
+
+	public List<String> runtimeOptions() {
+		return runtimeOptions;
+	}
+
+	public List<String> sources() {
+		return sources;
+	}
+
+	public List<String> resources() {
+		return resources;
+	}
+
+	public List<String> dependencies() {
+		return dependencies;
+	}
+
+	public List<String> repositories() {
+		return repositories;
+	}
+
+	public List<String> classpaths() {
+		return classpaths;
+	}
+
+	public Map<String, String> properties() {
+		return properties;
+	}
+
+	public String javaVersion() {
+		return javaVersion;
+	}
+
+	public String mainClass() {
+		return mainClass;
+	}
+
+	public String moduleName() {
+		return moduleName;
+	}
+
+	public List<String> compileOptions() {
+		return compileOptions;
+	}
+
+	public Boolean nativeImage() {
+		return nativeImage;
+	}
+
+	public List<String> nativeOptions() {
+		return nativeOptions;
+	}
+
+	public String forceType() {
+		return forceType;
+	}
+
+	public Boolean integrations() {
+		return integrations;
+	}
+
+	public String jfr() {
+		return jfr;
+	}
+
+	public Map<String, String> debug() {
+		return debug;
+	}
+
+	public Boolean cds() {
+		return cds;
+	}
+
+	public Boolean interactive() {
+		return interactive;
+	}
+
+	public Boolean enablePreview() {
+		return enablePreview;
+	}
+
+	public Boolean enableAssertions() {
+		return enableAssertions;
+	}
+
+	public Boolean enableSystemAssertions() {
+		return enableSystemAssertions;
+	}
+
+	public Map<String, String> manifestOptions() {
+		return manifestOptions;
+	}
+
+	public List<JavaAgent> javaAgents() {
+		return javaAgents;
+	}
+
+	public List<String> docs() {
+		return docs;
+	}
+
 	/**
 	 * This method returns the scriptRef of the Alias with all contextual modifiers
 	 * like baseRefs and current working directories applied.
@@ -179,7 +290,7 @@ public class Alias extends CatalogItem {
 	public static Alias get(String aliasName) {
 		HashSet<String> names = new HashSet<>();
 		Alias alias = new Alias();
-		Alias result = merge(alias, aliasName, Alias::getLocal, names);
+		Alias result = merge(alias, aliasName, Alias::getLocal, names, null);
 		return result.scriptRef != null ? result : null;
 	}
 
@@ -194,25 +305,37 @@ public class Alias extends CatalogItem {
 	public static Alias get(Catalog catalog, String aliasName) {
 		HashSet<String> names = new HashSet<>();
 		Alias alias = new Alias();
-		Alias result = merge(alias, aliasName, catalog.aliases::get, names);
+		Alias result = merge(alias, aliasName, catalog.aliases::get, names, null);
+		return result.scriptRef != null ? result : null;
+	}
+
+	public static Alias get(Catalog catalog, String aliasName, String requestedVersion) {
+		HashSet<String> names = new HashSet<>();
+		Alias alias = new Alias();
+		Alias result = merge(alias, aliasName, catalog.aliases::get, names, requestedVersion);
 		return result.scriptRef != null ? result : null;
 	}
 
 	private static Alias merge(Alias a1, String name, Function<String, Alias> findUnqualifiedAlias,
-			HashSet<String> names) {
-		// if this is a proper possible GAV, i.e.
-		// io.quarkiverse.mcp:artifact:1.0.0.Beta5@fatjar
-		// don't try interpret it.
+			HashSet<String> names, String requestedVersion) {
+		if (name.startsWith(":") || name.startsWith("@")) {
+			throw new RuntimeException("Invalid alias name '" + name + "'");
+		}
+
 		if (DependencyUtil.looksLikeAPossibleGav(name)) {
 			return a1;
 		}
+
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
+
 		String[] parts = name.split("@", 2);
-		if (parts[0].isEmpty()) {
+		if (parts[0].isEmpty() || parts[0].startsWith(":")) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
+
+		// EXISTING: Look up alias (unchanged)
 		Alias a2;
 		if (parts.length == 1) {
 			a2 = findUnqualifiedAlias.apply(name);
@@ -222,9 +345,29 @@ public class Alias extends CatalogItem {
 			}
 			a2 = fromCatalog(parts[1], parts[0]);
 		}
+
+		// EXISTING: Merge if found
 		if (a2 != null) {
 			names.add(name);
-			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
+
+			// If a version was requested for the alias invocation, it must apply to the
+			// final script-ref (GAV/URL/catalog-ref), not to an alias reference. We
+			// detect plain alias references by checking that the scriptRef looks like a
+			// valid alias name and does not contain URL/GAV/catalog special characters.
+			if (requestedVersion != null && Catalog.isValidName(a2.scriptRef)
+					&& !a2.scriptRef.contains(":")
+					&& !a2.scriptRef.contains("/")
+					&& !a2.scriptRef.contains("\\")
+					&& !a2.scriptRef.contains("@")) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						"Cannot apply version '" + requestedVersion + "' to alias reference '" + a2.scriptRef
+								+ "'. Version can only be applied to the final target. "
+								+ "Use the target alias directly: " + a2.scriptRef + ":" + requestedVersion);
+			}
+
+			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names, requestedVersion);
+
+			// EXISTING: Property merging (all unchanged from original code)
 			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
 			List<String> jopts = a1.runtimeOptions != null && !a1.runtimeOptions.isEmpty() ? a1.runtimeOptions
@@ -263,9 +406,12 @@ public class Alias extends CatalogItem {
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			List<String> docs = a1.docs != null && !a1.docs.isEmpty() ? a1.docs : a2.docs;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
+
+			// EXISTING: Create merged alias
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
 					mainClass, moduleName, copts, nimg, nopts, forceType, ints, jfr, debug, cds, inter, ep, ea, esa,
-					mopts, jags, docs, catalog);
+					mopts,
+					jags, docs, catalog);
 		} else {
 			return a1;
 		}

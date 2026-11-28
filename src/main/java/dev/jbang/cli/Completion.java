@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Argument;
@@ -11,7 +12,7 @@ import org.aesh.util.completer.ShellCompletionGenerator.ShellType;
 import dev.jbang.ExitException;
 import dev.jbang.cli.Completion.CompletionHelpSectionsProvider;
 
-@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for jbang.", generateHelp = true, helpSectionProvider = CompletionHelpSectionsProvider.class)
+@CommandDefinition(name = "completion", description = "Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME}.", helpSectionProvider = CompletionHelpSectionsProvider.class)
 public class Completion extends BaseCommand {
 
 	static class CompletionHelpSectionsProvider extends ExternalCommandsProvider {
@@ -19,9 +20,9 @@ public class Completion extends BaseCommand {
 		public String getHeader() {
 			return "Run the following to enable TAB completion in the current shell:\n"
 					+ "\n"
-					+ "  bash/zsh:  source <(jbang completion)\n"
-					+ "  fish:      jbang completion | source\n"
-					+ "  pwsh:      (jbang completion) -join \"`n\" | Invoke-Expression  (experimental)\n"
+					+ "  bash/zsh:  source <(${ROOT-COMMAND-NAME} completion)\n"
+					+ "  fish:      ${ROOT-COMMAND-NAME} completion | source\n"
+					+ "  pwsh:      (${ROOT-COMMAND-NAME} completion) -join \"`n\" | Invoke-Expression  (experimental)\n"
 					+ "\n"
 					+ "The shell is auto-detected. To make it permanent, see the\n"
 					+ "comments at the end of the generated script.";
@@ -45,7 +46,7 @@ public class Completion extends BaseCommand {
 			shellType = detectShell();
 		}
 		if (shellType == null) {
-			throw new ExitException(EXIT_INVALID_INPUT,
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT,
 					"Could not detect your shell. Please specify one, e.g.: jbang completion bash");
 		}
 		try {
@@ -53,11 +54,12 @@ public class Completion extends BaseCommand {
 			System.out.println(script);
 			System.out.println(usageHint(shellType));
 		} catch (Exception e) {
-			throw new ExitException(EXIT_INTERNAL_ERROR, "Failed to generate completion script: " + e.getMessage(),
+			throw new ExitException(ExitException.EXIT_INTERNAL_ERROR,
+					"Failed to generate completion script: " + e.getMessage(),
 					e);
 		}
 
-		return EXIT_OK;
+		return ExitException.EXIT_OK;
 	}
 
 	private static String usageHint(ShellType type) {
@@ -120,7 +122,7 @@ public class Completion extends BaseCommand {
 		return detectShell(System.getenv()::get);
 	}
 
-	static ShellType detectShell(java.util.function.Function<String, String> envLookup) {
+	static ShellType detectShell(Function<String, String> envLookup) {
 		// PSModulePath is set by PowerShell on all platforms \u2014 check it first.
 		// On macOS/Linux, CLI tools are typically launched via a bash wrapper
 		// script which sets BASH_VERSION in the environment. If we checked

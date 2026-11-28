@@ -5,10 +5,10 @@ open := if os() == "macos" { "open" } else if os() == "windows" { "start" } else
 
 # build without tests
 build *args:
-    ./gradlew spotlessApply installDist -x test {{args}}
+    ./gradlew format installDist -x test {{args}}
 
 format:
-    ./gradlew spotlessApply
+    ./gradlew format
 
 # run tests
 test *args:

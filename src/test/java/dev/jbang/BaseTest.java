@@ -20,15 +20,19 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.jar.JarOutputStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.aesh.command.parser.CommandLineParserException;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +45,9 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.CommandInvoker;
 import dev.jbang.cli.JBang;
+import dev.jbang.cli.Run;
 import dev.jbang.dependencies.DependencyCache;
 import dev.jbang.util.Util;
 
@@ -51,6 +57,7 @@ public abstract class BaseTest {
 	public WireMockServer globalwms;
 
 	public static Path mavenTempDir;
+	private static boolean sharedMavenRepo;
 	public static Path jdksTempDir;
 	public static Path examplesTestFolder;
 
@@ -114,7 +121,16 @@ public abstract class BaseTest {
 		} catch (IOException e) {
 			// Ignore
 		}
-		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		// CI points this at a repo it caches between runs, so the tests don't download
+		// the same artifacts from Maven Central in every test JVM (which gets rate
+		// limited with 429s)
+		String testRepo = System.getenv("_JBANG_TEST_REPO");
+		if (testRepo != null) {
+			mavenTempDir = Files.createDirectories(Paths.get(testRepo).toAbsolutePath());
+			sharedMavenRepo = true;
+		} else {
+			mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		}
 		jdksTempDir = Files.createTempDirectory("jbang_tests_jdks");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
@@ -127,7 +143,9 @@ public abstract class BaseTest {
 	// Code to be run after all tests using JBangTestExecutionListener
 	// Not using @AfterAll because it runs each time for each test class
 	static void cleanupAfterAll() {
-		Util.deletePath(mavenTempDir, true);
+		if (!sharedMavenRepo) {
+			Util.deletePath(mavenTempDir, true);
+		}
 		Util.deletePath(jdksTempDir, true);
 	}
 
@@ -135,12 +153,12 @@ public abstract class BaseTest {
 		return captureOutput(() -> {
 			try {
 				BaseCommand cmd = JBang.parseCommand(args);
-				if (cmd instanceof dev.jbang.cli.Run) {
-					((dev.jbang.cli.Run) cmd).realOut = System.out;
+				if (cmd instanceof Run) {
+					((Run) cmd).realOut = System.out;
 				}
-				return cmd.doCall();
+				return CommandInvoker.validateAndCall(cmd);
 			} catch (RuntimeException e) {
-				if (e.getCause() instanceof org.aesh.command.parser.CommandLineParserException) {
+				if (e.getCause() instanceof CommandLineParserException) {
 					Util.verboseMsg("checkedRun: parseCommand failed with "
 							+ e.getCause().getMessage() + ", falling back to JBang.execute()");
 					return JBang.execute(args);
@@ -180,6 +198,27 @@ public abstract class BaseTest {
 		}
 
 		return new CaptureResult<>(result, outStr, errStr);
+	}
+
+	/**
+	 * Writes an empty artifact <code>example:artifactId:version</code>, including
+	 * the <code>maven-metadata.xml</code> needed to resolve RELEASE and LATEST, to
+	 * a file based Maven repository so tests can resolve it without network access.
+	 */
+	protected static void writeTestArtifact(Path repo, String artifactId, String version) throws IOException {
+		Path dir = Files.createDirectories(repo.resolve("example").resolve(artifactId));
+		Util.writeString(dir.resolve("maven-metadata.xml"),
+				"<metadata><groupId>example</groupId><artifactId>" + artifactId + "</artifactId><versioning>"
+						+ "<latest>" + version + "</latest><release>" + version + "</release>"
+						+ "<versions><version>" + version + "</version></versions></versioning></metadata>");
+		Path versionDir = Files.createDirectories(dir.resolve(version));
+		Util.writeString(versionDir.resolve(artifactId + "-" + version + ".pom"),
+				"<project><modelVersion>4.0.0</modelVersion><groupId>example</groupId><artifactId>" + artifactId
+						+ "</artifactId><version>" + version + "</version></project>");
+		try (JarOutputStream jar = new JarOutputStream(
+				Files.newOutputStream(versionDir.resolve(artifactId + "-" + version + ".jar")))) {
+			// empty jar
+		}
 	}
 
 	protected static class CaptureResult<T> {
@@ -239,7 +278,14 @@ public abstract class BaseTest {
 	 * proxy to WireMock while Maven uses the Apache HttpClient which doesn't use
 	 * the proxy and is unaffected by this method.
 	 */
+	private static SSLSocketFactory previousSocketFactory;
+	private static HostnameVerifier previousHostnameVerifier;
+
 	public static void trustWireMock() {
+		if (previousSocketFactory == null) {
+			previousSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
+			previousHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+		}
 		try {
 			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			try (FileInputStream fis = new FileInputStream("misc/wiremock.jks")) {
@@ -252,8 +298,22 @@ public abstract class BaseTest {
 			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(null, tmf.getTrustManagers(), null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			// WireMock 3.x generates per-host certificates using JDK internals that were
+			// removed in Java 21+, after which it falls back to a certificate that doesn't
+			// match the proxied host name. As we only trust the WireMock CA anyway, it is
+			// safe to skip host name verification. Can be removed with WireMock 4.x.
+			HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
 		} catch (IOException | GeneralSecurityException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private static void restoreHttpsDefaults() {
+		if (previousSocketFactory != null) {
+			HttpsURLConnection.setDefaultSSLSocketFactory(previousSocketFactory);
+			HttpsURLConnection.setDefaultHostnameVerifier(previousHostnameVerifier);
+			previousSocketFactory = null;
+			previousHostnameVerifier = null;
 		}
 	}
 
@@ -262,6 +322,7 @@ public abstract class BaseTest {
 			return; // Nothing to clean up
 		}
 		globalwms.stop();
+		restoreHttpsDefaults();
 		if ("true".equals(System.getenv("CI"))) {
 			// When running in CI, we want to fail if there are unmatched requests
 			List<LoggedRequest> requests = globalwms.getAllServeEvents()

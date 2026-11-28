@@ -18,8 +18,7 @@ public class RunIT extends BaseIT {
 		assertThat(shell("jbang version --verbose"))
 			.errContains("Cache: " + scratch().toString())
 			.errContains("Config: " + scratch().toString())
-			.errContains(
-					"Repository: " + scratch().resolve("itest-m2").toString())
+			.errContains("Repository: " + baseEnv.get("JBANG_REPO"))
 			.succeeded();
 	}
 
@@ -34,6 +33,16 @@ public class RunIT extends BaseIT {
 			.errContains(
 					"Script or alias could not be found or read: 'notthere.java'")
 			.exitedWith(2);
+	}
+
+	@Test
+	public void shouldRunAliasWithoutCommandTypoWarning() {
+		assertThat(shell("jbang alias add --name alis helloworld.java")).succeeded();
+		assertThat(shell("jbang alis jbangtest"))
+			.succeeded()
+			.outEquals("Hello jbangtest" + lineSeparator())
+			.errNotContains("is not a jbang command")
+			.errNotContains("See 'jbang --help'");
 	}
 
 	// Scenario: parameter passing

@@ -1,4 +1,4 @@
-= JBANG-EXPORT
+= JBANG EXPORT
 
 == NAME
 
@@ -8,8 +8,23 @@ jbang export -- Export the result of a build or the set of the sources to a proj
 
 [source]
 ----
-jbang export [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] [COMMAND]
+jbang export [OPTIONS] [COMMAND]
 ----
+
+Builds a script, jar or GAV and exports the result in a form you can ship or
+keep working on: a runnable jar (local, portable or fat), a native executable, a
+minimized JDK image, a Maven repository layout, or a full Gradle/Maven project.
+
+Examples:
+
+[source,bash]
+----
+jbang export fatjar hello.java
+jbang export portable -O dist/app.jar hello.java
+jbang export native hello.java
+jbang export maven -g org.acme hello.java
+----
+
 
 == OPTIONS
 
@@ -36,6 +51,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == COMMANDS
 

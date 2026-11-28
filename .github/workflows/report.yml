@@ -23,7 +23,7 @@ jobs:
       #  uses: actions/setup-gh@v2
 
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@v5.1.0
         with:
           repository: ${{ github.repository }}
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -51,7 +51,7 @@ jobs:
           echo "The PR number is: ${{ env.pr_number }}"
 
       - name: Download Test Report
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: junit-test-results-*
           #path: test-${{ matrix.os }}
@@ -59,7 +59,7 @@ jobs:
           merge-multiple: true
           run-id: ${{ github.event.workflow_run.id }}
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
+        uses: mikepenz/action-junit-report@v6.4.1
         with:
           commit: ${{github.event.workflow_run.head_sha}}
           report_paths: '**/build/test-results/test/TEST-*.xml'
