@@ -1086,7 +1086,8 @@ public class Util {
 	static Path relativizeLinkTarget(Path link, Path target) {
 		Path absoluteLink = link.toAbsolutePath();
 		Path absoluteTarget = target.toAbsolutePath();
-		// A parent traversal after a symlink can resolve differently after normalization.
+		// A parent traversal after a symlink can resolve differently after
+		// normalization.
 		if (hasParentTraversal(absoluteLink) || hasParentTraversal(absoluteTarget)) {
 			return absoluteTarget;
 		}
