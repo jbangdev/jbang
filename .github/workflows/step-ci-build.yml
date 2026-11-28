@@ -302,9 +302,12 @@ jobs:
             - os: windows-latest
               java-version: 21
 
-            # macOS should only run Java 11 and 25
+            # macOS only runs Java 25 (the main LTS); Java 11 on macOS is covered by
+            # unit-test-jvm, and macOS launcher/binary specifics by build-test-native-image
             - os: macos-latest
               java-version: 8
+            - os: macos-latest
+              java-version: 11
             - os: macos-latest
               java-version: 17
             - os: macos-latest
