@@ -40,13 +40,14 @@ public class RunWinIT extends BaseIT {
 		System.setProperty("jbang.it.usePowershell", "true");
 		try {
 			assertThat(shell(Map.of("JAVA_HOME", "fake_home"),
-					"jbang run -c 'System.exit(0)'", ";", "echo",
+					"jbang run -c 'System.exit(3)'", ";", "echo",
 					"[${env:JAVA_HOME}]",
 					"O${env:JBANG_RUNTIME_SHELL}K",
 					"O${env:JBANG_STDIN_NOTTY}K",
 					"O${env:JBANG_LAUNCH_CMD}K"))
-				.succeeded()
-				.outMatches(Pattern.compile(".*\\[fake_home\\].*OK.*OK.*OK.*", Pattern.DOTALL));
+				// only jbang can produce exit code 3, so this proves it ran
+				.exitedWith(3)
+				.outFind(Pattern.compile("(?m)^\\[fake_home\\]\\r?\\n^OK\\r?\\n^OK\\r?\\n^OK\\r?$"));
 		} finally {
 			System.clearProperty("jbang.it.usePowershell");
 		}
