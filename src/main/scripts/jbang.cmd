@@ -146,19 +146,25 @@ rem random names, but mkdir fails if the directory exists so only one jbang can
 rem claim each name and the others try the next one.
 :make_exec_dir
 if not exist "%TDIR%" mkdir "%TDIR%" 2>nul
-set /a exectries=0
-:make_exec_dir_retry
-set /a exectries+=1
-set "execdir=%TDIR%\exec-%RANDOM%"
-mkdir "%execdir%" 2>nul && goto :make_exec_dir_done
-if %exectries% LSS 50 goto :make_exec_dir_retry
-rem We can't create it (e.g. %TDIR% isn't writable). Use a path that doesn't
-rem exist so commands that need it fail with an error and the rest still work.
-set execdir=
+call :claim_exec_dir "%TDIR%"
+if not defined execdir call :claim_exec_dir "%TEMP%"
+if defined execdir goto :make_exec_dir_done
+rem Neither is writable. Use a path that doesn't exist so commands that need it
+rem fail with an error and the rest still work.
 set "execfile=%TDIR%\exec-unavailable\cmd"
 set "JBANG_EXECUTE_FILE=%execfile%"
 goto :eof
 :make_exec_dir_done
 set "execfile=%execdir%\cmd"
 set "JBANG_EXECUTE_FILE=%execfile%"
+goto :eof
+
+:claim_exec_dir
+set /a exectries=0
+:claim_exec_dir_retry
+set /a exectries+=1
+set "execdir=%~1\exec-%RANDOM%"
+mkdir "%execdir%" 2>nul && goto :eof
+if %exectries% LSS 50 goto :claim_exec_dir_retry
+set execdir=
 goto :eof

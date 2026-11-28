@@ -101,20 +101,35 @@ function Invoke-JBang {
     param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
     
     $oldShell, $oldNotty, $oldCmd, $oldExecFile=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE
+    $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
+    
     # jbang writes the command to execute (exit code 255) to this file instead of
     # stdout, so we don't need to capture stdout and interactive commands keep
-    # their console
+    # their console. If we can't create it we fall back to capturing stdout.
     New-Item -ItemType Directory -Force -Path "$TDIR" -ErrorAction Ignore >$null 2>&1
     $execFile="$TDIR\$([guid]::NewGuid()).jbang.tmp"
-    $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE="powershell", $MyInvocation.ExpectingInput, $PSCommandPath, $execFile
+    try { [System.IO.File]::WriteAllText($execFile, "") } catch { $execFile=$null }
+    $env:JBANG_EXECUTE_FILE=$execFile
     
-    if ($binaryPath) {
-        # Run native binary
-        & "$binaryPath" $args
+    if ($execFile) {
+        if ($binaryPath) {
+            # Run native binary
+            & "$binaryPath" $args
+        } else {
+            # Run JAR
+            & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        }
         $err=$LASTEXITCODE
+        if ($err -eq 255) {
+            $output=[System.IO.File]::ReadAllText($execFile, [Console]::OutputEncoding).Trim()
+        }
+        Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
     } else {
-        # Run JAR
-        & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        if ($binaryPath) {
+            $output = & "$binaryPath" $args
+        } else {
+            $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        }
         $err=$LASTEXITCODE
     }
     $env:JBANG_EXECUTE_FILE=$oldExecFile
@@ -122,10 +137,10 @@ function Invoke-JBang {
     $erroractionpreference=$old_erroractionpreference
     $global:progresspreference=$old_progresspreference
     
-    if ($err -eq 255 -and (Test-Path -LiteralPath $execFile)) {
-      $output=[System.IO.File]::ReadAllText($execFile, [Console]::OutputEncoding).Trim()
-      Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
+    if ($err -eq 255) {
       Invoke-Expression "& $output"
+    } elseif (-not $execFile -and $output -ne "") {
+      Write-Output $output
     }
     
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
