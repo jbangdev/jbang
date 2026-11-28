@@ -24,5 +24,19 @@ reviews:
   poem: false
   # the long "Prompt for AI agents" blocks under each inline comment
   enable_prompt_for_ai_agents: false
+  # the "Pre-merge checks" table (title/description/linked issue checks)
+  pre_merge_checks:
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+  # checkboxes offering generated unit tests / automatic fixes
+  finishing_touches:
+    unit_tests:
+      enabled: false
+    autofix:
+      enabled: false
 chat:
   art: false
