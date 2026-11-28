@@ -81,13 +81,13 @@ jobs:
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
@@ -124,7 +124,7 @@ jobs:
         run: |
             chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
@@ -135,7 +135,7 @@ jobs:
           ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
 
       - name: upload-native-bundles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -170,7 +170,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
@@ -204,7 +204,7 @@ jobs:
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -260,7 +260,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -318,7 +318,7 @@ jobs:
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -386,7 +386,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -504,7 +504,7 @@ jobs:
           arguments: release --dry-run --yolo
           setup-java: false
       - name: Upload release artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts
