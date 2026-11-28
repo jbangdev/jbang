@@ -81,8 +81,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		JBang.execute("--verbose", "init", s);
-		assertThat(new File(s).exists(), is(true));
+		writePlainScript(p);
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
@@ -99,6 +98,8 @@ public class TestEdit extends BaseTest {
 		assertThat(buildGradle, containsString("mainClass = 'edit'"));
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
+		// no //JAVA directive → sandbox build.gradle must not force a toolchain
+		assertThat(buildGradle, not(containsString("JavaLanguageVersion")));
 
 		Path java = project.resolve("src/edit.java");
 
@@ -107,6 +108,57 @@ public class TestEdit extends BaseTest {
 		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
 		assertThat(Files.isSameFile(java, p), equalTo(true));
+	}
+
+	@Test
+	void testEditJavaVersionToolchain(@TempDir Path outputDir) throws IOException {
+		// //JAVA must surface as a Gradle toolchain in edit --sandbox build.gradle
+		// (#2023)
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		writePlainScript(p);
+
+		Util.writeString(p, "//JAVA 21\n" + Util.readString(p));
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
+		assertThat(prj.getJavaVersion(), equalTo("21"));
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
+		assertThat(buildGradle, containsString("JavaLanguageVersion.of(21)"));
+		assertThat(buildGradle, containsString("toolchain"));
+	}
+
+	@Test
+	void testEditJavaVersionPlusToolchain(@TempDir Path outputDir) throws IOException {
+		// //JAVA 17+ should use min major version 17 for the toolchain
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		writePlainScript(p);
+
+		Util.writeString(p, "//JAVA 17+\n" + Util.readString(p));
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
+		assertThat(prj.getJavaVersion(), equalTo("17+"));
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		String buildGradle = Util.readString(project.resolve("build.gradle"));
+		assertThat(buildGradle, containsString("JavaLanguageVersion.of(17)"));
+	}
+
+	/**
+	 * A script without any directives. Not created with `jbang init`, whose default
+	 * template depends on the Java version running the tests (it adds `//JAVA 25+`
+	 * on Java 25+).
+	 */
+	private static void writePlainScript(Path p) throws IOException {
+		Util.writeString(p, "class edit {\n\tpublic static void main(String... args) {\n\t}\n}\n");
 	}
 
 	@Test
