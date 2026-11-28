@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -566,7 +567,9 @@ public class Util {
 			Duration d = Duration.between(startTime, Instant.now());
 			long s = d.getSeconds();
 			long n = d.minus(s, ChronoUnit.SECONDS).toMillis();
-			return String.format("[jbang] [%d:%03d] ", s, n);
+			// Locale.ROOT: no locale data needed, which a native image might not include
+			// (#2610), and no non-ASCII digits under e.g. Arabic locales
+			return String.format(Locale.ROOT, "[jbang] [%d:%03d] ", s, n);
 		} else {
 			return "[jbang] ";
 		}

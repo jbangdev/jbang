@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +25,18 @@ import dev.jbang.catalog.Catalog;
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
 		Catalog.clearCache();
+	}
+
+	@Test
+	void testMessageHeaderIsLocaleIndependent() {
+		Locale defaultLocale = Locale.getDefault();
+		try {
+			// ar-SA, not ar: since Java 25 plain ar formats with Latin digits
+			Locale.setDefault(Locale.forLanguageTag("ar-SA"));
+			assertTrue(Util.getMsgHeader().matches("\\[jbang\\] \\[[0-9]+:[0-9]{3}\\] "));
+		} finally {
+			Locale.setDefault(defaultLocale);
+		}
 	}
 
 	@Test
