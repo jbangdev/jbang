@@ -13,13 +13,15 @@
 #   Maven Central traffic that gets us rate limited.
 #
 # Test Maven repos (actions/cache, "cache test maven repo" steps):
+#   jbang-test-m2-unit-<os>-<hash>    unit tests          ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-it-<os>-<hash>      integration tests   ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-native-<os>-<hash>  native image ITs    ${{ runner.temp }}/jbang-test-m2
 #   jbang-test-m2-smoke-<os>-<hash>   smoke tests         ${{ runner.temp }}/jbang-test-m2
 #                                                         + ~/.m2/repository
 #   The repo jbang resolves into during tests (_JBANG_TEST_REPO / JBANG_REPO), so test runs
 #   don't download the same artifacts from Maven Central every time (HTTP 429). <hash>
-#   covers itests/, src/it/ and src/main/resources/ (templates); restore-keys start from
+#   covers itests/, src/it/ (src/test/ for unit tests) and src/main/resources/
+#   (templates); restore-keys start from
 #   the previous entry, so a change only downloads the delta.
 #   One key per job type: an entry is immutable and only the first job to save a key wins,
 #   so with a shared key the smoke tests' artifacts (Quarkus) were never saved. Jobs of the
@@ -220,7 +222,17 @@ jobs:
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
+      - name: cache test maven repo
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-unit-${{ runner.os }}-${{ hashFiles('itests/**', 'src/test/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-unit-${{ runner.os }}-
       - name: test
+        env:
+          _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
         run: |
           ./gradlew --no-daemon test -PtestJavaVersion=${{ steps.test-jdk-major.outputs.major || matrix.java-version }} ${{ steps.test-jdk.outputs.path && format('-Porg.gradle.java.installations.paths={0}', steps.test-jdk.outputs.path) || '' }}
       - name: Add artifact.ci links

@@ -38,6 +38,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v5.1.0
 
+    # Sets up Java and restores the Gradle cache the default branch saves, so
+    # Autobuild doesn't download the whole build classpath from Maven Central
+    # on every run (which gets rate limited with HTTP 429)
+    - name: Shared build setup
+      uses: $/.github/actions/shared-build-setup
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4.39.1
