@@ -1,16 +1,17 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
-
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 
 import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 
+import dev.jbang.ExitException;
+
 @CommandDefinition(name = "cache", description = "Manage compiled scripts in the local cache.", groupCommands = {
-		Cache.CacheClear.class }, generateHelp = true, helpGroup = "Caching")
+		Cache.CacheClear.class }, helpGroup = "Caching")
 public class Cache extends BaseCommand {
 
 	@Override
@@ -18,7 +19,21 @@ public class Cache extends BaseCommand {
 		return missingSubcommand();
 	}
 
-	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches.", generateHelp = true)
+	@Override
+	public String prose() {
+		return "jbang caches downloaded scripts, built jars, dependencies and JDKs to make later\n"
+				+ "runs fast. Use these commands to clear them when something looks stale.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} clear",
+				"${COMMAND-FULL-NAME} clear --deps",
+				"${COMMAND-FULL-NAME} clear --all");
+	}
+
+	@CommandDefinition(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin, URL and dependency caches.")
 	public static class CacheClear extends BaseCommand {
 
 		@Option(name = "url", hasValue = false, negatable = true, description = "clear URL cache only")
@@ -88,7 +103,7 @@ public class Cache extends BaseCommand {
 
 			dev.jbang.Cache.CacheClass[] ccs = classes.toArray(new dev.jbang.Cache.CacheClass[0]);
 			dev.jbang.Cache.clearCache(ccs);
-			return EXIT_OK;
+			return ExitException.EXIT_OK;
 		}
 
 		private void toggleCache(Boolean b, dev.jbang.Cache.CacheClass cache,
@@ -100,6 +115,21 @@ public class Cache extends BaseCommand {
 					classes.remove(cache);
 				}
 			}
+		}
+
+		@Override
+		public String prose() {
+			return "Without options it clears the jar, script, stdin, URL and dependency caches.\n"
+					+ "Pick specific caches with the flags below, or use --all to also remove JDKs,\n"
+					+ "compilers and temporary projects.";
+		}
+
+		@Override
+		public List<String> examples() {
+			return Arrays.asList(
+					"${COMMAND-FULL-NAME}",
+					"${COMMAND-FULL-NAME} --jar --url",
+					"${COMMAND-FULL-NAME} --all");
 		}
 	}
 }

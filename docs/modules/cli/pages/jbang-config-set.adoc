@@ -1,4 +1,4 @@
-= JBANG-CONFIG-SET
+= JBANG CONFIG SET
 
 == NAME
 
@@ -8,19 +8,33 @@ jbang config set -- Set a configuration value
 
 [source]
 ----
-jbang config set [-hg] [-f=<file>] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <key> [<value>]
+jbang config set [OPTIONS] <key> [<value>]
 ----
 
-== OPTIONS
+Sets a configuration value, either as separate key and value or as key=value. A
+key of the form `<command>.<option>` (option name with any dashes removed) sets
+the default for that option.
 
-*-h*, *--help*::
-Display this help and exit
+Examples:
+
+[source,bash]
+----
+jbang config set edit.open code
+jbang config set --global run.java 21
+jbang config set format=json
+----
+
+
+== OPTIONS
 
 *-g*, *--global*::
 Use the global (user) config file
 
 *-f*, *--file*=<file>::
 Path to the config file to use
+
+*-h*, *--help*::
+Display this help and exit
 
 *--config*=<config>::
 Path to config file to be used instead of the default
@@ -42,6 +56,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

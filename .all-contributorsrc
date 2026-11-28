@@ -939,6 +939,51 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "arnabnandy7",
+      "name": "Arnab Nandy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5053648?v=4",
+      "profile": "https://github.com/arnabnandy7",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "UgurcanGursen",
+      "name": "Uğurcan Gürşen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33179697?v=4",
+      "profile": "http://www.ugurcangursen.com.tr",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "gelatoni-xh",
+      "name": "Gelatoni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/208448107?v=4",
+      "profile": "https://gelatoni.uk",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mukel",
+      "name": "Alfonso² Peterssen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1896283?v=4",
+      "profile": "http://qxotic.ai",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "instreest",
+      "name": "instreest",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47358024?v=4",
+      "profile": "https://github.com/instreest",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,

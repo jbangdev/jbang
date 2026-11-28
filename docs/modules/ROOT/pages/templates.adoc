@@ -16,6 +16,8 @@ toc::[]
 
 To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.
 
+When no template is specified, JBang uses a `hello.<extension>` template matching the requested file extension when available. For example, `jbang init hello.kt` uses the built-in `hello.kt` template. Otherwise, it uses the Java `hello` template, which supports `.java` and extensionless file names.
+
 Using `jbang init --template=cli helloworld.java` you get a more complete Hello World CLI using https://picocli.info/[picocli] as dependency.
 
 Run `jbang template list` to see the full list of templates that are available.
@@ -80,6 +82,21 @@ Templates can refer to properties passed in using `-Dkey=value` on the `jbang in
 Any key specified via `-Dkey=value` becomes available as `\{key}` inside the templates.
 
 It is recommended you write templates where there is some kind of valid default or fallback on behavior as users might not be aware there is need for a key.
+
+== Debugging Templates
+
+If `jbang init` fails part-way, for example because a template throws an error while rendering, the files it already created are removed again so you are not left with a half-initialized project. Files that existed before (when using `--force`) are never removed.
+
+When developing a template it can help to look at what was generated before the failure. Run with `--verbose` and JBang keeps the partially initialized files and lists them:
+
+[source,bash]
+----
+$ jbang --verbose init -t mytemplate hello.java
+...
+[jbang] [WARN] Keeping partially initialized files for inspection (--verbose):
+  .../hello.java
+  .../README.md
+----
 
 == AI-Powered Code Generation
 

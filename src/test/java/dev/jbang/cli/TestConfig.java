@@ -13,10 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
+import dev.jbang.ExitException;
 
 public class TestConfig extends BaseTest {
 
-	private static final int SUCCESS_EXIT = BaseCommand.EXIT_OK;
+	private static final int SUCCESS_EXIT = ExitException.EXIT_OK;
 
 	static final String testConfig = "" +
 			"one=footop\n" +
@@ -48,7 +49,6 @@ public class TestConfig extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("format = text\n" +
-						"init.template = hello\n" +
 						"one = footop\n" +
 						"run.debug = 4004\n" +
 						"run.jfr = filename={baseName}.jfr\n" +

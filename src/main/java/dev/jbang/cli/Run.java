@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
-@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", generateHelp = true, stopAtFirstPositional = true, helpGroup = "Essentials")
+@CommandDefinition(name = "run", description = "Builds and runs provided script. (default command)", stopAtFirstPositional = true, helpGroup = "Essentials")
 public class Run extends BaseBuildCommand {
 
 	/**
@@ -39,19 +40,19 @@ public class Run extends BaseBuildCommand {
 	@Mixin
 	public RunMixin runMixin;
 
-	@Option(shortName = 'c', name = "code", fallbackValue = "", description = "Run the given string as code")
+	@Option(shortName = 'c', name = "code", fallbackValue = "", helpGroup = "Source options", description = "Run the given string as code")
 	public String literalScript;
 
 	@Arguments(paramLabel = "userParams", index = "1..*", arity = "0..*", description = "Parameters for the script")
 	public List<String> userParams = new ArrayList<>();
 
-	protected void requireScriptArgument() {
+	@Override
+	protected void validateArguments() {
+		// run allows no script when in interactive mode or when running literal code
 		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && literalScript == null)
 				|| (literalScript != null && literalScript.isEmpty()))) {
-			if (commandInvocation != null) {
-				System.err.println(commandInvocation.getHelpInfo());
-			}
-			throw new ExitException(EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
+			printCommandHelp();
+			throw new ExitException(ExitException.EXIT_INVALID_INPUT, "Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 
@@ -69,7 +70,6 @@ public class Run extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
 		rewriteScriptArguments();
 		userParams = handleRemoteFiles(userParams);
 		String script = scriptMixin.scriptOrFile;
@@ -113,7 +113,7 @@ public class Run extends BaseBuildCommand {
 		Util.verboseMsg("run: " + cmdline);
 		realOut.println(cmdline);
 
-		return EXIT_EXECUTE;
+		return ExitException.EXIT_EXECUTE;
 	}
 
 	void buildAgents(BuildContext ctx) throws IOException {
@@ -122,9 +122,9 @@ public class Run extends BaseBuildCommand {
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj
 				.getResourceRef();
-			if (aref.getAlias().javaAgents != null) {
+			if (aref.getAlias().javaAgents() != null) {
 				Map<String, String> tmpAgents = new HashMap<>();
-				aref.getAlias().javaAgents.forEach(a -> tmpAgents.put(a.agentRef, a.options));
+				aref.getAlias().javaAgents().forEach(a -> tmpAgents.put(a.agentRef(), a.options()));
 				agents = tmpAgents;
 			}
 		}
@@ -179,5 +179,26 @@ public class Run extends BaseBuildCommand {
 		Map<String, String> result = new HashMap<>();
 		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
 		return result;
+	}
+
+	@Override
+	public String prose() {
+		return "Runs code from almost anywhere: a Maven artifact (GAV coordinate), a `.jar`,\n"
+				+ "a catalog alias, a URL, or a local script in Java, JShell, Kotlin, Groovy\n"
+				+ "or Markdown. jbang resolves any dependencies, builds when needed, then runs it.\n"
+				+ "\n"
+				+ "run is the default command, so `${ROOT-COMMAND-NAME} <resource>` is shorthand for\n"
+				+ "`${ROOT-COMMAND-NAME} run <resource>`. Anything after the resource is passed to it as\n"
+				+ "arguments rather than to ${ROOT-COMMAND-NAME}.";
+	}
+
+	@Override
+	public List<String> examples() {
+		return Arrays.asList(
+				"${COMMAND-FULL-NAME} org.example:myapp:1.2.3",
+				"${COMMAND-FULL-NAME} myapp.jar",
+				"${COMMAND-FULL-NAME} gavsearch@jbangdev org.slf4j:slf4j-api",
+				"${COMMAND-FULL-NAME} hello.java",
+				"${COMMAND-FULL-NAME} -c 'System.out.println(\"hi\")'");
 	}
 }

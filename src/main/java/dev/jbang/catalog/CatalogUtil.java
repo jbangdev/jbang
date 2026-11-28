@@ -59,7 +59,7 @@ public class CatalogUtil {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
-		String scriptRef = catalog.relativize(alias.scriptRef);
+		String scriptRef = catalog.relativize(alias.scriptRef());
 		catalog.aliases.put(name, alias.withCatalog(catalog).withScriptRef(scriptRef));
 		try {
 			catalog.write();

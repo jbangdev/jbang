@@ -15,16 +15,15 @@ import static dev.jbang.util.Util.writeString;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -376,9 +375,45 @@ public class NetUtil {
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
 				Files.createDirectories(metaSaveDir);
-				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
-						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				// A connection that drops early can also just look like the end of the
+				// stream, so check against the announced length to not keep (or cache) a
+				// partial file. The JDK decodes only "chunked", in which case
+				// Transfer-Encoding takes precedence over Content-Length (RFC 9112 6.3). The
+				// count is of the raw (undecoded) stream, so if transparent decompression is
+				// ever added, count before decoding.
+				boolean chunked = "chunked".equalsIgnoreCase(conn.getHeaderField("Transfer-Encoding"));
+				long expected = chunked ? -1 : conn.getContentLengthLong();
+				// Plain copy loop on purpose: FileChannel.transferFrom() swallows errors once
+				// some bytes were written and returns the short count, so a stream that fails
+				// half-way (e.g. a truncated chunked response) would look complete
+				long received = 0;
+				boolean opened = false;
+				try (InputStream in = conn.getInputStream();
+						OutputStream out = Files.newOutputStream(file)) {
+					opened = true;
+					byte[] buf = new byte[64 * 1024];
+					int n;
+					while ((n = in.read(buf)) != -1) {
+						out.write(buf, 0, n);
+						received += n;
+					}
+				} catch (IOException e) {
+					// not every caller downloads into a temp dir that gets cleaned up, but only
+					// remove what this attempt wrote: if it failed before opening the target,
+					// an existing file is still intact
+					if (opened) {
+						deleteQuietly(file, e);
+					}
+					// JDK 24+ (JDK-8335135) throws "Premature EOF" for a body shorter than its
+					// Content-Length instead of ending the stream, report it the same way
+					if (opened && expected >= 0 && received < expected) {
+						throw incompleteDownload(conn, received, expected, e);
+					}
+					throw e;
+				}
+				if (expected >= 0 && received != expected) {
+					Files.deleteIfExists(file);
+					throw incompleteDownload(conn, received, expected, null);
 				}
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
@@ -388,6 +423,19 @@ public class NetUtil {
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
 				return file;
 			};
+		}
+
+		static IOException incompleteDownload(URLConnection conn, long received, long expected, IOException cause) {
+			return new IOException(String.format("Incomplete download of %s: received %d of %d bytes",
+					conn.getURL().toExternalForm(), received, expected), cause);
+		}
+
+		static void deleteQuietly(Path file, IOException cause) {
+			try {
+				Files.deleteIfExists(file);
+			} catch (IOException e) {
+				cause.addSuppressed(e);
+			}
 		}
 
 		static ResultHandler downloadToTempDir(Path saveDir, Path metaSaveDir,

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 
 public class JdkIT extends BaseIT {
@@ -26,7 +27,7 @@ public class JdkIT extends BaseIT {
 
 	@BeforeEach
 	void setupWireMock() {
-		wireMock = new WireMockServer(com.github.tomakehurst.wiremock.core.WireMockConfiguration.options()
+		wireMock = new WireMockServer(WireMockConfiguration.options()
 			.caKeystorePath("misc/wiremock.jks")
 			.caKeystorePassword("password")
 			.enableBrowserProxying(true)

@@ -1,4 +1,4 @@
-= JBANG-APP-UNINSTALL
+= JBANG APP UNINSTALL
 
 == NAME
 
@@ -8,7 +8,7 @@ jbang app uninstall -- Removes a previously installed command.
 
 [source]
 ----
-jbang app uninstall [-h] [--config=<config>] [--insecure] [--[no-]verbose] [--[no-]quiet] [--[no-]offline] [--[no-]fresh] [--[no-]stacktrace] <name>
+jbang app uninstall [OPTIONS] <name>
 ----
 
 == OPTIONS
@@ -36,6 +36,12 @@ Make sure we use fresh (i.e. non-cached) resources.
 
 *-x*, *--[no-]stacktrace*::
 Print exceptions stacktraces to stderr (even when quiet).
+
+*--netrc*=<netrc>::
+Path to a .netrc file for HTTP authentication credentials.
+
+*--no-netrc*::
+Disable .netrc authentication lookup.
 
 == ARGUMENTS
 

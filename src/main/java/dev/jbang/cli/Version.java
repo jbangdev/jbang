@@ -12,7 +12,7 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
-@CommandDefinition(name = "version", description = "Display version info.", generateHelp = true)
+@CommandDefinition(name = "version", description = "Display version info.")
 public class Version extends BaseCommand {
 
 	@Option(name = "check", hasValue = false, description = "Check if a new version of jbang is available")
@@ -28,7 +28,7 @@ public class Version extends BaseCommand {
 				try {
 					App.AppInstall.installJBang(true);
 				} catch (IOException e) {
-					throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
+					throw new ExitException(ExitException.EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
 			}
 		} else if (checkForUpdate) {
@@ -50,6 +50,14 @@ public class Version extends BaseCommand {
 			System.err.println("Native Image: " + JavaUtil.inNativeImage());
 		}
 
-		return EXIT_OK;
+		if (update) {
+			String cmdLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
+			if (cmdLauncherUpdate != null) {
+				System.out.println(cmdLauncherUpdate);
+				return ExitException.EXIT_EXECUTE;
+			}
+		}
+
+		return ExitException.EXIT_OK;
 	}
 }
