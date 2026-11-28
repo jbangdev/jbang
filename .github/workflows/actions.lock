@@ -12,7 +12,7 @@ workflows:
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v5.1.0'
         - 'actions/setup-java@v6.3.0'
-        - 'github/codeql-action@v4.39.1'
+        - 'github/codeql-action@v4.39.5'
         - 'gradle/actions@v6.4.1'
         - 'mxschmitt/action-tmate@v3.23'
     '.github/workflows/install-tests.yml':
@@ -114,9 +114,9 @@ dependencies:
         commit: 'sha1-c94ce9fb468520275223c153574b00df6fe4bcc9'
         owner_id: 5429470
         repo_id: 287743349
-    'github/codeql-action@v4.39.1':
-        ref: 'v4.39.1'
-        commit: 'sha1-9b3254085494b55a0f7c4c2b3d2d52cc712ce370'
+    'github/codeql-action@v4.39.5':
+        ref: 'v4.39.5'
+        commit: 'sha1-915412ff23e8b7659517e607487dbeae018f2934'
         owner_id: 9919
         repo_id: 259445878
     'graalvm/setup-graalvm@v1.5.3':
