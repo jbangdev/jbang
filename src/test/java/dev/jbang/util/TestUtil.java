@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,24 @@ public class TestUtil extends BaseTest {
 		Path target = root.resolve("targets").resolve("21");
 
 		assertEquals(target.toAbsolutePath(), Util.relativizeLinkTarget(link, target));
+	}
+
+	@Test
+	void testRelativizeLinkTargetEqualToLinkParent() {
+		Path root = Paths.get("sandbox").toAbsolutePath();
+
+		assertEquals(Paths.get("."), Util.relativizeLinkTarget(root.resolve("current"), root));
+	}
+
+	@Test
+	void testRelativizeLinkTargetPreservesParentTraversal() {
+		Path root = Paths.get("sandbox").toAbsolutePath();
+		Path target = root.resolve("A.java");
+		Path throughAlias = root.resolve("alias").resolve("..");
+
+		assertEquals(throughAlias.resolve("A.java"),
+				Util.relativizeLinkTarget(root.resolve("current"), throughAlias.resolve("A.java")));
+		assertEquals(target, Util.relativizeLinkTarget(throughAlias.resolve("current"), target));
 	}
 
 	@Test

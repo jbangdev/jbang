@@ -1084,12 +1084,28 @@ public class Util {
 	}
 
 	static Path relativizeLinkTarget(Path link, Path target) {
-		Path linkParent = link.toAbsolutePath().normalize().getParent();
-		Path absoluteTarget = target.toAbsolutePath().normalize();
-		if (linkParent != null && absoluteTarget.startsWith(linkParent)) {
-			return linkParent.relativize(absoluteTarget);
+		Path absoluteLink = link.toAbsolutePath();
+		Path absoluteTarget = target.toAbsolutePath();
+		// A parent traversal after a symlink can resolve differently after normalization.
+		if (hasParentTraversal(absoluteLink) || hasParentTraversal(absoluteTarget)) {
+			return absoluteTarget;
+		}
+		Path linkParent = absoluteLink.normalize().getParent();
+		Path normalizedTarget = absoluteTarget.normalize();
+		if (linkParent != null && normalizedTarget.startsWith(linkParent)) {
+			return linkParent.equals(normalizedTarget) ? link.getFileSystem().getPath(".")
+					: linkParent.relativize(normalizedTarget);
 		}
 		return absoluteTarget;
+	}
+
+	private static boolean hasParentTraversal(Path path) {
+		for (Path name : path) {
+			if ("..".equals(name.toString())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean createSymbolicLink(Path link, Path target, boolean reportWindowsFailure) {
