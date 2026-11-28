@@ -56,6 +56,7 @@ public abstract class BaseTest {
 	public WireMockServer globalwms;
 
 	public static Path mavenTempDir;
+	private static boolean sharedMavenRepo;
 	public static Path jdksTempDir;
 	public static Path examplesTestFolder;
 
@@ -119,7 +120,16 @@ public abstract class BaseTest {
 		} catch (IOException e) {
 			// Ignore
 		}
-		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		// CI points this at a repo it caches between runs, so the tests don't download
+		// the same artifacts from Maven Central in every test JVM (which gets rate
+		// limited with 429s)
+		String testRepo = System.getenv("_JBANG_TEST_REPO");
+		if (testRepo != null) {
+			mavenTempDir = Files.createDirectories(Paths.get(testRepo).toAbsolutePath());
+			sharedMavenRepo = true;
+		} else {
+			mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		}
 		jdksTempDir = Files.createTempDirectory("jbang_tests_jdks");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
@@ -132,7 +142,9 @@ public abstract class BaseTest {
 	// Code to be run after all tests using JBangTestExecutionListener
 	// Not using @AfterAll because it runs each time for each test class
 	static void cleanupAfterAll() {
-		Util.deletePath(mavenTempDir, true);
+		if (!sharedMavenRepo) {
+			Util.deletePath(mavenTempDir, true);
+		}
 		Util.deletePath(jdksTempDir, true);
 	}
 
