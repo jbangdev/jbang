@@ -24,9 +24,20 @@ if (($PSVersionTable.PSVersion.Major) -lt 5) {
     break
 }
 
-# Check that the correct Execution Policy is set
+# Check that the correct Execution Policy is set. This matters when we're run through
+# Invoke-Expression (the install one-liner), which ignores the policy, while the
+# installed jbang.ps1 would then be blocked by it.
 $allowedExecutionPolicy = @('Unrestricted', 'RemoteSigned', 'ByPass')
-if ((Get-ExecutionPolicy).ToString() -notin $allowedExecutionPolicy) {
+try {
+    $executionPolicy = Get-ExecutionPolicy
+} catch {
+    # Windows PowerShell started (indirectly) from PowerShell 7 inherits its
+    # PSModulePath and then fails to autoload PowerShell 7's Security module, so
+    # load the one that comes with the PowerShell we're running in
+    Import-Module (Join-Path $PSHOME 'Modules\Microsoft.PowerShell.Security')
+    $executionPolicy = Get-ExecutionPolicy
+}
+if ($executionPolicy.ToString() -notin $allowedExecutionPolicy) {
     [Console]::Error.WriteLine("PowerShell requires an execution policy in [$($allowedExecutionPolicy -join ", ")] to continue.")
     [Console]::Error.WriteLine("For example, to set the execution policy to 'RemoteSigned' please run :")
     [Console]::Error.WriteLine("'Set-ExecutionPolicy RemoteSigned -scope CurrentUser'")
