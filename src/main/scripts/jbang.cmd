@@ -98,10 +98,7 @@ rem tell jbang whether stdin is a tty or not
 
 rem execute jbang, it writes the command to execute (exit code 255) to a temporary
 rem file instead of stdout so interactive commands keep their console
-rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
-if not exist "%TDIR%" ( mkdir "%TDIR%" )
-set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
-set JBANG_EXECUTE_FILE=%tmpfile%
+call :make_exec_dir
 
 set CMD=!JAVA_EXEC!
 SETLOCAL DISABLEDELAYEDEXPANSION
@@ -117,9 +114,7 @@ rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 
 rem execute jbang, it writes the command to execute (exit code 255) to a temporary file
-if not exist "%TDIR%" ( mkdir "%TDIR%" )
-set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
-set JBANG_EXECUTE_FILE=%tmpfile%
+call :make_exec_dir
 
 SETLOCAL DISABLEDELAYEDEXPANSION
 "%binaryPath%" %*
@@ -132,15 +127,38 @@ rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed 
 
 if %ERROR% EQU 255 (
   rem read generated java command by jang, delete temporary file and execute.
-  for %%A in ("%tmpfile%") do for /f "usebackq delims=" %%B in (%%A) do (
+  for %%A in ("%execfile%") do for /f "usebackq delims=" %%B in (%%A) do (
     set "OUTPUT=%%B"
     goto :break
   )
 :break
-  del /f /q "%tmpfile%"
+  if defined execdir rmdir /s /q "%execdir%" 2>nul
   %OUTPUT%
   exit /b %ERRORLEVEL%
 ) else (
-  if exist "%tmpfile%" del /f /q "%tmpfile%"
+  if defined execdir rmdir /s /q "%execdir%" 2>nul
   exit /b %ERROR%
 )
+
+rem Creates a directory of our own for jbang's temporary file. cmd processes
+rem started in the same second get the same %RANDOM% values, so we can't rely on
+rem random names, but mkdir fails if the directory exists so only one jbang can
+rem claim each name and the others try the next one.
+:make_exec_dir
+if not exist "%TDIR%" mkdir "%TDIR%" 2>nul
+set /a exectries=0
+:make_exec_dir_retry
+set /a exectries+=1
+set "execdir=%TDIR%\exec-%RANDOM%"
+mkdir "%execdir%" 2>nul && goto :make_exec_dir_done
+if %exectries% LSS 50 goto :make_exec_dir_retry
+rem We can't create it (e.g. %TDIR% isn't writable). Use a path that doesn't
+rem exist so commands that need it fail with an error and the rest still work.
+set execdir=
+set "execfile=%TDIR%\exec-unavailable\cmd"
+set "JBANG_EXECUTE_FILE=%execfile%"
+goto :eof
+:make_exec_dir_done
+set "execfile=%execdir%\cmd"
+set "JBANG_EXECUTE_FILE=%execfile%"
+goto :eof

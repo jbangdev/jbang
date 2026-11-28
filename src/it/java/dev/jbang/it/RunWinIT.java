@@ -5,7 +5,13 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Disabled;
@@ -53,6 +59,32 @@ public class RunWinIT extends BaseIT {
 			assertThat(shell("jbang", script.toString())).succeeded().outContains("[null]");
 		} finally {
 			System.clearProperty("jbang.it.usePowershell");
+		}
+	}
+
+	@Test
+	public void shouldNotMixUpParallelRunsCmd() throws Exception {
+		Path script = scratch().resolve("parallel.java");
+		Files.write(script, ("class parallel { public static void main(String... args) { "
+				+ "System.out.println(\"run-\" + args[0]); } }")
+			.getBytes());
+		// build it first so the parallel runs all finish at about the same time
+		assertThat(shell("jbang", "build", script.toString())).succeeded();
+		// cmd processes started in the same second all get the same %RANDOM%
+		// values, so this makes them race for the same temporary file names
+		int runs = 8;
+		ExecutorService pool = Executors.newFixedThreadPool(runs);
+		try {
+			List<Future<CommandResult>> results = new ArrayList<>();
+			for (int i = 0; i < runs; i++) {
+				List<String> cmd = prefixShellArgs(Arrays.asList("jbang", script.toString(), String.valueOf(i)));
+				results.add(pool.submit(() -> run(baseDir(), baseEnv, cmd)));
+			}
+			for (int i = 0; i < runs; i++) {
+				assertThat(results.get(i).get()).succeeded().outContains("run-" + i);
+			}
+		} finally {
+			pool.shutdownNow();
 		}
 	}
 
