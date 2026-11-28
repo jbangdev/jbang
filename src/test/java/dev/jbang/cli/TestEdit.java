@@ -167,6 +167,34 @@ public class TestEdit extends BaseTest {
 	}
 
 	@Test
+	void testEditDepsReleaseAndLatest(@TempDir Path outputDir) throws IOException {
+		Path repo = outputDir.resolve("repo");
+		writeTestArtifact(repo, "rel", "1.0");
+		writeTestArtifact(repo, "lat", "1.0");
+		writeTestArtifact(repo, "spring", "1.0.RELEASE");
+
+		Path p = outputDir.resolve("edit.java");
+		Util.writeString(p, "//REPOS testrepo=" + repo.toUri() + "\n"
+				+ "//DEPS example:rel:RELEASE\n"
+				+ "//DEPS example:lat:LATEST\n"
+				+ "//DEPS example:spring:1.0.RELEASE\n"
+				+ "class edit { public static void main(String... args) {} }\n");
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(p.toString());
+
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+
+		// Gradle doesn't know Maven's RELEASE and LATEST, it uses latest.release and
+		// latest.integration instead
+		String buildGradle = Util.readString(project.resolve("build.gradle"));
+		assertThat(buildGradle, containsString("implementation 'example:rel:latest.release'"));
+		assertThat(buildGradle, containsString("implementation 'example:lat:latest.integration'"));
+		// a regular version that merely ends in RELEASE is left alone
+		assertThat(buildGradle, containsString("implementation 'example:spring:1.0.RELEASE'"));
+	}
+
+	@Test
 	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
 
 		Path p = examplesTestFolder.resolve("one.java");

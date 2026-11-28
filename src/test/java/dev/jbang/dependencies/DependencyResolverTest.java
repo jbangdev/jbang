@@ -44,6 +44,23 @@ class DependencyResolverTest extends BaseTest {
 		assertEquals("[1.0,)", DependencyUtil.formatVersion("1.0+"));
 	}
 
+	@Test
+	void testToGradleGav() {
+		assertEquals("g:a:latest.release", DependencyUtil.toGradleGav("g:a:RELEASE"));
+		assertEquals("g:a:latest.integration", DependencyUtil.toGradleGav("g:a:LATEST"));
+		assertEquals("g:a:latest.release:linux@zip", DependencyUtil.toGradleGav("g:a:RELEASE:linux@zip"));
+		assertEquals("g:a:latest.integration:linux@zip", DependencyUtil.toGradleGav("g:a:LATEST:linux@zip"));
+		assertEquals("g:a:latest.release@pom", DependencyUtil.toGradleGav("g:a:RELEASE@pom"));
+		assertEquals("g:a:latest.integration@pom", DependencyUtil.toGradleGav("g:a:LATEST@pom"));
+		// anything else is left alone, including versions that only contain RELEASE
+		assertEquals("g:a:1.0", DependencyUtil.toGradleGav("g:a:1.0"));
+		assertEquals("g:a:1.0+", DependencyUtil.toGradleGav("g:a:1.0+"));
+		assertEquals("g:a:5.3.0.RELEASE", DependencyUtil.toGradleGav("g:a:5.3.0.RELEASE"));
+		assertEquals("g:a:1.0.RELEASE@pom", DependencyUtil.toGradleGav("g:a:1.0.RELEASE@pom"));
+		assertEquals("g:a:1.0:RELEASE", DependencyUtil.toGradleGav("g:a:1.0:RELEASE"));
+		assertEquals("g:a", DependencyUtil.toGradleGav("g:a"));
+	}
+
 	@BeforeEach
 	void clearCache() {
 		Util.deletePath(Settings.getCacheDir(), true);
