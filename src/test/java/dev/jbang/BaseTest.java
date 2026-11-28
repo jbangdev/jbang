@@ -20,6 +20,7 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.jar.JarOutputStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -56,6 +57,7 @@ public abstract class BaseTest {
 	public WireMockServer globalwms;
 
 	public static Path mavenTempDir;
+	private static boolean sharedMavenRepo;
 	public static Path jdksTempDir;
 	public static Path examplesTestFolder;
 
@@ -119,7 +121,16 @@ public abstract class BaseTest {
 		} catch (IOException e) {
 			// Ignore
 		}
-		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		// CI points this at a repo it caches between runs, so the tests don't download
+		// the same artifacts from Maven Central in every test JVM (which gets rate
+		// limited with 429s)
+		String testRepo = System.getenv("_JBANG_TEST_REPO");
+		if (testRepo != null) {
+			mavenTempDir = Files.createDirectories(Paths.get(testRepo).toAbsolutePath());
+			sharedMavenRepo = true;
+		} else {
+			mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		}
 		jdksTempDir = Files.createTempDirectory("jbang_tests_jdks");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
@@ -132,7 +143,9 @@ public abstract class BaseTest {
 	// Code to be run after all tests using JBangTestExecutionListener
 	// Not using @AfterAll because it runs each time for each test class
 	static void cleanupAfterAll() {
-		Util.deletePath(mavenTempDir, true);
+		if (!sharedMavenRepo) {
+			Util.deletePath(mavenTempDir, true);
+		}
 		Util.deletePath(jdksTempDir, true);
 	}
 
@@ -185,6 +198,27 @@ public abstract class BaseTest {
 		}
 
 		return new CaptureResult<>(result, outStr, errStr);
+	}
+
+	/**
+	 * Writes an empty artifact <code>example:artifactId:version</code>, including
+	 * the <code>maven-metadata.xml</code> needed to resolve RELEASE and LATEST, to
+	 * a file based Maven repository so tests can resolve it without network access.
+	 */
+	protected static void writeTestArtifact(Path repo, String artifactId, String version) throws IOException {
+		Path dir = Files.createDirectories(repo.resolve("example").resolve(artifactId));
+		Util.writeString(dir.resolve("maven-metadata.xml"),
+				"<metadata><groupId>example</groupId><artifactId>" + artifactId + "</artifactId><versioning>"
+						+ "<latest>" + version + "</latest><release>" + version + "</release>"
+						+ "<versions><version>" + version + "</version></versions></versioning></metadata>");
+		Path versionDir = Files.createDirectories(dir.resolve(version));
+		Util.writeString(versionDir.resolve(artifactId + "-" + version + ".pom"),
+				"<project><modelVersion>4.0.0</modelVersion><groupId>example</groupId><artifactId>" + artifactId
+						+ "</artifactId><version>" + version + "</version></project>");
+		try (JarOutputStream jar = new JarOutputStream(
+				Files.newOutputStream(versionDir.resolve(artifactId + "-" + version + ".jar")))) {
+			// empty jar
+		}
 	}
 
 	protected static class CaptureResult<T> {

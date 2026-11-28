@@ -1,3 +1,37 @@
+# Caching
+#
+# Gradle (gradle/actions/setup-gradle in .github/actions/shared-build-setup):
+#   gradle-home-v1|<os>|<job>[...]-<sha>
+#       Per-job Gradle User Home state. A new entry per run, since cache entries can't be
+#       updated in place; the next run restores the newest one for the same job and OS.
+#   gradle-dependencies-v1-<hash>, gradle-transforms-v1-<hash>, gradle-wrapper-zips-v1-<hash>
+#       The bulky content, keyed by content hash and shared between jobs. New entries only
+#       when dependencies or the Gradle version change.
+#   Only the default branch writes these (setup-gradle's default); PRs restore them.
+#   Test jobs deliberately keep writing too: a read-only job restores another job's entry
+#   and re-downloads whatever that lacks (test dependencies, macOS/Windows), which is the
+#   Maven Central traffic that gets us rate limited.
+#
+# Test Maven repos (actions/cache, "cache test maven repo" steps):
+#   jbang-test-m2-unit-<os>-<hash>    unit tests          ${{ runner.temp }}/jbang-test-m2
+#   jbang-test-m2-it-<os>-<hash>      integration tests   ${{ runner.temp }}/jbang-test-m2
+#   jbang-test-m2-native-<os>-<hash>  native image ITs    ${{ runner.temp }}/jbang-test-m2
+#   jbang-test-m2-smoke-<os>-<hash>   smoke tests         ${{ runner.temp }}/jbang-test-m2
+#                                                         + ~/.m2/repository
+#   The repo jbang resolves into during tests (_JBANG_TEST_REPO / JBANG_REPO), so test runs
+#   don't download the same artifacts from Maven Central every time (HTTP 429). <hash>
+#   covers itests/, src/it/ (src/test/ for unit tests) and src/main/resources/
+#   (templates); restore-keys start from
+#   the previous entry, so a change only downloads the delta.
+#   One key per job type: an entry is immutable and only the first job to save a key wins,
+#   so with a shared key the smoke tests' artifacts (Quarkus) were never saved. Jobs of the
+#   same type resolve the same artifacts, so their race doesn't matter.
+#   Smoke tests also cache ~/.m2/repository because Quarkus' build integration (qcli
+#   template) resolves its deployment artifacts with its own resolver into the default
+#   Maven repo, not into JBANG_REPO.
+#
+# All caches share the repository's 10 GB limit and are evicted least recently used first.
+
 name: step-ci-build
 on:
   workflow_dispatch:
@@ -30,10 +64,10 @@ jobs:
   format-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
-      - uses: ./.github/actions/shared-build-setup
+      - uses: $/.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
         run: ./gradlew --no-daemon formatCheck
@@ -41,21 +75,21 @@ jobs:
   build-shared:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
@@ -69,19 +103,19 @@ jobs:
         os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: setup-graalvm
-        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1
+        uses: graalvm/setup-graalvm@v1.5.3
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
             github-token: ${{ secrets.GITHUB_TOKEN }}
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -92,7 +126,7 @@ jobs:
         run: |
             chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
@@ -103,7 +137,7 @@ jobs:
           ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
 
       - name: upload-native-bundles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -113,12 +147,13 @@ jobs:
       
       - name: cache test maven repo
         if: ${{ !inputs.skip_tests }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          key: jbang-test-m2-native-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-native-${{ runner.os }}-
       - name: create install with native binary
         if: ${{ !inputs.skip_tests }}
         run: |
@@ -132,12 +167,12 @@ jobs:
           ./gradlew --no-daemon integrationTest
       - name: Arcive test results
         if: ${{ !inputs.skip_tests && always() }}
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
@@ -165,13 +200,13 @@ jobs:
             setup-java: '28-ea'
             experimental: true
     steps:
-      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -182,12 +217,22 @@ jobs:
           v="${{ steps.test-jdk.outputs.version }}"
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
+      - name: cache test maven repo
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
+        with:
+          path: ${{ runner.temp }}/jbang-test-m2
+          key: jbang-test-m2-unit-${{ runner.os }}-${{ hashFiles('itests/**', 'src/test/**', 'src/main/resources/**') }}
+          restore-keys: |
+            jbang-test-m2-unit-${{ runner.os }}-
       - name: test
+        env:
+          _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
         run: |
           ./gradlew --no-daemon test -PtestJavaVersion=${{ steps.test-jdk-major.outputs.major || matrix.java-version }} ${{ steps.test-jdk.outputs.path && format('-Porg.gradle.java.installations.paths={0}', steps.test-jdk.outputs.path) || '' }}
       - name: Add artifact.ci links
@@ -221,20 +266,20 @@ jobs:
             done
           fi
       - name: Arcive test results
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
+        uses: mikepenz/action-junit-report@v6.4.1
         with:
           report_paths: 'build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -257,9 +302,12 @@ jobs:
             - os: windows-latest
               java-version: 21
 
-            # macOS should only run Java 11 and 25
+            # macOS only runs Java 25 (the main LTS); Java 11 on macOS is covered by
+            # unit-test-jvm, and macOS launcher/binary specifics by build-test-native-image
             - os: macos-latest
               java-version: 8
+            - os: macos-latest
+              java-version: 11
             - os: macos-latest
               java-version: 17
             - os: macos-latest
@@ -279,13 +327,13 @@ jobs:
     continue-on-error: ${{ matrix.experimental == true }}
     name: integration-tests
     steps:
-      - uses: actions/checkout@71cf2267d89c5cb81562390fa70a37fa40b1305e #
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       # Installed before shared-build-setup so JAVA_HOME (and thus Gradle) stays on the build JDK
       - id: test-jdk
         if: matrix.setup-java
-        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: ${{ matrix.setup-java }}
           distribution: temurin
@@ -296,18 +344,19 @@ jobs:
           v="${{ steps.test-jdk.outputs.version }}"
           echo "major=${v%%[.+-]*}" >> "$GITHUB_OUTPUT"
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          key: jbang-test-m2-it-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-it-${{ runner.os }}-
       - name: integration-test
         env:
           _JBANG_TEST_REPO: ${{ runner.temp }}/jbang-test-m2
@@ -346,20 +395,20 @@ jobs:
             done
           fi
       - name: Arcive test results
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         if: always()
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: failure()
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6
+        uses: mikepenz/action-junit-report@v6.4.1
         with:
           report_paths: 'build/test-results/integrationTest/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -377,24 +426,27 @@ jobs:
     env:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
         with:
           add-job-summary: 'never'
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: cache test maven repo
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # see "Caching" at the top of this file
+        uses: actions/cache@v6.1.0
         with:
-          path: ${{ runner.temp }}/jbang-test-m2
-          key: jbang-test-m2-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
+          path: |
+            ${{ runner.temp }}/jbang-test-m2
+            ~/.m2/repository
+          key: jbang-test-m2-smoke-${{ runner.os }}-${{ hashFiles('itests/**', 'src/it/**', 'src/main/resources/**') }}
           restore-keys: |
-            jbang-test-m2-${{ runner.os }}-
+            jbang-test-m2-smoke-${{ runner.os }}-
       - name: use cached test maven repo
         run: echo "JBANG_REPO=${{ runner.temp }}/jbang-test-m2" >> "$GITHUB_ENV"
       - name: smoke-test
@@ -434,17 +486,17 @@ jobs:
       JRELEASER_SECRETS_HINT: ${{ secrets.JRELEASER_SECRETS_HINT }}
       JRELEASER_VERSION: early-access
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: Download native bundles
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-*
           path: build/distributions
@@ -467,7 +519,7 @@ jobs:
           arguments: release --dry-run --yolo
           setup-java: false
       - name: Upload release artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts
@@ -478,12 +530,12 @@ jobs:
     needs: [unit-test-jvm, integration-test-jvm, build-test-native-image]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: $/.github/actions/shared-build-setup
+      - uses: actions/download-artifact@v8.0.2
         with:
           pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
           path: build/allure-inputs
@@ -502,7 +554,7 @@ jobs:
           echo "ALLURE_MERGE_DIRS=$DIRS" >> $GITHUB_ENV
       - name: Archive test results
         if: env.ALLURE_MERGE_DIRS != ''
-        uses: ./.github/actions/shared-test-archiving
+        uses: $/.github/actions/shared-test-archiving
         with:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
           suffix: ""
@@ -512,11 +564,11 @@ jobs:
     needs: [merge-test-reports]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - id: shared-build
-        uses: ./.github/actions/shared-build-setup
+        uses: $/.github/actions/shared-build-setup
       - name: Create test results summary
         run: |
           SHA_PREFIX="${{ steps.shared-build.outputs.github-short-sha }}"

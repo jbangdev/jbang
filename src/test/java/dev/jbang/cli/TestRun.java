@@ -422,7 +422,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
@@ -459,7 +459,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 		assertThat(result, matchesPattern("^.*jshell(.exe(\\^\")?)?.*"));
@@ -518,7 +518,8 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar"));
+				matchesPattern(
+						".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*eclipse.jgit.pgm.*.jar"));
 
 		run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
@@ -543,7 +544,7 @@ public class TestRun extends BaseTest {
 		assertThat(cmd, endsWith("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -566,7 +567,7 @@ public class TestRun extends BaseTest {
 		assertThat(cmd, endsWith("info.picocli.codegen/picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+				matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) + ".*codegen-4.6.3.jar"));
 
 		assertThat(cmd, matchesPattern(".* -p .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -2521,7 +2522,8 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		// assertThat(code.getResourceRef().getFile().toString(),
-		// matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		// matchesPattern(".*" + Pattern.quote(mavenTempDir.getFileName().toString()) +
+		// ".*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());

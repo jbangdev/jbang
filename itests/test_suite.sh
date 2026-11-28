@@ -80,6 +80,14 @@ case "$JAVA8" in
 esac
 
 ## test dependency resolution on custom local repo (to avoid conflicts with existing ~/.m2)
+OLD_JBANG_REPO=${JBANG_REPO-}
+# seed it with log4j from the repo we normally use (cached on CI), so this doesn't
+# download from Maven Central (which rate limits CI with HTTP 429)
+SEED_LOG4J=${JBANG_REPO:-$HOME/.m2/repository}/log4j/log4j/1.2.17
+if [ -d "$SEED_LOG4J" ]; then
+  mkdir -p $SCRATCH/testrepo/log4j/log4j
+  cp -r "$SEED_LOG4J" $SCRATCH/testrepo/log4j/log4j/
+fi
 export JBANG_REPO=$SCRATCH/testrepo
 jbang classpath_log.java
 ##assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jbang]\tlog4j:log4j:jar:1.2.17\nDone\n[jbang] Dependencies resolved\n[jbang] Building jar..."
@@ -87,6 +95,8 @@ assert_raises "test -d $SCRATCH/testrepo" 0
 assert "grep -c $SCRATCH/testrepo ~/.jbang/cache/dependency_cache.json" 1
 # run it 2nd time and no resolution should happen
 assert_stderr "jbang classpath_log.java" ""
+# the rest of the tests use the normal repo again
+if [ -n "$OLD_JBANG_REPO" ]; then export JBANG_REPO=$OLD_JBANG_REPO; else unset JBANG_REPO; fi
 
 ## test urls
 assert "jbang trust add raw.githubusercontent.com/jbangdev https://raw.githubusercontent.com/jbangdev/jbang/HEAD/itests/helloworld.java" ""

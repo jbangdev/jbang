@@ -108,7 +108,7 @@ public class TestExport extends BaseTest {
 			Manifest mf = jarStream.getManifest();
 
 			String cp = mf.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-			assertThat(cp, containsString("jbang_tests_maven"));
+			assertThat(cp, containsString(mavenTempDir.getFileName().toString()));
 		}
 		Files.delete(jar.toPath());
 
@@ -318,6 +318,31 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-core'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'classpath_log_bom'"));
+	}
+
+	@Test
+	void testExportGradleProjectWithReleaseAndLatest(@TempDir Path temp) throws Exception {
+		Path repo = temp.resolve("repo");
+		writeTestArtifact(repo, "rel", "1.0");
+		writeTestArtifact(repo, "lat", "1.0");
+		writeTestArtifact(repo, "spring", "1.0.RELEASE");
+		Path src = temp.resolve("metaversions.java");
+		Util.writeString(src, "//REPOS testrepo=" + repo.toUri() + "\n"
+				+ "//DEPS example:rel:RELEASE\n"
+				+ "//DEPS example:lat:LATEST\n"
+				+ "//DEPS example:spring:1.0.RELEASE\n"
+				+ "public class metaversions { public static void main(String... args) {} }\n");
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult<Integer> result = checkedRun("export", "gradle", "--force", "-O", outFile.toString(),
+				src.toString());
+		assertThat(result.result, equalTo(ExitException.EXIT_OK));
+		Path buildPath = outFile.toPath().resolve("build.gradle");
+		assertThat(buildPath.toFile(), anExistingFile());
+		String build = Util.readString(buildPath);
+		assertThat(build, containsString("implementation 'example:rel:latest.release'"));
+		assertThat(build, containsString("implementation 'example:lat:latest.integration'"));
+		assertThat(build, containsString("implementation 'example:spring:1.0.RELEASE'"));
 	}
 
 	@Test
