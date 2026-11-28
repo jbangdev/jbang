@@ -18,7 +18,7 @@ workflows:
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
         - 'actions/setup-java@v6.3.0'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/upload-artifact@v7.0.2'
         - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
         - 'mxschmitt/action-tmate@v3.23'
@@ -27,7 +27,7 @@ workflows:
         - 'actions/download-artifact@v8.0.2'
         - 'actions/setup-dotnet@v4.3.1'
         - 'actions/setup-java@v6.3.0'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/upload-artifact@v7.0.2'
         - 'docker/login-action@v3.7.0'
         - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
@@ -45,7 +45,7 @@ workflows:
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
         - 'actions/setup-java@v6.3.0'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/upload-artifact@v7.0.2'
         - 'graalvm/setup-graalvm@v1.5.3'
         - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
@@ -55,7 +55,7 @@ workflows:
         - 'actions/checkout@v5.1.0'
         - 'actions/download-artifact@v8.0.2'
         - 'actions/setup-java@v6.3.0'
-        - 'actions/upload-artifact@v7.0.1'
+        - 'actions/upload-artifact@v7.0.2'
         - 'graalvm/setup-graalvm@v1.5.3'
         - 'gradle/actions@v6.4.1'
         - 'jreleaser/release-action@97b5e2f0e845de2fe1dbbdf451ac6a21233fafff'
@@ -101,9 +101,9 @@ dependencies:
         commit: 'sha1-d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         owner_id: 44036562
         repo_id: 196057608
-    'actions/upload-artifact@v7.0.1':
-        ref: 'v7.0.1'
-        commit: 'sha1-043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+    'actions/upload-artifact@v7.0.2':
+        ref: 'v7.0.2'
+        commit: 'sha1-cf430e030ddbb5b0abf93d22962f4752f3646cd9'
         owner_id: 44036562
         repo_id: 192625955
     'docker/login-action@v3.7.0':

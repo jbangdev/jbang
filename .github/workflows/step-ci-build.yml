@@ -81,13 +81,13 @@ jobs:
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
@@ -124,7 +124,7 @@ jobs:
         run: |
             chmod -v +x build/native-image/jbang.bin*
       - name: upload-native-image
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
@@ -135,7 +135,7 @@ jobs:
           ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
 
       - name: upload-native-bundles
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -170,7 +170,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
@@ -260,7 +260,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -386,7 +386,7 @@ jobs:
           prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
@@ -504,7 +504,7 @@ jobs:
           arguments: release --dry-run --yolo
           setup-java: false
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jreleaser-release-artifacts

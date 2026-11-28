@@ -74,7 +74,7 @@ jobs:
       - name: build
         run: ./gradlew --no-daemon clean build installDist publish -x check --build-cache --scan -s
       - name: Upload build results
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
@@ -110,7 +110,7 @@ jobs:
       - name: build-native-bundles
         run: ./gradlew --no-daemon nativeDistZip nativeDistTar latestNativeDistZip latestNativeDistTar
       - name: upload-native-bundles
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang-native-bundles-${{ matrix.os }}
           path: |
@@ -197,7 +197,7 @@ jobs:
           setup-java: false
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: jreleaser-release
           path: |
