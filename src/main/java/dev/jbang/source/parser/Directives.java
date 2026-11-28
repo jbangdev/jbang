@@ -513,7 +513,10 @@ public abstract class Directives {
 			Properties layered = new Properties() {
 				@Override
 				public String getProperty(String key) {
-					String val = inherited != null ? inherited.getProperty(key) : fallback(key);
+					String val = inherited != null ? inherited.getProperty(key) : null;
+					if (val == null) {
+						val = fallback(key);
+					}
 					return val != null ? val : vars.get(key);
 				}
 			};
