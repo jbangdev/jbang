@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,6 +12,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -153,4 +155,26 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 			.collect(Collectors.toList()), iterableWithSize(1));
 	}
 
+	@Test
+	void testBuilderPropertiesReachScopedSourceWithoutInheritedProperties() throws IOException {
+		Path childPath = TestSource.createTmpFileWithContent("", "VersionChild.java",
+				"//DEPS foo:bar:${version}\n\npublic class VersionChild {\n}\n");
+		Path mainPath = TestSource.createTmpFile("somefolder", "VersionMain.java");
+		TestSource.writeContentToFile(mainPath,
+				"//SOURCES " + childPath.toString() + "\n\npublic class VersionMain {\n}\n");
+		ResourceRef resourceRef = ResourceRef.forResolvedResource(mainPath.toString(), mainPath);
+		Source source = Source.forResourceRef(resourceRef, null);
+		Project prj = Project.builder().setProperties(Collections.singletonMap("version", "1")).build(source);
+		assertThat(prj.getMainSourceSet().getDependencies(), hasItem("foo:bar:1"));
+	}
+
+	@Test
+	void testBuilderPropertiesOverrideRootVarsInBuildSource() throws IOException {
+		Path rootPath = TestSource.createTmpFileWithContent("", "VersionRoot.java",
+				"//VARS version=1\n//DEPS foo:bar:${version}\n\npublic class VersionRoot {\n}\n");
+		ResourceRef resourceRef = ResourceRef.forResolvedResource(rootPath.toString(), rootPath);
+		Source source = Source.forResourceRef(resourceRef, null);
+		Project prj = Project.builder().setProperties(Collections.singletonMap("version", "2")).build(source);
+		assertThat(prj.getMainSourceSet().getDependencies(), hasItem("foo:bar:2"));
+	}
 }

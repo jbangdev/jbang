@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ public abstract class Source {
 	private final Supplier<Directives> directivesSupplier;
 	private Directives directives;
 	private String contents;
+	private Properties inheritedProperties;
 
 	public enum Type {
 		java("java", "java"), jshell("jsh", "java"),
@@ -56,14 +58,16 @@ public abstract class Source {
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> Util.readString(resourceRef.getInputStream());
-		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties)
+			.withInheritedProperties(inheritedProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, String contents, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> contents;
 		this.contents = contents;
-		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties)
+			.withInheritedProperties(inheritedProperties);
 	}
 
 	@NonNull
@@ -72,6 +76,11 @@ public abstract class Source {
 			directives = directivesSupplier.get();
 		}
 		return directives;
+	}
+
+	public Source withInheritedProperties(Properties inheritedProperties) {
+		this.inheritedProperties = inheritedProperties;
+		return this;
 	}
 
 	protected String getContents() {

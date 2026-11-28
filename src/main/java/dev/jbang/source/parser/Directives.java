@@ -6,10 +6,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +27,7 @@ import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 public abstract class Directives {
@@ -45,9 +49,11 @@ public abstract class Directives {
 		public static final String NATIVE_OPTIONS = "NATIVE_OPTIONS";
 		public static final String NOINTEGRATIONS = "NOINTEGRATIONS";
 		public static final String PREVIEW = "PREVIEW";
+		public static final String PROPS = "PROPS";
 		public static final String REPOS = "REPOS";
 		public static final String RUNTIME_OPTIONS = "RUNTIME_OPTIONS";
 		public static final String SOURCES = "SOURCES";
+		public static final String VARS = "VARS";
 
 		// Directives introduced by non-Java source types extensions
 		public static final String GROOVY = "GROOVY";
@@ -322,6 +328,41 @@ public abstract class Directives {
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
+	public static class ScopedSource {
+		private final String value;
+		private final Properties scope;
+
+		public ScopedSource(String value, Properties scope) {
+			this.value = value;
+			this.scope = scope;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public Properties getScope() {
+			return scope;
+		}
+	}
+
+	public List<ScopedSource> scopedSources() {
+		return sources().stream().map(v -> new ScopedSource(v, null)).collect(Collectors.toList());
+	}
+
+	@NonNull
+	public Map<String, String> props() {
+		Map<String, String> result = new LinkedHashMap<>();
+		collectOptions(Names.PROPS).forEach(pair -> {
+			String[] kv = pair.split("=", 2);
+			if (kv.length != 2) {
+				throw new IllegalStateException("Invalid //PROPS entry, expected name=value: " + pair);
+			}
+			result.put(kv[0].trim(), kv[1]);
+		});
+		return result;
+	}
+
 	protected boolean isSourcesDeclare(Directive d) {
 		return Names.SOURCES.equals(d.getName());
 	}
@@ -445,6 +486,130 @@ public abstract class Directives {
 		private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile(
 				"@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
+		private final Map<String, String> vars = new LinkedHashMap<>();
+		private Properties inherited;
+
+		public Extended withInheritedProperties(Properties inherited) {
+			this.inherited = inherited;
+			return this;
+		}
+
+		private Function<String, String> replacer() {
+			if (inherited == null && vars.isEmpty()) {
+				return propertiesReplacer;
+			}
+			return layeredReplacer();
+		}
+
+		private Function<String, String> replacerFor(String directive) {
+			// //VARS values are always evaluated, so defaults like x:1 are resolved before
+			// storage
+			boolean isVars = directive.startsWith(Names.VARS) && directive.length() > Names.VARS.length()
+					&& Character.isWhitespace(directive.charAt(Names.VARS.length()));
+			return isVars ? layeredReplacer() : replacer();
+		}
+
+		private Function<String, String> layeredReplacer() {
+			Properties layered = new Properties() {
+				@Override
+				public String getProperty(String key) {
+					String val = inherited != null ? inherited.getProperty(key) : null;
+					if (val == null) {
+						val = fallback(key);
+					}
+					return val != null ? val : vars.get(key);
+				}
+			};
+			Function<String, String> resolver = value -> PropertiesValueResolver.replaceProperties(value, layered);
+			if (inherited != null) {
+				return resolver;
+			}
+			// no inherited properties: resolve each reference on its own so that one
+			// unresolved reference does not undo the others
+			return value -> resolveLeniently(value, resolver);
+		}
+
+		private String resolveLeniently(String value, Function<String, String> resolver) {
+			StringBuilder out = new StringBuilder();
+			int pos = 0;
+			while (true) {
+				int open = value.indexOf("${", pos);
+				while (open > 0 && value.charAt(open - 1) == '$') {
+					open = value.indexOf("${", open + 1);
+				}
+				int close = open < 0 ? -1 : value.indexOf('}', open);
+				if (open < 0 || close < 0) {
+					out.append(value, pos, value.length());
+					return out.toString();
+				}
+				out.append(value, pos, open);
+				String token = value.substring(open, close + 1);
+				out.append(resolveToken(token, resolver));
+				pos = close + 1;
+			}
+		}
+
+		private String resolveToken(String token, Function<String, String> resolver) {
+			try {
+				return resolver.apply(token);
+			} catch (IllegalStateException e) {
+				if (propertiesReplacer == null) {
+					return token;
+				}
+				try {
+					return propertiesReplacer.apply(token);
+				} catch (IllegalStateException e2) {
+					return token;
+				}
+			}
+		}
+
+		private String fallback(String key) {
+			if (propertiesReplacer == null) {
+				return System.getProperty(key);
+			}
+			String token = "${" + key + "}";
+			try {
+				String resolved = propertiesReplacer.apply(token);
+				return token.equals(resolved) ? null : resolved;
+			} catch (IllegalStateException e) {
+				return null;
+			}
+		}
+
+		private void registerVars(@Nullable String value) {
+			for (String pair : quotedStringToList(Q2TL_SPACES, value)) {
+				String[] kv = pair.split("=", 2);
+				if (kv.length != 2) {
+					throw new IllegalStateException("Invalid //VARS entry, expected name=value: " + pair);
+				}
+				vars.put(kv[0].trim(), kv[1]);
+			}
+		}
+
+		private final Map<Directive, Properties> scopes = new IdentityHashMap<>();
+
+		private Properties snapshot() {
+			Properties base = inherited != null ? inherited : new Properties();
+			Map<String, String> copy = new LinkedHashMap<>(vars);
+			return new Properties() {
+				@Override
+				public String getProperty(String key) {
+					String val = base.getProperty(key);
+					return val != null ? val : copy.get(key);
+				}
+			};
+		}
+
+		@Override
+		public List<ScopedSource> scopedSources() {
+			return getAll()
+				.filter(this::isSourcesDeclare)
+				.flatMap(d -> quotedStringToList(Q2TL_SSCT, d.getValue()).stream()
+					.map(v -> new ScopedSource(v, scopes.get(d))))
+				.collect(Collectors.toList());
+		}
+
 		public Extended(String contents, Function<String, String> propertiesReplacer) {
 			this.contents = contents;
 			this.propertiesReplacer = propertiesReplacer;
@@ -464,13 +629,24 @@ public abstract class Directives {
 		@Override
 		public Stream<Directive> getAll() {
 			if (tags == null) {
-				tags = Util.stringLines(contents)
+				List<Directive> result = new ArrayList<>();
+				for (String line : Util.stringLines(contents)
 					.filter(s -> s.startsWith("//")
 							|| s.contains(DEPS_ANNOT_PREFIX)
 							|| s.contains(REPOS_ANNOT_PREFIX))
-					.map(line -> toDirective(line, propertiesReplacer))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
+					.collect(Collectors.toList())) {
+					Directive d = toDirective(line, propertiesReplacer);
+					if (d != null) {
+						if (Names.VARS.equals(d.getName())) {
+							registerVars(d.getValue());
+						}
+						if (Names.SOURCES.equals(d.getName())) {
+							scopes.put(d, snapshot());
+						}
+						result.add(d);
+					}
+				}
+				tags = result;
 				contents = null;
 			}
 			return tags.stream();
@@ -484,7 +660,7 @@ public abstract class Directives {
 			} else if (line.contains(REPOS_ANNOT_PREFIX)) {
 				return parseReposAnnotation(line);
 			} else {
-				Directive d = super.toDirective(line.substring(2), this.propertiesReplacer);
+				Directive d = super.toDirective(line.substring(2), replacerFor(line.substring(2)));
 				if (d == null) {
 					return null;
 				}

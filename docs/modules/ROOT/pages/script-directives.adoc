@@ -356,6 +356,50 @@ Let you specify the manifest file key-values in the generated jar file xref:runn
 - Entries without `=value` default to `true`
 - Useful for application metadata
 
+== Variables and System Properties
+
+=== //VARS
+
+Defines replacement values that can be used as `${name}` in the directives that follow it. The values are only used while the directives are read and are not passed on to the running application.
+
+**Syntax**: `//VARS name=value [name2=value2 ...]`
+
+Values are separated by whitespace. A value that contains spaces must be quoted together with its name, as in `"name=some value"`.
+
+**Rules**:
+
+* A variable is available from the line that defines it, so it can be used by later `//VARS`, `//PROPS` and other directives but not by earlier ones.
+* A property set on the command line with `-D` or in an alias overrides a `//VARS` value with the same name.
+* A file included with `//SOURCES` sees the variables defined in the including file above the `//SOURCES` line, but not those defined below it.
+* If an including file and an included file define the same name, the including file's value is used in the included file.
+
+**Examples**:
+[source,java]
+----
+//VARS quarkus.version=3.25
+//DEPS io.quarkus:quarkus-resteasy:${quarkus.version}
+//DEPS io.quarkus:quarkus-arc:${quarkus.version}
+
+//VARS base=../jabls/src/main/java
+//SOURCES ${base}/Service.java ${base}/util/Helper.java
+----
+
+=== //PROPS
+
+Sets system properties for the build and for the running application.
+
+**Syntax**: `//PROPS name=value [name2=value2 ...]`
+
+Values may use `${name}` references to variables defined earlier with `//VARS`. Properties given on the command line with `-D` or in an alias override `//PROPS` values. If an including file and an included file define the same property, the including file's value is used.
+
+**Examples**:
+[source,java]
+----
+//VARS port=8080
+//PROPS server.port=${port} app.mode=demo
+----
+
+
 == Performance Optimization
 
 === //CDS (EXPERIMENTAL)
@@ -698,6 +742,8 @@ Some directives can be conditionally applied:
 |`//KOTLIN` |Kotlin version |`//KOTLIN 2.0.21`
 |`//GROOVY` |Groovy version |`//GROOVY 3.0.19`
 |`//SOURCES` |Additional sources |`//SOURCES util/Helper.java`
+|`//VARS` |Replacement values for `${name}` |`//VARS version=1.2`
+|`//PROPS` |System properties |`//PROPS app.mode=demo`
 |`//FILES` |Include files |`//FILES config.properties`
 |`//DESCRIPTION` |Script description |`//DESCRIPTION My utility`
 |===
