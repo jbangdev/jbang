@@ -25,9 +25,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * The bash launcher captures jbang's output, so jbang itself never sees a
- * terminal. It must only force colors (CLICOLOR_FORCE) when the launcher's own
- * stdout is a terminal, so piped/redirected output stays free of ANSI codes.
+ * The bash launcher normally leaves jbang's output attached to the terminal, so
+ * jbang detects colors itself. When it can't create a temporary file it falls
+ * back to capturing jbang's output, and then must only force colors
+ * (CLICOLOR_FORCE) when the launcher's own stdout is a terminal, so
+ * piped/redirected output stays free of ANSI codes.
  */
 @DisabledOnOs(OS.WINDOWS)
 class TestScriptColor extends AbstractScriptTest {
@@ -50,7 +52,17 @@ class TestScriptColor extends AbstractScriptTest {
 		env.remove("CLICOLOR_FORCE");
 		RunResult result = runProcess(List.of(launcher.toString()), env);
 		assertEquals(0, result.exitCode, result.stderr);
-		assertEquals("CLICOLOR_FORCE=null", result.stdout.trim());
+		assertEquals("CLICOLOR_FORCE=null console=false", result.stdout.trim());
+	}
+
+	@Test
+	void doesNotForceColorWhenPipedWithoutTempFile() throws Exception {
+		Map<String, String> env = env();
+		env.remove("CLICOLOR_FORCE");
+		env.put("TMPDIR", tempDir.resolve("missing").toString());
+		RunResult result = runProcess(List.of(launcher.toString()), env);
+		assertEquals(0, result.exitCode, result.stderr);
+		assertEquals("CLICOLOR_FORCE=null console=false", result.stdout.trim());
 	}
 
 	@Test
@@ -59,20 +71,22 @@ class TestScriptColor extends AbstractScriptTest {
 		env.put("CLICOLOR_FORCE", "1");
 		RunResult result = runProcess(List.of(launcher.toString()), env);
 		assertEquals(0, result.exitCode, result.stderr);
-		assertEquals("CLICOLOR_FORCE=1", result.stdout.trim());
+		assertEquals("CLICOLOR_FORCE=1 console=false", result.stdout.trim());
+	}
+
+	@Test
+	void leavesTerminalToJbang() throws Exception {
+		assumeTrue(isScriptAvailable(), "script(1) is not available");
+		Map<String, String> env = env();
+		env.remove("CLICOLOR_FORCE");
+		RunResult result = runProcess(onTerminal(), env);
+		assertEquals(0, result.exitCode, result.stderr);
+		assertEquals("CLICOLOR_FORCE=null console=true", terminalOutput(result));
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = { "_JAVA_OPTIONS", "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS" })
-	void forcesColorOnTerminal(String javaOptionsVariable) throws Exception {
-		// run the launcher with a pseudo terminal as stdout via script(1)
-		List<String> cmd = new ArrayList<>();
-		cmd.add("script");
-		if (OS.MAC.isCurrentOs()) {
-			cmd.addAll(List.of("-q", "/dev/null", launcher.toString()));
-		} else {
-			cmd.addAll(List.of("-qec", launcher.toString(), "/dev/null"));
-		}
+	void forcesColorOnTerminalWithoutTempFile(String javaOptionsVariable) throws Exception {
 		assumeTrue(isScriptAvailable(), "script(1) is not available");
 		EnvironmentVariables variables = new EnvironmentVariables();
 		String originalValue = System.getenv(javaOptionsVariable);
@@ -80,12 +94,29 @@ class TestScriptColor extends AbstractScriptTest {
 		try {
 			Map<String, String> env = env();
 			env.remove("CLICOLOR_FORCE");
-			RunResult result = runProcess(cmd, env);
+			env.put("TMPDIR", tempDir.resolve("missing").toString());
+			RunResult result = runProcess(onTerminal(), env);
 			assertEquals(0, result.exitCode, result.stderr);
-			assertEquals("CLICOLOR_FORCE=1", result.stdout.replace("\r", "").replace("^D", "").trim());
+			assertEquals("CLICOLOR_FORCE=1 console=false", terminalOutput(result));
 		} finally {
 			variables.set(javaOptionsVariable, originalValue);
 		}
+	}
+
+	/** Runs the launcher with a pseudo terminal as stdin/stdout via script(1). */
+	private List<String> onTerminal() {
+		List<String> cmd = new ArrayList<>();
+		cmd.add("script");
+		if (OS.MAC.isCurrentOs()) {
+			cmd.addAll(List.of("-q", "/dev/null", launcher.toString()));
+		} else {
+			cmd.addAll(List.of("-qec", launcher.toString(), "/dev/null"));
+		}
+		return cmd;
+	}
+
+	private static String terminalOutput(RunResult result) {
+		return result.stdout.replace("\r", "").replace("^D", "").trim();
 	}
 
 	private Map<String, String> env() {
@@ -123,10 +154,14 @@ class TestScriptColor extends AbstractScriptTest {
 		}
 	}
 
-	/** Stands in for jbang: prints the CLICOLOR_FORCE value it was started with. */
+	/**
+	 * Stands in for jbang: prints the CLICOLOR_FORCE value it was started with and
+	 * whether it is attached to a terminal.
+	 */
 	public static class ColorEnvProbe {
 		public static void main(String[] args) {
-			System.out.println("CLICOLOR_FORCE=" + System.getenv("CLICOLOR_FORCE"));
+			System.out.println("CLICOLOR_FORCE=" + System.getenv("CLICOLOR_FORCE")
+					+ " console=" + (System.console() != null));
 		}
 	}
 }

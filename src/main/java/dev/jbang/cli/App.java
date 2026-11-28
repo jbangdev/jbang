@@ -601,7 +601,7 @@ public class App extends BaseCommand {
 				}
 			}
 			if (!cmd.isEmpty()) {
-				System.out.println(cmd);
+				Util.printExecuteCommand(System.out, cmd);
 				return ExitException.EXIT_EXECUTE;
 			} else {
 				return ExitException.EXIT_OK;

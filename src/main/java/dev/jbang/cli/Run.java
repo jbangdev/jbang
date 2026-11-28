@@ -111,7 +111,7 @@ public class Run extends BaseBuildCommand {
 		String cmdline = updateGeneratorForRun(genb).build().generate();
 
 		Util.verboseMsg("run: " + cmdline);
-		realOut.println(cmdline);
+		Util.printExecuteCommand(realOut, cmdline);
 
 		return ExitException.EXIT_EXECUTE;
 	}

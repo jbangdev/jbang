@@ -53,7 +53,7 @@ public class Version extends BaseCommand {
 		if (update) {
 			String cmdLauncherUpdate = App.AppInstall.cmdLauncherUpdateCommand();
 			if (cmdLauncherUpdate != null) {
-				System.out.println(cmdLauncherUpdate);
+				Util.printExecuteCommand(System.out, cmdLauncherUpdate);
 				return ExitException.EXIT_EXECUTE;
 			}
 		}

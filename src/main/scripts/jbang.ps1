@@ -100,25 +100,46 @@ function Invoke-Download {
 function Invoke-JBang {
     param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
     
-    $oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
+    $oldShell, $oldNotty, $oldCmd, $oldExecFile=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD, $env:JBANG_EXECUTE_FILE
     $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
     
-    if ($binaryPath) {
-        # Run native binary
-        $output = & "$binaryPath" $args
+    # jbang writes the command to execute (exit code 255) to this file instead of
+    # stdout, so we don't need to capture stdout and interactive commands keep
+    # their console. If we can't create it we fall back to capturing stdout.
+    New-Item -ItemType Directory -Force -Path "$TDIR" -ErrorAction Ignore >$null 2>&1
+    $execFile="$TDIR\$([guid]::NewGuid()).jbang.tmp"
+    try { [System.IO.File]::WriteAllText($execFile, "") } catch { $execFile=$null }
+    $env:JBANG_EXECUTE_FILE=$execFile
+    
+    if ($execFile) {
+        if ($binaryPath) {
+            # Run native binary
+            & "$binaryPath" $args
+        } else {
+            # Run JAR
+            & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        }
         $err=$LASTEXITCODE
+        if ($err -eq 255) {
+            $output=[System.IO.File]::ReadAllText($execFile, [Console]::OutputEncoding).Trim()
+        }
+        Remove-Item -LiteralPath $execFile -Force -ErrorAction Ignore
     } else {
-        # Run JAR
-        $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        if ($binaryPath) {
+            $output = & "$binaryPath" $args
+        } else {
+            $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -jar "$jarPath" $args
+        }
         $err=$LASTEXITCODE
     }
+    $env:JBANG_EXECUTE_FILE=$oldExecFile
     
     $erroractionpreference=$old_erroractionpreference
     $global:progresspreference=$old_progresspreference
     
     if ($err -eq 255) {
       Invoke-Expression "& $output"
-    } elseif ($output -ne "") {
+    } elseif (-not $execFile -and $output -ne "") {
       Write-Output $output
     }
     

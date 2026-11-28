@@ -149,9 +149,36 @@ execute_jbang() {
   export JBANG_STDIN_NOTTY
   export JBANG_LAUNCH_CMD=$0
   
-  ## jbang's output is captured below so it never sees a terminal itself. Force
-  ## colors only when our own stdout is a terminal, so pipes and redirects stay
-  ## plain. Passed via env so it does not leak into the user's process.
+  ## jbang writes the command to execute (exit code 255) to this file instead of
+  ## stdout, so its output isn't captured and goes straight to the terminal
+  execFile=$(mktemp "${TMPDIR:-/tmp}/jbang-exec.XXXXXX" 2>/dev/null)
+  if [[ -n "$execFile" ]]; then
+    trap 'rm -f "$execFile"; exit 130' INT TERM
+    execFileEnv=$execFile
+    if [[ $os == windows ]]; then
+      execFileEnv=$(cygpath -w "$execFile")
+    fi
+    if [[ -n "$binaryPath" ]]; then
+      JBANG_EXECUTE_FILE="$execFileEnv" "$binaryPath" "$@"
+    else
+      JBANG_EXECUTE_FILE="$execFileEnv" "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -jar "${jarPath}" "$@"
+    fi
+    err=$?
+    trap - INT TERM
+    if [ $err -eq 255 ]; then
+      output=$(<"$execFile")
+      rm -f "$execFile"
+      eval "exec $output"
+    fi
+    rm -f "$execFile"
+    exit $err
+  fi
+
+  ## No temporary file (e.g. read-only filesystem), fall back to capturing
+  ## jbang's output, so it never sees a terminal itself. Force colors only when
+  ## our own stdout is a terminal, so pipes and redirects stay plain. Passed via
+  ## env so it does not leak into the user's process.
+  unset JBANG_EXECUTE_FILE
   colorEnv=""
   if [ -t 1 ]; then
     colorEnv="CLICOLOR_FORCE=${CLICOLOR_FORCE:-1}"

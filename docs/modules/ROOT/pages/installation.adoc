@@ -634,4 +634,7 @@ The following variables are set *by* the scripts for use by JBang's Java code an
 | `JBANG_LAUNCH_CMD`
 | Path to the script that was invoked.
 
+| `JBANG_EXECUTE_FILE`
+| Temporary file JBang writes the command the script should run next to (e.g. the `java` command for `jbang run`) when it exits with code 255. This lets the scripts leave JBang's output attached to the terminal. If the scripts can't create a temporary file they don't set it, and JBang prints that command to stdout for the script to capture instead.
+
 |===

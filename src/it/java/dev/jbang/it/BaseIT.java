@@ -50,7 +50,10 @@ public class BaseIT {
 		List<String> list = new ArrayList<>(cmd);
 		if (Util.isWindows()) {
 			if ("true".equals(System.getProperty("jbang.it.usePowershell"))) {
-				list.addAll(0, Arrays.asList("powershell", "-Command"));
+				// Windows PowerShell can inherit a PSModulePath pointing at PowerShell 7's
+				// modules (e.g. on GitHub runners), which breaks module autoloading
+				list.addAll(0, Arrays.asList("powershell", "-Command",
+						"$env:PSModulePath=[Environment]::GetEnvironmentVariable('PSModulePath','Machine')", ";"));
 				list.addAll(Arrays.asList(";", "exit", "$LastExitCode"));
 			} else {
 				list.addAll(0, Arrays.asList("cmd", "/c"));

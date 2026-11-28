@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystems;
@@ -87,6 +89,7 @@ public class Util {
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_LAUNCH_CMD = "JBANG_LAUNCH_CMD";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_EXECUTE_FILE = "JBANG_EXECUTE_FILE";
 	public static final String JBANG_PREFER_GUI = "JBANG_PREFER_GUI";
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
 
@@ -635,6 +638,30 @@ public class Util {
 		} catch (IllegalArgumentException | NullPointerException ex) {
 			// We'll just hope for the best
 			return isWindows() ? Shell.powershell : Shell.bash;
+		}
+	}
+
+	/**
+	 * Hands a command line to the launcher script, which executes it when JBang
+	 * exits with {@link ExitException#EXIT_EXECUTE}. Launchers that set
+	 * JBANG_EXECUTE_FILE get it written to that file, so they can leave our stdout
+	 * attached to the console (interactive commands need that on Windows). Other
+	 * launchers capture stdout, so for them it gets printed to <code>out</code>.
+	 */
+	public static void printExecuteCommand(PrintStream out, String cmdline) {
+		String file = System.getenv(JBANG_EXECUTE_FILE);
+		if (file == null || file.isEmpty()) {
+			out.println(cmdline);
+			return;
+		}
+		// Use the encoding the command would have had on stdout, the launchers
+		// decode it the same way they decode console output
+		String enc = System.getProperty("stdout.encoding", System.getProperty("sun.stdout.encoding"));
+		Charset cs = enc != null && Charset.isSupported(enc) ? Charset.forName(enc) : Charset.defaultCharset();
+		try {
+			Files.write(Paths.get(file), (cmdline + System.lineSeparator()).getBytes(cs));
+		} catch (IOException e) {
+			throw new ExitException(ExitException.EXIT_INTERNAL_ERROR, "Could not write command to " + file, e);
 		}
 	}
 

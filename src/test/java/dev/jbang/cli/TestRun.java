@@ -2358,6 +2358,29 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testRunPrintsCommandToStdout() throws Exception {
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		CaptureResult<Integer> result = checkedRun("run", script);
+		assertThat(result.result, equalTo(EXIT_EXECUTE));
+		assertThat(result.out, containsString("helloworld"));
+	}
+
+	@Test
+	void testRunWritesCommandToExecuteFile(@TempDir Path tmp) throws Exception {
+		Path execFile = tmp.resolve("exec.txt");
+		environmentVariables.set(Util.JBANG_EXECUTE_FILE, execFile.toString());
+		try {
+			String script = examplesTestFolder.resolve("helloworld.java").toString();
+			CaptureResult<Integer> result = checkedRun("run", script);
+			assertThat(result.result, equalTo(EXIT_EXECUTE));
+			assertThat(result.out, emptyString());
+			assertThat(Util.readString(execFile), containsString("helloworld"));
+		} finally {
+			environmentVariables.clear(Util.JBANG_EXECUTE_FILE);
+		}
+	}
+
+	@Test
 	void testRemoteFileArgSimple() throws Exception {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))

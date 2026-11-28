@@ -243,7 +243,7 @@ public class Main {
 					result.addAll(remainingArgs.subList(1, remainingArgs.size()));
 					String cmdLine = String.join(" ", result);
 					Util.verboseMsg("run plugin: " + cmdLine);
-					System.out.println(cmdLine);
+					Util.printExecuteCommand(System.out, cmdLine);
 					throw new ExitException(ExitException.EXIT_EXECUTE, cmdLine);
 				} else {
 					// No alias or external command matched. Before falling through
